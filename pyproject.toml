@@ -11,6 +11,8 @@ readme = "README.rst"
 
 [tool.poetry.dependencies]
 python = "^3.9"
+Django = "*"
+psycopg2 = "*"
 
 [tool.poetry.dev-dependencies]
 

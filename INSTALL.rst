@@ -69,9 +69,31 @@ to get the latest version for development.
     TBD
 
 #. Do `Update`_ section
+#. Create superuser::
+
+    make create-superuser
 
 Update
 ++++++
 #. Install the project and dependencies::
 
     make install
+
+#. (in a separate terminal) Run dependency services::
+
+    make up-dependencies-only
+
+#. Run migrations::
+
+    make migrate
+
+Run
++++
+
+#. (in a separate terminal) Run only dependency services with Docker::
+
+    make up-dependencies-only
+
+#. (in a separate terminal) Run Node::
+
+    make run-server

@@ -75,17 +75,20 @@ to get the latest version for development.
 
 Update
 ++++++
-#. Install the project and dependencies::
-
-    make install
-
 #. (in a separate terminal) Run dependency services::
 
     make up-dependencies-only
 
-#. Run migrations::
+#. Update::
 
-    make migrate
+    make update
+
+Lint
+++++
+
+#. Lint::
+
+    make lint
 
 Run
 +++
@@ -97,3 +100,9 @@ Run
 #. (in a separate terminal) Run Node::
 
     make run-server
+
+Hints
+=====
+
+#. If you would like to gitignore some directories/files specific to your local dev env setup
+   use `.git/info/exclude` of the local repository instead of adding them to `.gitignore`

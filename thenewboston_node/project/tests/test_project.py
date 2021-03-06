@@ -18,4 +18,4 @@ def test_local_settings_file_applied():
     'THENEWBOSTON_NODE_FOR_ENV_VAR_OVERRIDE_TESTING' not in os.environ, reason='Environment variable is not set'
 )
 def test_can_override_with_env_var():
-    assert settings.FOR_ENV_VAR_OVERRIDE_TESTING is True
+    assert settings.FOR_ENV_VAR_OVERRIDE_TESTING == {'k': 'v'}

@@ -12,6 +12,20 @@ services:
     volumes:
       - postgresql-data:/var/lib/postgresql/data
 
+  node:
+    build: .
+    image: thenewboston-node:current
+    environment:
+      - IN_DOCKER=true
+      - THENEWBOSTON_NODE_DATABASES={"default":{"HOST":"db"}}
+    env_file:
+      - .env
+    command: ./run.sh
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+
 volumes:
   postgresql-data:
     driver: local

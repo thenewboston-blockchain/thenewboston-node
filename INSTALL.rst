@@ -64,7 +64,7 @@ to get the latest version for development.
     poetry config virtualenvs.path ${HOME}/.virtualenvs && \
     poetry run pip install pip==${PIP_REQUIRED_VERSION}
 
-#. Setup local configuration::
+#. Setup local configuration for running code on host::
 
     mkdir local
     cp thenewboston_node/project/settings/templates/settings.py ./local/settings.py
@@ -73,6 +73,11 @@ to get the latest version for development.
     # Edit files if needed
     vim ./local/settings.py
     vim ./local/settings.unittests.py
+
+#. Setup local configuration for running docker image::
+
+    cp thenewboston_node/project/settings/templates/.env .
+    vim .env  # edit file if needed
 
 #. Do `Update`_ section
 #. Create superuser::

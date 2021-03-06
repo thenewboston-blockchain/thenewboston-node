@@ -22,6 +22,6 @@ include(*(
     'base.py',
     'logging.py',
     'custom.py',
-) + overriding_settings + ('sentry.py',))
+) + overriding_settings + ('sentry.py', 'docker.py'))
 
 assert SECRET_KEY is not NotImplemented  # noqa: F821

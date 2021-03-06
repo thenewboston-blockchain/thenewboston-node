@@ -1,10 +1,18 @@
+.PHONY: build
+build:
+	docker build . -t thenewboston-node:current
+
 .PHONY: test
 test:
-	THENEWBOSTON_NODE_FOR_ENV_VAR_OVERRIDE_TESTING=true poetry run pytest -v -n auto
+	THENEWBOSTON_NODE_FOR_ENV_VAR_OVERRIDE_TESTING='{"k": "v"}' poetry run pytest -v -n auto
 
 .PHONY: up-dependencies-only
 up-dependencies-only:
 	docker-compose up --force-recreate db
+
+.PHONY: up
+up:
+	docker-compose up --force-recreate --build
 
 .PHONY: install
 install:

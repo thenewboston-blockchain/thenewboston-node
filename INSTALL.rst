@@ -66,7 +66,13 @@ to get the latest version for development.
 
 #. Setup local configuration::
 
-    TBD
+    mkdir local
+    cp thenewboston_node/project/settings/templates/settings.py ./local/settings.py
+    cp thenewboston_node/project/settings/templates/settings.py ./local/settings.unittests.py
+
+    # Edit files if needed
+    vim ./local/settings.py
+    vim ./local/settings.unittests.py
 
 #. Do `Update`_ section
 #. Create superuser::

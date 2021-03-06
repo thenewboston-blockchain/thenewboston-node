@@ -1,0 +1,4 @@
+from thenewboston_node.core.utils.collections import deep_update
+from thenewboston_node.core.utils.settings import get_settings_from_environment
+
+deep_update(globals(), get_settings_from_environment(ENVVAR_SETTINGS_PREFIX))  # noqa: F821

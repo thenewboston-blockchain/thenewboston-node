@@ -1,5 +1,5 @@
 [flake8]
-ignore = D203,D101,D400,D401,D106,W503,F403,F405,E501,D403,D104,C101,D100,D105,D103,D102
+ignore = W503,F403,F405,E501,D403,C101,I201
 exclude =
     .git,
     __pycache__,
@@ -11,3 +11,5 @@ max-complexity = 12
 max-line-length = 119
 max-linenumber = 500
 multiline-quotes = double
+per-file-ignores =
+    thenewboston_node/project/settings/templates/settings.py:F821

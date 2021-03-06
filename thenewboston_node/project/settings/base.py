@@ -19,10 +19,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'n3zn=0%!z-cr#jfs-0-vl$h&gcs&1&*tq%hik6bq%if6*1)!1z'
+SECRET_KEY = NotImplemented
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -73,11 +73,10 @@ WSGI_APPLICATION = 'thenewboston_node.project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        # TODO(dmu) LOW: Consider to have None default value to fail-fast if not configured
         'NAME': 'thenewboston_node',
         'USER': 'thenewboston',
         'PASSWORD': 'thenewboston',
-        'HOST': 'localhost',
+        'HOST': '127.0.0.1',
         'PORT': 5432,
     }
 }

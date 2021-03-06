@@ -1,6 +1,6 @@
 .PHONY: test
 test:
-	poetry run pytest -v -n auto
+	THENEWBOSTON_NODE_FOR_ENV_VAR_OVERRIDE_TESTING=true poetry run pytest -v -n auto
 
 .PHONY: up-dependencies-only
 up-dependencies-only:

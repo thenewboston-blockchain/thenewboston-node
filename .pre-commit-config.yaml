@@ -26,7 +26,6 @@ repos:
           - flake8-bugbear
           - flake8-builtins
           - flake8-coding
-          - flake8-docstrings
           - flake8-import-order
           - flake8-polyfill
           - flake8-quotes

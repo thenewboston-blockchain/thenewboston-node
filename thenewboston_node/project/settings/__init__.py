@@ -12,8 +12,11 @@ ENVVAR_SETTINGS_PREFIX = 'THENEWBOSTON_NODE_'
 
 local_settings_path_base = os.getenv(f'{ENVVAR_SETTINGS_PREFIX}SETTINGS', 'local/settings')
 if is_pytest_running():
+    # We use dedicated local settings here to have reproducible unittest runs
     LOCAL_SETTINGS_PATH = str(ROOT_DIR / (local_settings_path_base + '.unittests.py'))
     overriding_settings = (optional(LOCAL_SETTINGS_PATH),)
+    if os.getenv('THENEWBOSTON_NODE_TEST_WITH_ENV_VARS') == 'true':
+        overriding_settings += ('envvars.py',)
 else:
     LOCAL_SETTINGS_PATH = str(ROOT_DIR / (local_settings_path_base + '.py'))
     overriding_settings = (optional(LOCAL_SETTINGS_PATH), 'envvars.py')

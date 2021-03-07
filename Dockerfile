@@ -34,4 +34,5 @@ COPY scripts/run.sh .
 RUN chmod a+x run.sh
 
 COPY Makefile .
+COPY conftest.py .
 COPY thenewboston_node thenewboston_node

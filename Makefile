@@ -4,7 +4,14 @@ build:
 
 .PHONY: test
 test:
-	THENEWBOSTON_NODE_FOR_ENV_VAR_OVERRIDE_TESTING='{"k": "v"}' poetry run pytest -v -n auto
+	# We do not provide `THENEWBOSTON_NODE_TEST_WITH_ENV_VARS` to avoid mess up with local
+    # dev env environment variables and provide reproducible test runs.
+	poetry run pytest -v -rs -n auto
+
+.PHONY: test-dockerized
+test-dockerized:
+	docker-compose build node  # to force rebuild the image for new changes
+	docker-compose run -e THENEWBOSTON_NODE_TEST_WITH_ENV_VARS=true node pytest -v -rs -n auto
 
 .PHONY: up-dependencies-only
 up-dependencies-only:

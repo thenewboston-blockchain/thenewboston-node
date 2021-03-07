@@ -1,0 +1,46 @@
+name: Test
+
+on: [pull_request]
+
+
+jobs:
+  tests:
+    name: Testing
+
+    runs-on: ubuntu-latest
+    container: python:3.9.2
+
+    services:
+      # TODO(dmu) LOW: This section duplicates services already defined in `docker-compose.yml`.
+      #                Is there a way to make it DRY?
+      db:
+        image: postgres:13.2-alpine
+        env:
+          POSTGRES_DB: thenewboston_node
+          POSTGRES_USER: thenewboston
+          POSTGRES_PASSWORD: thenewboston
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run Poetry image
+        uses: abatilo/actions-poetry@v2.0.0
+        with:
+          poetry-version: 1.1.4
+
+      - name: Install
+        run: make install && make install-pre-commit
+
+      - name: Lint
+        run: make lint
+
+      - name: Test
+        run: make test
+        env:
+          POSTGRES_HOST: db
+          SECRET_KEY: dummy

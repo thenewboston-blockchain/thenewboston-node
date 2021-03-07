@@ -4,7 +4,7 @@ services:
   db:
     image: postgres:13.2-alpine
     environment:
-      - POSTGRES_DB=project
+      - POSTGRES_DB=thenewboston_node
       - POSTGRES_USER=thenewboston
       - POSTGRES_PASSWORD=thenewboston
     ports:

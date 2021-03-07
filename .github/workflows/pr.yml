@@ -1,11 +1,11 @@
-name: Test
+name: Quality Assurance
 
 on: [pull_request]
 
 
 jobs:
   tests:
-    name: Testing
+    name: Quality Assurance
 
     runs-on: ubuntu-latest
     container: python:3.9.2
@@ -42,5 +42,6 @@ jobs:
       - name: Test
         run: make test
         env:
-          POSTGRES_HOST: db
-          SECRET_KEY: dummy
+          THENEWBOSTON_NODE_TEST_WITH_ENV_VARS: 'true'
+          THENEWBOSTON_NODE_DATABASES: '{"default":{"HOST":"db"}}'
+          THENEWBOSTON_NODE_SECRET_KEY: dummy

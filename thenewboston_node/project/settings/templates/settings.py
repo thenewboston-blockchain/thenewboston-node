@@ -1,3 +1,5 @@
+# mypy: ignore-errors
+
 DEBUG = True
 
 SECRET_KEY = '90oqi[f[ohfipuuapugrp83yq09=40=oasdngkj'

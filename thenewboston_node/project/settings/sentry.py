@@ -1,6 +1,6 @@
 import os
 
-if not SENTRY_DSN:  # noqa: F821
+if not SENTRY_DSN:  # type: ignore # noqa: F821
     SENTRY_DSN = os.getenv('SENTRY_DSN')
 
 if SENTRY_DSN:
@@ -14,7 +14,7 @@ if SENTRY_DSN:
 
     logging_integration = LoggingIntegration(
         level=logging.DEBUG,  # Breadcrumbs level
-        event_level=SENTRY_EVENT_LEVEL,  # noqa: F821
+        event_level=SENTRY_EVENT_LEVEL,  # type: ignore # noqa: F821
     )
 
     sentry_sdk.init(

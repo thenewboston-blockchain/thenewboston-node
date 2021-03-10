@@ -12,5 +12,5 @@ class Message:
     txs: list[Transaction]
 
     @property
-    def total_amount(self):
+    def total_amount(self) -> int:
         return sum(tx.amount for tx in self.txs)

@@ -19,19 +19,19 @@ class Block:
     signature: str
 
     def __post_init__(self):
-        self.validation_errors = []
+        self.validation_errors: list[str] = []
 
     def add_validation_error(self, error_message: str):
         self.validation_errors.append(error_message)
 
-    def is_valid(self):
+    def is_valid(self) -> bool:
         if self.validation_errors:
             self.validation_errors = []
 
         return self.is_signature_valid() and self.is_amount_valid() and self.is_balance_key_valid()
 
-    def get_signable_message(self):
-        message_dict = self.message.to_dict()
+    def get_signable_message(self) -> bytes:
+        message_dict = self.message.to_dict()  # type: ignore
 
         # TODO(dmu) LOW: Implement a better way of removing optional fields or allow them in signable message
         txs = message_dict['txs']
@@ -42,14 +42,14 @@ class Block:
 
         return make_signable_message(message_dict)
 
-    def is_signature_valid(self):
+    def is_signature_valid(self) -> bool:
         if not is_valid_message_signature(self.account_number, self.get_signable_message(), self.signature):
             self.add_validation_error('Message signature is invalid')
             return False
 
         return True
 
-    def is_amount_valid(self):
+    def is_amount_valid(self) -> bool:
         balance = get_account_balance(self.account_number)
         if balance is None:
             self.add_validation_error('Account balance is not found')
@@ -61,7 +61,7 @@ class Block:
 
         return True
 
-    def is_balance_key_valid(self):
+    def is_balance_key_valid(self) -> bool:
         if self.message.balance_key != get_account_balance_lock(self.account_number):
             self.add_validation_error('Balance key does not match balance lock')
             return False

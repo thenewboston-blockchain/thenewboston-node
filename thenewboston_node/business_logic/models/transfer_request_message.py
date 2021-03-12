@@ -7,7 +7,7 @@ from .transaction import Transaction
 
 @dataclass_json
 @dataclass
-class Message:
+class TransferRequestMessage:
     balance_key: str
     txs: list[Transaction]
 

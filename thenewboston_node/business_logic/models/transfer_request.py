@@ -8,14 +8,14 @@ from thenewboston_node.business_logic.message import is_valid_message_signature
 from thenewboston_node.business_logic.message import make_signable_message
 from thenewboston_node.core.utils.constants import SENTINEL
 
-from .message import Message
+from .transfer_request_message import TransferRequestMessage
 
 
 @dataclass_json
 @dataclass
 class TransferRequest:
     sender: str
-    message: Message
+    message: TransferRequestMessage
     signature: str
 
     def __post_init__(self):

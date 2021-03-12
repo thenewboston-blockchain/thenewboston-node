@@ -3,8 +3,7 @@ from dataclasses import dataclass
 from dataclasses_json import dataclass_json
 
 from thenewboston_node.business_logic.node import get_signing_key
-from thenewboston_node.core.utils.cryptography import generate_signature
-from thenewboston_node.core.utils.cryptography import generate_verify_key
+from thenewboston_node.core.utils.cryptography import generate_signature, generate_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from .block_message import BlockMessage

@@ -1,8 +1,7 @@
 import os
 from pathlib import Path
 
-from split_settings.tools import include
-from split_settings.tools import optional
+from split_settings.tools import include, optional
 
 from thenewboston_node.core.utils.pytest import is_pytest_running
 

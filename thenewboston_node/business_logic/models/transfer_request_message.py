@@ -3,8 +3,7 @@ from operator import itemgetter
 
 from dataclasses_json import dataclass_json
 
-from thenewboston_node.core.utils.cryptography import hash_normalized_message
-from thenewboston_node.core.utils.cryptography import normalize_dict_message
+from thenewboston_node.core.utils.cryptography import hash_normalized_message, normalize_dict_message
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from .transaction import Transaction

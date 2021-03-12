@@ -34,6 +34,10 @@ DJANGO_SETTINGS_MODULE = "thenewboston_node.project.settings"
 python_files = "test_*.py"
 testpaths = ["thenewboston_node"]
 
+[tool.isort]
+known_django="django"
+sections="FUTURE,STDLIB,DJANGO,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

@@ -1,12 +1,12 @@
 import pytest
 
-from thenewboston_node.business_logic.models.block import Block
+from thenewboston_node.business_logic.models.transfer_request import TransferRequest
 
 
 @pytest.fixture
-def sample_block_dict():
+def sample_transfer_request_dict():
     return {
-        'account_number':
+        'sender':
             '0cdd4ba04456ca169baca3d66eace869520c62fe84421329086e03d91a68acdb',
         'message': {
             'balance_key':
@@ -32,5 +32,5 @@ def sample_block_dict():
 
 
 @pytest.fixture
-def sample_block(sample_block_dict):
-    return Block.from_dict(sample_block_dict)
+def sample_transfer_request(sample_transfer_request_dict):
+    return TransferRequest.from_dict(sample_transfer_request_dict)

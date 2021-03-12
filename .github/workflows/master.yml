@@ -6,6 +6,7 @@ on:
       - master
 
 jobs:
+  # TODO(dmu) CRITICAL: Do not publish if unittest do not pass
   publish:
     runs-on: ubuntu-latest
 

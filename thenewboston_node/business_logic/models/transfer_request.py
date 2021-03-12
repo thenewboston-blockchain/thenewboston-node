@@ -13,8 +13,8 @@ from .message import Message
 
 @dataclass_json
 @dataclass
-class Block:
-    account_number: str
+class TransferRequest:
+    sender: str
     message: Message
     signature: str
 
@@ -43,14 +43,14 @@ class Block:
         return make_signable_message(message_dict)
 
     def is_signature_valid(self) -> bool:
-        if not is_valid_message_signature(self.account_number, self.get_signable_message(), self.signature):
+        if not is_valid_message_signature(self.sender, self.get_signable_message(), self.signature):
             self.add_validation_error('Message signature is invalid')
             return False
 
         return True
 
     def is_amount_valid(self) -> bool:
-        balance = get_account_balance(self.account_number)
+        balance = get_account_balance(self.sender)
         if balance is None:
             self.add_validation_error('Account balance is not found')
             return False
@@ -62,7 +62,7 @@ class Block:
         return True
 
     def is_balance_key_valid(self) -> bool:
-        if self.message.balance_key != get_account_balance_lock(self.account_number):
+        if self.message.balance_key != get_account_balance_lock(self.sender):
             self.add_validation_error('Balance key does not match balance lock')
             return False
 

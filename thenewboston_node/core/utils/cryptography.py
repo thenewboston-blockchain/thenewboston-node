@@ -1,12 +1,10 @@
+import json
 from hashlib import sha3_256
-import json  # noqa: I100 TODO(dmu) LOW: Friend isort with flake8
 
 from nacl.exceptions import BadSignatureError
-from nacl.signing import SigningKey
-from nacl.signing import VerifyKey
+from nacl.signing import SigningKey, VerifyKey
 
-from thenewboston_node.core.utils.misc import bytes_to_hex
-from thenewboston_node.core.utils.misc import hex_to_bytes
+from thenewboston_node.core.utils.misc import bytes_to_hex, hex_to_bytes
 
 
 def generate_signature(signing_key: str, message: bytes) -> str:

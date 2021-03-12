@@ -1,16 +1,13 @@
 import copy
-from dataclasses import dataclass
-from dataclasses import field
+import logging
+from dataclasses import dataclass, field
 from datetime import datetime
-import logging  # noqa: I100 TODO(dmu) LOW: Friend isort with flake8
 from operator import itemgetter
 
-from dataclasses_json import config
-from dataclasses_json import dataclass_json
+from dataclasses_json import config, dataclass_json
 from marshmallow import fields
 
-from thenewboston_node.core.utils.cryptography import hash_normalized_message
-from thenewboston_node.core.utils.cryptography import normalize_dict_message
+from thenewboston_node.core.utils.cryptography import hash_normalized_message, normalize_dict_message
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from .account_balance import AccountBalance

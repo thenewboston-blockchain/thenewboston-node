@@ -1,23 +1,36 @@
+import logging
 from dataclasses import dataclass
+from typing import Optional
 
 from dataclasses_json import dataclass_json
 
-from thenewboston_node.core.utils.cryptography import is_valid_signature
+from thenewboston_node.business_logic.node import get_signing_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
+from .base import SignableMixin
 from .transfer_request_message import TransferRequestMessage
+
+logger = logging.getLogger(__name__)
 
 
 @fake_super_methods
 @dataclass_json
 @dataclass
-class TransferRequest:
-    sender: str
+class TransferRequest(SignableMixin):
+    verify_key_field_name = 'sender'
+
     message: TransferRequestMessage
-    message_signature: str
+    sender: Optional[str] = None
+    message_signature: Optional[str] = None
 
     def __post_init__(self):
         self.validation_errors: list[str] = []
+
+    @classmethod
+    def from_transfer_request_message(cls, message: TransferRequestMessage):
+        request = TransferRequest(message=message)
+        request.sign(get_signing_key())
+        return request
 
     def override_to_dict(self):  # this one turns into to_dict()
         dict_ = self.super_to_dict()
@@ -35,11 +48,14 @@ class TransferRequest:
         return self.is_signature_valid() and self.is_amount_valid() and self.is_balance_key_valid()
 
     def is_signature_valid(self) -> bool:
-        if not is_valid_signature(self.sender, self.message.get_normalized(), self.message_signature):
-            self.add_validation_error('Message signature is invalid')
-            return False
+        if (
+            self.sender and self.message_signature and
+            self.message.is_signature_valid(self.sender, self.message_signature)
+        ):
+            return True
 
-        return True
+        self.add_validation_error('Message signature is invalid')
+        return False
 
     def is_amount_valid(self) -> bool:
         balance = get_blockchain().get_account_balance(self.sender)

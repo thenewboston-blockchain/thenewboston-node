@@ -7,12 +7,11 @@ from operator import itemgetter
 from dataclasses_json import config, dataclass_json
 from marshmallow import fields
 
-from thenewboston_node.core.utils.cryptography import (
-    generate_signature, hash_normalized_message, normalize_dict_message
-)
+from thenewboston_node.core.utils.cryptography import normalize_dict_message
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from .account_balance import AccountBalance
+from .base import MessageMixin
 from .transfer_request import TransferRequest
 
 logger = logging.getLogger(__name__)
@@ -21,7 +20,7 @@ logger = logging.getLogger(__name__)
 @fake_super_methods
 @dataclass_json
 @dataclass
-class BlockMessage:
+class BlockMessage(MessageMixin):
     transfer_request: TransferRequest
     timestamp: datetime = field(  # naive datetime in UTC
         metadata=config(
@@ -43,6 +42,9 @@ class BlockMessage:
 
     @classmethod
     def from_transfer_request(cls, transfer_request: TransferRequest):
+        if not transfer_request.sender:
+            raise ValueError('Sender must be set')
+
         timestamp = datetime.utcnow()
 
         # TODO(dmu) LOW: Find a better way to avoid circular imports
@@ -81,15 +83,6 @@ class BlockMessage:
             block_identifier=block_identifier,
             updated_balances=updated_balances,
         )
-
-    def get_hash(self):
-        normalized_message = self.get_normalized()
-        message_hash = hash_normalized_message(normalized_message)
-        logger.debug('Got %s hash for message: %r', message_hash, normalized_message)
-        return message_hash
-
-    def generate_signature(self, signing_key):
-        return generate_signature(signing_key, self.get_normalized())
 
     def get_normalized(self) -> bytes:
         message_dict = self.to_dict()  # type: ignore

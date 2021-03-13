@@ -14,7 +14,7 @@ from .transfer_request_message import TransferRequestMessage
 class TransferRequest:
     sender: str
     message: TransferRequestMessage
-    signature: str
+    message_signature: str
 
     def __post_init__(self):
         self.validation_errors: list[str] = []
@@ -35,7 +35,7 @@ class TransferRequest:
         return self.is_signature_valid() and self.is_amount_valid() and self.is_balance_key_valid()
 
     def is_signature_valid(self) -> bool:
-        if not is_valid_signature(self.sender, self.message.get_normalized(), self.signature):
+        if not is_valid_signature(self.sender, self.message.get_normalized(), self.message_signature):
             self.add_validation_error('Message signature is invalid')
             return False
 

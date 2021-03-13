@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from dataclasses_json import dataclass_json
 
 from thenewboston_node.business_logic.node import get_signing_key
-from thenewboston_node.core.utils.cryptography import generate_signature, generate_verify_key
+from thenewboston_node.core.utils.cryptography import generate_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from .block_message import BlockMessage
@@ -14,22 +14,22 @@ from .transfer_request import TransferRequest
 @dataclass_json
 @dataclass
 class Block:
+    node_identifier: str
     message: BlockMessage
     message_hash: str
-    node_identifier: str
-    signature: str
+    message_signature: str
 
     @classmethod
     def from_transfer_request(cls, transfer_request: TransferRequest):
         message = BlockMessage.from_transfer_request(transfer_request)
 
+        # TODO(dmu) LOW: Consider caching signing and verify keys
         signing_key = get_signing_key()
         return Block(
+            node_identifier=generate_verify_key(signing_key),
             message=message,
             message_hash=message.get_hash(),
-            # TODO(dmu) LOW: Consider caching signing and verify keys
-            node_identifier=generate_verify_key(signing_key),
-            signature=generate_signature(signing_key, message.get_normalized())
+            message_signature=message.generate_signature(signing_key)
         )
 
     def override_to_dict(self):  # this one turns into to_dict()

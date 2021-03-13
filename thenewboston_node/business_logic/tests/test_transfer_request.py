@@ -17,7 +17,7 @@ def test_can_create_transfer_request_from_dict(sample_transfer_request_dict):
         assert tx.recipient == tx_dict['recipient']
         assert tx.fee == tx_dict.get('fee')
 
-    assert transfer_request.signature == sample_transfer_request_dict['signature']
+    assert transfer_request.message_signature == sample_transfer_request_dict['message_signature']
 
 
 def test_is_signature_valid(sample_transfer_request):
@@ -26,12 +26,13 @@ def test_is_signature_valid(sample_transfer_request):
 
 def test_is_signature_valid_negative(sample_transfer_request):
     sample_transfer_request_copy = copy.deepcopy(sample_transfer_request)
-    sample_transfer_request_copy.signature = 'invalid' + sample_transfer_request_copy.signature[len('invalid'):]
+    sample_transfer_request_copy.message_signature = 'invalid' + sample_transfer_request_copy.message_signature[
+        len('invalid'):]
     assert not sample_transfer_request_copy.is_signature_valid()
     assert sample_transfer_request_copy.validation_errors == ['Message signature is invalid']
 
     sample_transfer_request_copy = copy.deepcopy(sample_transfer_request)
-    sample_transfer_request_copy.signature = 'aaaaa' + sample_transfer_request_copy.signature[5:]
+    sample_transfer_request_copy.message_signature = 'aaaaa' + sample_transfer_request_copy.message_signature[5:]
     assert not sample_transfer_request_copy.is_signature_valid()
     assert sample_transfer_request_copy.validation_errors == ['Message signature is invalid']
 
@@ -85,7 +86,7 @@ def test_is_valid(sample_transfer_request):
 
 def test_invalid_transfer_request_for_signature(sample_transfer_request):
     sample_transfer_request_copy = copy.deepcopy(sample_transfer_request)
-    sample_transfer_request_copy.signature = 'aaaaa' + sample_transfer_request_copy.signature[5:]
+    sample_transfer_request_copy.message_signature = 'aaaaa' + sample_transfer_request_copy.message_signature[5:]
     assert not sample_transfer_request_copy.is_valid()
     assert sample_transfer_request_copy.validation_errors == ['Message signature is invalid']
 

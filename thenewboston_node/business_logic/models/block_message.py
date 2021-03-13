@@ -7,7 +7,9 @@ from operator import itemgetter
 from dataclasses_json import config, dataclass_json
 from marshmallow import fields
 
-from thenewboston_node.core.utils.cryptography import hash_normalized_message, normalize_dict_message
+from thenewboston_node.core.utils.cryptography import (
+    generate_signature, hash_normalized_message, normalize_dict_message
+)
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from .account_balance import AccountBalance
@@ -85,6 +87,9 @@ class BlockMessage:
         message_hash = hash_normalized_message(normalized_message)
         logger.debug('Got %s hash for message: %r', message_hash, normalized_message)
         return message_hash
+
+    def generate_signature(self, signing_key):
+        return generate_signature(signing_key, self.get_normalized())
 
     def get_normalized(self) -> bytes:
         message_dict = self.to_dict()  # type: ignore

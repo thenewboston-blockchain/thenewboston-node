@@ -11,7 +11,7 @@ def test_can_create_block_from_transfer_request(sample_transfer_request):
     assert block.message
     assert block.message_hash
     assert block.node_identifier
-    assert block.signature
+    assert block.message_signature
 
     block_message = block.message
 
@@ -41,9 +41,9 @@ def test_normalized_block_message(sample_transfer_request):
         '{"amount":1,"fee":"BANK","recipient":"5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8"},'
         '{"amount":4,"fee":"PRIMARY_VALIDATOR","recipient":'
         '"ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314"}]},'
-        '"sender":"0cdd4ba04456ca169baca3d66eace869520c62fe84421329086e03d91a68acdb",'
-        '"signature":"2c2aae162c0de7d7c66856a1728e06c26fe1732a8073721ca0cf6d22f868be07158f7256ba02e34eb9'
-        '13aea0f3c16cc135bacc3631a74f97b1fb7a3463059707"},"updated_balances":'
+        '"message_signature":"2c2aae162c0de7d7c66856a1728e06c26fe1732a8073721ca0cf6d22f868be07158f7256ba02e34eb9'
+        '13aea0f3c16cc135bacc3631a74f97b1fb7a3463059707",'
+        '"sender":"0cdd4ba04456ca169baca3d66eace869520c62fe84421329086e03d91a68acdb"},"updated_balances":'
         '[{"account":"0cdd4ba04456ca169baca3d66eace869520c62fe84421329086e03d91a68acdb","balance":430,'
         '"balance_lock":"afdf56550dc5e7230f2c96dc229ffcea39c66706f98509f27ac653bda5372a5c"},'
         '{"account":"484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc","balance":855},'

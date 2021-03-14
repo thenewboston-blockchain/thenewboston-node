@@ -25,9 +25,9 @@ class MemoryBlockchain(BlockchainBase):
         self.blocks.append(copy.deepcopy(block))
 
     def get_head_block(self) -> Optional[Block]:
-        blockchain = self.blocks
-        if blockchain:
-            return blockchain[-1]
+        blocks = self.blocks
+        if blocks:
+            return blocks[-1]
 
         return None
 

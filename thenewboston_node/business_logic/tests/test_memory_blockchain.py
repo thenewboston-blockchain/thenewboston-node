@@ -3,6 +3,7 @@ import pytest
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
+from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.core.utils.cryptography import KeyPair
 
 
@@ -27,3 +28,17 @@ def test_get_account_balance_from_initial_account_root_file(
     assert forced_memory_blockchain.get_account_balance(account) == 281474976710656
     assert forced_memory_blockchain.get_account_balance(account
                                                         ) == initial_account_root_file.get_balance_value(account)
+
+
+@pytest.mark.skip('Not implemented yet')
+def test_can_add_block(
+    forced_memory_blockchain: MemoryBlockchain, treasury_account_key_pair: KeyPair, user_account_key_pair: KeyPair
+):
+    block = Block.from_main_transaction(
+        treasury_account_key_pair.public,
+        user_account_key_pair.public,
+        31,
+        signing_key=treasury_account_key_pair.private
+    )
+    forced_memory_blockchain.add_block(block)
+    raise NotImplementedError

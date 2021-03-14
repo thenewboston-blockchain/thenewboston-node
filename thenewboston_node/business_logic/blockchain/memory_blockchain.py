@@ -36,7 +36,7 @@ class MemoryBlockchain(BlockchainBase):
         account_root_file_block_identifier = last_account_root_file.last_block_identifier
         account_root_file_block_number = last_account_root_file.last_block_number
 
-        for block in self.blocks:
+        for block in reversed(self.blocks):
             block_identifier = block.message.block_identifier
             assert block_identifier
             if block_identifier == account_root_file_block_identifier:

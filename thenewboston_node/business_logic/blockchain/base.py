@@ -20,10 +20,14 @@ class BlockchainBase:
         if not instance:
             blockchain_settings = settings.BLOCKCHAIN
             class_ = import_from_string(blockchain_settings['class'])
-            instance = class_(**blockchain_settings['kwargs'])
+            instance = class_(**(blockchain_settings.get('kwargs') or {}))
             cls._instance = instance
 
         return instance
+
+    @classmethod
+    def clear_instance_cache(cls):
+        cls._instance = None
 
     def add_block(self, block: Block):
         raise NotImplementedError('Must be implemented in a child class')

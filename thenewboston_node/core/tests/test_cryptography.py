@@ -2,12 +2,12 @@ from thenewboston_node.core.utils.cryptography import derive_verify_key, generat
 
 
 def test_generate_key_pair():
-    private, public = generate_key_pair()
-    assert isinstance(private, str)
-    assert len(private) == 64
-    assert isinstance(public, str)
-    assert len(public) == 64
+    key_pair = generate_key_pair()
+    assert isinstance(key_pair.private, str)
+    assert len(key_pair.private) == 64
+    assert isinstance(key_pair.public, str)
+    assert len(key_pair.public) == 64
 
-    derived_private = derive_verify_key(private)
-    assert derived_private == public
-    assert derived_private is not public
+    derived_public = derive_verify_key(key_pair.private)
+    assert derived_public == key_pair.public
+    assert derived_public is not key_pair.public

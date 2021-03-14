@@ -1,10 +1,16 @@
 import json
 from hashlib import sha3_256
+from typing import NamedTuple
 
 from nacl.exceptions import BadSignatureError
 from nacl.signing import SigningKey, VerifyKey
 
 from thenewboston_node.core.utils.misc import bytes_to_hex, hex_to_bytes
+
+
+class KeyPair(NamedTuple):
+    public: str
+    private: str
 
 
 def generate_signature(signing_key: str, message: bytes) -> str:
@@ -38,6 +44,6 @@ def hash_normalized_dict(normalized_dict: bytes) -> str:
     return sha3_256(normalized_dict).digest().hex()
 
 
-def generate_key_pair() -> tuple[str, str]:
+def generate_key_pair() -> KeyPair:
     signing_key = SigningKey.generate()
-    return bytes_to_hex(signing_key), bytes_to_hex(signing_key.verify_key)
+    return KeyPair(bytes_to_hex(signing_key.verify_key), bytes_to_hex(signing_key))

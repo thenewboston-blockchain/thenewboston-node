@@ -14,7 +14,7 @@ from .transaction import Transaction
 @dataclass_json
 @dataclass
 class TransferRequestMessage(MessageMixin):
-    balance_key: str
+    balance_lock: str
     txs: list[Transaction]
 
     def get_total_amount(self) -> int:

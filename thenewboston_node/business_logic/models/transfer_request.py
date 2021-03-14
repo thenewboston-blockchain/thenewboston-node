@@ -53,7 +53,7 @@ class TransferRequest(SignableMixin):
         if self.validation_errors:
             self.validation_errors = []
 
-        return self.is_signature_valid() and self.is_amount_valid() and self.is_balance_key_valid()
+        return self.is_signature_valid() and self.is_amount_valid() and self.is_balance_lock_valid()
 
     def is_signature_valid(self) -> bool:
         if not super().is_signature_valid():
@@ -74,8 +74,8 @@ class TransferRequest(SignableMixin):
 
         return True
 
-    def is_balance_key_valid(self) -> bool:
-        if self.message.balance_key != get_blockchain().get_account_balance_lock(self.sender):
+    def is_balance_lock_valid(self) -> bool:
+        if self.message.balance_lock != get_blockchain().get_account_balance_lock(self.sender):
             self.add_validation_error('Balance key does not match balance lock')
             return False
 

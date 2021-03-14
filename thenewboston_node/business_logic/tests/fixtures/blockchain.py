@@ -5,42 +5,38 @@ from django.test import override_settings
 import pytest
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
-
-from .base import get_file_blockchain_class
+from thenewboston_node.business_logic.blockchain.mock_blockchain import MockBlockchain
+from thenewboston_node.business_logic.models.account_root_file import AccountRootFile, AccountRootFileAccountBalance
 
 
 @pytest.fixture
 def get_head_block_mock():
-    with patch.object(get_file_blockchain_class(), 'get_head_block', return_value=None) as mock:
+    with patch.object(MockBlockchain, 'get_head_block', return_value=None) as mock:
         yield mock
 
 
 @pytest.fixture
 def get_initial_account_root_file_hash_mock():
     with patch.object(
-        get_file_blockchain_class(),
-        'get_initial_account_root_file_hash',
-        return_value='fake-block-identifier',
-        create=True
+        MockBlockchain, 'get_initial_account_root_file_hash', return_value='fake-block-identifier', create=True
     ) as mock:
         yield mock
 
 
 @pytest.fixture
 def get_account_balance_mock():
-    with patch.object(get_file_blockchain_class(), 'get_account_balance', return_value=430) as mock:
+    with patch.object(MockBlockchain, 'get_account_balance', return_value=430) as mock:
         yield mock
 
 
 @pytest.fixture
-def initial_account_root_file(initial_account_keys):
-    account = initial_account_keys[1]
-    return {
-        account: {
-            'balance': 281474976710656,
-            'balance_lock': account,
+def initial_account_root_file(treasury_account_key_pair):
+    account = treasury_account_key_pair.public
+    return AccountRootFile(
+        accounts={
+            account: AccountRootFileAccountBalance(balance=281474976710656, balance_lock=account)
         }
-    }
+    ).to_dict()
 
 
 @pytest.fixture
@@ -52,9 +48,19 @@ def use_memory_blockchain(initial_account_root_file):
         }
     }
 
-    BlockchainBase._instance = None
-
+    BlockchainBase.clear_instance_cache()
     with override_settings(BLOCKCHAIN=blockchain_settings):
         yield
+    BlockchainBase.clear_instance_cache()
 
-    BlockchainBase._instance = None
+
+@pytest.fixture
+def use_mock_blockchain():
+    blockchain_settings = {
+        'class': 'thenewboston_node.business_logic.blockchain.mock_blockchain.MockBlockchain',
+    }
+
+    BlockchainBase.clear_instance_cache()
+    with override_settings(BLOCKCHAIN=blockchain_settings):
+        yield
+    BlockchainBase.clear_instance_cache()

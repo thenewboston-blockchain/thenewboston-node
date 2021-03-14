@@ -3,6 +3,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from operator import itemgetter
+from typing import Optional
 
 from dataclasses_json import config, dataclass_json
 from marshmallow import fields
@@ -22,6 +23,8 @@ logger = logging.getLogger(__name__)
 @dataclass
 class BlockMessage(MessageMixin):
     transfer_request: TransferRequest
+    # We need timestamp, block_number and block_identifier to be signed and hashed therefore
+    # they are include in BlockMessage, not in Block
     timestamp: datetime = field(  # naive datetime in UTC
         metadata=config(
             encoder=datetime.isoformat,
@@ -92,3 +95,10 @@ class BlockMessage(MessageMixin):
         message_dict = self.to_dict()  # type: ignore
         message_dict['updated_balances'] = sorted(message_dict['updated_balances'], key=itemgetter('account'))
         return normalize_dict(message_dict)
+
+    def get_balance(self, account: str) -> Optional[AccountBalance]:
+        for balance in self.updated_balances:
+            if balance.account == account:
+                return balance
+
+        return None

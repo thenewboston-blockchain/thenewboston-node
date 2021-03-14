@@ -30,17 +30,20 @@ def get_account_balance_mock():
 
 
 @pytest.fixture
-def initial_account_root_file(treasury_account_key_pair):
+def initial_account_root_file(treasury_account_key_pair) -> AccountRootFile:
     account = treasury_account_key_pair.public
     return AccountRootFile(
-        accounts={
-            account: AccountRootFileAccountBalance(balance=281474976710656, balance_lock=account)
-        }
-    ).to_dict()
+        accounts={account: AccountRootFileAccountBalance(balance=281474976710656, balance_lock=account)}
+    )
 
 
 @pytest.fixture
-def use_memory_blockchain(initial_account_root_file):
+def initial_account_root_file_dict(initial_account_root_file: AccountRootFile) -> dict:
+    return initial_account_root_file.to_dict()  # type: ignore
+
+
+@pytest.fixture
+def forced_memory_blockchain(initial_account_root_file):
     blockchain_settings = {
         'class': 'thenewboston_node.business_logic.blockchain.memory_blockchain.MemoryBlockchain',
         'kwargs': {
@@ -50,17 +53,17 @@ def use_memory_blockchain(initial_account_root_file):
 
     BlockchainBase.clear_instance_cache()
     with override_settings(BLOCKCHAIN=blockchain_settings):
-        yield
+        yield BlockchainBase.get_instance()
     BlockchainBase.clear_instance_cache()
 
 
 @pytest.fixture
-def use_mock_blockchain():
+def forced_mock_blockchain():
     blockchain_settings = {
         'class': 'thenewboston_node.business_logic.blockchain.mock_blockchain.MockBlockchain',
     }
 
     BlockchainBase.clear_instance_cache()
     with override_settings(BLOCKCHAIN=blockchain_settings):
-        yield
+        yield BlockchainBase.get_instance()
     BlockchainBase.clear_instance_cache()

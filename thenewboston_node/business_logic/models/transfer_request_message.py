@@ -3,7 +3,7 @@ from operator import itemgetter
 
 from dataclasses_json import dataclass_json
 
-from thenewboston_node.core.utils.cryptography import normalize_dict_message
+from thenewboston_node.core.utils.cryptography import normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from .base import MessageMixin
@@ -29,4 +29,4 @@ class TransferRequestMessage(MessageMixin):
     def get_normalized(self) -> bytes:
         message_dict = self.to_dict()  # type: ignore
         message_dict['txs'] = sorted(message_dict['txs'], key=itemgetter('recipient'))
-        return normalize_dict_message(message_dict)
+        return normalize_dict(message_dict)

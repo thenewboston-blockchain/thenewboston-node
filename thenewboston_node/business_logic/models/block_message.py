@@ -7,7 +7,7 @@ from operator import itemgetter
 from dataclasses_json import config, dataclass_json
 from marshmallow import fields
 
-from thenewboston_node.core.utils.cryptography import normalize_dict_message
+from thenewboston_node.core.utils.cryptography import normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from .account_balance import AccountBalance
@@ -48,15 +48,18 @@ class BlockMessage(MessageMixin):
         timestamp = datetime.utcnow()
 
         # TODO(dmu) LOW: Find a better way to avoid circular imports
-        from ..blockchain import get_blockchain  # avoid circular imports
-        blockchain = get_blockchain()
+        from ..blockchain.base import BlockchainBase  # avoid circular imports
+        blockchain = BlockchainBase.get_instance()
         head_block = blockchain.get_head_block()
         if head_block:
             block_number = head_block.message.block_number + 1
+            # Previous Block message hash becomes block identifier
             block_identifier = head_block.message_hash
         else:
             block_number = 0
             block_identifier = blockchain.get_genesis_block_identifier()
+
+        assert block_identifier
 
         updated_balances = []
         total_amount = 0
@@ -72,6 +75,7 @@ class BlockMessage(MessageMixin):
             AccountBalance(
                 account=transfer_request.sender,
                 balance=total_amount,
+                # Transfer request message hash becomes new balance lock
                 balance_lock=transfer_request.message.get_hash()
             )
         )
@@ -87,4 +91,4 @@ class BlockMessage(MessageMixin):
     def get_normalized(self) -> bytes:
         message_dict = self.to_dict()  # type: ignore
         message_dict['updated_balances'] = sorted(message_dict['updated_balances'], key=itemgetter('account'))
-        return normalize_dict_message(message_dict)
+        return normalize_dict(message_dict)

@@ -2,7 +2,7 @@ import logging
 from typing import Optional
 
 from thenewboston_node.core.utils.cryptography import (
-    derive_verify_key, generate_signature, hash_normalized_message, is_signature_valid
+    derive_verify_key, generate_signature, hash_normalized_dict, is_signature_valid
 )
 
 logger = logging.getLogger(__name__)
@@ -12,7 +12,7 @@ class MessageMixin:
 
     def get_hash(self):
         normalized_message = self.get_normalized()
-        message_hash = hash_normalized_message(normalized_message)
+        message_hash = hash_normalized_dict(normalized_message)
         logger.debug('Got %s hash for message: %r', message_hash, normalized_message)
         return message_hash
 
@@ -28,11 +28,14 @@ class MessageMixin:
 
 class SignableMixin:
 
-    verify_key_field_name = Optional[str]
+    verify_key_field_name: Optional[str] = None
+
+    message: MessageMixin
 
     def sign(self, signing_key):
         verify_key_field_name = self.verify_key_field_name
-        assert verify_key_field_name
+        if not verify_key_field_name:
+            raise ValueError('`verify_key_field_name` class attribute must be set')
 
         verify_key = derive_verify_key(signing_key)
         stored_verify_key = getattr(self, verify_key_field_name, None)
@@ -47,3 +50,14 @@ class SignableMixin:
             logger.warning('Overwriting existing message signature')
 
         self.message_signature = message_signature
+
+    def is_signature_valid(self) -> bool:
+        verify_key_field_name = self.verify_key_field_name
+        if not verify_key_field_name:
+            raise ValueError('`verify_key_field_name` class attribute must be set')
+
+        verify_key = getattr(self, verify_key_field_name)
+        return (
+            verify_key and self.message_signature and
+            self.message.is_signature_valid(verify_key, self.message_signature)
+        )

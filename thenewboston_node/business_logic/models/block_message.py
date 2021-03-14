@@ -74,10 +74,13 @@ class BlockMessage(MessageMixin):
             updated_balances.append(AccountBalance(account=transaction.recipient, balance=balance + amount))
             total_amount += amount
 
+        sender_balance = blockchain.get_account_balance(transfer_request.sender)
+        assert sender_balance is not None
+
         updated_balances.append(
             AccountBalance(
                 account=transfer_request.sender,
-                balance=total_amount,
+                balance=sender_balance - total_amount,
                 # Transfer request message hash becomes new balance lock
                 balance_lock=transfer_request.message.get_hash()
             )

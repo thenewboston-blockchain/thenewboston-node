@@ -40,6 +40,11 @@ class TransferRequest(SignableMixin):
         request.sign(signing_key)
         return request
 
+    @classmethod
+    def from_main_transaction(cls: Type[T], sender: str, recipient: str, amount: int, *, signing_key: str) -> T:
+        message = TransferRequestMessage.from_main_transaction(sender, recipient, amount)
+        return cls.from_transfer_request_message(message, signing_key)
+
     def override_to_dict(self):  # this one turns into to_dict()
         dict_ = self.super_to_dict()
         # TODO(dmu) LOW: Implement a better way of removing optional fields or allow them in normalized message

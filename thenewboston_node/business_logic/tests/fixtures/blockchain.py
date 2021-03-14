@@ -30,6 +30,12 @@ def get_account_balance_mock():
 
 
 @pytest.fixture
+def get_account_balance_lock_mock():
+    with patch.object(MockBlockchain, 'get_account_balance_lock', return_value='fake-balance-lock') as mock:
+        yield mock
+
+
+@pytest.fixture
 def initial_account_root_file(treasury_account_key_pair) -> AccountRootFile:
     account = treasury_account_key_pair.public
     return AccountRootFile(

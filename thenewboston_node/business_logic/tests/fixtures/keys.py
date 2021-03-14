@@ -9,6 +9,16 @@ def user_account_key_pair() -> KeyPair:
 
 
 @pytest.fixture
+def node_key_pair() -> KeyPair:
+    return generate_key_pair()
+
+
+@pytest.fixture
+def primary_validator_key_pair() -> KeyPair:
+    return generate_key_pair()
+
+
+@pytest.fixture
 def treasury_account_key_pair() -> KeyPair:
     return KeyPair(
         '4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732',

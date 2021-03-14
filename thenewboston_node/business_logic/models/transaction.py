@@ -11,8 +11,8 @@ from thenewboston_node.core.utils.dataclass import fake_super_methods
 @dataclass_json
 @dataclass
 class Transaction:
-    amount: int
     recipient: str
+    amount: int
     fee: Optional[str] = None
 
     def override_to_dict(self):  # this one turns into to_dict()

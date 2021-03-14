@@ -7,16 +7,16 @@ from thenewboston_node.business_logic.models.transfer_request import TransferReq
 def sample_transfer_request_dict():
     return {
         'sender':
-            '0cdd4ba04456ca169baca3d66eace869520c62fe84421329086e03d91a68acdb',
+            '4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732',
         'message': {
-            'balance_key':
-                '0cdd4ba04456ca169baca3d66eace869520c62fe84421329086e03d91a68acdb',
+            'balance_lock':
+                '4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732',
             'txs': [{
                 'amount': 425,
                 'recipient': '484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc'
             }, {
                 'amount': 1,
-                'fee': 'BANK',
+                'fee': 'NODE',
                 'recipient': '5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8'
             }, {
                 'amount': 4,
@@ -25,8 +25,8 @@ def sample_transfer_request_dict():
             }]
         },
         'message_signature': (
-            '2c2aae162c0de7d7c66856a1728e06c26fe1732a8073721ca0cf6d22f868be07158f7256ba02e34eb913'
-            'aea0f3c16cc135bacc3631a74f97b1fb7a3463059707'
+            '2ca3ab38d364578749c43afed5cb0c080cf68adb86e097cc3be29ffcd84224751109f9067db83b0e'
+            '81765bc04988243aafaee17b9adffe2c76397ae345a03b07'
         )
     }
 

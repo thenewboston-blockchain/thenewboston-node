@@ -1,8 +1,5 @@
-from .base import Blockchain
+from .base import BlockchainBase
 
 
-class FileBlockchain(Blockchain):
+class FileBlockchain(BlockchainBase):
     pass
-
-
-file_blockchain = FileBlockchain()

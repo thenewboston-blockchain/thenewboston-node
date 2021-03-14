@@ -1,16 +1,24 @@
+import copy
 import logging
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Type, TypeVar
 
 from dataclasses_json import dataclass_json
 
-from thenewboston_node.business_logic.node import get_signing_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from .base import SignableMixin
 from .transfer_request_message import TransferRequestMessage
 
+T = TypeVar('T', bound='TransferRequest')
+
 logger = logging.getLogger(__name__)
+
+
+def get_blockchain():
+    # TODO(dmu) LOW: Find a better way to avoid circular imports
+    from ..blockchain.base import BlockchainBase  # noqa: E402,I202
+    return BlockchainBase.get_instance()
 
 
 @fake_super_methods
@@ -27,9 +35,9 @@ class TransferRequest(SignableMixin):
         self.validation_errors: list[str] = []
 
     @classmethod
-    def from_transfer_request_message(cls, message: TransferRequestMessage):
-        request = TransferRequest(message=message)
-        request.sign(get_signing_key())
+    def from_transfer_request_message(cls: Type[T], message: TransferRequestMessage, signing_key: str) -> T:
+        request = cls(message=copy.deepcopy(message))
+        request.sign(signing_key)
         return request
 
     def override_to_dict(self):  # this one turns into to_dict()
@@ -48,14 +56,11 @@ class TransferRequest(SignableMixin):
         return self.is_signature_valid() and self.is_amount_valid() and self.is_balance_key_valid()
 
     def is_signature_valid(self) -> bool:
-        if (
-            self.sender and self.message_signature and
-            self.message.is_signature_valid(self.sender, self.message_signature)
-        ):
-            return True
+        if not super().is_signature_valid():
+            self.add_validation_error('Message signature is invalid')
+            return False
 
-        self.add_validation_error('Message signature is invalid')
-        return False
+        return True
 
     def is_amount_valid(self) -> bool:
         balance = get_blockchain().get_account_balance(self.sender)
@@ -75,7 +80,3 @@ class TransferRequest(SignableMixin):
             return False
 
         return True
-
-
-# TODO(dmu) LOW: Find a better way to avoid circular imports
-from ..blockchain import get_blockchain  # noqa: E402,I202

@@ -1,9 +1,32 @@
-from typing import Optional
+from typing import Optional, Type, TypeVar
+
+from django.conf import settings
+
+from thenewboston_node.core.utils.cryptography import hash_normalized_dict, normalize_dict
+from thenewboston_node.core.utils.importing import import_from_string
 
 from ..models.block import Block
 
+T = TypeVar('T', bound='BlockchainBase')
 
-class Blockchain:
+
+class BlockchainBase:
+
+    _instance = None
+
+    @classmethod
+    def get_instance(cls: Type[T]) -> T:
+        instance = cls._instance
+        if not instance:
+            blockchain_settings = settings.BLOCKCHAIN
+            class_ = import_from_string(blockchain_settings['class'])
+            instance = class_(**blockchain_settings['kwargs'])
+            cls._instance = instance
+
+        return instance
+
+    def add_block(self, block: Block):
+        raise NotImplementedError('Must be implemented in a child class')
 
     def get_account_balance(self, account: str) -> Optional[int]:
         raise NotImplementedError('Must be implemented in a child class')
@@ -18,4 +41,7 @@ class Blockchain:
         return self.get_initial_account_root_file_hash()
 
     def get_initial_account_root_file_hash(self) -> str:
+        return hash_normalized_dict(normalize_dict(self.get_initial_account_root_file()))
+
+    def get_initial_account_root_file(self) -> dict:
         raise NotImplementedError('Must be implemented in a child class')

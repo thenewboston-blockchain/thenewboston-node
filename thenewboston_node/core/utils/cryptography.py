@@ -30,12 +30,12 @@ def is_signature_valid(verify_key: str, message: bytes, signature: str) -> bool:
     return True
 
 
-def normalize_dict_message(message: dict) -> bytes:
-    return json.dumps(message, separators=(',', ':'), sort_keys=True).encode('utf-8')
+def normalize_dict(dict_: dict) -> bytes:
+    return json.dumps(dict_, separators=(',', ':'), sort_keys=True).encode('utf-8')
 
 
-def hash_normalized_message(message: bytes) -> str:
-    return sha3_256(message).digest().hex()
+def hash_normalized_dict(normalized_dict: bytes) -> str:
+    return sha3_256(normalized_dict).digest().hex()
 
 
 def generate_key_pair() -> tuple[str, str]:

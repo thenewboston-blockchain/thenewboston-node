@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 import pytest
 
 from thenewboston_node.business_logic.models.block import Block
+from thenewboston_node.business_logic.node import get_signing_key
+from thenewboston_node.core.utils.cryptography import derive_verify_key
 
 
 @pytest.mark.usefixtures('get_head_block_mock', 'get_initial_account_root_file_hash_mock', 'get_account_balance_mock')
@@ -10,8 +12,10 @@ def test_can_create_block_from_transfer_request(sample_transfer_request):
     block = Block.from_transfer_request(sample_transfer_request)
     assert block.message
     assert block.message_hash
-    assert block.node_identifier
     assert block.message_signature
+    assert block.is_signature_valid()
+    assert block.node_identifier
+    assert block.node_identifier == derive_verify_key(get_signing_key())
 
     block_message = block.message
 

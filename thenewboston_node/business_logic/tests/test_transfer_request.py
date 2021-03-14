@@ -2,7 +2,9 @@ import copy
 from unittest.mock import patch
 
 from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
+from thenewboston_node.business_logic.models.transaction import Transaction
 from thenewboston_node.business_logic.models.transfer_request import TransferRequest
+from thenewboston_node.business_logic.models.transfer_request_message import TransferRequestMessage
 
 
 def test_can_create_transfer_request_from_dict(sample_transfer_request_dict):
@@ -77,8 +79,9 @@ def test_is_balance_key_valid_negative(sample_transfer_request):
 
 def test_is_valid(sample_transfer_request):
     with patch.object(FileBlockchain, 'get_account_balance', return_value=425 + 1 + 4):
-        with patch(
-            'thenewboston_node.business_logic.blockchain.file_blockchain.get_account_balance_lock',
+        with patch.object(
+            FileBlockchain,
+            'get_account_balance_lock',
             return_value='0cdd4ba04456ca169baca3d66eace869520c62fe84421329086e03d91a68acdb'
         ):
             assert sample_transfer_request.is_valid()
@@ -107,3 +110,17 @@ def test_invalid_transfer_request_for_balance_key(sample_transfer_request):
     ):
         assert not sample_transfer_request.is_balance_key_valid()
         assert sample_transfer_request.validation_errors == ['Balance key does not match balance lock']
+
+
+def test_can_create_from_transfer_request_message(user_account_keys):
+    message = TransferRequestMessage(
+        balance_key='1cdd4ba04456ca169baca3d66eace869520c62fe84421329086e03d91a68acdb',
+        txs=[Transaction(amount=10, recipient='0cdd4ba04456ca169baca3d66eace869520c62fe84421329086e03d91a68acdb')]
+    )
+    private, public = user_account_keys
+    request = TransferRequest.from_transfer_request_message(message, private)
+    assert request.sender == public
+    assert request.message == message
+    assert request.message is not message
+    assert request.message_signature
+    assert request.is_signature_valid()

@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Type, TypeVar
 
 from dataclasses_json import dataclass_json
 
@@ -10,6 +10,8 @@ from thenewboston_node.core.utils.dataclass import fake_super_methods
 from .base import SignableMixin
 from .block_message import BlockMessage
 from .transfer_request import TransferRequest
+
+T = TypeVar('T', bound='Block')
 
 logger = logging.getLogger(__name__)
 
@@ -26,9 +28,9 @@ class Block(SignableMixin):
     message_signature: Optional[str] = None
 
     @classmethod
-    def from_transfer_request(cls, transfer_request: TransferRequest):
+    def from_transfer_request(cls: Type[T], transfer_request: TransferRequest) -> T:
         message = BlockMessage.from_transfer_request(transfer_request)
-        block = Block(message=message)
+        block = cls(message=message)
 
         signing_key = get_signing_key()
         block.sign(signing_key)

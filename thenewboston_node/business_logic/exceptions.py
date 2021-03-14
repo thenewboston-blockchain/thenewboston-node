@@ -1,0 +1,2 @@
+class InvalidBlockError(Exception):
+    pass

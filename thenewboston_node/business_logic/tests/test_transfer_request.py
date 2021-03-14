@@ -41,13 +41,13 @@ def test_is_signature_valid_negative(sample_transfer_request):
     assert sample_transfer_request_copy.validation_errors == ['Message signature is invalid']
 
 
-@pytest.mark.usefixtures('use_mock_blockchain')
+@pytest.mark.usefixtures('forced_mock_blockchain')
 def test_is_amount_valid(sample_transfer_request):
     with patch.object(MockBlockchain, 'get_account_balance', return_value=425 + 1 + 4):
         assert sample_transfer_request.is_amount_valid()
 
 
-@pytest.mark.usefixtures('use_mock_blockchain')
+@pytest.mark.usefixtures('forced_mock_blockchain')
 def test_is_amount_valid_negative(sample_transfer_request):
     sample_transfer_request_copy = copy.deepcopy(sample_transfer_request)
     with patch.object(MockBlockchain, 'get_account_balance', return_value=None):
@@ -62,7 +62,7 @@ def test_is_amount_valid_negative(sample_transfer_request):
         ]
 
 
-@pytest.mark.usefixtures('use_mock_blockchain')
+@pytest.mark.usefixtures('forced_mock_blockchain')
 def test_is_balance_lock_valid(sample_transfer_request):
     with patch.object(
         MockBlockchain,
@@ -72,7 +72,7 @@ def test_is_balance_lock_valid(sample_transfer_request):
         assert sample_transfer_request.is_balance_lock_valid()
 
 
-@pytest.mark.usefixtures('use_mock_blockchain')
+@pytest.mark.usefixtures('forced_mock_blockchain')
 def test_is_balance_lock_valid_negative(sample_transfer_request):
     with patch.object(
         MockBlockchain,
@@ -83,7 +83,7 @@ def test_is_balance_lock_valid_negative(sample_transfer_request):
         assert sample_transfer_request.validation_errors == ['Balance key does not match balance lock']
 
 
-@pytest.mark.usefixtures('use_mock_blockchain')
+@pytest.mark.usefixtures('forced_mock_blockchain')
 def test_is_valid(sample_transfer_request):
     with patch.object(MockBlockchain, 'get_account_balance', return_value=425 + 1 + 4):
         with patch.object(
@@ -101,7 +101,7 @@ def test_invalid_transfer_request_for_signature(sample_transfer_request):
     assert sample_transfer_request_copy.validation_errors == ['Message signature is invalid']
 
 
-@pytest.mark.usefixtures('use_mock_blockchain')
+@pytest.mark.usefixtures('forced_mock_blockchain')
 def test_invalid_transfer_request_for_amount(sample_transfer_request):
     with patch.object(MockBlockchain, 'get_account_balance', return_value=425 + 1 + 4 - 1):
         assert not sample_transfer_request.is_valid()
@@ -110,7 +110,7 @@ def test_invalid_transfer_request_for_amount(sample_transfer_request):
         ]
 
 
-@pytest.mark.usefixtures('use_mock_blockchain')
+@pytest.mark.usefixtures('forced_mock_blockchain')
 def test_invalid_transfer_request_for_balance_lock(sample_transfer_request):
     with patch.object(
         MockBlockchain,

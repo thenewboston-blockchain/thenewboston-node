@@ -8,7 +8,8 @@ from thenewboston_node.core.utils.cryptography import derive_verify_key
 
 
 @pytest.mark.usefixtures(
-    'use_mock_blockchain', 'get_head_block_mock', 'get_initial_account_root_file_hash_mock', 'get_account_balance_mock'
+    'forced_mock_blockchain', 'get_head_block_mock', 'get_initial_account_root_file_hash_mock',
+    'get_account_balance_mock'
 )
 def test_can_create_block_from_transfer_request(sample_transfer_request):
     block = Block.from_transfer_request(sample_transfer_request)
@@ -38,7 +39,8 @@ def test_can_create_block_from_transfer_request(sample_transfer_request):
 
 
 @pytest.mark.usefixtures(
-    'use_mock_blockchain', 'get_head_block_mock', 'get_initial_account_root_file_hash_mock', 'get_account_balance_mock'
+    'forced_mock_blockchain', 'get_head_block_mock', 'get_initial_account_root_file_hash_mock',
+    'get_account_balance_mock'
 )
 def test_normalized_block_message(sample_transfer_request):
     expected_message_template = (
@@ -67,7 +69,8 @@ def test_normalized_block_message(sample_transfer_request):
 
 
 @pytest.mark.usefixtures(
-    'use_mock_blockchain', 'get_head_block_mock', 'get_initial_account_root_file_hash_mock', 'get_account_balance_mock'
+    'forced_mock_blockchain', 'get_head_block_mock', 'get_initial_account_root_file_hash_mock',
+    'get_account_balance_mock'
 )
 def test_can_serialize_deserialize(sample_transfer_request):
     block = Block.from_transfer_request(sample_transfer_request)

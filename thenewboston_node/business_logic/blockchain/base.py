@@ -2,6 +2,7 @@ from typing import Optional, Type, TypeVar
 
 from django.conf import settings
 
+from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.core.utils.cryptography import hash_normalized_dict, normalize_dict
 from thenewboston_node.core.utils.importing import import_from_string
 
@@ -45,7 +46,11 @@ class BlockchainBase:
         return self.get_initial_account_root_file_hash()
 
     def get_initial_account_root_file_hash(self) -> str:
-        return hash_normalized_dict(normalize_dict(self.get_initial_account_root_file()))
+        return hash_normalized_dict(normalize_dict(self.get_initial_account_root_file().to_dict()  # type: ignore
+                                                   ))
 
-    def get_initial_account_root_file(self) -> dict:
+    def get_initial_account_root_file(self) -> AccountRootFile:
+        raise NotImplementedError('Must be implemented in a child class')
+
+    def get_last_account_root_file(self) -> AccountRootFile:
         raise NotImplementedError('Must be implemented in a child class')

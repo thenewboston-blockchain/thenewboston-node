@@ -43,10 +43,13 @@ class Block(SignableMixin):
         dict_['message'] = self.message.to_dict()
         return dict_
 
-    def hash_message(self):
+    def hash_message(self) -> None:
         message_hash = self.message.get_hash()
         stored_message_hash = self.message_hash
         if stored_message_hash and stored_message_hash != message_hash:
             logger.warning('Overwriting existing message hash')
 
         self.message_hash = message_hash
+
+    def is_valid(self) -> bool:
+        raise NotImplementedError()

@@ -31,6 +31,7 @@ def test_get_account_balance_from_initial_account_root_file(
 
 
 @pytest.mark.skip('Not implemented yet')
+@pytest.mark.usefixtures('forced_mock_network', 'get_primary_validator_mock', 'get_preferred_node_mock')
 def test_can_add_block(
     forced_memory_blockchain: MemoryBlockchain, treasury_account_key_pair: KeyPair, user_account_key_pair: KeyPair
 ):

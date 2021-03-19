@@ -29,7 +29,7 @@ def test_can_create_block_from_transfer_request(sample_transfer_request: Transfe
     assert block.message
     assert block.message_hash
     assert block.message_signature
-    assert block.is_signature_valid()
+    block.validate_signature()
     assert block.node_identifier
     assert block.node_identifier == derive_verify_key(get_signing_key())
 
@@ -94,7 +94,8 @@ def test_can_create_block_from_main_transaction(
     assert block.message
     assert block.message_hash
     assert block.message_signature
-    assert block.is_signature_valid()
+
+    block.validate_signature()
     assert block.node_identifier
     assert block.node_identifier == derive_verify_key(get_signing_key())
 

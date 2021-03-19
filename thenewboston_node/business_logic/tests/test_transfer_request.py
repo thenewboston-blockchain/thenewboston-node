@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 
 from thenewboston_node.business_logic.blockchain.mock_blockchain import MockBlockchain
+from thenewboston_node.business_logic.exceptions import InvalidMessageSignatureError, ValidationError
 from thenewboston_node.business_logic.models.transaction import Transaction
 from thenewboston_node.business_logic.models.transfer_request import TransferRequest
 from thenewboston_node.business_logic.models.transfer_request_message import TransferRequestMessage
@@ -24,90 +25,86 @@ def test_can_create_transfer_request_from_dict(sample_transfer_request_dict):
     assert transfer_request.message_signature == sample_transfer_request_dict['message_signature']
 
 
-def test_is_signature_valid(sample_transfer_request):
-    assert sample_transfer_request.is_signature_valid()
+def test_validate_signature(sample_transfer_request):
+    sample_transfer_request.validate_signature()
 
 
-def test_is_signature_valid_negative(sample_transfer_request):
+def test_validate_signature_raises(sample_transfer_request):
     sample_transfer_request_copy = copy.deepcopy(sample_transfer_request)
     sample_transfer_request_copy.message_signature = 'invalid' + sample_transfer_request_copy.message_signature[
         len('invalid'):]
-    assert not sample_transfer_request_copy.is_signature_valid()
-    assert sample_transfer_request_copy.validation_errors == ['Message signature is invalid']
+    with pytest.raises(InvalidMessageSignatureError):
+        sample_transfer_request_copy.validate_signature()
 
     sample_transfer_request_copy = copy.deepcopy(sample_transfer_request)
     sample_transfer_request_copy.message_signature = 'aaaaa' + sample_transfer_request_copy.message_signature[5:]
-    assert not sample_transfer_request_copy.is_signature_valid()
-    assert sample_transfer_request_copy.validation_errors == ['Message signature is invalid']
+    with pytest.raises(InvalidMessageSignatureError):
+        sample_transfer_request_copy.validate_signature()
 
 
 @pytest.mark.usefixtures('forced_mock_blockchain')
-def test_is_amount_valid(sample_transfer_request):
+def test_validate_amount(sample_transfer_request):
     with patch.object(MockBlockchain, 'get_account_balance', return_value=425 + 1 + 4):
-        assert sample_transfer_request.is_amount_valid()
+        sample_transfer_request.validate_amount()
 
 
 @pytest.mark.usefixtures('forced_mock_blockchain')
-def test_is_amount_valid_negative(sample_transfer_request):
+def test_validate_amount_raises(sample_transfer_request):
     sample_transfer_request_copy = copy.deepcopy(sample_transfer_request)
     with patch.object(MockBlockchain, 'get_account_balance', return_value=None):
-        assert not sample_transfer_request_copy.is_amount_valid()
-        assert sample_transfer_request_copy.validation_errors == ['Account balance is not found']
+        with pytest.raises(ValidationError, match='Account balance is not found'):
+            sample_transfer_request_copy.validate_amount()
 
     sample_transfer_request_copy = copy.deepcopy(sample_transfer_request)
     with patch.object(MockBlockchain, 'get_account_balance', return_value=425 + 1 + 4 - 1):
-        assert not sample_transfer_request_copy.is_amount_valid()
-        assert sample_transfer_request_copy.validation_errors == [
-            'Transaction total amount is greater than account balance'
-        ]
+        with pytest.raises(ValidationError, match='Transaction total amount is greater than account balance'):
+            sample_transfer_request_copy.validate_amount()
 
 
 @pytest.mark.usefixtures('forced_mock_blockchain')
-def test_is_balance_lock_valid(sample_transfer_request):
+def test_validate_balance_lock(sample_transfer_request):
     with patch.object(
         MockBlockchain,
         'get_account_balance_lock',
         return_value='4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732'
     ):
-        assert sample_transfer_request.is_balance_lock_valid()
+        sample_transfer_request.validate_balance_lock()
 
 
 @pytest.mark.usefixtures('forced_mock_blockchain')
-def test_is_balance_lock_valid_negative(sample_transfer_request):
+def test_validate_balance_lock_raises(sample_transfer_request):
     with patch.object(
         MockBlockchain,
         'get_account_balance_lock',
         return_value='1cdd4ba04456ca169baca3d66eace869520c62fe84421329086e03d91a68acdb'
     ):
-        assert not sample_transfer_request.is_balance_lock_valid()
-        assert sample_transfer_request.validation_errors == ['Balance key does not match balance lock']
+        with pytest.raises(ValidationError, match='Balance key does not match balance lock'):
+            sample_transfer_request.validate_balance_lock()
 
 
 @pytest.mark.usefixtures('forced_mock_blockchain')
-def test_is_valid(sample_transfer_request):
+def test_validate(sample_transfer_request):
     with patch.object(MockBlockchain, 'get_account_balance', return_value=425 + 1 + 4):
         with patch.object(
             MockBlockchain,
             'get_account_balance_lock',
             return_value='4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732'
         ):
-            assert sample_transfer_request.is_valid()
+            sample_transfer_request.validate()
 
 
 def test_invalid_transfer_request_for_signature(sample_transfer_request):
     sample_transfer_request_copy = copy.deepcopy(sample_transfer_request)
     sample_transfer_request_copy.message_signature = 'aaaaa' + sample_transfer_request_copy.message_signature[5:]
-    assert not sample_transfer_request_copy.is_valid()
-    assert sample_transfer_request_copy.validation_errors == ['Message signature is invalid']
+    with pytest.raises(InvalidMessageSignatureError):
+        sample_transfer_request_copy.validate()
 
 
 @pytest.mark.usefixtures('forced_mock_blockchain')
 def test_invalid_transfer_request_for_amount(sample_transfer_request):
     with patch.object(MockBlockchain, 'get_account_balance', return_value=425 + 1 + 4 - 1):
-        assert not sample_transfer_request.is_valid()
-        assert sample_transfer_request.validation_errors == [
-            'Transaction total amount is greater than account balance'
-        ]
+        with pytest.raises(ValidationError, match='Transaction total amount is greater than account balance'):
+            sample_transfer_request.validate()
 
 
 @pytest.mark.usefixtures('forced_mock_blockchain')
@@ -117,8 +114,8 @@ def test_invalid_transfer_request_for_balance_lock(sample_transfer_request):
         'get_account_balance_lock',
         return_value='1cdd4ba04456ca169baca3d66eace869520c62fe84421329086e03d91a68acdb'
     ):
-        assert not sample_transfer_request.is_balance_lock_valid()
-        assert sample_transfer_request.validation_errors == ['Balance key does not match balance lock']
+        with pytest.raises(ValidationError, match='Balance key does not match balance lock'):
+            sample_transfer_request.validate_balance_lock()
 
 
 def test_can_create_from_transfer_request_message(user_account_key_pair):
@@ -131,4 +128,4 @@ def test_can_create_from_transfer_request_message(user_account_key_pair):
     assert request.message == message
     assert request.message is not message
     assert request.message_signature
-    assert request.is_signature_valid()
+    request.validate_signature()

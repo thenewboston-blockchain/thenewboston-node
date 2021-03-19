@@ -19,7 +19,7 @@ class MemoryBlockchain(BlockchainBase):
         self.blocks: list[Block] = []
 
     def add_block(self, block: Block):
-        if not block.is_valid():
+        if not block.validate():
             raise InvalidBlockError()
 
         self.blocks.append(copy.deepcopy(block))

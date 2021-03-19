@@ -1,6 +1,7 @@
 import logging
 from typing import Optional
 
+from thenewboston_node.business_logic.exceptions import InvalidMessageSignatureError
 from thenewboston_node.core.utils.cryptography import (
     derive_verify_key, generate_signature, hash_normalized_dict, is_signature_valid
 )
@@ -19,8 +20,9 @@ class MessageMixin:
     def generate_signature(self, signing_key):
         return generate_signature(signing_key, self.get_normalized())
 
-    def is_signature_valid(self, verify_key: str, signature: str) -> bool:
-        return is_signature_valid(verify_key, self.get_normalized(), signature)
+    def validate_signature(self, verify_key: str, signature: str):
+        if not is_signature_valid(verify_key, self.get_normalized(), signature):
+            raise InvalidMessageSignatureError()
 
     def get_normalized(self) -> bytes:
         raise NotImplementedError('Must be implemented in a child class')
@@ -51,13 +53,13 @@ class SignableMixin:
 
         self.message_signature = message_signature
 
-    def is_signature_valid(self) -> bool:
+    def validate_signature(self):
         verify_key_field_name = self.verify_key_field_name
         if not verify_key_field_name:
             raise ValueError('`verify_key_field_name` class attribute must be set')
 
         verify_key = getattr(self, verify_key_field_name)
-        return (
-            verify_key and self.message_signature and
-            self.message.is_signature_valid(verify_key, self.message_signature)
-        )
+        if not (verify_key and self.message_signature):
+            raise InvalidMessageSignatureError()
+
+        self.message.validate_signature(verify_key, self.message_signature)

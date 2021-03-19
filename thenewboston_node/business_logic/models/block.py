@@ -4,6 +4,7 @@ from typing import Optional, Type, TypeVar
 
 from dataclasses_json import dataclass_json
 
+from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.node import get_signing_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
@@ -29,11 +30,8 @@ class Block(SignableMixin):
 
     @classmethod
     def from_transfer_request(cls: Type[T], transfer_request: TransferRequest) -> T:
-        message = BlockMessage.from_transfer_request(transfer_request)
-        block = cls(message=message)
-
-        signing_key = get_signing_key()
-        block.sign(signing_key)
+        block = cls(message=BlockMessage.from_transfer_request(transfer_request))
+        block.sign(get_signing_key())
         block.hash_message()
         return block
 
@@ -56,5 +54,11 @@ class Block(SignableMixin):
 
         self.message_hash = message_hash
 
-    def is_valid(self) -> bool:
-        raise NotImplementedError()
+    def validate_message_hash(self):
+        if self.message.get_hash() != self.message_hash:
+            raise ValidationError('Message hash is invalid')
+
+    def validate(self):
+        self.validate_signature()
+        self.validate_message_hash()
+        # TODO(dmu) CRITICAL: Complete validation logic

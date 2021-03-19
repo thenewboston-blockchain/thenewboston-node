@@ -5,6 +5,7 @@ from typing import Optional, Type, TypeVar
 
 from dataclasses_json import dataclass_json
 
+from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from .base import SignableMixin
@@ -31,9 +32,6 @@ class TransferRequest(SignableMixin):
     sender: Optional[str] = None
     message_signature: Optional[str] = None
 
-    def __post_init__(self):
-        self.validation_errors: list[str] = []
-
     @classmethod
     def from_transfer_request_message(cls: Type[T], message: TransferRequestMessage, signing_key: str) -> T:
         request = cls(message=copy.deepcopy(message))
@@ -51,37 +49,19 @@ class TransferRequest(SignableMixin):
         dict_['message'] = self.message.to_dict()
         return dict_
 
-    def add_validation_error(self, error_message: str):
-        self.validation_errors.append(error_message)
+    def validate(self):
+        self.validate_signature()
+        self.validate_amount()
+        self.validate_balance_lock()
 
-    def is_valid(self) -> bool:
-        if self.validation_errors:
-            self.validation_errors = []
-
-        return self.is_signature_valid() and self.is_amount_valid() and self.is_balance_lock_valid()
-
-    def is_signature_valid(self) -> bool:
-        if not super().is_signature_valid():
-            self.add_validation_error('Message signature is invalid')
-            return False
-
-        return True
-
-    def is_amount_valid(self) -> bool:
+    def validate_amount(self):
         balance = get_blockchain().get_account_balance(self.sender)
         if balance is None:
-            self.add_validation_error('Account balance is not found')
-            return False
+            raise ValidationError('Account balance is not found')
 
         if self.message.get_total_amount() > balance:
-            self.add_validation_error('Transaction total amount is greater than account balance')
-            return False
+            raise ValidationError('Transaction total amount is greater than account balance')
 
-        return True
-
-    def is_balance_lock_valid(self) -> bool:
+    def validate_balance_lock(self):
         if self.message.balance_lock != get_blockchain().get_account_balance_lock(self.sender):
-            self.add_validation_error('Balance key does not match balance lock')
-            return False
-
-        return True
+            raise ValidationError('Balance key does not match balance lock')

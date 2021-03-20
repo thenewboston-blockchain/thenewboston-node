@@ -36,10 +36,7 @@ def test_can_add_block(
     forced_memory_blockchain: MemoryBlockchain, treasury_account_key_pair: KeyPair, user_account_key_pair: KeyPair
 ):
     block = Block.from_main_transaction(
-        treasury_account_key_pair.public,
-        user_account_key_pair.public,
-        31,
-        signing_key=treasury_account_key_pair.private
+        user_account_key_pair.public, 31, signing_key=treasury_account_key_pair.private
     )
     forced_memory_blockchain.add_block(block)
     raise NotImplementedError

@@ -10,7 +10,7 @@ from .base import BlockchainBase
 
 class MemoryBlockchain(BlockchainBase):
     """
-    A blockchain implementation primarily for use in unittesting and being used as example implementation
+    A blockchain implementation primarily for use in unittesting and being used as an example implementation
     """
 
     def __init__(self, *, initial_account_root_file):

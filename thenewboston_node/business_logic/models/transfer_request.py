@@ -6,6 +6,7 @@ from typing import Optional, Type, TypeVar
 from dataclasses_json import dataclass_json
 
 from thenewboston_node.business_logic.exceptions import ValidationError
+from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from .base import SignableMixin
@@ -28,18 +29,19 @@ def get_blockchain():
 class TransferRequest(SignableMixin):
     verify_key_field_name = 'sender'
 
+    sender: str
     message: TransferRequestMessage
-    sender: Optional[str] = None
     message_signature: Optional[str] = None
 
     @classmethod
     def from_transfer_request_message(cls: Type[T], message: TransferRequestMessage, signing_key: str) -> T:
-        request = cls(message=copy.deepcopy(message))
+        request = cls(sender=derive_verify_key(signing_key), message=copy.deepcopy(message))
         request.sign(signing_key)
         return request
 
     @classmethod
-    def from_main_transaction(cls: Type[T], sender: str, recipient: str, amount: int, *, signing_key: str) -> T:
+    def from_main_transaction(cls: Type[T], recipient: str, amount: int, signing_key: str) -> T:
+        sender = derive_verify_key(signing_key)
         message = TransferRequestMessage.from_main_transaction(sender, recipient, amount)
         return cls.from_transfer_request_message(message, signing_key)
 

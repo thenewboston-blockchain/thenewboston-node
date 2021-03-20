@@ -36,8 +36,8 @@ class Block(SignableMixin):
         return block
 
     @classmethod
-    def from_main_transaction(cls: Type[T], sender: str, recipient: str, amount: int, *, signing_key: str) -> T:
-        transfer_request = TransferRequest.from_main_transaction(sender, recipient, amount, signing_key=signing_key)
+    def from_main_transaction(cls: Type[T], recipient: str, amount: int, *, signing_key: str) -> T:
+        transfer_request = TransferRequest.from_main_transaction(recipient, amount, signing_key)
         return cls.from_transfer_request(transfer_request)
 
     def override_to_dict(self):  # this one turns into to_dict()

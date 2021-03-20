@@ -2,8 +2,7 @@ import copy
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from operator import itemgetter
-from typing import Optional
+from typing import Callable, Optional
 
 from dataclasses_json import config, dataclass_json
 from marshmallow import fields
@@ -16,6 +15,36 @@ from .base import MessageMixin
 from .transfer_request import TransferRequest
 
 logger = logging.getLogger(__name__)
+
+
+def calculate_updated_balances(get_account_balance: Callable[[str], Optional[int]],
+                               transfer_request: TransferRequest) -> dict[str, AccountBalance]:
+    updated_balances: dict[str, AccountBalance] = {}
+    sent_amount = 0
+    for transaction in transfer_request.message.txs:
+        recipient = transaction.recipient
+        amount = transaction.amount
+
+        balance = updated_balances.get(recipient)
+        if balance is None:
+            balance = AccountBalance(balance=get_account_balance(recipient) or 0)
+            updated_balances[recipient] = balance
+
+        balance.balance += amount
+        sent_amount += amount
+
+    sender = transfer_request.sender
+    sender_balance = get_account_balance(sender)
+    assert sender_balance is not None
+    assert sender_balance >= sent_amount
+
+    updated_balances[sender] = AccountBalance(
+        balance=sender_balance - sent_amount,
+        # Transfer request message hash becomes new balance lock
+        balance_lock=transfer_request.message.get_hash()
+    )
+
+    return updated_balances
 
 
 @fake_super_methods
@@ -34,13 +63,13 @@ class BlockMessage(MessageMixin):
     )
     block_number: int
     block_identifier: str
-    updated_balances: list[AccountBalance]
+    updated_balances: dict[str, AccountBalance]
 
     def override_to_dict(self):  # this one turns into to_dict()
         dict_ = self.super_to_dict()
         # TODO(dmu) LOW: Implement a better way of removing optional fields or allow them in normalized message
         dict_['transfer_request'] = self.transfer_request.to_dict()
-        dict_['updated_balances'] = [balance.to_dict() for balance in self.updated_balances]
+        dict_['updated_balances'] = {key: value.to_dict() for key, value in self.updated_balances.items()}
         return dict_
 
     @classmethod
@@ -64,44 +93,16 @@ class BlockMessage(MessageMixin):
 
         assert block_identifier
 
-        updated_balances = []
-        total_amount = 0
-        for transaction in transfer_request.message.txs:
-            recipient = transaction.recipient
-            amount = transaction.amount
-
-            balance = blockchain.get_account_balance(recipient) or 0
-            updated_balances.append(AccountBalance(account=transaction.recipient, balance=balance + amount))
-            total_amount += amount
-
-        sender_balance = blockchain.get_account_balance(transfer_request.sender)
-        assert sender_balance is not None
-
-        updated_balances.append(
-            AccountBalance(
-                account=transfer_request.sender,
-                balance=sender_balance - total_amount,
-                # Transfer request message hash becomes new balance lock
-                balance_lock=transfer_request.message.get_hash()
-            )
-        )
-
         return BlockMessage(
             transfer_request=copy.deepcopy(transfer_request),
             timestamp=timestamp,
             block_number=block_number,
             block_identifier=block_identifier,
-            updated_balances=updated_balances,
+            updated_balances=calculate_updated_balances(blockchain.get_account_balance, transfer_request),
         )
 
     def get_normalized(self) -> bytes:
-        message_dict = self.to_dict()  # type: ignore
-        message_dict['updated_balances'] = sorted(message_dict['updated_balances'], key=itemgetter('account'))
-        return normalize_dict(message_dict)
+        return normalize_dict(self.to_dict())  # type: ignore
 
     def get_balance(self, account: str) -> Optional[AccountBalance]:
-        for balance in self.updated_balances:
-            if balance.account == account:
-                return balance
-
-        return None
+        return (self.updated_balances or {}).get(account)

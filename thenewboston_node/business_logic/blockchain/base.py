@@ -54,3 +54,9 @@ class BlockchainBase:
 
     def get_last_account_root_file(self) -> AccountRootFile:
         raise NotImplementedError('Must be implemented in a child class')
+
+    def validate(self):
+        # Validations to be implemented:
+        # 1. Block numbers are sequential
+        # 2. Block identifiers equal to previous block message hash
+        raise NotImplementedError('TO BE implemented')

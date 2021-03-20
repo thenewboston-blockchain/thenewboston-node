@@ -11,7 +11,6 @@ from thenewboston_node.core.utils.dataclass import fake_super_methods
 @dataclass_json
 @dataclass
 class AccountBalance:
-    account: str
     balance: int
     balance_lock: Optional[str] = None
 

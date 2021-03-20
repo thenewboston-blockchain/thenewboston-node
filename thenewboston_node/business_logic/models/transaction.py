@@ -13,7 +13,7 @@ from thenewboston_node.core.utils.dataclass import fake_super_methods
 class Transaction:
     recipient: str
     amount: int
-    fee: Optional[str] = None
+    fee: Optional[bool] = None
 
     def override_to_dict(self):  # this one turns into to_dict()
         dict_ = self.super_to_dict()

@@ -10,7 +10,7 @@ from marshmallow import fields
 from thenewboston_node.core.utils.cryptography import normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
-from .account_balance import AccountBalance
+from .account_balance import BlockAccountBalance
 from .base import MessageMixin
 from .transfer_request import TransferRequest
 
@@ -18,8 +18,8 @@ logger = logging.getLogger(__name__)
 
 
 def calculate_updated_balances(get_account_balance: Callable[[str], Optional[int]],
-                               transfer_request: TransferRequest) -> dict[str, AccountBalance]:
-    updated_balances: dict[str, AccountBalance] = {}
+                               transfer_request: TransferRequest) -> dict[str, BlockAccountBalance]:
+    updated_balances: dict[str, BlockAccountBalance] = {}
     sent_amount = 0
     for transaction in transfer_request.message.txs:
         recipient = transaction.recipient
@@ -27,7 +27,7 @@ def calculate_updated_balances(get_account_balance: Callable[[str], Optional[int
 
         balance = updated_balances.get(recipient)
         if balance is None:
-            balance = AccountBalance(balance=get_account_balance(recipient) or 0)
+            balance = BlockAccountBalance(balance=get_account_balance(recipient) or 0)
             updated_balances[recipient] = balance
 
         balance.balance += amount
@@ -38,7 +38,7 @@ def calculate_updated_balances(get_account_balance: Callable[[str], Optional[int
     assert sender_balance is not None
     assert sender_balance >= sent_amount
 
-    updated_balances[sender] = AccountBalance(
+    updated_balances[sender] = BlockAccountBalance(
         balance=sender_balance - sent_amount,
         # Transfer request message hash becomes new balance lock
         balance_lock=transfer_request.message.get_hash()
@@ -63,7 +63,7 @@ class BlockMessage(MessageMixin):
     )
     block_number: int
     block_identifier: str
-    updated_balances: dict[str, AccountBalance]
+    updated_balances: dict[str, BlockAccountBalance]
 
     def override_to_dict(self):  # this one turns into to_dict()
         dict_ = self.super_to_dict()
@@ -104,5 +104,5 @@ class BlockMessage(MessageMixin):
     def get_normalized(self) -> bytes:
         return normalize_dict(self.to_dict())  # type: ignore
 
-    def get_balance(self, account: str) -> Optional[AccountBalance]:
+    def get_balance(self, account: str) -> Optional[BlockAccountBalance]:
         return (self.updated_balances or {}).get(account)

@@ -3,23 +3,17 @@ from typing import Optional
 
 from dataclasses_json import dataclass_json
 
-
-# TODO(dmu) MEDIUM: Consider merge with `thenewboston_node.business_logic.models.account_balance.AccountBalance`
-@dataclass_json
-@dataclass
-class AccountRootFileAccountBalance:
-    balance: int
-    balance_lock: str
+from .account_balance import AccountBalance
 
 
 @dataclass_json
 @dataclass
 class AccountRootFile:
-    accounts: dict[str, AccountRootFileAccountBalance]
+    accounts: dict[str, AccountBalance]
     last_block_number: Optional[int] = None
     last_block_identifier: Optional[str] = None
 
-    def get_balance(self, account: str) -> Optional[AccountRootFileAccountBalance]:
+    def get_balance(self, account: str) -> Optional[AccountBalance]:
         return self.accounts.get(account)
 
     def get_balance_value(self, account: str):

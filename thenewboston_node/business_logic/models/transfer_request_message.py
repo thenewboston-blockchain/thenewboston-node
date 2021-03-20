@@ -37,8 +37,8 @@ class TransferRequestMessage(MessageMixin):
         node = network.get_preferred_node()
         txs = [
             Transaction(recipient=recipient, amount=amount),
-            Transaction(recipient=pv.identifier, amount=pv.fee_amount, fee=pv.type_),
-            Transaction(recipient=node.identifier, amount=node.fee_amount, fee=node.type_),
+            Transaction(recipient=pv.identifier, amount=pv.fee_amount, fee=True),
+            Transaction(recipient=node.identifier, amount=node.fee_amount, fee=True),
         ]
         return cls.from_transactions(sender, txs)
 

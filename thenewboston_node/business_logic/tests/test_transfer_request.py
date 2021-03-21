@@ -93,6 +93,20 @@ def test_validate(sample_transfer_request):
             sample_transfer_request.validate()
 
 
+def test_invalid_sender(sample_transfer_request):
+    sample_transfer_request.sender = ''
+    with pytest.raises(ValidationError, match='Transfer request sender must be set'):
+        sample_transfer_request.validate()
+
+    sample_transfer_request.sender = None
+    with pytest.raises(ValidationError, match='Transfer request sender must be set'):
+        sample_transfer_request.validate()
+
+    sample_transfer_request.sender = 12
+    with pytest.raises(ValidationError, match='Transfer request sender must be an account number string'):
+        sample_transfer_request.validate()
+
+
 def test_invalid_transfer_request_for_signature(sample_transfer_request):
     sample_transfer_request_copy = copy.deepcopy(sample_transfer_request)
     sample_transfer_request_copy.message_signature = 'aaaaa' + sample_transfer_request_copy.message_signature[5:]

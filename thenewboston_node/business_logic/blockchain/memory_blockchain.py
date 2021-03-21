@@ -31,10 +31,10 @@ class MemoryBlockchain(BlockchainBase):
 
         return None
 
-    def get_blocks_until_last_account_root_file(self):
-        last_account_root_file = self.get_last_account_root_file()
-        account_root_file_block_identifier = last_account_root_file.last_block_identifier
-        account_root_file_block_number = last_account_root_file.last_block_number
+    def get_blocks_until_account_root_file(self):
+        account_root_file = self.get_last_account_root_file()
+        account_root_file_block_identifier = account_root_file.last_block_identifier
+        account_root_file_block_number = account_root_file.last_block_number
 
         for block in reversed(self.blocks):
             block_identifier = block.message.block_identifier
@@ -49,7 +49,7 @@ class MemoryBlockchain(BlockchainBase):
             yield block
 
     def get_account_balance(self, account: str) -> Optional[int]:
-        for block in self.get_blocks_until_last_account_root_file():
+        for block in self.get_blocks_until_account_root_file():
             balance = block.message.get_balance(account)
             if balance is not None:
                 return balance.balance
@@ -61,7 +61,7 @@ class MemoryBlockchain(BlockchainBase):
         return None
 
     def get_account_balance_lock(self, account: str) -> str:
-        for block in self.get_blocks_until_last_account_root_file():
+        for block in self.get_blocks_until_account_root_file():
             balance = block.message.get_balance(account)
             if balance is not None:
                 balance_lock = balance.balance_lock

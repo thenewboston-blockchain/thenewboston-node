@@ -1,10 +1,10 @@
 import copy
 from dataclasses import dataclass
-from operator import itemgetter
 from typing import Type, TypeVar
 
 from dataclasses_json import dataclass_json
 
+from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.network.base import NetworkBase
 from thenewboston_node.core.utils.cryptography import normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
@@ -53,5 +53,33 @@ class TransferRequestMessage(MessageMixin):
 
     def get_normalized(self) -> bytes:
         message_dict = self.to_dict()  # type: ignore
-        message_dict['txs'] = sorted(message_dict['txs'], key=itemgetter('recipient'))
+
+        for tx in message_dict['txs']:
+            # This should fire when we add new fields to Transaction and forget to amend the sorting key
+            assert len(tx) <= 3
+        message_dict['txs'] = sorted(
+            message_dict['txs'], key=lambda x: (x['recipient'], x.get('fee', False), x['amount'])
+        )
+
         return normalize_dict(message_dict)
+
+    def validate(self):
+        self.validate_balance_lock()
+        self.validate_transactions()
+
+    def validate_balance_lock(self):
+        if not self.balance_lock:
+            raise ValidationError('Transfer request message balance lock must be set')
+
+    def validate_transactions(self):
+        txs = self.txs
+        if not isinstance(txs, list):
+            raise ValidationError('txs must be a list of Transactions')
+
+        if not txs:
+            raise ValidationError('txs must contain at least one transaction')
+
+        for tx in self.txs:
+            if not isinstance(tx, Transaction):
+                raise ValidationError('txs must be a list of Transactions')
+            tx.validate()

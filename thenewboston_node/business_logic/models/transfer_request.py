@@ -52,9 +52,21 @@ class TransferRequest(SignableMixin):
         return dict_
 
     def validate(self):
+        self.validate_sender()
+        self.validate_message()
         self.validate_signature()
         self.validate_amount()
         self.validate_balance_lock()
+
+    def validate_sender(self):
+        if not self.sender:
+            raise ValidationError('Transfer request sender must be set')
+
+        if not isinstance(self.sender, str):
+            raise ValidationError('Transfer request sender must be an account number string')
+
+    def validate_message(self):
+        self.message.validate()
 
     def validate_amount(self):
         balance = get_blockchain().get_account_balance(self.sender)

@@ -6,6 +6,7 @@ from dataclasses_json import dataclass_json
 
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.node import get_signing_key
+from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from .base import SignableMixin
@@ -23,20 +24,24 @@ logger = logging.getLogger(__name__)
 class Block(SignableMixin):
     verify_key_field_name = 'node_identifier'
 
+    node_identifier: str
     message: BlockMessage
-    node_identifier: Optional[str] = None
     message_hash: Optional[str] = None
     message_signature: Optional[str] = None
 
     @classmethod
     def from_transfer_request(cls: Type[T], transfer_request: TransferRequest) -> T:
-        block = cls(message=BlockMessage.from_transfer_request(transfer_request))
-        block.sign(get_signing_key())
+        signing_key = get_signing_key()
+        block = cls(
+            node_identifier=derive_verify_key(signing_key),
+            message=BlockMessage.from_transfer_request(transfer_request)
+        )
+        block.sign(signing_key)
         block.hash_message()
         return block
 
     @classmethod
-    def from_main_transaction(cls: Type[T], recipient: str, amount: int, *, signing_key: str) -> T:
+    def from_main_transaction(cls: Type[T], recipient: str, amount: int, signing_key: str) -> T:
         transfer_request = TransferRequest.from_main_transaction(recipient, amount, signing_key)
         return cls.from_transfer_request(transfer_request)
 

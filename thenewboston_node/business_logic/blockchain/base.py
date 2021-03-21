@@ -3,7 +3,6 @@ from typing import Optional, Type, TypeVar
 from django.conf import settings
 
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
-from thenewboston_node.core.utils.cryptography import hash_normalized_dict, normalize_dict
 from thenewboston_node.core.utils.importing import import_from_string
 
 from ..models.block import Block
@@ -42,12 +41,21 @@ class BlockchainBase:
     def get_head_block(self) -> Optional[Block]:
         raise NotImplementedError('Must be implemented in a child class')
 
-    def get_genesis_block_identifier(self) -> str:
-        return self.get_initial_account_root_file_hash()
+    def get_next_block_identifier(self) -> str:
+        head_block = self.get_head_block()
+        if head_block:
+            message_hash = head_block.message_hash
+            assert message_hash
+            return message_hash
 
-    def get_initial_account_root_file_hash(self) -> str:
-        return hash_normalized_dict(normalize_dict(self.get_initial_account_root_file().to_dict()  # type: ignore
-                                                   ))
+        return self.get_last_account_root_file().get_next_block_identifier()
+
+    def get_next_block_number(self) -> int:
+        head_block = self.get_head_block()
+        if head_block:
+            return head_block.message.block_number + 1
+
+        return self.get_last_account_root_file().get_next_block_number()
 
     def get_initial_account_root_file(self) -> AccountRootFile:
         raise NotImplementedError('Must be implemented in a child class')

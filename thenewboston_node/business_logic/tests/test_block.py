@@ -14,8 +14,8 @@ from thenewboston_node.core.utils.cryptography import KeyPair, derive_verify_key
 
 @pytest.mark.usefixtures(
     'forced_mock_blockchain',
-    'get_head_block_mock',
-    'get_initial_account_root_file_hash_mock',
+    'get_next_block_identifier_mock',
+    'get_next_block_number_mock',
 )
 def test_can_create_block_from_transfer_request(sample_transfer_request: TransferRequest):
 
@@ -46,7 +46,7 @@ def test_can_create_block_from_transfer_request(sample_transfer_request: Transfe
     assert block_message.timestamp - datetime.utcnow() < timedelta(seconds=1)
 
     assert block_message.block_number == 0
-    assert block_message.block_identifier == 'fake-block-identifier'
+    assert block_message.block_identifier == 'next-block-identifier'
     updated_balances = block_message.updated_balances
 
     assert isinstance(updated_balances, dict)
@@ -66,7 +66,7 @@ def test_can_create_block_from_transfer_request(sample_transfer_request: Transfe
 
 
 @pytest.mark.usefixtures(
-    'forced_mock_blockchain', 'forced_mock_network', 'get_head_block_mock', 'get_initial_account_root_file_hash_mock',
+    'forced_mock_blockchain', 'forced_mock_network', 'get_next_block_identifier_mock', 'get_next_block_number_mock',
     'get_account_balance_mock', 'get_account_balance_lock_mock', 'get_primary_validator_mock',
     'get_preferred_node_mock'
 )
@@ -100,7 +100,7 @@ def test_can_create_block_from_main_transaction(
     assert block_message.timestamp - datetime.utcnow() < timedelta(seconds=1)
 
     assert block_message.block_number == 0
-    assert block_message.block_identifier == 'fake-block-identifier'
+    assert block_message.block_identifier == 'next-block-identifier'
     updated_balances = block_message.updated_balances
 
     assert isinstance(updated_balances, dict)
@@ -143,12 +143,12 @@ def test_can_create_block_from_main_transaction(
 
 
 @pytest.mark.usefixtures(
-    'forced_mock_blockchain', 'get_head_block_mock', 'get_initial_account_root_file_hash_mock',
+    'forced_mock_blockchain', 'get_next_block_identifier_mock', 'get_next_block_number_mock',
     'get_account_balance_mock'
 )
 def test_normalized_block_message(sample_transfer_request):
     expected_message_template = (
-        '{"block_identifier":"fake-block-identifier","block_number":0,"timestamp":"<replace-with-timestamp>",'
+        '{"block_identifier":"next-block-identifier","block_number":0,"timestamp":"<replace-with-timestamp>",'
         '"transfer_request":{"message":{"balance_lock":'
         '"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732","txs":'
         '[{"amount":425,"recipient":"484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc"},'
@@ -179,7 +179,7 @@ def test_normalized_block_message(sample_transfer_request):
 
 
 @pytest.mark.usefixtures(
-    'forced_mock_blockchain', 'get_head_block_mock', 'get_initial_account_root_file_hash_mock',
+    'forced_mock_blockchain', 'get_next_block_identifier_mock', 'get_next_block_number_mock',
     'get_account_balance_mock'
 )
 def test_can_serialize_deserialize(sample_transfer_request):
@@ -191,7 +191,7 @@ def test_can_serialize_deserialize(sample_transfer_request):
 
 
 @pytest.mark.usefixtures(
-    'get_head_block_mock', 'get_initial_account_root_file_hash_mock', 'get_account_balance_lock_mock'
+    'get_next_block_identifier_mock', 'get_next_block_number_mock', 'get_account_balance_lock_mock'
 )
 def test_can_duplicate_recipients(
     forced_mock_blockchain: MockBlockchain, treasury_account_key_pair: KeyPair, user_account_key_pair: KeyPair

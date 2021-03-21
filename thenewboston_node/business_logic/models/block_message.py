@@ -77,21 +77,14 @@ class BlockMessage(MessageMixin):
         if not transfer_request.sender:
             raise ValueError('Sender must be set')
 
+        # TODO(dmu) HIGH: Move source of time to Blockchain?
         timestamp = datetime.utcnow()
 
         # TODO(dmu) LOW: Find a better way to avoid circular imports
         from ..blockchain.base import BlockchainBase  # avoid circular imports
         blockchain = BlockchainBase.get_instance()
-        head_block = blockchain.get_head_block()
-        if head_block:
-            block_number = head_block.message.block_number + 1
-            # Previous Block message hash becomes block identifier
-            block_identifier = head_block.message_hash
-        else:
-            block_number = 0
-            block_identifier = blockchain.get_genesis_block_identifier()
-
-        assert block_identifier
+        block_number = blockchain.get_next_block_number()
+        block_identifier = blockchain.get_next_block_identifier()
 
         return BlockMessage(
             transfer_request=copy.deepcopy(transfer_request),

@@ -52,12 +52,12 @@ def test_validate_amount(sample_transfer_request):
 def test_validate_amount_raises(sample_transfer_request):
     sample_transfer_request_copy = copy.deepcopy(sample_transfer_request)
     with patch.object(MockBlockchain, 'get_account_balance', return_value=None):
-        with pytest.raises(ValidationError, match='Account balance is not found'):
+        with pytest.raises(ValidationError, match='Sender account balance is not found'):
             sample_transfer_request_copy.validate_amount()
 
     sample_transfer_request_copy = copy.deepcopy(sample_transfer_request)
     with patch.object(MockBlockchain, 'get_account_balance', return_value=425 + 1 + 4 - 1):
-        with pytest.raises(ValidationError, match='Transaction total amount is greater than account balance'):
+        with pytest.raises(ValidationError, match='Transaction total amount is greater than sender account balance'):
             sample_transfer_request_copy.validate_amount()
 
 
@@ -117,7 +117,7 @@ def test_invalid_transfer_request_for_signature(sample_transfer_request):
 @pytest.mark.usefixtures('forced_mock_blockchain')
 def test_invalid_transfer_request_for_amount(sample_transfer_request):
     with patch.object(MockBlockchain, 'get_account_balance', return_value=425 + 1 + 4 - 1):
-        with pytest.raises(ValidationError, match='Transaction total amount is greater than account balance'):
+        with pytest.raises(ValidationError, match='Transaction total amount is greater than sender account balance'):
             sample_transfer_request.validate()
 
 

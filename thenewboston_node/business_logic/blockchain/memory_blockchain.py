@@ -54,11 +54,7 @@ class MemoryBlockchain(BlockchainBase):
             if balance is not None:
                 return balance.balance
 
-        root_file_account_balance = self.get_last_account_root_file().accounts.get(account)
-        if root_file_account_balance:
-            return root_file_account_balance.balance
-
-        return None
+        return self.get_last_account_root_file().get_balance_value(account)
 
     def get_account_balance_lock(self, account: str) -> str:
         for block in self.get_blocks_until_account_root_file():
@@ -68,11 +64,7 @@ class MemoryBlockchain(BlockchainBase):
                 if balance_lock:
                     return balance_lock
 
-        root_file_account_balance = self.get_last_account_root_file().get_balance(account)
-        if root_file_account_balance:
-            return root_file_account_balance.balance_lock
-
-        return account
+        return self.get_last_account_root_file().get_balance_lock(account)
 
     def get_initial_account_root_file(self) -> AccountRootFile:
         return copy.deepcopy(self.account_root_files[0])

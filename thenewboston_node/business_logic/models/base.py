@@ -41,10 +41,10 @@ class SignableMixin:
 
         verify_key = derive_verify_key(signing_key)
         stored_verify_key = getattr(self, verify_key_field_name, None)
-        if stored_verify_key and stored_verify_key != verify_key:
+        if not stored_verify_key:
+            logger.warning('Signing message with empty `%s` value', verify_key_field_name)
+        elif stored_verify_key != verify_key:
             logger.warning('`%s` value does not match with signing key', verify_key_field_name)
-
-        setattr(self, verify_key_field_name, verify_key)
 
         message_signature = self.message.generate_signature(signing_key)
         stored_message_signature = self.message_signature

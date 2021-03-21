@@ -1,3 +1,6 @@
+import pytest
+
+from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.transaction import Transaction
 from thenewboston_node.business_logic.models.transfer_request_message import TransferRequestMessage
 
@@ -16,12 +19,53 @@ def test_get_normalized_sorts_transactions():
     message = TransferRequestMessage(
         balance_lock='',
         txs=[
-            Transaction(amount=1, recipient='c'),
-            Transaction(amount=1, recipient='b'),
-            Transaction(amount=1, recipient='a')
+            Transaction(amount=10, recipient='c'),
+            Transaction(amount=10, recipient='b'),
+            Transaction(amount=12, recipient='a'),
+            Transaction(amount=12, recipient='a', fee=True),
+            Transaction(amount=10, recipient='a', fee=True),
+            Transaction(amount=10, recipient='a'),
         ]
     )
     assert message.get_normalized() == (
-        b'{"balance_lock":"","txs":[{"amount":1,"recipient":"a"},{"amount":1,"recipient":"b"},'
-        b'{"amount":1,"recipient":"c"}]}'
+        b'{"balance_lock":"","txs":['
+        b'{"amount":10,"recipient":"a"},'
+        b'{"amount":12,"recipient":"a"},'
+        b'{"amount":10,"fee":true,"recipient":"a"},'
+        b'{"amount":12,"fee":true,"recipient":"a"},'
+        b'{"amount":10,"recipient":"b"},'
+        b'{"amount":10,"recipient":"c"}'
+        b']}'
     )
+
+
+def test_validate(sample_transfer_request_message):
+    sample_transfer_request_message.validate()
+
+
+def test_validate_balance_lock(sample_transfer_request_message):
+    sample_transfer_request_message.balance_lock = ''
+    with pytest.raises(ValidationError, match='Transfer request message balance lock must be set'):
+        sample_transfer_request_message.validate()
+
+    sample_transfer_request_message.balance_lock = None
+    with pytest.raises(ValidationError, match='Transfer request message balance lock must be set'):
+        sample_transfer_request_message.validate()
+
+
+def test_validate_transactions(sample_transfer_request_message: TransferRequestMessage):
+    sample_transfer_request_message.txs[0].amount = -1
+    with pytest.raises(ValidationError, match='Transaction amount must be greater or equal to 1'):
+        sample_transfer_request_message.validate()
+
+    sample_transfer_request_message.txs[0] = 'dummy'  # type: ignore
+    with pytest.raises(ValidationError, match='txs must be a list of Transactions'):
+        sample_transfer_request_message.validate()
+
+    sample_transfer_request_message.txs = 'dummy'  # type: ignore
+    with pytest.raises(ValidationError, match='txs must be a list of Transactions'):
+        sample_transfer_request_message.validate()
+
+    sample_transfer_request_message.txs = []
+    with pytest.raises(ValidationError, match='txs must contain at least one transaction'):
+        sample_transfer_request_message.validate()

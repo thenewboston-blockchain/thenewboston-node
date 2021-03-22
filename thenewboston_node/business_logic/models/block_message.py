@@ -7,6 +7,7 @@ from typing import Callable, Optional
 from dataclasses_json import config, dataclass_json
 from marshmallow import fields
 
+from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.core.utils.cryptography import normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
@@ -101,5 +102,66 @@ class BlockMessage(MessageMixin):
         return (self.updated_balances or {}).get(account)
 
     def validate(self):
-        # TODO(dmu) HIGH: Implement
-        pass
+        self.validate_transfer_request()
+        self.validate_timestamp()
+        self.validate_block_number()
+        self.validate_block_identifier()
+        self.validate_updated_balances()
+
+    def validate_transfer_request(self):
+        transfer_request = self.transfer_request
+        if transfer_request is None:
+            raise ValidationError('Block message transfer request must present')
+
+        transfer_request.validate()
+
+    def validate_timestamp(self):
+        timestamp = self.timestamp
+        if timestamp is None:
+            raise ValidationError('Block message timestamp must be set')
+
+        if not isinstance(timestamp, datetime):
+            raise ValidationError('Block message timestamp must be datetime type')
+
+        if timestamp.tzinfo is not None:
+            raise ValidationError('Block message timestamp must be naive datetime (UTC timezone implied)')
+
+    def validate_block_number(self):
+        block_number = self.block_number
+        if block_number is None:
+            raise ValidationError('Block message block number must be set')
+
+        if not isinstance(block_number, int):
+            raise ValidationError('Block message block number must be integer')
+
+        if block_number < 0:
+            raise ValidationError('Block message block number must be greater or equal to 0')
+
+    def validate_block_identifier(self):
+        block_identifier = self.block_identifier
+        if block_identifier is None:
+            raise ValidationError('Block message block number must be set')
+
+        if not isinstance(block_identifier, str):
+            raise ValidationError('Block message block number must be a string')
+
+    def validate_updated_balances(self):
+        updated_balances = self.updated_balances
+        if updated_balances is None:
+            raise ValidationError('Block message must contain updated balances')
+
+        if len(updated_balances) < 2:
+            raise ValidationError('Update balances must contain at least 2 balances')
+
+        sender_account_balance = updated_balances.get(self.transfer_request.sender)
+        if sender_account_balance is None:
+            raise ValidationError('Update balances must contain sender account balance')
+
+        if not sender_account_balance.balance_lock:
+            raise ValidationError('Update balances must contain sender account balance lock')
+
+        for account, account_balance in updated_balances.items():
+            if not isinstance(account, str):
+                raise ValidationError('Account must be a string')
+
+            account_balance.validate()

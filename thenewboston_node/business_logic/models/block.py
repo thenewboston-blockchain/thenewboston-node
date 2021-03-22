@@ -64,7 +64,6 @@ class Block(SignableMixin):
         self.validate_message()
         self.validate_signature()
         self.validate_message_hash()
-        # TODO(dmu) CRITICAL: Complete validation logic
 
     def validate_node_identifier(self):
         if not self.node_identifier:

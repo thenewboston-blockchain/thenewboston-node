@@ -3,6 +3,7 @@ from typing import Optional
 
 from dataclasses_json import dataclass_json
 
+from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.core.utils.constants import SENTINEL
 from thenewboston_node.core.utils.cryptography import hash_normalized_dict, normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
@@ -16,6 +17,8 @@ from .account_balance import AccountBalance
 class AccountRootFile:
     accounts: dict[str, AccountBalance]
     last_block_number: Optional[int] = None
+
+    # TODO(dmu) MEDIUM: Do we really need last_block_identifier?
     last_block_identifier: Optional[str] = None
     next_block_identifier: Optional[str] = None
 
@@ -60,3 +63,33 @@ class AccountRootFile:
 
     def get_normalized(self) -> bytes:
         return normalize_dict(self.to_dict())  # type: ignore
+
+    def is_initial(self) -> bool:
+        return (
+            self.last_block_number is None and self.last_block_identifier is None and
+            self.next_block_identifier is None
+        )
+
+    def validate(self, is_initial=False):
+        self.validate_accounts()
+        if is_initial:
+            if self.last_block_number is not None:
+                ValidationError('Last block number must not be set for initial account root file')
+            if self.last_block_identifier is not None:
+                ValidationError('Last block identifier must not be set for initial account root file')
+            if self.next_block_identifier is not None:
+                ValidationError('Next block identifier must not be set for initial account root file')
+        else:
+            if not isinstance(self.last_block_number, int):
+                ValidationError('Last block number must be an integer')
+            if not isinstance(self.last_block_identifier, str):
+                ValidationError('Last block identifier must be a string')
+            if not isinstance(self.next_block_identifier, str):
+                ValidationError('Next block identifier must be a string')
+
+    def validate_accounts(self):
+        for account, balance in self.accounts.items():
+            if not isinstance(account, str):
+                raise ValidationError('Account number must be a string')
+
+            balance.validate()

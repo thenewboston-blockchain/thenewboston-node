@@ -2,6 +2,7 @@ import copy
 from itertools import islice
 from typing import Optional
 
+from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.business_logic.models.block import Block
 
@@ -14,7 +15,7 @@ class MemoryBlockchain(BlockchainBase):
     """
 
     def __init__(self, *, initial_account_root_file):
-        self.account_root_files = [AccountRootFile.from_dict(initial_account_root_file)]
+        self.account_root_files: list[AccountRootFile] = [AccountRootFile.from_dict(initial_account_root_file)]
 
         self.blocks: list[Block] = []
 
@@ -121,3 +122,23 @@ class MemoryBlockchain(BlockchainBase):
                     break
 
         return copy.deepcopy(account_root_file)
+
+    def validate(self):
+        # Validations to be implemented:
+        # 1. Block numbers are sequential
+        # 2. Block identifiers equal to previous block message hash
+        # 3. Each individual block is valid
+
+        self.validate_account_root_files()
+
+    def validate_account_root_files(self):
+        account_root_files = self.account_root_files
+        if not account_root_files:
+            raise ValidationError('Blockchain must contain at least one account root file')
+
+        if not account_root_files[0].is_initial():
+            raise ValidationError('First account root file must be initial account root file')
+
+        account_root_files[0].validate(is_initial=True)
+        for account_root_file in islice(account_root_files, 1):
+            account_root_file.validate()

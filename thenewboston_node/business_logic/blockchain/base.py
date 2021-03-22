@@ -30,9 +30,13 @@ class BlockchainBase:
         cls._instance = None
 
     def add_block(self, block: Block):
+        block.validate()
+        self.persist_block(block)
+
+    def persist_block(self, block: Block):
         raise NotImplementedError('Must be implemented in a child class')
 
-    def get_account_balance(self, account: str) -> Optional[int]:
+    def get_account_balance(self, account: str, block_number: Optional[int] = None) -> Optional[int]:
         raise NotImplementedError('Must be implemented in a child class')
 
     def get_account_balance_lock(self, account: str) -> str:
@@ -48,19 +52,16 @@ class BlockchainBase:
             assert message_hash
             return message_hash
 
-        return self.get_last_account_root_file().get_next_block_identifier()
+        return self.get_latest_account_root_file().get_next_block_identifier()
 
     def get_next_block_number(self) -> int:
         head_block = self.get_head_block()
         if head_block:
             return head_block.message.block_number + 1
 
-        return self.get_last_account_root_file().get_next_block_number()
+        return self.get_latest_account_root_file().get_next_block_number()
 
-    def get_initial_account_root_file(self) -> AccountRootFile:
-        raise NotImplementedError('Must be implemented in a child class')
-
-    def get_last_account_root_file(self) -> AccountRootFile:
+    def get_latest_account_root_file(self, before_block_number_inclusive: Optional[int] = None) -> AccountRootFile:
         raise NotImplementedError('Must be implemented in a child class')
 
     def validate(self):

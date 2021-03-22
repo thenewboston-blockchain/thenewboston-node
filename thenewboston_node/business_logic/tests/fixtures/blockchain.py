@@ -27,14 +27,6 @@ def get_next_block_identifier_mock():
 
 
 @pytest.fixture
-def get_initial_account_root_file_hash_mock():
-    with patch.object(
-        MockBlockchain, 'get_initial_account_root_file_hash', return_value='fake-block-identifier', create=True
-    ) as mock:
-        yield mock
-
-
-@pytest.fixture
 def get_account_balance_mock():
     with patch.object(MockBlockchain, 'get_account_balance', return_value=430) as mock:
         yield mock

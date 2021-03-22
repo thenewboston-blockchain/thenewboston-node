@@ -59,11 +59,23 @@ class Block(SignableMixin):
 
         self.message_hash = message_hash
 
-    def validate_message_hash(self):
-        if self.message.get_hash() != self.message_hash:
-            raise ValidationError('Message hash is invalid')
-
     def validate(self):
+        self.validate_node_identifier()
+        self.validate_message()
         self.validate_signature()
         self.validate_message_hash()
         # TODO(dmu) CRITICAL: Complete validation logic
+
+    def validate_node_identifier(self):
+        if not self.node_identifier:
+            raise ValidationError('Block node identifier must be set')
+
+    def validate_message(self):
+        if not self.message:
+            raise ValidationError('Block message must be not empty')
+
+        self.message.validate()
+
+    def validate_message_hash(self):
+        if self.message.get_hash() != self.message_hash:
+            raise ValidationError('Block message hash is invalid')

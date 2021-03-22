@@ -68,13 +68,13 @@ class TransferRequest(SignableMixin):
     def validate_message(self):
         self.message.validate()
 
-    def validate_amount(self):
-        balance = get_blockchain().get_account_balance(self.sender)
+    def validate_amount(self, block_number: Optional[int] = None):
+        balance = get_blockchain().get_account_balance(self.sender, block_number=block_number)
         if balance is None:
-            raise ValidationError('Account balance is not found')
+            raise ValidationError('Sender account balance is not found')
 
         if self.message.get_total_amount() > balance:
-            raise ValidationError('Transaction total amount is greater than account balance')
+            raise ValidationError('Transaction total amount is greater than sender account balance')
 
     def validate_balance_lock(self):
         if self.message.balance_lock != get_blockchain().get_account_balance_lock(self.sender):

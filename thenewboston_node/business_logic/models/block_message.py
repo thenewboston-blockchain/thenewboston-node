@@ -99,3 +99,7 @@ class BlockMessage(MessageMixin):
 
     def get_balance(self, account: str) -> Optional[BlockAccountBalance]:
         return (self.updated_balances or {}).get(account)
+
+    def validate(self):
+        # TODO(dmu) HIGH: Implement
+        pass

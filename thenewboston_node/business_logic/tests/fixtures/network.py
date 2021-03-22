@@ -10,16 +10,24 @@ from thenewboston_node.business_logic.network.mock_network import MockNetwork
 
 
 @pytest.fixture
-def get_primary_validator_mock(primary_validator_key_pair):
-    return_value = PrimaryValidator(identifier=primary_validator_key_pair.public, fee_amount=4)
-    with patch.object(MockNetwork, 'get_primary_validator', return_value=return_value) as mock:
+def primary_validator(primary_validator_key_pair):
+    return PrimaryValidator(identifier=primary_validator_key_pair.public, fee_amount=4)
+
+
+@pytest.fixture
+def get_primary_validator_mock(primary_validator):
+    with patch.object(MockNetwork, 'get_primary_validator', return_value=primary_validator) as mock:
         yield mock
 
 
 @pytest.fixture
-def get_preferred_node_mock(node_key_pair):
-    return_value = Node(identifier=node_key_pair.public, fee_amount=1, type_=NodeType.NODE.value)
-    with patch.object(MockNetwork, 'get_preferred_node', return_value=return_value) as mock:
+def preferred_node(node_key_pair):
+    return Node(identifier=node_key_pair.public, fee_amount=1, type_=NodeType.NODE.value)
+
+
+@pytest.fixture
+def get_preferred_node_mock(preferred_node):
+    with patch.object(MockNetwork, 'get_preferred_node', return_value=preferred_node) as mock:
         yield mock
 
 

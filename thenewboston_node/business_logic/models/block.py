@@ -30,20 +30,20 @@ class Block(SignableMixin):
     message_signature: Optional[str] = None
 
     @classmethod
-    def from_transfer_request(cls: Type[T], transfer_request: TransferRequest) -> T:
+    def from_transfer_request(cls: Type[T], blockchain, transfer_request: TransferRequest) -> T:
         signing_key = get_signing_key()
         block = cls(
             node_identifier=derive_verify_key(signing_key),
-            message=BlockMessage.from_transfer_request(transfer_request)
+            message=BlockMessage.from_transfer_request(blockchain, transfer_request)
         )
         block.sign(signing_key)
         block.hash_message()
         return block
 
     @classmethod
-    def from_main_transaction(cls: Type[T], recipient: str, amount: int, signing_key: str) -> T:
-        transfer_request = TransferRequest.from_main_transaction(recipient, amount, signing_key)
-        return cls.from_transfer_request(transfer_request)
+    def from_main_transaction(cls: Type[T], blockchain, recipient: str, amount: int, signing_key: str) -> T:
+        transfer_request = TransferRequest.from_main_transaction(blockchain, recipient, amount, signing_key)
+        return cls.from_transfer_request(blockchain, transfer_request)
 
     def override_to_dict(self):  # this one turns into to_dict()
         dict_ = self.super_to_dict()
@@ -59,9 +59,9 @@ class Block(SignableMixin):
 
         self.message_hash = message_hash
 
-    def validate(self):
+    def validate(self, blockchain):
         self.validate_node_identifier()
-        self.validate_message()
+        self.validate_message(blockchain)
         self.validate_signature()
         self.validate_message_hash()
 
@@ -69,11 +69,11 @@ class Block(SignableMixin):
         if not self.node_identifier:
             raise ValidationError('Block node identifier must be set')
 
-    def validate_message(self):
+    def validate_message(self, blockchain):
         if not self.message:
             raise ValidationError('Block message must be not empty')
 
-        self.message.validate()
+        self.message.validate(blockchain)
 
     def validate_message_hash(self):
         if self.message.get_hash() != self.message_hash:

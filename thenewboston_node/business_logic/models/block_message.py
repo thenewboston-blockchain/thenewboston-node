@@ -74,16 +74,13 @@ class BlockMessage(MessageMixin):
         return dict_
 
     @classmethod
-    def from_transfer_request(cls, transfer_request: TransferRequest):
+    def from_transfer_request(cls, blockchain, transfer_request: TransferRequest):
         if not transfer_request.sender:
             raise ValueError('Sender must be set')
 
         # TODO(dmu) HIGH: Move source of time to Blockchain?
         timestamp = datetime.utcnow()
 
-        # TODO(dmu) LOW: Find a better way to avoid circular imports
-        from ..blockchain.base import BlockchainBase  # avoid circular imports
-        blockchain = BlockchainBase.get_instance()
         block_number = blockchain.get_next_block_number()
         block_identifier = blockchain.get_next_block_identifier()
 
@@ -101,21 +98,24 @@ class BlockMessage(MessageMixin):
     def get_balance(self, account: str) -> Optional[BlockAccountBalance]:
         return (self.updated_balances or {}).get(account)
 
-    def validate(self):
-        self.validate_transfer_request()
-        self.validate_timestamp()
+    def validate(self, blockchain):
+        self.validate_transfer_request(blockchain)
         self.validate_block_number()
-        self.validate_block_identifier()
+
+        assert self.block_number is not None
+        self.validate_timestamp(blockchain)
+        self.validate_block_identifier(blockchain)
+
         self.validate_updated_balances()
 
-    def validate_transfer_request(self):
+    def validate_transfer_request(self, blockchain):
         transfer_request = self.transfer_request
         if transfer_request is None:
             raise ValidationError('Block message transfer request must present')
 
-        transfer_request.validate()
+        transfer_request.validate(blockchain)
 
-    def validate_timestamp(self):
+    def validate_timestamp(self, blockchain):
         timestamp = self.timestamp
         if timestamp is None:
             raise ValidationError('Block message timestamp must be set')
@@ -125,6 +125,16 @@ class BlockMessage(MessageMixin):
 
         if timestamp.tzinfo is not None:
             raise ValidationError('Block message timestamp must be naive datetime (UTC timezone implied)')
+
+        block_number = self.block_number
+        assert block_number is not None
+        if block_number == 0:
+            return
+
+        prev_block = blockchain.get_block_by_number(block_number - 1)
+        assert prev_block is not None
+        if timestamp <= prev_block.message.timestamp:
+            raise ValidationError('Block message timestamp must be greater than previous block')
 
     def validate_block_number(self):
         block_number = self.block_number
@@ -137,13 +147,21 @@ class BlockMessage(MessageMixin):
         if block_number < 0:
             raise ValidationError('Block message block number must be greater or equal to 0')
 
-    def validate_block_identifier(self):
+    def validate_block_identifier(self, blockchain):
         block_identifier = self.block_identifier
         if block_identifier is None:
             raise ValidationError('Block message block number must be set')
 
         if not isinstance(block_identifier, str):
             raise ValidationError('Block message block number must be a string')
+
+        block_number = self.block_number
+        assert block_number is not None
+
+        # TODO(dmu) CRITICAL: Implement ->
+        # expected_block_identifier = blockchain.get_expected_block_identifier()
+        # if block_identifier != expected_block_identifier:
+        #     raise ValidationError('Invalid block identifier')
 
     def validate_updated_balances(self):
         updated_balances = self.updated_balances

@@ -33,17 +33,17 @@ def test_can_get_account_balance_by_block_number(
     assert blockchain.get_account_balance(recipient) is None
     assert blockchain.get_account_balance(recipient, -1) is None
 
-    block0 = Block.from_main_transaction(recipient, 10, signing_key=treasury_account_key_pair.private)
+    block0 = Block.from_main_transaction(blockchain, recipient, 10, signing_key=treasury_account_key_pair.private)
     blockchain.add_block(block0)
     assert blockchain.get_account_balance(sender) == sender_initial_balance - 10 - total_fees
     assert blockchain.get_account_balance(recipient) == 10
 
-    block1 = Block.from_main_transaction(recipient, 11, signing_key=treasury_account_key_pair.private)
+    block1 = Block.from_main_transaction(blockchain, recipient, 11, signing_key=treasury_account_key_pair.private)
     blockchain.add_block(block1)
     assert blockchain.get_account_balance(sender) == sender_initial_balance - 10 - 11 - 2 * total_fees
     assert blockchain.get_account_balance(recipient) == 10 + 11
 
-    block2 = Block.from_main_transaction(recipient, 12, signing_key=treasury_account_key_pair.private)
+    block2 = Block.from_main_transaction(blockchain, recipient, 12, signing_key=treasury_account_key_pair.private)
     blockchain.add_block(block2)
     assert blockchain.get_account_balance(sender) == sender_initial_balance - 10 - 11 - 12 - 3 * total_fees
     assert blockchain.get_account_balance(recipient) == 10 + 11 + 12

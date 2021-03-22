@@ -23,15 +23,14 @@ class TransferRequestMessage(MessageMixin):
     txs: list[Transaction]
 
     @classmethod
-    def from_transactions(cls: Type[T], sender: str, txs: list[Transaction]) -> T:
-        from thenewboston_node.business_logic.blockchain.base import BlockchainBase
+    def from_transactions(cls: Type[T], blockchain, sender: str, txs: list[Transaction]) -> T:
         return cls(
-            balance_lock=BlockchainBase.get_instance().get_account_balance_lock(sender),
+            balance_lock=blockchain.get_account_balance_lock(sender),
             txs=copy.deepcopy(txs),
         )
 
     @classmethod
-    def from_main_transaction(cls: Type[T], sender: str, recipient: str, amount: int) -> T:
+    def from_main_transaction(cls: Type[T], blockchain, sender: str, recipient: str, amount: int) -> T:
         network = NetworkBase.get_instance()
         pv = network.get_primary_validator()
         node = network.get_preferred_node()
@@ -40,7 +39,7 @@ class TransferRequestMessage(MessageMixin):
             Transaction(recipient=pv.identifier, amount=pv.fee_amount, fee=True),
             Transaction(recipient=node.identifier, amount=node.fee_amount, fee=True),
         ]
-        return cls.from_transactions(sender, txs)
+        return cls.from_transactions(blockchain, sender, txs)
 
     def get_total_amount(self) -> int:
         return sum(tx.amount for tx in self.txs)

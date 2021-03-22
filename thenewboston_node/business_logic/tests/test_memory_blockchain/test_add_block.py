@@ -26,7 +26,7 @@ def test_can_add_block(
 
     total_fees = 1 + 4
 
-    block0 = Block.from_main_transaction(user_account, 30, signing_key=treasury_account_key_pair.private)
+    block0 = Block.from_main_transaction(blockchain, user_account, 30, signing_key=treasury_account_key_pair.private)
     blockchain.add_block(block0)
     assert blockchain.get_account_balance(user_account) == 30
     assert blockchain.get_account_balance(treasury_account) == treasury_initial_balance - 30 - total_fees
@@ -36,14 +36,14 @@ def test_can_add_block(
     with pytest.raises(ValidationError, match='Balance key does not match balance lock'):
         blockchain.add_block(block0)
 
-    block1 = Block.from_main_transaction(user_account, 10, signing_key=treasury_account_key_pair.private)
+    block1 = Block.from_main_transaction(blockchain, user_account, 10, signing_key=treasury_account_key_pair.private)
     blockchain.add_block(block1)
     assert blockchain.get_account_balance(user_account) == 40
     assert blockchain.get_account_balance(treasury_account) == treasury_initial_balance - 30 - 10 - 2 * total_fees
     assert blockchain.get_account_balance(node_account) == 1 * 2
     assert blockchain.get_account_balance(pv_account) == 4 * 2
 
-    block2 = Block.from_main_transaction(treasury_account, 5, signing_key=user_account_key_pair.private)
+    block2 = Block.from_main_transaction(blockchain, treasury_account, 5, signing_key=user_account_key_pair.private)
     blockchain.add_block(block2)
     assert blockchain.get_account_balance(user_account) == 40 - 5 - total_fees
     assert blockchain.get_account_balance(treasury_account) == treasury_initial_balance - 30 - 10 + 5 - 2 * total_fees

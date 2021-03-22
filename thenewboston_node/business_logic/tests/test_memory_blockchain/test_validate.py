@@ -20,6 +20,7 @@ def test_can_validate_blockchain(
     raise NotImplementedError()
 
 
+@pytest.mark.skip('Not implemented yet')
 @pytest.mark.usefixtures('forced_mock_network')
 def test_validate_account_root_files_raises(forced_memory_blockchain: MemoryBlockchain,):
     blockchain = forced_memory_blockchain

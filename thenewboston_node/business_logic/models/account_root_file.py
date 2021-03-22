@@ -59,10 +59,13 @@ class AccountRootFile:
         if next_block_identifier:
             return next_block_identifier
 
-        return hash_normalized_dict(self.get_normalized())
+        return self.get_hash()  # initial account root file case
 
     def get_normalized(self) -> bytes:
         return normalize_dict(self.to_dict())  # type: ignore
+
+    def get_hash(self):
+        return hash_normalized_dict(self.get_normalized())
 
     def is_initial(self) -> bool:
         return (

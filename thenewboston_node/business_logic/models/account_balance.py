@@ -3,6 +3,7 @@ from typing import Optional
 
 from dataclasses_json import dataclass_json
 
+from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.core.utils.constants import SENTINEL
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
@@ -29,3 +30,7 @@ class BlockAccountBalance(AccountBalance):
             del dict_['balance_lock']
 
         return dict_
+
+    def validate(self):
+        if not isinstance(self.balance, int):
+            raise ValidationError('Balance must be an integer')

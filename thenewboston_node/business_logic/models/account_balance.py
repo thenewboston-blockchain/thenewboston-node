@@ -14,6 +14,17 @@ class AccountBalance:
     balance: int
     balance_lock: str
 
+    def validate(self, validate_balance_lock=True):
+        if not isinstance(self.balance, int):
+            raise ValidationError('Balance must be an integer')
+
+        if validate_balance_lock:
+            if not isinstance(self.balance_lock, str):
+                raise ValidationError('Balance lock must be a string')
+
+            if not self.balance_lock:
+                raise ValidationError('Balance lock must be set')
+
 
 @fake_super_methods
 @dataclass_json
@@ -32,5 +43,4 @@ class BlockAccountBalance(AccountBalance):
         return dict_
 
     def validate(self):
-        if not isinstance(self.balance, int):
-            raise ValidationError('Balance must be an integer')
+        super().validate(validate_balance_lock=False)

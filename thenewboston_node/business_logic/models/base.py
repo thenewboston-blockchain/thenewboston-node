@@ -2,6 +2,7 @@ import logging
 from typing import Optional
 
 from thenewboston_node.business_logic.exceptions import InvalidMessageSignatureError
+from thenewboston_node.core.logging import verbose_timeit_method
 from thenewboston_node.core.utils.cryptography import (
     derive_verify_key, generate_signature, hash_normalized_dict, is_signature_valid
 )
@@ -53,6 +54,7 @@ class SignableMixin:
 
         self.message_signature = message_signature
 
+    @verbose_timeit_method()
     def validate_signature(self):
         verify_key_field_name = self.verify_key_field_name
         if not verify_key_field_name:

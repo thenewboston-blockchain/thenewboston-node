@@ -28,30 +28,39 @@ def test_can_get_account_balance_by_block_number(
 
     sender_initial_balance = blockchain.get_balance_value(sender)
     assert sender_initial_balance == 281474976710656
-    assert blockchain.get_balance_value(sender, -1) == sender_initial_balance
+    assert blockchain.get_balance_value(sender, 0) == sender_initial_balance
+    assert blockchain.get_balance_value(recipient, 0) is None
     assert blockchain.get_balance_value(recipient) is None
-    assert blockchain.get_balance_value(recipient, -1) is None
 
     block0 = Block.from_main_transaction(blockchain, recipient, 10, signing_key=treasury_account_key_pair.private)
     blockchain.add_block(block0)
+    assert blockchain.get_balance_value(sender, 0) == sender_initial_balance
+    assert blockchain.get_balance_value(recipient, 0) is None
+    assert blockchain.get_balance_value(sender, 1) == sender_initial_balance - 10 - total_fees
+    assert blockchain.get_balance_value(recipient, 1) == 10
     assert blockchain.get_balance_value(sender) == sender_initial_balance - 10 - total_fees
     assert blockchain.get_balance_value(recipient) == 10
 
     block1 = Block.from_main_transaction(blockchain, recipient, 11, signing_key=treasury_account_key_pair.private)
     blockchain.add_block(block1)
+    assert blockchain.get_balance_value(sender, 0) == sender_initial_balance
+    assert blockchain.get_balance_value(recipient, 0) is None
+    assert blockchain.get_balance_value(sender, 1) == sender_initial_balance - 10 - total_fees
+    assert blockchain.get_balance_value(recipient, 1) == 10
+    assert blockchain.get_balance_value(sender, 2) == sender_initial_balance - 10 - 11 - 2 * total_fees
+    assert blockchain.get_balance_value(recipient, 2) == 10 + 11
     assert blockchain.get_balance_value(sender) == sender_initial_balance - 10 - 11 - 2 * total_fees
     assert blockchain.get_balance_value(recipient) == 10 + 11
 
     block2 = Block.from_main_transaction(blockchain, recipient, 12, signing_key=treasury_account_key_pair.private)
     blockchain.add_block(block2)
+    assert blockchain.get_balance_value(sender, 0) == sender_initial_balance
+    assert blockchain.get_balance_value(recipient, 0) is None
+    assert blockchain.get_balance_value(sender, 1) == sender_initial_balance - 10 - total_fees
+    assert blockchain.get_balance_value(recipient, 1) == 10
+    assert blockchain.get_balance_value(sender, 2) == sender_initial_balance - 10 - 11 - 2 * total_fees
+    assert blockchain.get_balance_value(recipient, 2) == 10 + 11
+    assert blockchain.get_balance_value(sender, 3) == sender_initial_balance - 10 - 11 - 12 - 3 * total_fees
+    assert blockchain.get_balance_value(recipient, 3) == 10 + 11 + 12
     assert blockchain.get_balance_value(sender) == sender_initial_balance - 10 - 11 - 12 - 3 * total_fees
     assert blockchain.get_balance_value(recipient) == 10 + 11 + 12
-
-    assert blockchain.get_balance_value(sender, 2) == sender_initial_balance - 10 - 11 - 12 - 3 * total_fees
-    assert blockchain.get_balance_value(recipient, 2) == 10 + 11 + 12
-    assert blockchain.get_balance_value(sender, 1) == sender_initial_balance - 10 - 11 - 2 * total_fees
-    assert blockchain.get_balance_value(recipient, 1) == 10 + 11
-    assert blockchain.get_balance_value(sender, 0) == sender_initial_balance - 10 - total_fees
-    assert blockchain.get_balance_value(recipient, 0) == 10
-    assert blockchain.get_balance_value(sender, -1) == sender_initial_balance
-    assert blockchain.get_balance_value(recipient, -1) is None

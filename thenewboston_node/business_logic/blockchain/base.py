@@ -8,6 +8,7 @@ from django.conf import settings
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.account_balance import AccountBalance, BlockAccountBalance
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
+from thenewboston_node.core.logging import verbose_timeit_method
 from thenewboston_node.core.utils.importing import import_from_string
 
 from ..models.block import Block
@@ -37,8 +38,11 @@ class BlockchainBase:
         cls._instance = None
 
     def add_block(self, block: Block):
+        block_number = block.message.block_number
+        if block_number != self.get_next_block_number():
+            raise ValidationError('Block number must be equal to next block number (== head block number + 1)')
+
         block.validate(self)
-        # TODO(dmu) HIGH: Validate block_number is head_block_number + 1
         # TODO(dmu) HIGH: Validate block_identifier
 
         self.persist_block(block)
@@ -46,35 +50,46 @@ class BlockchainBase:
     def persist_block(self, block: Block):
         raise NotImplementedError('Must be implemented in a child class')
 
-    def get_balance_value(self, account: str, on_block_number: Optional[int] = None) -> Optional[int]:
-        """
-        Returns account balance for the specified account. If block_number is specified then
-        the account balance for that block is returned (after the block_number block is applied)
-        otherwise the current (head block) balance is returned. If block_number is equal to -1 then
-        account balance before 0 block is returned.
-        """
-        if on_block_number is not None and on_block_number < -1:
-            raise ValueError('block_number must be greater or equal to -1')
+    def validate_before_block_number(self, before_block_number: Optional[int]) -> int:
+        next_block_number = self.get_next_block_number()
+        if before_block_number is None:
+            return next_block_number
+        elif before_block_number < 0:
+            raise ValueError('block_number must be greater or equal to 0')
+        elif before_block_number > next_block_number:
+            raise ValueError('block_number must be less or equal to next block number')
 
-        balance_value = self._get_balance_value_from_block(account, on_block_number)
+        return before_block_number
+
+    def get_balance_value(self, account: str, before_block_number: Optional[int] = None) -> Optional[int]:
+        """
+        Return balance value before `before_block_number` is applied. If `before_block_number` is not specified it
+        defaults to the next block number.
+        """
+        block_number = self.validate_before_block_number(before_block_number) - 1
+        balance_value = self._get_balance_value_from_block(account, block_number)
         if balance_value is None:
-            balance_value = self._get_balance_value_from_account_root_file(account, on_block_number)
+            balance_value = self._get_balance_value_from_account_root_file(account, block_number)
 
         return balance_value
 
-    def get_balance_lock(self, account: str, on_block_number: Optional[int] = None) -> str:
-        if on_block_number is not None and on_block_number < -1:
-            raise ValueError('block_number must be greater or equal to -1')
-
-        lock = self._get_balance_lock_from_block(account, on_block_number)
+    @verbose_timeit_method()
+    def get_balance_lock(self, account: str, before_block_number: Optional[int] = None) -> str:
+        """
+        Return balance lock before `before_block_number` is applied. If `before_block_number` is not specified it
+        defaults to the next block number.
+        """
+        block_number = self.validate_before_block_number(before_block_number) - 1
+        lock = self._get_balance_lock_from_block(account, block_number)
         if lock:
             return lock
 
-        lock = self._get_balance_lock_from_account_root_file(account, on_block_number)
+        lock = self._get_balance_lock_from_account_root_file(account, block_number)
         return account if lock is None else lock
 
-    def _get_balance_lock_from_block(self, account: str, on_block_number: Optional[int] = None) -> Optional[str]:
-        balance = self._get_balance_from_block(account, on_block_number, must_have_lock=True)
+    @verbose_timeit_method()
+    def _get_balance_lock_from_block(self, account: str, block_number: Optional[int] = None) -> Optional[str]:
+        balance = self._get_balance_from_block(account, block_number, must_have_lock=True)
         return None if balance is None else balance.lock
 
     def _get_balance_lock_from_account_root_file(self,
@@ -83,17 +98,16 @@ class BlockchainBase:
         balance = self._get_balance_from_account_root_file(account, block_number)
         return None if balance is None else balance.lock
 
-    def _get_balance_value_from_block(self, account: str, on_block_number: Optional[int] = None) -> Optional[int]:
-        balance = self._get_balance_from_block(account, on_block_number)
+    def _get_balance_value_from_block(self, account: str, block_number: Optional[int] = None) -> Optional[int]:
+        balance = self._get_balance_from_block(account, block_number)
         return None if balance is None else balance.value
 
-    def _get_balance_from_block(
-        self,
-        account: str,
-        on_block_number: Optional[int] = None,
-        must_have_lock: bool = False
-    ) -> Optional[BlockAccountBalance]:
-        for block in self.get_blocks_until_account_root_file(on_block_number):
+    @verbose_timeit_method()
+    def _get_balance_from_block(self,
+                                account: str,
+                                block_number: Optional[int] = None,
+                                must_have_lock: bool = False) -> Optional[BlockAccountBalance]:
+        for block in self.get_blocks_until_account_root_file(block_number):
             balance = block.message.get_balance(account)
             if balance is not None:
                 if must_have_lock:
@@ -154,6 +168,7 @@ class BlockchainBase:
                 account_root_file_block_number is None or account_root_file_block_number < block.message.block_number
             )
 
+            logger.debug('Returning block: %s', block)
             yield block
 
     def _get_balance_value_from_account_root_file(self,

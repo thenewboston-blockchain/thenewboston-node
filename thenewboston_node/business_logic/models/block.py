@@ -6,6 +6,7 @@ from dataclasses_json import dataclass_json
 
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.node import get_signing_key
+from thenewboston_node.core.logging import verbose_timeit_method
 from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
@@ -65,16 +66,19 @@ class Block(SignableMixin):
         self.validate_signature()
         self.validate_message_hash()
 
+    @verbose_timeit_method()
     def validate_node_identifier(self):
         if not self.node_identifier:
             raise ValidationError('Block node identifier must be set')
 
+    @verbose_timeit_method()
     def validate_message(self, blockchain):
         if not self.message:
             raise ValidationError('Block message must be not empty')
 
         self.message.validate(blockchain)
 
+    @verbose_timeit_method()
     def validate_message_hash(self):
         if self.message.get_hash() != self.message_hash:
             raise ValidationError('Block message hash is invalid')

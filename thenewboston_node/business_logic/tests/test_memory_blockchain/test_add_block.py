@@ -33,7 +33,7 @@ def test_can_add_block(
     assert blockchain.get_balance_value(node_account) == 1
     assert blockchain.get_balance_value(pv_account) == 4
 
-    with pytest.raises(ValidationError, match='Balance key does not match balance lock'):
+    with pytest.raises(ValidationError, match='Block number must be equal to next block number.*'):
         blockchain.add_block(block0)
 
     block1 = Block.from_main_transaction(blockchain, user_account, 10, signing_key=treasury_account_key_pair.private)

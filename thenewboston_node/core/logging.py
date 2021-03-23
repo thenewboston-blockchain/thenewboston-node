@@ -1,10 +1,7 @@
 import functools
 import logging
-import threading
+from itertools import chain
 from time import time
-
-thread_local = threading.local()
-thread_local.timeit_start = {}
 
 module_logger = logging.getLogger(__name__)
 
@@ -27,37 +24,52 @@ class FilteringNullHandler(logging.NullHandler):
         return self.filter(record)
 
 
-class timeit:
+def verbose_timeit_method(logger=module_logger, level=logging.DEBUG):
+    return timeit(logger=logger, level=level, verbose=True, is_method=True)
 
-    def __init__(
-        self,
-        name=None,
-        logger=module_logger,
-        level=logging.DEBUG,
-    ):
-        self.logger = logger
-        self.level = level
-        self.name = name
 
-    def __enter__(self):
-        thread_local.timeit_start[self] = time()
-        self.logger.log(self.level, 'Started %s', self.name)
-        return self
+def timeit(
+    logger=module_logger,
+    level=logging.DEBUG,
+    verbose=False,
+    verbose_args=False,
+    verbose_return_value=False,
+    is_method=False
+):
 
-    def __exit__(self, *exc_info):
-        duration_ms = (time() - thread_local.timeit_start[self]) * 1000
-        if any(exc_info):
-            self.logger.exception('Exception with %s in %.3fms', self.name, duration_ms)
-        else:
-            self.logger.log(self.level, 'Finished %s in %.3fms', self.name, duration_ms)
-
-    def __call__(self, callable_):
-        if self.name is None:
-            self.name = callable_.__name__ + '()'
+    def decorator(callable_):
 
         @functools.wraps(callable_)
         def wrapper(*args, **kwargs):
-            with self:
-                return callable_(*args, **kwargs)
+            callable_name = callable_.__name__
+            if is_method:
+                obj = args[0]
+                callable_name = '<{} object at {:#x}>.{}'.format(obj.__class__.__name__, id(obj), callable_name)
+
+            if verbose or verbose_args:
+                args_ = args[1:] if is_method else args
+                args_repr = ', '.join(chain(map(repr, args_), (f'{key}={value!r}' for key, value in kwargs.items())))
+            else:
+                args_repr = '...'
+
+            call_spec = f'{callable_name}({args_repr})'
+            logger.log(level, 'Calling %s', call_spec)
+            start = time()
+            try:
+                rv = callable_(*args, **kwargs)
+            except Exception:
+                duration_ms = (time() - start) * 1000
+                logger.exception('Exception in %s after %.3fms', call_spec, duration_ms)
+                raise
+            else:
+                duration_ms = (time() - start) * 1000
+                if verbose or verbose_return_value:
+                    logger.log(level, 'Returned %r from %s in %.3fms', rv, call_spec, duration_ms)
+                else:
+                    logger.log(level, 'Returned from %s in %.3fms', call_spec, duration_ms)
+
+                return rv
 
         return wrapper
+
+    return decorator

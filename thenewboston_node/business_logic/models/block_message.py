@@ -8,6 +8,7 @@ from dataclasses_json import config, dataclass_json
 from marshmallow import fields
 
 from thenewboston_node.business_logic.exceptions import ValidationError
+from thenewboston_node.core.logging import verbose_timeit_method
 from thenewboston_node.core.utils.cryptography import normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
@@ -98,6 +99,7 @@ class BlockMessage(MessageMixin):
     def get_balance(self, account: str) -> Optional[BlockAccountBalance]:
         return (self.updated_balances or {}).get(account)
 
+    @verbose_timeit_method()
     def validate(self, blockchain):
         self.validate_transfer_request(blockchain)
         self.validate_block_number()
@@ -108,6 +110,7 @@ class BlockMessage(MessageMixin):
 
         self.validate_updated_balances()
 
+    @verbose_timeit_method()
     def validate_transfer_request(self, blockchain):
         transfer_request = self.transfer_request
         if transfer_request is None:
@@ -115,6 +118,7 @@ class BlockMessage(MessageMixin):
 
         transfer_request.validate(blockchain, self.block_number)
 
+    @verbose_timeit_method()
     def validate_timestamp(self, blockchain):
         timestamp = self.timestamp
         if timestamp is None:
@@ -136,6 +140,7 @@ class BlockMessage(MessageMixin):
         if timestamp <= prev_block.message.timestamp:
             raise ValidationError('Block message timestamp must be greater than previous block')
 
+    @verbose_timeit_method()
     def validate_block_number(self):
         block_number = self.block_number
         if block_number is None:
@@ -147,6 +152,7 @@ class BlockMessage(MessageMixin):
         if block_number < 0:
             raise ValidationError('Block message block number must be greater or equal to 0')
 
+    @verbose_timeit_method()
     def validate_block_identifier(self, blockchain):
         block_identifier = self.block_identifier
         if block_identifier is None:
@@ -163,6 +169,7 @@ class BlockMessage(MessageMixin):
         # if block_identifier != expected_block_identifier:
         #     raise ValidationError('Invalid block identifier')
 
+    @verbose_timeit_method()
     def validate_updated_balances(self):
         updated_balances = self.updated_balances
         if updated_balances is None:

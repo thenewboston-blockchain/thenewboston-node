@@ -11,18 +11,18 @@ from thenewboston_node.core.utils.dataclass import fake_super_methods
 @dataclass_json
 @dataclass
 class AccountBalance:
-    balance: int
-    balance_lock: str
+    value: int
+    lock: str
 
     def validate(self, validate_balance_lock=True):
-        if not isinstance(self.balance, int):
+        if not isinstance(self.value, int):
             raise ValidationError('Balance must be an integer')
 
         if validate_balance_lock:
-            if not isinstance(self.balance_lock, str):
+            if not isinstance(self.lock, str):
                 raise ValidationError('Balance lock must be a string')
 
-            if not self.balance_lock:
+            if not self.lock:
                 raise ValidationError('Balance lock must be set')
 
 
@@ -30,15 +30,15 @@ class AccountBalance:
 @dataclass_json
 @dataclass
 class BlockAccountBalance(AccountBalance):
-    balance_lock: Optional[str] = None  # type: ignore
+    lock: Optional[str] = None  # type: ignore
 
     def override_to_dict(self):  # this one turns into to_dict()
         dict_ = self.super_to_dict()
 
         # TODO(dmu) LOW: Implement a better way of removing optional fields or allow them in normalized message
-        value = dict_.get('balance_lock', SENTINEL)
+        value = dict_.get('lock', SENTINEL)
         if value is None:
-            del dict_['balance_lock']
+            del dict_['lock']
 
         return dict_
 

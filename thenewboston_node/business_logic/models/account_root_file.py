@@ -39,14 +39,14 @@ class AccountRootFile:
     def get_balance_value(self, account: str) -> Optional[int]:
         balance = self.get_balance(account)
         if balance is not None:
-            return balance.balance
+            return balance.value
 
         return None
 
     def get_balance_lock(self, account: str) -> str:
         balance = self.get_balance(account)
         if balance is not None:
-            return balance.balance_lock
+            return balance.lock
 
         return account
 

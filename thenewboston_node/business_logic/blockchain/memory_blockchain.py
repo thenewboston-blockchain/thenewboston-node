@@ -1,12 +1,15 @@
 import copy
+import logging
 from itertools import islice
-from typing import Optional
+from typing import Generator, Optional
 
-from thenewboston_node.business_logic.exceptions import ValidationError
+from thenewboston_node.business_logic.exceptions import MissingEarlierBlocksError, ValidationError
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.business_logic.models.block import Block
 
 from .base import BlockchainBase
+
+logger = logging.getLogger(__name__)
 
 
 class MemoryBlockchain(BlockchainBase):
@@ -29,6 +32,25 @@ class MemoryBlockchain(BlockchainBase):
 
         return None
 
+    def get_block_by_number(self, block_number: int) -> Optional[Block]:
+        if block_number < 0:
+            raise ValueError('block_number must be greater or equal to 0')
+
+        blocks = self.blocks
+        if not blocks:
+            return None
+
+        head_block_number = blocks[-1].message.block_number
+        if block_number > head_block_number:
+            return None
+
+        block_index = block_number - head_block_number - 1
+        try:
+            return blocks[block_index]
+        except IndexError:
+            assert blocks[0].message.block_number > block_number
+            raise MissingEarlierBlocksError()
+
     def get_blocks_until_account_root_file(self, start_block_number: Optional[int] = None):
         """
         Return generator of block traversing from `start_block_number` block (or head block if not specified)
@@ -42,7 +64,10 @@ class MemoryBlockchain(BlockchainBase):
         if not blocks:
             return
 
-        account_root_file = self.get_latest_account_root_file(start_block_number)
+        account_root_file = self.get_closest_account_root_file(start_block_number)
+        if account_root_file is None:
+            return
+
         account_root_file_block_number = account_root_file.last_block_number
         assert (
             start_block_number is None or account_root_file_block_number is None or
@@ -75,7 +100,9 @@ class MemoryBlockchain(BlockchainBase):
         return None
 
     def _get_balance_from_account_root_file(self, account: str, block_number: Optional[int] = None) -> Optional[int]:
-        return self.get_latest_account_root_file(block_number).get_balance_value(account)
+        account_root_file = self.get_closest_account_root_file(block_number)
+        assert account_root_file
+        return account_root_file.get_balance_value(account)
 
     def get_account_balance(self, account: str, block_number: Optional[int] = None) -> Optional[int]:
         """
@@ -101,44 +128,63 @@ class MemoryBlockchain(BlockchainBase):
                 if balance_lock:
                     return balance_lock
 
-        return self.get_latest_account_root_file().get_balance_lock(account)
+        account_root_file = self.get_closest_account_root_file()
+        assert account_root_file
+        return account_root_file.get_balance_lock(account)
 
-    def get_latest_account_root_file(self, before_block_number_inclusive: Optional[int] = None) -> AccountRootFile:
-        if before_block_number_inclusive is not None and before_block_number_inclusive < -1:
-            raise ValueError('before_block_number_inclusive must be greater or equal to -1')
-
+    def get_last_account_root_file(self) -> Optional[AccountRootFile]:
         account_root_files = self.account_root_files
-        assert account_root_files
+        if account_root_files:
+            return account_root_files[-1]
 
-        if before_block_number_inclusive is None:
-            account_root_file = account_root_files[-1]
-        elif before_block_number_inclusive == -1:
-            account_root_file = account_root_files[0]
-        else:
-            for account_root_file in reversed(account_root_files):
-                print(1, account_root_file)
-                last_block_number = account_root_file.last_block_number
-                if last_block_number is None or last_block_number <= before_block_number_inclusive:
-                    break
+        return None
 
-        return copy.deepcopy(account_root_file)
+    def get_first_account_root_file(self) -> Optional[AccountRootFile]:
+        account_root_files = self.account_root_files
+        if account_root_files:
+            return account_root_files[0]
 
-    def validate(self):
-        # Validations to be implemented:
-        # 1. Block numbers are sequential
-        # 2. Block identifiers equal to previous block message hash
-        # 3. Each individual block is valid
+        return None
 
+    def get_account_root_files_reversed(self) -> Generator[AccountRootFile, None, None]:
+        yield from reversed(self.account_root_files)
+
+    def validate(self, block_offset: int = None, block_limit: int = None):
         self.validate_account_root_files()
+        self.validate_blocks()
 
     def validate_account_root_files(self):
         account_root_files = self.account_root_files
         if not account_root_files:
             raise ValidationError('Blockchain must contain at least one account root file')
 
-        if not account_root_files[0].is_initial():
-            raise ValidationError('First account root file must be initial account root file')
+        # TODO(dmu) HIGH: Reimplement allowing partial blockchains
+        # if not account_root_files[0].is_initial():
+        #     raise ValidationError('First account root file must be initial account root file')
+        #
+        # account_root_files[0].validate(is_initial=True)
+        # for account_root_file in islice(account_root_files, 1):
+        #     # TODO(dmu) CRITICAL: Validate last_block_number and last_block_identifiers point to correct blocks
+        #     account_root_file.validate()
 
-        account_root_files[0].validate(is_initial=True)
-        for account_root_file in islice(account_root_files, 1):
-            account_root_file.validate()
+    def validate_blocks(self, offset: Optional[int] = None, limit: Optional[int] = None):
+        # Validations to be implemented:
+        # 1. Block numbers are sequential
+        # 2. Block identifiers equal to previous block message hash
+        # 3. Each individual block is valid
+        # 4. First block identifier equals to initial account root file hash
+
+        blocks = self.blocks
+        if offset is not None or limit is not None:
+            start = offset or 0
+            if limit is None:
+                blocks_iter = islice(blocks, start)
+            else:
+                blocks_iter = islice(blocks, start, start + limit)
+        else:
+            blocks_iter = iter(blocks)
+
+        for block in blocks_iter:
+            block.validate(self)
+
+        raise NotImplementedError

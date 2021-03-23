@@ -18,3 +18,7 @@ class InvalidMessageSignatureError(InvalidSignatureError):
 
     def __init__(self, message=None):
         super().__init__(message or 'Message signature is invalid')
+
+
+class MissingEarlierBlocksError(Exception):
+    pass

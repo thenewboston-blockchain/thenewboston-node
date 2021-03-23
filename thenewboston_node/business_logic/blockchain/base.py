@@ -1,4 +1,6 @@
-from typing import Optional, Type, TypeVar
+import copy
+import logging
+from typing import Generator, Optional, Type, TypeVar
 
 from django.conf import settings
 
@@ -8,6 +10,8 @@ from thenewboston_node.core.utils.importing import import_from_string
 from ..models.block import Block
 
 T = TypeVar('T', bound='BlockchainBase')
+
+logger = logging.getLogger(__name__)
 
 
 class BlockchainBase:
@@ -30,7 +34,10 @@ class BlockchainBase:
         cls._instance = None
 
     def add_block(self, block: Block):
-        block.validate()
+        block.validate(self)
+        # TODO(dmu) HIGH: Validate block_number is head_block_number + 1
+        # TODO(dmu) HIGH: Validate block_identifier
+
         self.persist_block(block)
 
     def persist_block(self, block: Block):
@@ -45,24 +52,100 @@ class BlockchainBase:
     def get_head_block(self) -> Optional[Block]:
         raise NotImplementedError('Must be implemented in a child class')
 
-    def get_next_block_identifier(self) -> str:
-        head_block = self.get_head_block()
-        if head_block:
-            message_hash = head_block.message_hash
-            assert message_hash
-            return message_hash
+    def get_block_by_number(self, block_number: int) -> Optional[Block]:
+        raise NotImplementedError('Must be implemented in a child class')
 
-        return self.get_latest_account_root_file().get_next_block_identifier()
+    def get_block_by_identifier(self, block_number: int) -> Optional[Block]:
+        raise NotImplementedError('Must be implemented in a child class')
+
+    def get_expected_block_identifier(self, block_number: int) -> Optional[str]:
+        """
+        Return expected block identifier (take from previous block message hash or account root file)
+        for the `block_number` (from 0 to head block number + 1 inclusive).
+
+        To be used for validation of existing and generation of new blocks.
+        """
+        if block_number < 0:
+            raise ValueError('block_number must be greater or equal to 0')
+
+        prev_block_number = block_number - 1
+        account_root_file = self.get_closest_account_root_file(prev_block_number)
+        if account_root_file is None:
+            logger.warning('Previous block number %s is beyond known account root files', prev_block_number)
+            return None
+
+        if block_number == 0:
+            assert account_root_file.is_initial()
+            return account_root_file.get_next_block_identifier()
+
+        if prev_block_number == account_root_file.last_block_number:
+            return account_root_file.get_next_block_identifier()
+
+        block = self.get_block_by_number(prev_block_number)
+        assert block is not None
+        return block.message_hash
+
+    def get_next_block_identifier(self) -> str:
+        block_identifier = self.get_expected_block_identifier(self.get_next_block_number())
+        assert block_identifier
+        return block_identifier
 
     def get_next_block_number(self) -> int:
         head_block = self.get_head_block()
         if head_block:
             return head_block.message.block_number + 1
 
-        return self.get_latest_account_root_file().get_next_block_number()
+        account_root_file = self.get_closest_account_root_file()
+        assert account_root_file
+        return account_root_file.get_next_block_number()
 
-    def get_latest_account_root_file(self, before_block_number_inclusive: Optional[int] = None) -> AccountRootFile:
+    def get_last_account_root_file(self) -> Optional[AccountRootFile]:
         raise NotImplementedError('Must be implemented in a child class')
+
+    def get_first_account_root_file(self) -> Optional[AccountRootFile]:
+        raise NotImplementedError('Must be implemented in a child class')
+
+    def get_account_root_files_reversed(self) -> Generator[AccountRootFile, None, None]:
+        raise NotImplementedError('Must be implemented in a child class')
+
+    def get_closest_account_root_file(self, excludes_block_number: Optional[int] = None) -> Optional[AccountRootFile]:
+        """
+        Return the latest account root file that does not include `excludes_block_number` (
+        head block by default thus the latest account root file, use -1 for getting initial account root file).
+        None is returned if `excludes_block_number` block is not included in even in the earliest account
+        root file (this may happen for partial blockchains that cut off genesis and no initial root account file)
+        """
+        if excludes_block_number is not None and excludes_block_number < -1:
+            raise ValueError('before_block_number_inclusive must be greater or equal to -1')
+
+        if excludes_block_number is None:
+            # We need just the last ARF (partial or complete blockchain is expected)
+            account_root_file = self.get_last_account_root_file()
+        elif excludes_block_number == -1:
+            # We need the initial (not just first though) ARF (complete blockchain is expected)
+            first_account_root_file = self.get_first_account_root_file()
+            if first_account_root_file and first_account_root_file.is_initial():
+                # We do have initial ARF -> complete blockchain
+                account_root_file = first_account_root_file
+            else:
+                # We do not have initial ARF -> partial blockchain (unexpectedly)
+                account_root_file = None
+        else:
+            # We need an intermediate ARF (partial or complete blockchain is expected)
+            for account_root_file in self.get_account_root_files_reversed():
+                last_block_number = account_root_file.last_block_number
+                if last_block_number is None or last_block_number <= excludes_block_number:
+                    # We do have the intermediate ARF -> partial or complete blockchain
+                    break
+            else:
+                # We do not have the intermediate ARF -> partial blockchain (unexpectedly short)
+                account_root_file = None
+
+        if account_root_file is None:
+            logger.warning('Could not find account root file that excludes block number %s')
+            return None
+
+        return copy.deepcopy(account_root_file)
 
     def validate(self):
         raise NotImplementedError('Must be implemented in a child class')

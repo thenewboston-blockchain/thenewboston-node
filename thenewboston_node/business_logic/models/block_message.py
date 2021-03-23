@@ -113,8 +113,7 @@ class BlockMessage(MessageMixin):
         if transfer_request is None:
             raise ValidationError('Block message transfer request must present')
 
-        # transfer_request.validate(blockchain, self.block_number)
-        transfer_request.validate(blockchain)
+        transfer_request.validate(blockchain, self.block_number)
 
     def validate_timestamp(self, blockchain):
         timestamp = self.timestamp

@@ -62,8 +62,8 @@ class TransferRequest(SignableMixin):
     def validate_message(self):
         self.message.validate()
 
-    def validate_amount(self, blockchain, block_number: Optional[int] = None):
-        balance = blockchain.get_balance_value(self.sender, on_block_number=block_number)
+    def validate_amount(self, blockchain, on_block_number: Optional[int] = None):
+        balance = blockchain.get_balance_value(self.sender, on_block_number=on_block_number)
         if balance is None:
             raise ValidationError('Sender account balance is not found')
 

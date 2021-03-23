@@ -87,9 +87,6 @@ class MemoryBlockchain(BlockchainBase):
         else:
             blocks_to_return = current_head_block_number - account_root_file_block_number - offset
 
-        if offset < 0:
-            import pdb
-            pdb.set_trace()
         # TODO(dmu) HIGH: Consider performance optimizations for islice(reversed(blocks), offset, blocks_to_return, 1)
         for block in islice(reversed(blocks), offset, offset + blocks_to_return, 1):
             assert (

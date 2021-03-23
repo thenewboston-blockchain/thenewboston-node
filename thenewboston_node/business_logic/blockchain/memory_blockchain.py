@@ -80,7 +80,10 @@ class MemoryBlockchain(BlockchainBase):
 
         current_head_block = blocks[-1]
         current_head_block_number = current_head_block.message.block_number
-        offset = 0 if start_block_number is None else (current_head_block_number - start_block_number)
+        if start_block_number is None or start_block_number > current_head_block_number:
+            offset = 0
+        else:
+            offset = current_head_block_number - start_block_number
 
         if account_root_file_block_number is None:
             blocks_to_return = len(blocks) - offset

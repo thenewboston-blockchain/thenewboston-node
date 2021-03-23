@@ -62,6 +62,27 @@ class BlockchainBase:
 
         return balance_value
 
+    def get_balance_lock(self, account: str, on_block_number: Optional[int] = None) -> str:
+        if on_block_number is not None and on_block_number < -1:
+            raise ValueError('block_number must be greater or equal to -1')
+
+        lock = self._get_balance_lock_from_block(account, on_block_number)
+        if lock:
+            return lock
+
+        lock = self._get_balance_lock_from_account_root_file(account, on_block_number)
+        return account if lock is None else lock
+
+    def _get_balance_lock_from_block(self, account: str, on_block_number: Optional[int] = None) -> Optional[str]:
+        balance = self._get_balance_from_block(account, on_block_number, must_have_lock=True)
+        return None if balance is None else balance.lock
+
+    def _get_balance_lock_from_account_root_file(self,
+                                                 account: str,
+                                                 block_number: Optional[int] = None) -> Optional[str]:
+        balance = self._get_balance_from_account_root_file(account, block_number)
+        return None if balance is None else balance.lock
+
     def _get_balance_value_from_block(self, account: str, on_block_number: Optional[int] = None) -> Optional[int]:
         balance = self._get_balance_from_block(account, on_block_number)
         return None if balance is None else balance.value
@@ -147,9 +168,6 @@ class BlockchainBase:
         account_root_file = self.get_closest_account_root_file(block_number)
         assert account_root_file
         return account_root_file.get_balance(account)
-
-    def get_balance_lock(self, account: str, on_block_number: Optional[int] = None) -> str:
-        raise NotImplementedError('Must be implemented in a child class')
 
     def get_head_block(self) -> Optional[Block]:
         raise NotImplementedError('Must be implemented in a child class')

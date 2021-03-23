@@ -59,27 +59,6 @@ class MemoryBlockchain(BlockchainBase):
             assert blocks[0].message.block_number > block_number
             raise MissingEarlierBlocksError()
 
-    def _get_balance_lock_from_block(self, account: str, on_block_number: Optional[int] = None) -> Optional[str]:
-        balance = self._get_balance_from_block(account, on_block_number, must_have_lock=True)
-        return None if balance is None else balance.lock
-
-    def _get_balance_lock_from_account_root_file(self,
-                                                 account: str,
-                                                 block_number: Optional[int] = None) -> Optional[str]:
-        balance = self._get_balance_from_account_root_file(account, block_number)
-        return None if balance is None else balance.lock
-
-    def get_balance_lock(self, account: str, on_block_number: Optional[int] = None) -> str:
-        if on_block_number is not None and on_block_number < -1:
-            raise ValueError('block_number must be greater or equal to -1')
-
-        lock = self._get_balance_lock_from_block(account, on_block_number)
-        if lock:
-            return lock
-
-        lock = self._get_balance_lock_from_account_root_file(account, on_block_number)
-        return account if lock is None else lock
-
     def get_last_account_root_file(self) -> Optional[AccountRootFile]:
         account_root_files = self.account_root_files
         if account_root_files:

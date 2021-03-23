@@ -1,9 +1,11 @@
 import copy
 import logging
+from itertools import islice
 from typing import Generator, Optional, Type, TypeVar
 
 from django.conf import settings
 
+from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.core.utils.importing import import_from_string
 
@@ -105,6 +107,9 @@ class BlockchainBase:
     def get_first_account_root_file(self) -> Optional[AccountRootFile]:
         raise NotImplementedError('Must be implemented in a child class')
 
+    def get_account_root_files(self) -> Generator[AccountRootFile, None, None]:
+        raise NotImplementedError('Must be implemented in a child class')
+
     def get_account_root_files_reversed(self) -> Generator[AccountRootFile, None, None]:
         raise NotImplementedError('Must be implemented in a child class')
 
@@ -149,3 +154,13 @@ class BlockchainBase:
 
     def validate(self):
         raise NotImplementedError('Must be implemented in a child class')
+
+    def validate_account_root_files(self):
+        first_account_root_file = self.get_first_account_root_file()
+        if not first_account_root_file:
+            raise ValidationError('Blockchain must contain at least one account root file')
+
+        first_account_root_file.validate(is_initial=first_account_root_file.is_initial())
+        for account_root_file in islice(self.get_account_root_files(), 1):
+            # TODO(dmu) CRITICAL: Validate last_block_number and last_block_identifiers point to correct blocks
+            account_root_file.validate()

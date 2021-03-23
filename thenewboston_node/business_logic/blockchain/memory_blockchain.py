@@ -3,7 +3,7 @@ import logging
 from itertools import islice
 from typing import Generator, Optional
 
-from thenewboston_node.business_logic.exceptions import MissingEarlierBlocksError, ValidationError
+from thenewboston_node.business_logic.exceptions import MissingEarlierBlocksError
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.business_logic.models.block import Block
 
@@ -146,26 +146,15 @@ class MemoryBlockchain(BlockchainBase):
 
         return None
 
+    def get_account_root_files(self) -> Generator[AccountRootFile, None, None]:
+        yield from self.account_root_files
+
     def get_account_root_files_reversed(self) -> Generator[AccountRootFile, None, None]:
         yield from reversed(self.account_root_files)
 
     def validate(self, block_offset: int = None, block_limit: int = None):
         self.validate_account_root_files()
         self.validate_blocks()
-
-    def validate_account_root_files(self):
-        account_root_files = self.account_root_files
-        if not account_root_files:
-            raise ValidationError('Blockchain must contain at least one account root file')
-
-        # TODO(dmu) HIGH: Reimplement allowing partial blockchains
-        # if not account_root_files[0].is_initial():
-        #     raise ValidationError('First account root file must be initial account root file')
-        #
-        # account_root_files[0].validate(is_initial=True)
-        # for account_root_file in islice(account_root_files, 1):
-        #     # TODO(dmu) CRITICAL: Validate last_block_number and last_block_identifiers point to correct blocks
-        #     account_root_file.validate()
 
     def validate_blocks(self, offset: Optional[int] = None, limit: Optional[int] = None):
         # Validations to be implemented:

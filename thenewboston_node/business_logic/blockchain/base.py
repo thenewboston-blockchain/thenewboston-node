@@ -1,7 +1,7 @@
 import copy
 import logging
 from itertools import islice
-from typing import Generator, Optional, Type, TypeVar
+from typing import Generator, Iterable, Optional, Type, TypeVar, cast
 
 from django.conf import settings
 
@@ -45,10 +45,10 @@ class BlockchainBase:
     def persist_block(self, block: Block):
         raise NotImplementedError('Must be implemented in a child class')
 
-    def get_account_balance(self, account: str, block_number: Optional[int] = None) -> Optional[int]:
+    def get_balance_value(self, account: str, on_block_number: Optional[int] = None) -> Optional[int]:
         raise NotImplementedError('Must be implemented in a child class')
 
-    def get_account_balance_lock(self, account: str) -> str:
+    def get_balance_lock(self, account: str, on_block_number: Optional[int] = None) -> str:
         raise NotImplementedError('Must be implemented in a child class')
 
     def get_head_block(self) -> Optional[Block]:
@@ -58,6 +58,9 @@ class BlockchainBase:
         raise NotImplementedError('Must be implemented in a child class')
 
     def get_block_by_identifier(self, block_number: int) -> Optional[Block]:
+        raise NotImplementedError('Must be implemented in a child class')
+
+    def iter_blocks(self) -> Generator[Block, None, None]:
         raise NotImplementedError('Must be implemented in a child class')
 
     def get_expected_block_identifier(self, block_number: int) -> Optional[str]:
@@ -152,8 +155,15 @@ class BlockchainBase:
 
         return copy.deepcopy(account_root_file)
 
-    def validate(self):
-        raise NotImplementedError('Must be implemented in a child class')
+    def validate(self, block_offset: int = None, block_limit: int = None, is_partial_allowed: bool = True):
+        if is_partial_allowed:
+            raise NotImplementedError('Partial blockchains are not supported yet')
+
+        if block_offset is not None or block_limit is not None:
+            raise NotImplementedError('Block limit/offset is not fully supported yet')
+
+        self.validate_account_root_files()
+        self.validate_blocks(offset=block_offset, limit=block_limit)
 
     def validate_account_root_files(self):
         first_account_root_file = self.get_first_account_root_file()
@@ -164,3 +174,21 @@ class BlockchainBase:
         for account_root_file in islice(self.get_account_root_files(), 1):
             # TODO(dmu) CRITICAL: Validate last_block_number and last_block_identifiers point to correct blocks
             account_root_file.validate()
+
+    def validate_blocks(self, offset: Optional[int] = None, limit: Optional[int] = None):
+        # Validations to be implemented:
+        # 1. Block numbers are sequential
+        # 2. Block identifiers equal to previous block message hash
+        # 3. Each individual block is valid
+        # 4. First block identifier equals to initial account root file hash
+
+        blocks_iter = cast(Iterable[Block], self.iter_blocks())
+        if offset is not None or limit is not None:
+            start = offset or 0
+            if limit is None:
+                blocks_iter = islice(blocks_iter, start)
+            else:
+                blocks_iter = islice(blocks_iter, start, start + limit)
+
+        for block in blocks_iter:
+            block.validate(self)

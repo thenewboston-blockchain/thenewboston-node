@@ -4,6 +4,7 @@ from itertools import islice
 from typing import Generator, Optional
 
 from thenewboston_node.business_logic.exceptions import MissingEarlierBlocksError
+from thenewboston_node.business_logic.models.account_balance import AccountBalance, BlockAccountBalance
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.business_logic.models.block import Block
 
@@ -21,6 +22,9 @@ class MemoryBlockchain(BlockchainBase):
         self.account_root_files: list[AccountRootFile] = [AccountRootFile.from_dict(initial_account_root_file)]
 
         self.blocks: list[Block] = []
+
+    def iter_blocks(self) -> Generator[Block, None, None]:
+        yield from self.blocks
 
     def persist_block(self, block: Block):
         self.blocks.append(copy.deepcopy(block))
@@ -83,6 +87,9 @@ class MemoryBlockchain(BlockchainBase):
         else:
             blocks_to_return = current_head_block_number - account_root_file_block_number - offset
 
+        if offset < 0:
+            import pdb
+            pdb.set_trace()
         # TODO(dmu) HIGH: Consider performance optimizations for islice(reversed(blocks), offset, blocks_to_return, 1)
         for block in islice(reversed(blocks), offset, offset + blocks_to_return, 1):
             assert (
@@ -91,46 +98,77 @@ class MemoryBlockchain(BlockchainBase):
 
             yield block
 
-    def _get_balance_from_block(self, account: str, block_number: Optional[int] = None) -> Optional[int]:
-        for block in self.get_blocks_until_account_root_file(block_number):
+    def _get_balance_value_from_block(self, account: str, on_block_number: Optional[int] = None) -> Optional[int]:
+        balance = self._get_balance_from_block(account, on_block_number)
+        return None if balance is None else balance.value
+
+    def _get_balance_lock_from_block(self, account: str, on_block_number: Optional[int] = None) -> Optional[str]:
+        balance = self._get_balance_from_block(account, on_block_number, must_have_lock=True)
+        return None if balance is None else balance.lock
+
+    def _get_balance_from_block(
+        self,
+        account: str,
+        on_block_number: Optional[int] = None,
+        must_have_lock: bool = False
+    ) -> Optional[BlockAccountBalance]:
+        for block in self.get_blocks_until_account_root_file(on_block_number):
             balance = block.message.get_balance(account)
             if balance is not None:
-                return balance.balance
+                if must_have_lock:
+                    lock = balance.lock
+                    if lock:
+                        return balance
+                else:
+                    return balance
 
         return None
 
-    def _get_balance_from_account_root_file(self, account: str, block_number: Optional[int] = None) -> Optional[int]:
+    def _get_balance_value_from_account_root_file(self,
+                                                  account: str,
+                                                  block_number: Optional[int] = None) -> Optional[int]:
+        balance = self._get_balance_from_account_root_file(account, block_number)
+        return None if balance is None else balance.value
+
+    def _get_balance_lock_from_account_root_file(self,
+                                                 account: str,
+                                                 block_number: Optional[int] = None) -> Optional[str]:
+        balance = self._get_balance_from_account_root_file(account, block_number)
+        return None if balance is None else balance.lock
+
+    def _get_balance_from_account_root_file(self,
+                                            account: str,
+                                            block_number: Optional[int] = None) -> Optional[AccountBalance]:
         account_root_file = self.get_closest_account_root_file(block_number)
         assert account_root_file
-        return account_root_file.get_balance_value(account)
+        return account_root_file.get_balance(account)
 
-    def get_account_balance(self, account: str, block_number: Optional[int] = None) -> Optional[int]:
+    def get_balance_value(self, account: str, on_block_number: Optional[int] = None) -> Optional[int]:
         """
         Returns account balance for the specified account. If block_number is specified then
         the account balance for that block is returned (after the block_number block is applied)
         otherwise the current (head block) balance is returned. If block_number is equal to -1 then
         account balance before 0 block is returned.
         """
-        if block_number is not None and block_number < -1:
+        if on_block_number is not None and on_block_number < -1:
             raise ValueError('block_number must be greater or equal to -1')
 
-        balance = self._get_balance_from_block(account, block_number)
-        if balance is None:
-            balance = self._get_balance_from_account_root_file(account, block_number)
+        balance_value = self._get_balance_value_from_block(account, on_block_number)
+        if balance_value is None:
+            balance_value = self._get_balance_value_from_account_root_file(account, on_block_number)
 
-        return balance
+        return balance_value
 
-    def get_account_balance_lock(self, account: str) -> str:
-        for block in self.get_blocks_until_account_root_file():
-            balance = block.message.get_balance(account)
-            if balance is not None:
-                balance_lock = balance.balance_lock
-                if balance_lock:
-                    return balance_lock
+    def get_balance_lock(self, account: str, on_block_number: Optional[int] = None) -> str:
+        if on_block_number is not None and on_block_number < -1:
+            raise ValueError('block_number must be greater or equal to -1')
 
-        account_root_file = self.get_closest_account_root_file()
-        assert account_root_file
-        return account_root_file.get_balance_lock(account)
+        lock = self._get_balance_lock_from_block(account, on_block_number)
+        if lock:
+            return lock
+
+        lock = self._get_balance_lock_from_account_root_file(account, on_block_number)
+        return account if lock is None else lock
 
     def get_last_account_root_file(self) -> Optional[AccountRootFile]:
         account_root_files = self.account_root_files
@@ -151,29 +189,3 @@ class MemoryBlockchain(BlockchainBase):
 
     def get_account_root_files_reversed(self) -> Generator[AccountRootFile, None, None]:
         yield from reversed(self.account_root_files)
-
-    def validate(self, block_offset: int = None, block_limit: int = None):
-        self.validate_account_root_files()
-        self.validate_blocks()
-
-    def validate_blocks(self, offset: Optional[int] = None, limit: Optional[int] = None):
-        # Validations to be implemented:
-        # 1. Block numbers are sequential
-        # 2. Block identifiers equal to previous block message hash
-        # 3. Each individual block is valid
-        # 4. First block identifier equals to initial account root file hash
-
-        blocks = self.blocks
-        if offset is not None or limit is not None:
-            start = offset or 0
-            if limit is None:
-                blocks_iter = islice(blocks, start)
-            else:
-                blocks_iter = islice(blocks, start, start + limit)
-        else:
-            blocks_iter = iter(blocks)
-
-        for block in blocks_iter:
-            block.validate(self)
-
-        raise NotImplementedError

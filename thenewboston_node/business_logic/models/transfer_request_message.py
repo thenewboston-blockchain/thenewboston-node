@@ -25,7 +25,7 @@ class TransferRequestMessage(MessageMixin):
     @classmethod
     def from_transactions(cls: Type[T], blockchain, sender: str, txs: list[Transaction]) -> T:
         return cls(
-            balance_lock=blockchain.get_account_balance_lock(sender),
+            balance_lock=blockchain.get_balance_lock(sender),
             txs=copy.deepcopy(txs),
         )
 

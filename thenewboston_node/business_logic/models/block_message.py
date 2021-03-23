@@ -18,7 +18,7 @@ from .transfer_request import TransferRequest
 logger = logging.getLogger(__name__)
 
 
-def calculate_updated_balances(get_account_balance: Callable[[str], Optional[int]],
+def calculate_updated_balances(get_balance_value: Callable[[str], Optional[int]],
                                transfer_request: TransferRequest) -> dict[str, BlockAccountBalance]:
     updated_balances: dict[str, BlockAccountBalance] = {}
     sent_amount = 0
@@ -28,21 +28,21 @@ def calculate_updated_balances(get_account_balance: Callable[[str], Optional[int
 
         balance = updated_balances.get(recipient)
         if balance is None:
-            balance = BlockAccountBalance(balance=get_account_balance(recipient) or 0)
+            balance = BlockAccountBalance(value=get_balance_value(recipient) or 0)
             updated_balances[recipient] = balance
 
-        balance.balance += amount
+        balance.value += amount
         sent_amount += amount
 
     sender = transfer_request.sender
-    sender_balance = get_account_balance(sender)
+    sender_balance = get_balance_value(sender)
     assert sender_balance is not None
     assert sender_balance >= sent_amount
 
     updated_balances[sender] = BlockAccountBalance(
-        balance=sender_balance - sent_amount,
+        value=sender_balance - sent_amount,
         # Transfer request message hash becomes new balance lock
-        balance_lock=transfer_request.message.get_hash()
+        lock=transfer_request.message.get_hash()
     )
 
     return updated_balances
@@ -89,7 +89,7 @@ class BlockMessage(MessageMixin):
             timestamp=timestamp,
             block_number=block_number,
             block_identifier=block_identifier,
-            updated_balances=calculate_updated_balances(blockchain.get_account_balance, transfer_request),
+            updated_balances=calculate_updated_balances(blockchain.get_balance_value, transfer_request),
         )
 
     def get_normalized(self) -> bytes:
@@ -113,6 +113,7 @@ class BlockMessage(MessageMixin):
         if transfer_request is None:
             raise ValidationError('Block message transfer request must present')
 
+        # transfer_request.validate(blockchain, self.block_number)
         transfer_request.validate(blockchain)
 
     def validate_timestamp(self, blockchain):
@@ -175,7 +176,7 @@ class BlockMessage(MessageMixin):
         if sender_account_balance is None:
             raise ValidationError('Update balances must contain sender account balance')
 
-        if not sender_account_balance.balance_lock:
+        if not sender_account_balance.lock:
             raise ValidationError('Update balances must contain sender account balance lock')
 
         for account, account_balance in updated_balances.items():

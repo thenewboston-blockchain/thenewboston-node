@@ -28,6 +28,7 @@ pytest-cov = "^2.11.1"
 pytest-django = "^4.1.0"
 pytest-xdist = "^2.2.1"
 pdbpp = "^0.10.2"
+colorlog = "^4.8.0"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "thenewboston_node.project.settings"

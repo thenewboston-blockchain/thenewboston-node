@@ -316,18 +316,30 @@ class BlockchainBase:
 
     def validate_blocks(self, offset: Optional[int] = None, limit: Optional[int] = None):
         # Validations to be implemented:
-        # 1. Block numbers are sequential
         # 2. Block identifiers equal to previous block message hash
-        # 3. Each individual block is valid
         # 4. First block identifier equals to initial account root file hash
 
         blocks_iter = cast(Iterable[Block], self.iter_blocks())
         if offset is not None or limit is not None:
             start = offset or 0
+            # TODO(dmu) HIGH: Consider performance improvements when slicing
             if limit is None:
                 blocks_iter = islice(blocks_iter, start)
             else:
                 blocks_iter = islice(blocks_iter, start, start + limit)
 
+        try:
+            first_block = next(blocks_iter)  # type: ignore
+        except StopIteration:
+            return
+
+        first_block.validate(self)
+        expected_block_number = first_block.message.block_number + 1
+
         for block in blocks_iter:
+            actual_block_number = block.message.block_number
+            if actual_block_number != expected_block_number:
+                raise ValidationError(f'Expected block number {expected_block_number} but got {actual_block_number}')
+
             block.validate(self)
+            expected_block_number += 1

@@ -21,15 +21,28 @@ class MemoryBlockchain(BlockchainBase):
 
         self.blocks: list[Block] = []
 
-    def iter_blocks(self) -> Generator[Block, None, None]:
-        yield from self.blocks
+    # Account root files related implemented methods
+    def get_first_account_root_file(self) -> Optional[AccountRootFile]:
+        account_root_files = self.account_root_files
+        if account_root_files:
+            return account_root_files[0]
 
-    def iter_blocks_reversed(self) -> Generator[Block, None, None]:
-        yield from reversed(self.blocks)
+        return None
 
-    def get_block_count(self) -> int:
-        return len(self.blocks)
+    def get_last_account_root_file(self) -> Optional[AccountRootFile]:
+        account_root_files = self.account_root_files
+        if account_root_files:
+            return account_root_files[-1]
 
+        return None
+
+    def iter_account_root_files(self) -> Generator[AccountRootFile, None, None]:
+        yield from self.account_root_files
+
+    def iter_account_root_files_reversed(self) -> Generator[AccountRootFile, None, None]:
+        yield from reversed(self.account_root_files)
+
+    # Blocks related implemented methods
     def persist_block(self, block: Block):
         self.blocks.append(copy.deepcopy(block))
 
@@ -59,22 +72,11 @@ class MemoryBlockchain(BlockchainBase):
             assert blocks[0].message.block_number > block_number
             raise MissingEarlierBlocksError()
 
-    def get_last_account_root_file(self) -> Optional[AccountRootFile]:
-        account_root_files = self.account_root_files
-        if account_root_files:
-            return account_root_files[-1]
+    def get_block_count(self) -> int:
+        return len(self.blocks)
 
-        return None
+    def iter_blocks(self) -> Generator[Block, None, None]:
+        yield from self.blocks
 
-    def get_first_account_root_file(self) -> Optional[AccountRootFile]:
-        account_root_files = self.account_root_files
-        if account_root_files:
-            return account_root_files[0]
-
-        return None
-
-    def iter_account_root_files(self) -> Generator[AccountRootFile, None, None]:
-        yield from self.account_root_files
-
-    def iter_account_root_files_reversed(self) -> Generator[AccountRootFile, None, None]:
-        yield from reversed(self.account_root_files)
+    def iter_blocks_reversed(self) -> Generator[Block, None, None]:
+        yield from reversed(self.blocks)

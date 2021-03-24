@@ -37,6 +37,41 @@ class BlockchainBase:
     def clear_instance_cache(cls):
         cls._instance = None
 
+    # Account root files related abstract methods
+    def get_first_account_root_file(self) -> Optional[AccountRootFile]:
+        raise NotImplementedError('Must be implemented in a child class')
+
+    def get_last_account_root_file(self) -> Optional[AccountRootFile]:
+        raise NotImplementedError('Must be implemented in a child class')
+
+    def iter_account_root_files(self) -> Generator[AccountRootFile, None, None]:
+        raise NotImplementedError('Must be implemented in a child class')
+
+    def iter_account_root_files_reversed(self) -> Generator[AccountRootFile, None, None]:
+        raise NotImplementedError('Must be implemented in a child class')
+
+    # Blocks related abstract methods
+    def persist_block(self, block: Block):
+        raise NotImplementedError('Must be implemented in a child class')
+
+    def get_head_block(self) -> Optional[Block]:
+        raise NotImplementedError('Must be implemented in a child class')
+
+    def get_block_by_number(self, block_number: int) -> Optional[Block]:
+        raise NotImplementedError('Must be implemented in a child class')
+
+    def get_block_by_identifier(self, block_number: int) -> Optional[Block]:
+        raise NotImplementedError('Must be implemented in a child class')
+
+    def get_block_count(self) -> int:
+        raise NotImplementedError('Must be implemented in a child class')
+
+    def iter_blocks(self) -> Generator[Block, None, None]:
+        raise NotImplementedError('Must be implemented in a child class')
+
+    def iter_blocks_reversed(self) -> Generator[Block, None, None]:
+        raise NotImplementedError('Must be implemented in a child class')
+
     def add_block(self, block: Block):
         block_number = block.message.block_number
         if block_number != self.get_next_block_number():
@@ -46,9 +81,6 @@ class BlockchainBase:
         # TODO(dmu) HIGH: Validate block_identifier
 
         self.persist_block(block)
-
-    def persist_block(self, block: Block):
-        raise NotImplementedError('Must be implemented in a child class')
 
     def validate_before_block_number(self, before_block_number: Optional[int]) -> int:
         next_block_number = self.get_next_block_number()
@@ -184,24 +216,6 @@ class BlockchainBase:
         assert account_root_file
         return account_root_file.get_balance(account)
 
-    def get_head_block(self) -> Optional[Block]:
-        raise NotImplementedError('Must be implemented in a child class')
-
-    def get_block_by_number(self, block_number: int) -> Optional[Block]:
-        raise NotImplementedError('Must be implemented in a child class')
-
-    def get_block_by_identifier(self, block_number: int) -> Optional[Block]:
-        raise NotImplementedError('Must be implemented in a child class')
-
-    def iter_blocks(self) -> Generator[Block, None, None]:
-        raise NotImplementedError('Must be implemented in a child class')
-
-    def iter_blocks_reversed(self) -> Generator[Block, None, None]:
-        raise NotImplementedError('Must be implemented in a child class')
-
-    def get_block_count(self) -> int:
-        raise NotImplementedError('Must be implemented in a child class')
-
     def get_expected_block_identifier(self, block_number: int) -> Optional[str]:
         """
         Return expected block identifier (take from previous block message hash or account root file)
@@ -242,18 +256,6 @@ class BlockchainBase:
         account_root_file = self.get_closest_account_root_file()
         assert account_root_file
         return account_root_file.get_next_block_number()
-
-    def get_last_account_root_file(self) -> Optional[AccountRootFile]:
-        raise NotImplementedError('Must be implemented in a child class')
-
-    def get_first_account_root_file(self) -> Optional[AccountRootFile]:
-        raise NotImplementedError('Must be implemented in a child class')
-
-    def iter_account_root_files(self) -> Generator[AccountRootFile, None, None]:
-        raise NotImplementedError('Must be implemented in a child class')
-
-    def iter_account_root_files_reversed(self) -> Generator[AccountRootFile, None, None]:
-        raise NotImplementedError('Must be implemented in a child class')
 
     def get_closest_account_root_file(self, excludes_block_number: Optional[int] = None) -> Optional[AccountRootFile]:
         """

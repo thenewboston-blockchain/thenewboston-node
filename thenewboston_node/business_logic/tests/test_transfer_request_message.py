@@ -59,11 +59,11 @@ def test_validate_transactions(sample_transfer_request_message: TransferRequestM
         sample_transfer_request_message.validate()
 
     sample_transfer_request_message.txs[0] = 'dummy'  # type: ignore
-    with pytest.raises(ValidationError, match='txs must be a list of Transactions'):
+    with pytest.raises(ValidationError, match='Transfer request message txs must contain only Transactions types'):
         sample_transfer_request_message.validate()
 
     sample_transfer_request_message.txs = 'dummy'  # type: ignore
-    with pytest.raises(ValidationError, match='txs must be a list of Transactions'):
+    with pytest.raises(ValidationError, match='Transfer request message txs must be a list'):
         sample_transfer_request_message.validate()
 
     sample_transfer_request_message.txs = []

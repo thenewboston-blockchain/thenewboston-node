@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from typing import Optional
 
@@ -9,6 +10,9 @@ from thenewboston_node.core.utils.cryptography import hash_normalized_dict, norm
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from .account_balance import AccountBalance
+
+logger = logging.getLogger(__name__)
+validation_logger = logging.getLogger(__name__ + '.validation_logger')
 
 
 @fake_super_methods
@@ -74,25 +78,50 @@ class AccountRootFile:
         )
 
     def validate(self, is_initial=False):
-        self.validate_accounts()
+        validation_logger.debug('Validating account root file')
         if is_initial:
             if self.last_block_number is not None:
-                ValidationError('Last block number must not be set for initial account root file')
+                raise ValidationError(
+                    'Account root file last block number must not be set for initial account root file'
+                )
+            validation_logger.debug(
+                'Account root file last block number is not set for the initial account root file (as expected)'
+            )
             if self.last_block_identifier is not None:
-                ValidationError('Last block identifier must not be set for initial account root file')
+                raise ValidationError(
+                    'Account root file last block identifier must not be set for initial account root file'
+                )
+            validation_logger.debug(
+                'Account root file last block identifier is not set for the initial account root file (as expected)'
+            )
             if self.next_block_identifier is not None:
-                ValidationError('Next block identifier must not be set for initial account root file')
+                raise ValidationError(
+                    'Account root file next block identifier must not be set for initial account root file'
+                )
+            validation_logger.debug(
+                'Account root file next block identifier is not set for the initial account root file (as expected)'
+            )
         else:
             if not isinstance(self.last_block_number, int):
-                ValidationError('Last block number must be an integer')
+                raise ValidationError('Account root file last block number must be an integer')
+            validation_logger.debug('Account root file last block number is an integer for account root file')
             if not isinstance(self.last_block_identifier, str):
-                ValidationError('Last block identifier must be a string')
+                raise ValidationError('Account root file last block identifier must be a string')
+            validation_logger.debug('Account root file last block identifier is a string for account root file')
             if not isinstance(self.next_block_identifier, str):
-                ValidationError('Next block identifier must be a string')
+                raise ValidationError('Account root file next block identifier must be a string')
+            validation_logger.debug('Account root file next block identifier is a string for account root file')
+        self.validate_accounts()
+        validation_logger.debug('Account root file is valid')
 
     def validate_accounts(self):
+        validation_logger.debug('Validating account root file accounts')
         for account, balance in self.accounts.items():
+            validation_logger.debug('Validating Account root file account %s', account)
             if not isinstance(account, str):
-                raise ValidationError('Account number must be a string')
+                raise ValidationError('Account root file account number must be a string')
+            validation_logger.debug('Account root file account number is a string')
 
             balance.validate()
+            validation_logger.debug('Account root file account %s is valid', account)
+        validation_logger.debug('Account root file accounts are valid')

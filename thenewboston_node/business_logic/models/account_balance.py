@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from typing import Optional
 
@@ -7,6 +8,9 @@ from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.core.utils.constants import SENTINEL
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
+logger = logging.getLogger(__name__)
+validation_logger = logging.getLogger(__name__ + '.validation_logger')
+
 
 @dataclass_json
 @dataclass
@@ -14,16 +18,22 @@ class AccountBalance:
     value: int
     lock: str
 
-    def validate(self, validate_balance_lock=True):
+    def validate(self, validate_lock=True):
+        validation_logger.debug('Validating account balance attributes')
         if not isinstance(self.value, int):
-            raise ValidationError('Balance must be an integer')
+            raise ValidationError('Account balance value must be an integer')
+        validation_logger.debug('Account balance value is an integer')
 
-        if validate_balance_lock:
+        if validate_lock:
             if not isinstance(self.lock, str):
-                raise ValidationError('Balance lock must be a string')
+                raise ValidationError('Account balance lock must be a string')
+            validation_logger.debug('Account balance lock is a string')
 
             if not self.lock:
-                raise ValidationError('Balance lock must be set')
+                raise ValidationError('Account balance lock must be set')
+            validation_logger.debug('Account balance lock is set')
+
+        validation_logger.debug('Account balance attributes are valid')
 
 
 @fake_super_methods
@@ -43,4 +53,4 @@ class BlockAccountBalance(AccountBalance):
         return dict_
 
     def validate(self):
-        super().validate(validate_balance_lock=False)
+        super().validate(validate_lock=False)

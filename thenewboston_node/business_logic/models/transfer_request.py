@@ -15,6 +15,7 @@ from .transfer_request_message import TransferRequestMessage
 T = TypeVar('T', bound='TransferRequest')
 
 logger = logging.getLogger(__name__)
+validation_logger = logging.getLogger(__name__ + '.validation_logger')
 
 
 @fake_super_methods
@@ -46,31 +47,43 @@ class TransferRequest(SignableMixin):
         return dict_
 
     def validate(self, blockchain, block_number: Optional[int] = None):
+        validation_logger.debug('Validating transfer request')
         self.validate_sender()
         self.validate_message()
         self.validate_signature()
         self.validate_amount(blockchain, block_number)
         self.validate_balance_lock(blockchain, block_number)
+        validation_logger.debug('Transfer request is valid')
 
     def validate_sender(self):
+        validation_logger.debug('Validating transfer request sender')
         if not self.sender:
             raise ValidationError('Transfer request sender must be set')
+        validation_logger.debug('Transfer request sender is set (as expected)')
 
         if not isinstance(self.sender, str):
-            raise ValidationError('Transfer request sender must be an account number string')
+            raise ValidationError('Transfer request sender must be a string')
+        validation_logger.debug('Transfer request sender is a string')
+        validation_logger.debug('Transfer request sender is valid')
 
     def validate_message(self):
         self.message.validate()
 
     def validate_amount(self, blockchain, on_block_number: Optional[int] = None):
+        validation_logger.debug('Validating amount on transfer request level')
         balance = blockchain.get_balance_value(self.sender, on_block_number)
         if balance is None:
-            raise ValidationError('Sender account balance is not found')
+            raise ValidationError('Transfer request sender account balance is not found')
+        validation_logger.debug('Transfer request sender has balance (as expected)')
 
         if self.message.get_total_amount() > balance:
-            raise ValidationError('Transaction total amount is greater than sender account balance')
+            raise ValidationError('Transfer request transactions total amount is greater than sender account balance')
+        validation_logger.debug('Transfer request sender has enough funds to transfer')
+        validation_logger.debug('Amount is valid on transfer request level')
 
     def validate_balance_lock(self, blockchain, block_number: Optional[int] = None):
-        print(self.sender, block_number)
+        validation_logger.debug('Validating transfer request balance lock on transfer request level')
         if self.message.balance_lock != blockchain.get_balance_lock(self.sender, block_number):
-            raise ValidationError('Balance key does not match balance lock')
+            raise ValidationError('Transfer request balance lock does not match expected balance lock')
+        validation_logger.debug('Transfer request balance lock matches expected balance lock')
+        validation_logger.debug('Transfer request balance lock is valid on transfer request level')

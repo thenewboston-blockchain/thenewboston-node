@@ -16,6 +16,7 @@ from ..models.block import Block
 T = TypeVar('T', bound='BlockchainBase')
 
 logger = logging.getLogger(__name__)
+validation_logger = logging.getLogger(__name__ + '.validation_logger')
 
 
 class BlockchainBase:
@@ -72,6 +73,7 @@ class BlockchainBase:
     def iter_blocks_reversed(self) -> Generator[Block, None, None]:
         raise NotImplementedError('Must be implemented in a child class')
 
+    # Base methods
     def add_block(self, block: Block):
         block_number = block.message.block_number
         if block_number != self.get_next_block_number():
@@ -297,6 +299,7 @@ class BlockchainBase:
         return copy.deepcopy(account_root_file)
 
     def validate(self, block_offset: int = None, block_limit: int = None, is_partial_allowed: bool = True):
+        validation_logger.debug('===> Validating the BLOCKCHAIN')
         if is_partial_allowed:
             raise NotImplementedError('Partial blockchains are not supported yet')
 
@@ -305,16 +308,30 @@ class BlockchainBase:
 
         self.validate_account_root_files()
         self.validate_blocks(offset=block_offset, limit=block_limit)
+        validation_logger.debug('===> The BLOCKCHAIN is valid')
 
     def validate_account_root_files(self):
-        first_account_root_file = self.get_first_account_root_file()
-        if not first_account_root_file:
+        validation_logger.debug('Validating account root files')
+        account_root_files_iter = self.iter_account_root_files()
+        try:
+            first_account_root_file = next(account_root_files_iter)
+        except StopIteration:
             raise ValidationError('Blockchain must contain at least one account root file')
+        validation_logger.debug('The blockchain contains at least one account root file (as expected)')
 
+        validation_logger.debug('Validating first account root file')
         first_account_root_file.validate(is_initial=first_account_root_file.is_initial())
-        for account_root_file in islice(self.iter_account_root_files(), 1):
+        validation_logger.debug('First account root file is valid')
+
+        for counter, account_root_file in enumerate(account_root_files_iter):
             # TODO(dmu) CRITICAL: Validate last_block_number and last_block_identifiers point to correct blocks
+            # TODO(dmu) CRITICAL: Validate account balances
+            counter += 1
+            validation_logger.debug('Validating account root file number %s', counter)
             account_root_file.validate()
+            validation_logger.debug('Account root file number %s is valid', counter)
+
+        validation_logger.debug('Account root files are valid')
 
     def validate_blocks(self, offset: Optional[int] = None, limit: Optional[int] = None):
         """
@@ -323,6 +340,7 @@ class BlockchainBase:
         than miss something. We may reconsider this overlap in favor of validation performance.
         """
 
+        validation_logger.debug('Validating the blockchain blocks')
         blocks_iter = cast(Iterable[Block], self.iter_blocks())
         if offset is not None or limit is not None:
             start = offset or 0
@@ -345,8 +363,10 @@ class BlockchainBase:
             self.validate_block(block, expected_block_number, expected_block_identifier)
             expected_block_number += 1
             expected_block_identifier = block.message_hash
+        validation_logger.debug('The blockchain blocks are valid')
 
     def validate_first_block(self, first_block: Block):
+        validation_logger.debug('Validating the first block of the blockchain')
         account_root_file = self.get_first_account_root_file()
         assert account_root_file
         # TODO(dmu) CRITICAL: Support partial blockchains
@@ -357,16 +377,29 @@ class BlockchainBase:
             expected_block_number=account_root_file.get_next_block_number(),
             expected_block_identifier=account_root_file.get_next_block_identifier(),
         )
+        validation_logger.debug('The first block of the blockchain is valid')
 
     def validate_block(self, block: Block, expected_block_number: int, expected_block_identifier: str):
         actual_block_number = block.message.block_number
+        actual_block_identifier = block.message.block_identifier
+
+        validation_logger.debug(
+            'Validating block number %s (identifier: %s) on blockchain level', actual_block_number,
+            actual_block_identifier
+        )
+
         if actual_block_number != expected_block_number:
             raise ValidationError(f'Expected block number {expected_block_number} but got {actual_block_number}')
+        validation_logger.debug('Block number is %s (as expected)', expected_block_number)
 
-        actual_block_identifier = block.message.block_identifier
         if actual_block_identifier != expected_block_identifier:
             raise ValidationError(
                 f'Expected block identifier {expected_block_identifier} but got {actual_block_identifier}'
             )
+        validation_logger.debug('Block identifier is %s (as expected)', expected_block_identifier)
 
         block.validate(self)
+        validation_logger.debug(
+            'The block number %s (identifier: %s) is valid on blockchain level', actual_block_number,
+            actual_block_identifier
+        )

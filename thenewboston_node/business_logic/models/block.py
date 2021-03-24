@@ -17,6 +17,7 @@ from .transfer_request import TransferRequest
 T = TypeVar('T', bound='Block')
 
 logger = logging.getLogger(__name__)
+validation_logger = logging.getLogger(__name__ + '.validation_logger')
 
 
 @fake_super_methods
@@ -61,24 +62,37 @@ class Block(SignableMixin):
         self.message_hash = message_hash
 
     def validate(self, blockchain):
+        block_number = self.message.block_number
+        block_identifier = self.message.block_identifier
+        validation_logger.debug('Validating block number %s (identifier: %s)', block_number, block_identifier)
         self.validate_node_identifier()
         self.validate_message(blockchain)
+        validation_logger.debug('Validating block signature')
         self.validate_signature()
+        validation_logger.debug('Block signature is valid')
         self.validate_message_hash()
+        validation_logger.debug('Block number %s (identifier: %s) is valid', block_number, block_identifier)
 
     @verbose_timeit_method()
     def validate_node_identifier(self):
+        validation_logger.debug('Validating block node identifier')
         if not self.node_identifier:
             raise ValidationError('Block node identifier must be set')
+        validation_logger.debug('Block node identifier is valid')
 
     @verbose_timeit_method()
     def validate_message(self, blockchain):
+        validation_logger.debug('Validating block message on block level')
         if not self.message:
             raise ValidationError('Block message must be not empty')
+        logger.debug('Block message is not empty (as expected)')
 
         self.message.validate(blockchain)
+        validation_logger.debug('Block message is valid on block level')
 
     @verbose_timeit_method()
     def validate_message_hash(self):
+        validation_logger.debug('Validating block message hash')
         if self.message.get_hash() != self.message_hash:
             raise ValidationError('Block message hash is invalid')
+        validation_logger.debug('Block message hash is valid')

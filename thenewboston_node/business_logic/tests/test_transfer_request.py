@@ -50,12 +50,14 @@ def test_validate_amount(forced_mock_blockchain, sample_transfer_request):
 def test_validate_amount_raises(forced_mock_blockchain, sample_transfer_request):
     sample_transfer_request_copy = copy.deepcopy(sample_transfer_request)
     with patch.object(MockBlockchain, 'get_balance_value', return_value=None):
-        with pytest.raises(ValidationError, match='Sender account balance is not found'):
+        with pytest.raises(ValidationError, match='Transfer request sender account balance is not found'):
             sample_transfer_request_copy.validate_amount(forced_mock_blockchain)
 
     sample_transfer_request_copy = copy.deepcopy(sample_transfer_request)
     with patch.object(MockBlockchain, 'get_balance_value', return_value=425 + 1 + 4 - 1):
-        with pytest.raises(ValidationError, match='Transaction total amount is greater than sender account balance'):
+        with pytest.raises(
+            ValidationError, match='Transfer request transactions total amount is greater than sender account balance'
+        ):
             sample_transfer_request_copy.validate_amount(forced_mock_blockchain)
 
 
@@ -74,7 +76,9 @@ def test_validate_balance_lock_raises(forced_mock_blockchain, sample_transfer_re
         'get_balance_lock',
         return_value='1cdd4ba04456ca169baca3d66eace869520c62fe84421329086e03d91a68acdb'
     ):
-        with pytest.raises(ValidationError, match='Balance key does not match balance lock'):
+        with pytest.raises(
+            ValidationError, match='Transfer request balance lock does not match expected balance lock'
+        ):
             sample_transfer_request.validate_balance_lock(forced_mock_blockchain)
 
 
@@ -98,7 +102,7 @@ def test_invalid_sender(forced_mock_blockchain, sample_transfer_request):
         sample_transfer_request.validate(forced_mock_blockchain)
 
     sample_transfer_request.sender = 12
-    with pytest.raises(ValidationError, match='Transfer request sender must be an account number string'):
+    with pytest.raises(ValidationError, match='Transfer request sender must be a string'):
         sample_transfer_request.validate(forced_mock_blockchain)
 
 
@@ -111,7 +115,9 @@ def test_invalid_transfer_request_for_signature(forced_mock_blockchain, sample_t
 
 def test_invalid_transfer_request_for_amount(forced_mock_blockchain, sample_transfer_request):
     with patch.object(MockBlockchain, 'get_balance_value', return_value=425 + 1 + 4 - 1):
-        with pytest.raises(ValidationError, match='Transaction total amount is greater than sender account balance'):
+        with pytest.raises(
+            ValidationError, match='Transfer request transactions total amount is greater than sender account balance'
+        ):
             sample_transfer_request.validate(forced_mock_blockchain)
 
 
@@ -121,7 +127,9 @@ def test_invalid_transfer_request_for_balance_lock(forced_mock_blockchain, sampl
         'get_balance_lock',
         return_value='1cdd4ba04456ca169baca3d66eace869520c62fe84421329086e03d91a68acdb'
     ):
-        with pytest.raises(ValidationError, match='Balance key does not match balance lock'):
+        with pytest.raises(
+            ValidationError, match='Transfer request balance lock does not match expected balance lock'
+        ):
             sample_transfer_request.validate_balance_lock(forced_mock_blockchain)
 
 

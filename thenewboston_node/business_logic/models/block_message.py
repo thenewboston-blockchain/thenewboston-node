@@ -17,6 +17,7 @@ from .base import MessageMixin
 from .transfer_request import TransferRequest
 
 logger = logging.getLogger(__name__)
+validation_logger = logging.getLogger(__name__ + '.validation_logger')
 
 
 def calculate_updated_balances(get_balance_value: Callable[[str], Optional[int]],
@@ -101,6 +102,7 @@ class BlockMessage(MessageMixin):
 
     @verbose_timeit_method()
     def validate(self, blockchain):
+        validation_logger.debug('Validating block message')
         self.validate_transfer_request(blockchain)
         self.validate_block_number()
 
@@ -109,84 +111,113 @@ class BlockMessage(MessageMixin):
         self.validate_block_identifier(blockchain)
 
         self.validate_updated_balances()
+        validation_logger.debug('Block message is valid')
 
     @verbose_timeit_method()
     def validate_transfer_request(self, blockchain):
+        validation_logger.debug('Validating transfer request on block message level')
         transfer_request = self.transfer_request
         if transfer_request is None:
             raise ValidationError('Block message transfer request must present')
+        validation_logger.debug('Block message transfer request is present (as expected)')
 
         transfer_request.validate(blockchain, self.block_number)
+        validation_logger.debug('Transfer request is valid on block message level')
 
     @verbose_timeit_method()
     def validate_timestamp(self, blockchain):
+        validation_logger.debug('Validating block message timestamp')
         timestamp = self.timestamp
         if timestamp is None:
             raise ValidationError('Block message timestamp must be set')
+        validation_logger.debug('Block message timestamp is set (as expected)')
 
         if not isinstance(timestamp, datetime):
             raise ValidationError('Block message timestamp must be datetime type')
+        validation_logger.debug('Block message timestamp is a datetime type')
 
         if timestamp.tzinfo is not None:
             raise ValidationError('Block message timestamp must be naive datetime (UTC timezone implied)')
+        validation_logger.debug('Block message timestamp is a naive datetime type')
 
         block_number = self.block_number
         assert block_number is not None
-        if block_number == 0:
-            return
+        if block_number > 0:
+            prev_block = blockchain.get_block_by_number(block_number - 1)
+            assert prev_block is not None
+            if timestamp <= prev_block.message.timestamp:
+                raise ValidationError('Block message timestamp must be greater than from previous block')
+            validation_logger.debug('Block message timestamp is greater than from previous block')
 
-        prev_block = blockchain.get_block_by_number(block_number - 1)
-        assert prev_block is not None
-        if timestamp <= prev_block.message.timestamp:
-            raise ValidationError('Block message timestamp must be greater than previous block')
+        validation_logger.debug('Block message timestamp is valid')
 
     @verbose_timeit_method()
     def validate_block_number(self):
+        validation_logger.debug('Validating block number')
         block_number = self.block_number
         if block_number is None:
-            raise ValidationError('Block message block number must be set')
+            raise ValidationError('Block number must be set')
+        validation_logger.debug('Block number is set (as expected)')
 
         if not isinstance(block_number, int):
-            raise ValidationError('Block message block number must be integer')
+            raise ValidationError('Block number must be integer')
+        validation_logger.debug('Block number is an integer')
 
         if block_number < 0:
-            raise ValidationError('Block message block number must be greater or equal to 0')
+            raise ValidationError('Block number must be greater or equal to 0')
+        validation_logger.debug('Block number is greater or equal to 0')
+        validation_logger.debug('Block number is valid')
 
     @verbose_timeit_method()
     def validate_block_identifier(self, blockchain):
+        validation_logger.debug('Validating block identifier')
         block_identifier = self.block_identifier
         if block_identifier is None:
-            raise ValidationError('Block message block number must be set')
+            raise ValidationError('Block identifier must be set')
+        validation_logger.debug('Block identifier is set')
 
         if not isinstance(block_identifier, str):
-            raise ValidationError('Block message block number must be a string')
+            raise ValidationError('Block identifier must be a string')
+        validation_logger.debug('Block identifier is a string')
 
         block_number = self.block_number
         assert block_number is not None
 
-        # TODO(dmu) CRITICAL: Implement ->
-        # expected_block_identifier = blockchain.get_expected_block_identifier()
-        # if block_identifier != expected_block_identifier:
-        #     raise ValidationError('Invalid block identifier')
+        if block_identifier != blockchain.get_expected_block_identifier(block_number):
+            raise ValidationError('Invalid block identifier')
+        validation_logger.debug('Block identifier is valid')
 
     @verbose_timeit_method()
     def validate_updated_balances(self):
+        validation_logger.debug('Validating block message updated balances')
         updated_balances = self.updated_balances
         if updated_balances is None:
             raise ValidationError('Block message must contain updated balances')
+        validation_logger.debug('Block message contains updated balances')
 
         if len(updated_balances) < 2:
-            raise ValidationError('Update balances must contain at least 2 balances')
+            raise ValidationError('block message updated balances must contain at least 2 balances')
+        validation_logger.debug('Block message contains at least 2 updated balances')
 
         sender_account_balance = updated_balances.get(self.transfer_request.sender)
         if sender_account_balance is None:
-            raise ValidationError('Update balances must contain sender account balance')
+            raise ValidationError('block message updated balances must contain sender account balance')
+        validation_logger.debug('Block message contains sender account in updated balances')
 
         if not sender_account_balance.lock:
-            raise ValidationError('Update balances must contain sender account balance lock')
+            raise ValidationError('block message updated balances must contain sender account balance lock')
+        validation_logger.debug('Block message contains sender account lock in updated balances')
 
         for account, account_balance in updated_balances.items():
+            validation_logger.debug('Validating account %s updated balance on block message level', account)
             if not isinstance(account, str):
-                raise ValidationError('Account must be a string')
+                raise ValidationError('Block message updated balance account must be a string')
+            validation_logger.debug('Block message updated balance account %s is a string', account)
 
             account_balance.validate()
+            validation_logger.debug(
+                'Updated balance account %s updated balance is valid on block message level', account
+            )
+
+        # TODO(dmu) CRITICAL: Validate balance values
+        validation_logger.debug('Block message updated balances are valid')

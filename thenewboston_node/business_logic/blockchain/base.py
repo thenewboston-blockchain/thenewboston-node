@@ -315,9 +315,11 @@ class BlockchainBase:
             account_root_file.validate()
 
     def validate_blocks(self, offset: Optional[int] = None, limit: Optional[int] = None):
-        # Validations to be implemented:
-        # 2. Block identifiers equal to previous block message hash
-        # 4. First block identifier equals to initial account root file hash
+        """
+        Validate blocks persisted in the blockchain. Some blockchain level validations may overlap with
+        block level validations. We consider it OK since it is better to double check something rather
+        than miss something. We may reconsider this overlap in favor of validation performance.
+        """
 
         blocks_iter = cast(Iterable[Block], self.iter_blocks())
         if offset is not None or limit is not None:
@@ -333,13 +335,36 @@ class BlockchainBase:
         except StopIteration:
             return
 
-        first_block.validate(self)
+        self.validate_first_block(first_block)
         expected_block_number = first_block.message.block_number + 1
+        expected_block_identifier = first_block.message_hash
 
         for block in blocks_iter:
-            actual_block_number = block.message.block_number
-            if actual_block_number != expected_block_number:
-                raise ValidationError(f'Expected block number {expected_block_number} but got {actual_block_number}')
-
-            block.validate(self)
+            self.validate_block(block, expected_block_number, expected_block_identifier)
             expected_block_number += 1
+            expected_block_identifier = block.message_hash
+
+    def validate_first_block(self, first_block: Block):
+        account_root_file = self.get_first_account_root_file()
+        assert account_root_file
+        # TODO(dmu) CRITICAL: Support partial blockchains
+        assert account_root_file.is_initial()
+
+        self.validate_block(
+            first_block,
+            expected_block_number=account_root_file.get_next_block_number(),
+            expected_block_identifier=account_root_file.get_next_block_identifier(),
+        )
+
+    def validate_block(self, block: Block, expected_block_number: int, expected_block_identifier: str):
+        actual_block_number = block.message.block_number
+        if actual_block_number != expected_block_number:
+            raise ValidationError(f'Expected block number {expected_block_number} but got {actual_block_number}')
+
+        actual_block_identifier = block.message.block_identifier
+        if actual_block_identifier != expected_block_identifier:
+            raise ValidationError(
+                f'Expected block identifier {expected_block_identifier} but got {actual_block_identifier}'
+            )
+
+        block.validate(self)

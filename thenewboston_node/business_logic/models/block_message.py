@@ -8,7 +8,6 @@ from dataclasses_json import config, dataclass_json
 from marshmallow import fields
 
 from thenewboston_node.business_logic.exceptions import ValidationError
-from thenewboston_node.core.logging import verbose_timeit_method
 from thenewboston_node.core.utils.cryptography import normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
@@ -100,7 +99,6 @@ class BlockMessage(MessageMixin):
     def get_balance(self, account: str) -> Optional[BlockAccountBalance]:
         return (self.updated_balances or {}).get(account)
 
-    @verbose_timeit_method()
     def validate(self, blockchain):
         validation_logger.debug('Validating block message')
         self.validate_transfer_request(blockchain)
@@ -113,7 +111,6 @@ class BlockMessage(MessageMixin):
         self.validate_updated_balances()
         validation_logger.debug('Block message is valid')
 
-    @verbose_timeit_method()
     def validate_transfer_request(self, blockchain):
         validation_logger.debug('Validating transfer request on block message level')
         transfer_request = self.transfer_request
@@ -124,7 +121,6 @@ class BlockMessage(MessageMixin):
         transfer_request.validate(blockchain, self.block_number)
         validation_logger.debug('Transfer request is valid on block message level')
 
-    @verbose_timeit_method()
     def validate_timestamp(self, blockchain):
         validation_logger.debug('Validating block message timestamp')
         timestamp = self.timestamp
@@ -151,7 +147,6 @@ class BlockMessage(MessageMixin):
 
         validation_logger.debug('Block message timestamp is valid')
 
-    @verbose_timeit_method()
     def validate_block_number(self):
         validation_logger.debug('Validating block number')
         block_number = self.block_number
@@ -168,7 +163,6 @@ class BlockMessage(MessageMixin):
         validation_logger.debug('Block number is greater or equal to 0')
         validation_logger.debug('Block number is valid')
 
-    @verbose_timeit_method()
     def validate_block_identifier(self, blockchain):
         validation_logger.debug('Validating block identifier')
         block_identifier = self.block_identifier
@@ -187,7 +181,6 @@ class BlockMessage(MessageMixin):
             raise ValidationError('Invalid block identifier')
         validation_logger.debug('Block identifier is valid')
 
-    @verbose_timeit_method()
     def validate_updated_balances(self):
         validation_logger.debug('Validating block message updated balances')
         updated_balances = self.updated_balances

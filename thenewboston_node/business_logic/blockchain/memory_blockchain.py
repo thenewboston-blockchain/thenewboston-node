@@ -17,11 +17,18 @@ class MemoryBlockchain(BlockchainBase):
     """
 
     def __init__(self, *, initial_account_root_file):
-        self.account_root_files: list[AccountRootFile] = [AccountRootFile.from_dict(initial_account_root_file)]
-
+        self.account_root_files: list[AccountRootFile] = []
         self.blocks: list[Block] = []
 
+        super().__init__(initial_account_root_file=initial_account_root_file)
+
     # Account root files related implemented methods
+    def add_account_root_file(self, account_root_file: AccountRootFile):
+        is_initial = False if self.account_root_files else account_root_file.is_initial()
+        account_root_file.validate(is_initial=is_initial)
+
+        self.account_root_files.append(account_root_file)
+
     def get_first_account_root_file(self) -> Optional[AccountRootFile]:
         account_root_files = self.account_root_files
         if account_root_files:
@@ -36,6 +43,9 @@ class MemoryBlockchain(BlockchainBase):
 
         return None
 
+    def get_account_root_file_count(self) -> int:
+        return len(self.account_root_files)
+
     def iter_account_root_files(self) -> Generator[AccountRootFile, None, None]:
         yield from self.account_root_files
 
@@ -46,10 +56,17 @@ class MemoryBlockchain(BlockchainBase):
     def persist_block(self, block: Block):
         self.blocks.append(copy.deepcopy(block))
 
-    def get_head_block(self) -> Optional[Block]:
+    def get_last_block(self) -> Optional[Block]:
         blocks = self.blocks
         if blocks:
             return blocks[-1]
+
+        return None
+
+    def get_first_block(self) -> Optional[Block]:
+        blocks = self.blocks
+        if blocks:
+            return blocks[0]
 
         return None
 

@@ -6,7 +6,7 @@ build:
 test:
 	# We do not provide `THENEWBOSTON_NODE_TEST_WITH_ENV_VARS` to avoid mess up with local
     # dev env environment variables and provide reproducible test runs.
-	poetry run pytest -v -rs -n auto
+	poetry run pytest -v -rs -n auto --cov=thenewboston_node --cov-report=html
 
 .PHONY: test-dockerized
 test-dockerized:

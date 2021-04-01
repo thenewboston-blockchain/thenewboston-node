@@ -3,6 +3,8 @@ import logging
 from itertools import chain
 from time import time
 
+from thenewboston_node.core.utils.misc import upper_first
+
 module_logger = logging.getLogger(__name__)
 
 
@@ -91,10 +93,12 @@ class validates:
         self.logger.log(self.level, 'Validating %s', target)
 
     def log_validation_passed(self, target):
-        self.logger.log(self.level, '%s %s valid', target.capitalize(), 'are' if self.is_plural_target else 'is')
+        self.logger.log(self.level, '%s %s valid', upper_first(target), 'are' if self.is_plural_target else 'is')
 
-    def log_validation_failed(self, target):
-        self.logger.log(self.level, '%s %s invalid', target.capitalize(), 'are' if self.is_plural_target else 'is')
+    def log_validation_failed(self, target, exception):
+        self.logger.log(
+            self.level, '%s %s invalid: %s', upper_first(target), 'are' if self.is_plural_target else 'is', exception
+        )
 
     def __enter__(self):  # type: ignore
         self.log_validation_started(self.target_template)
@@ -102,7 +106,7 @@ class validates:
 
     def __exit__(self, *exc_info) -> None:  # type: ignore
         if any(exc_info):
-            self.log_validation_failed(self.target_template)
+            self.log_validation_failed(self.target_template, exc_info[1])
         else:
             self.log_validation_passed(self.target_template)
 
@@ -114,8 +118,8 @@ class validates:
             self.log_validation_started(target)
             try:
                 rv = callable_(*args, **kwargs)
-            except Exception:
-                self.log_validation_failed(target)
+            except Exception as ex:
+                self.log_validation_failed(target, ex)
                 raise
             else:
                 self.log_validation_passed(target)

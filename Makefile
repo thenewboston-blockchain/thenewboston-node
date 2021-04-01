@@ -47,3 +47,7 @@ run-server:
 .PHONY: lint
 lint:
 	poetry run pre-commit run --all-files
+
+.PHONY: lint-and-test
+lint-and-test: lint test
+	true

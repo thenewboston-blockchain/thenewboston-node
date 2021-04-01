@@ -17,7 +17,6 @@ from .transfer_request import TransferRequest
 T = TypeVar('T', bound='Block')
 
 logger = logging.getLogger(__name__)
-validation_logger = logging.getLogger(__name__ + '.validation_logger')
 
 
 @fake_super_methods

@@ -8,6 +8,7 @@ from dataclasses_json import config, dataclass_json
 from marshmallow import fields
 
 from thenewboston_node.business_logic.exceptions import ValidationError
+from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
@@ -99,8 +100,8 @@ class BlockMessage(MessageMixin):
     def get_balance(self, account: str) -> Optional[BlockAccountBalance]:
         return (self.updated_balances or {}).get(account)
 
+    @validates('block message')
     def validate(self, blockchain):
-        validation_logger.debug('Validating block message')
         self.validate_transfer_request(blockchain)
         self.validate_block_number()
 
@@ -109,20 +110,18 @@ class BlockMessage(MessageMixin):
         self.validate_block_identifier(blockchain)
 
         self.validate_updated_balances()
-        validation_logger.debug('Block message is valid')
 
+    @validates('transfer request on block message level')
     def validate_transfer_request(self, blockchain):
-        validation_logger.debug('Validating transfer request on block message level')
         transfer_request = self.transfer_request
         if transfer_request is None:
             raise ValidationError('Block message transfer request must present')
         validation_logger.debug('Block message transfer request is present (as expected)')
 
         transfer_request.validate(blockchain, self.block_number)
-        validation_logger.debug('Transfer request is valid on block message level')
 
+    @validates('block message timestamp')
     def validate_timestamp(self, blockchain):
-        validation_logger.debug('Validating block message timestamp')
         timestamp = self.timestamp
         if timestamp is None:
             raise ValidationError('Block message timestamp must be set')
@@ -145,10 +144,8 @@ class BlockMessage(MessageMixin):
                 raise ValidationError('Block message timestamp must be greater than from previous block')
             validation_logger.debug('Block message timestamp is greater than from previous block')
 
-        validation_logger.debug('Block message timestamp is valid')
-
+    @validates('block number')
     def validate_block_number(self):
-        validation_logger.debug('Validating block number')
         block_number = self.block_number
         if block_number is None:
             raise ValidationError('Block number must be set')
@@ -161,10 +158,9 @@ class BlockMessage(MessageMixin):
         if block_number < 0:
             raise ValidationError('Block number must be greater or equal to 0')
         validation_logger.debug('Block number is greater or equal to 0')
-        validation_logger.debug('Block number is valid')
 
+    @validates('block identifier')
     def validate_block_identifier(self, blockchain):
-        validation_logger.debug('Validating block identifier')
         block_identifier = self.block_identifier
         if block_identifier is None:
             raise ValidationError('Block identifier must be set')
@@ -179,38 +175,33 @@ class BlockMessage(MessageMixin):
 
         if block_identifier != blockchain.get_expected_block_identifier(block_number):
             raise ValidationError('Invalid block identifier')
-        validation_logger.debug('Block identifier is valid')
 
+    @validates('block message updated balances')
     def validate_updated_balances(self):
-        validation_logger.debug('Validating block message updated balances')
+
         updated_balances = self.updated_balances
-        if updated_balances is None:
-            raise ValidationError('Block message must contain updated balances')
-        validation_logger.debug('Block message contains updated balances')
 
-        if len(updated_balances) < 2:
-            raise ValidationError('block message updated balances must contain at least 2 balances')
-        validation_logger.debug('Block message contains at least 2 updated balances')
+        with validates('block message updated balances content'):
+            if updated_balances is None:
+                raise ValidationError('Block message must contain updated balances')
 
-        sender_account_balance = updated_balances.get(self.transfer_request.sender)
-        if sender_account_balance is None:
-            raise ValidationError('block message updated balances must contain sender account balance')
-        validation_logger.debug('Block message contains sender account in updated balances')
+            if len(updated_balances) < 2:
+                raise ValidationError('block message updated balances must contain at least 2 balances')
 
-        if not sender_account_balance.lock:
-            raise ValidationError('block message updated balances must contain sender account balance lock')
-        validation_logger.debug('Block message contains sender account lock in updated balances')
+        with validates('block message updated balances sender account balance'):
+            sender_account_balance = updated_balances.get(self.transfer_request.sender)
+            if sender_account_balance is None:
+                raise ValidationError('block message updated balances must contain sender account balance')
 
-        for account, account_balance in updated_balances.items():
-            validation_logger.debug('Validating account %s updated balance on block message level', account)
-            if not isinstance(account, str):
-                raise ValidationError('Block message updated balance account must be a string')
-            validation_logger.debug('Block message updated balance account %s is a string', account)
+            if not sender_account_balance.lock:
+                raise ValidationError('block message updated balances must contain sender account balance lock')
 
-            account_balance.validate()
-            validation_logger.debug(
-                'Updated balance account %s updated balance is valid on block message level', account
-            )
+        with validates('all account balances', is_plural_target=True):
+            for account, account_balance in updated_balances.items():
+                with validates(f'account {account} updated balance on block message level'):
+                    if not isinstance(account, str):
+                        raise ValidationError('Block message updated balance account must be a string')
 
-        # TODO(dmu) CRITICAL: Validate balance values
-        validation_logger.debug('Block message updated balances are valid')
+                    account_balance.validate()
+
+            # TODO(dmu) CRITICAL: Validate balance values

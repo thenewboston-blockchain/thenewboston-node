@@ -6,6 +6,7 @@ from time import time
 from thenewboston_node.core.utils.misc import upper_first
 
 module_logger = logging.getLogger(__name__)
+validation_logger = logging.getLogger(__name__ + '.validation')
 
 
 class SentryFilter(logging.Filter):
@@ -83,7 +84,7 @@ def timeit(
 
 class validates:
 
-    def __init__(self, target_template, logger=module_logger, level=logging.DEBUG, is_plural_target=False) -> None:
+    def __init__(self, target_template, logger=validation_logger, level=logging.DEBUG, is_plural_target=False):
         self.logger = logger
         self.level = level
         self.target_template = target_template

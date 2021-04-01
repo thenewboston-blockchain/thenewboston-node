@@ -10,7 +10,6 @@ from thenewboston_node.core.utils.constants import SENTINEL
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 logger = logging.getLogger(__name__)
-validation_logger = logging.getLogger(__name__ + '.validation_logger')
 
 
 @dataclass_json

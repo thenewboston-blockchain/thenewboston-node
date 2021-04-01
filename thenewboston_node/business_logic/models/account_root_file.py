@@ -13,7 +13,6 @@ from thenewboston_node.core.utils.dataclass import fake_super_methods
 from .account_balance import AccountBalance
 
 logger = logging.getLogger(__name__)
-validation_logger = logging.getLogger(__name__ + '.validation_logger')
 
 
 @fake_super_methods

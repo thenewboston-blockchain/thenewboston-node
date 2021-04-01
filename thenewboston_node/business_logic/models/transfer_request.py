@@ -6,6 +6,7 @@ from typing import Optional, Type, TypeVar
 from dataclasses_json import dataclass_json
 
 from thenewboston_node.business_logic.exceptions import ValidationError
+from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
@@ -46,14 +47,21 @@ class TransferRequest(SignableMixin):
         dict_['message'] = self.message.to_dict()
         return dict_
 
+    def get_sent_amount(self):
+        assert self.message
+        return self.message.get_total_amount()
+
+    def get_recipient_amount(self, recipient):
+        assert self.message
+        return self.message.get_amount(recipient)
+
+    @validates('transfer request')
     def validate(self, blockchain, block_number: Optional[int] = None):
-        validation_logger.debug('Validating transfer request')
         self.validate_sender()
         self.validate_message()
         self.validate_signature()
         self.validate_amount(blockchain, block_number)
         self.validate_balance_lock(blockchain, block_number)
-        validation_logger.debug('Transfer request is valid')
 
     def validate_sender(self):
         validation_logger.debug('Validating transfer request sender')
@@ -81,9 +89,7 @@ class TransferRequest(SignableMixin):
         validation_logger.debug('Transfer request sender has enough funds to transfer')
         validation_logger.debug('Amount is valid on transfer request level')
 
+    @validates('transfer request balance lock on transfer request level')
     def validate_balance_lock(self, blockchain, block_number: Optional[int] = None):
-        validation_logger.debug('Validating transfer request balance lock on transfer request level')
         if self.message.balance_lock != blockchain.get_balance_lock(self.sender, block_number):
             raise ValidationError('Transfer request balance lock does not match expected balance lock')
-        validation_logger.debug('Transfer request balance lock matches expected balance lock')
-        validation_logger.debug('Transfer request balance lock is valid on transfer request level')

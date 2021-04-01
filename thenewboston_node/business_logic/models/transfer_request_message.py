@@ -7,6 +7,7 @@ from dataclasses_json import dataclass_json
 
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.network.base import NetworkBase
+from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
@@ -47,6 +48,9 @@ class TransferRequestMessage(MessageMixin):
     def get_total_amount(self) -> int:
         return sum(tx.amount for tx in self.txs)
 
+    def get_amount(self, recipient):
+        return sum(tx.amount for tx in self.txs if tx.recipient == recipient)
+
     def override_to_dict(self):  # this one turns into to_dict()
         dict_ = self.super_to_dict()
         # TODO(dmu) LOW: Implement a better way of removing optional fields or allow them in normalized message
@@ -65,18 +69,15 @@ class TransferRequestMessage(MessageMixin):
 
         return normalize_dict(message_dict)
 
+    @validates('transfer request message')
     def validate(self):
-        validation_logger.debug('Validating transfer request message')
         self.validate_balance_lock()
         self.validate_transactions()
-        validation_logger.debug('Transfer request message is valid')
 
+    @validates('transfer request message balance lock')
     def validate_balance_lock(self):
-        validation_logger.debug('Validating transfer request message balance lock')
         if not self.balance_lock:
             raise ValidationError('Transfer request message balance lock must be set')
-        validation_logger.debug('Transfer request message balance lock is set (as expected)')
-        validation_logger.debug('Transfer request message balance lock is valid')
 
     def validate_transactions(self):
         validation_logger.debug('Validating transfer request message transactions')

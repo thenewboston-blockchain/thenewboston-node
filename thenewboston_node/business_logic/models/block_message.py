@@ -20,6 +20,11 @@ logger = logging.getLogger(__name__)
 validation_logger = logging.getLogger(__name__ + '.validation_logger')
 
 
+def make_balance_lock(transfer_request):
+    assert transfer_request.message
+    return transfer_request.message.get_hash()
+
+
 def calculate_updated_balances(get_balance_value: Callable[[str], Optional[int]],
                                transfer_request: TransferRequest) -> dict[str, BlockAccountBalance]:
     updated_balances: dict[str, BlockAccountBalance] = {}
@@ -42,9 +47,7 @@ def calculate_updated_balances(get_balance_value: Callable[[str], Optional[int]]
     assert sender_balance >= sent_amount
 
     updated_balances[sender] = BlockAccountBalance(
-        value=sender_balance - sent_amount,
-        # Transfer request message hash becomes new balance lock
-        lock=transfer_request.message.get_hash()
+        value=sender_balance - sent_amount, lock=make_balance_lock(transfer_request)
     )
 
     return updated_balances
@@ -100,6 +103,14 @@ class BlockMessage(MessageMixin):
     def get_balance(self, account: str) -> Optional[BlockAccountBalance]:
         return (self.updated_balances or {}).get(account)
 
+    def get_sent_amount(self):
+        assert self.transfer_request
+        return self.transfer_request.get_sent_amount()
+
+    def get_recipient_amount(self, recipient):
+        assert self.transfer_request
+        return self.transfer_request.get_recipient_amount(recipient)
+
     @validates('block message')
     def validate(self, blockchain):
         self.validate_transfer_request(blockchain)
@@ -109,7 +120,7 @@ class BlockMessage(MessageMixin):
         self.validate_timestamp(blockchain)
         self.validate_block_identifier(blockchain)
 
-        self.validate_updated_balances()
+        self.validate_updated_balances(blockchain)
 
     @validates('transfer request on block message level')
     def validate_transfer_request(self, blockchain):
@@ -177,7 +188,7 @@ class BlockMessage(MessageMixin):
             raise ValidationError('Invalid block identifier')
 
     @validates('block message updated balances')
-    def validate_updated_balances(self):
+    def validate_updated_balances(self, blockchain):
 
         updated_balances = self.updated_balances
 
@@ -188,20 +199,63 @@ class BlockMessage(MessageMixin):
             if len(updated_balances) < 2:
                 raise ValidationError('block message updated balances must contain at least 2 balances')
 
+        sender = self.transfer_request.sender
         with validates('block message updated balances sender account balance'):
-            sender_account_balance = updated_balances.get(self.transfer_request.sender)
+            sender_account_balance = updated_balances.get(sender)
             if sender_account_balance is None:
                 raise ValidationError('block message updated balances must contain sender account balance')
 
-            if not sender_account_balance.lock:
-                raise ValidationError('block message updated balances must contain sender account balance lock')
-
         with validates('all account balances', is_plural_target=True):
             for account, account_balance in updated_balances.items():
+                account_balance.validate()
                 with validates(f'account {account} updated balance on block message level'):
                     if not isinstance(account, str):
                         raise ValidationError('Block message updated balance account must be a string')
 
-                    account_balance.validate()
+                    is_sender = account == sender
+                    self.validate_updated_balance_lock(
+                        account=account, account_balance=account_balance, is_sender=is_sender
+                    )
+                    self.validate_updated_balance_value(
+                        account=account, account_balance=account_balance, blockchain=blockchain, is_sender=is_sender
+                    )
 
-            # TODO(dmu) CRITICAL: Validate balance values
+    @validates('account {account} balance lock')
+    def validate_updated_balance_lock(self, *, account, account_balance, is_sender=False):
+        if is_sender:
+            if not account_balance.lock:
+                raise ValidationError('Block message updated balances must contain sender account balance lock')
+
+            expected_balance_lock = make_balance_lock(self.transfer_request)
+            if account_balance.lock != expected_balance_lock:
+                raise ValidationError(
+                    f'Expected {expected_balance_lock} balance lock, but got {account_balance.lock} '
+                    f'for account {account}'
+                )
+        else:
+            if account_balance.lock:
+                raise ValidationError(
+                    'block message updated balances must not contain balance lock for '
+                    'recipient accounts'
+                )
+
+    @validates('account {account} balance value')
+    def validate_updated_balance_value(self, *, account, account_balance, blockchain, is_sender=False):
+        initial_balance = blockchain.get_balance_value(account, self.block_number)
+        if is_sender:
+            if initial_balance is None:
+                raise ValidationError(
+                    f'Sender account {account} does not have balance '
+                    f'on block {self.block_number}'
+                )
+
+            expected_balance_value = initial_balance - self.get_sent_amount()
+        else:
+            initial_balance = initial_balance or 0
+            expected_balance_value = initial_balance + self.get_recipient_amount(account)
+
+        if account_balance.value != expected_balance_value:
+            raise ValidationError(
+                f'Expected {expected_balance_value} balance value, but got {account_balance.value} '
+                f'for account {account}'
+            )

@@ -28,6 +28,10 @@ def verbose_timeit_method(logger=module_logger, level=logging.DEBUG):
     return timeit(logger=logger, level=level, verbose=True, is_method=True)
 
 
+def timeit_method(logger=module_logger, level=logging.DEBUG):
+    return timeit(logger=logger, level=level, is_method=True)
+
+
 def timeit(
     logger=module_logger,
     level=logging.DEBUG,
@@ -73,3 +77,48 @@ def timeit(
         return wrapper
 
     return decorator
+
+
+class validates:
+
+    def __init__(self, target_template, logger=module_logger, level=logging.DEBUG, is_plural_target=False) -> None:
+        self.logger = logger
+        self.level = level
+        self.target_template = target_template
+        self.is_plural_target = is_plural_target
+
+    def log_validation_started(self, target):
+        self.logger.log(self.level, 'Validating %s', target)
+
+    def log_validation_passed(self, target):
+        self.logger.log(self.level, '%s %s valid', target.capitalize(), 'are' if self.is_plural_target else 'is')
+
+    def log_validation_failed(self, target):
+        self.logger.log(self.level, '%s %s invalid', target.capitalize(), 'are' if self.is_plural_target else 'is')
+
+    def __enter__(self):  # type: ignore
+        self.log_validation_started(self.target_template)
+        return self
+
+    def __exit__(self, *exc_info) -> None:  # type: ignore
+        if any(exc_info):
+            self.log_validation_failed(self.target_template)
+        else:
+            self.log_validation_passed(self.target_template)
+
+    def __call__(self, callable_):
+
+        @functools.wraps(callable_)
+        def wrapper(*args, **kwargs):
+            target = self.target_template.format(*args, **kwargs)
+            self.log_validation_started(target)
+            try:
+                rv = callable_(*args, **kwargs)
+            except Exception:
+                self.log_validation_failed(target)
+                raise
+            else:
+                self.log_validation_passed(target)
+                return rv
+
+        return wrapper

@@ -24,7 +24,7 @@ dataclasses-json = "^0.5.2"
 pre-commit = "^2.10.1"
 pytest = "^6.2.2"
 pytest-asyncio = "^0.14.0"
-pytest-cov = "^2.11.1"
+pytest-cov = {extras = ["toml"], version = "^2.11.1"}
 pytest-django = "^4.1.0"
 pytest-xdist = "^2.2.1"
 pdbpp = "^0.10.2"
@@ -34,6 +34,13 @@ colorlog = "^4.8.0"
 DJANGO_SETTINGS_MODULE = "thenewboston_node.project.settings"
 python_files = "test_*.py"
 testpaths = ["thenewboston_node"]
+
+[tool.coverage.run]
+omit = [
+    "thenewboston_node/business_logic/tests/*",
+    "thenewboston_node/core/tests/*",
+    "thenewboston_node/project/tests/*",
+]
 
 [tool.isort]
 known_django="django"

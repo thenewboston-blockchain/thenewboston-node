@@ -32,7 +32,7 @@ def test_get_blocks_until_account_root_file(forced_memory_blockchain: MemoryBloc
     assert forced_memory_blockchain.get_closest_account_root_file(0) == initial_account_root_file
     assert forced_memory_blockchain.get_closest_account_root_file(1) == initial_account_root_file
     assert forced_memory_blockchain.get_closest_account_root_file(2) == initial_account_root_file
-    assert forced_memory_blockchain.get_closest_account_root_file(3) == account_root_file1
+    assert forced_memory_blockchain.get_closest_account_root_file(3) == initial_account_root_file
     assert forced_memory_blockchain.get_closest_account_root_file(4) == account_root_file1
 
     assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file()
@@ -58,9 +58,9 @@ def test_get_blocks_until_account_root_file(forced_memory_blockchain: MemoryBloc
     assert forced_memory_blockchain.get_closest_account_root_file(0) == initial_account_root_file
     assert forced_memory_blockchain.get_closest_account_root_file(1) == initial_account_root_file
     assert forced_memory_blockchain.get_closest_account_root_file(2) == initial_account_root_file
-    assert forced_memory_blockchain.get_closest_account_root_file(3) == account_root_file1
+    assert forced_memory_blockchain.get_closest_account_root_file(3) == initial_account_root_file
     assert forced_memory_blockchain.get_closest_account_root_file(4) == account_root_file1
-    assert forced_memory_blockchain.get_closest_account_root_file(5) == account_root_file2
+    assert forced_memory_blockchain.get_closest_account_root_file(5) == account_root_file1
     assert forced_memory_blockchain.get_closest_account_root_file(6) == account_root_file2
 
     assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file()

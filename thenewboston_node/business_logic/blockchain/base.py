@@ -189,7 +189,8 @@ class BlockchainBase:
             logger.debug('No blocks to return: blockchain does not contain blocks')
             return
 
-        account_root_file = self.get_closest_account_root_file(from_block_number)
+        excludes_block_number = None if from_block_number is None else (from_block_number + 1)
+        account_root_file = self.get_closest_account_root_file(excludes_block_number)
         if account_root_file is None:
             logger.warning('Could not find account root file excluding from_block_number: %s', from_block_number)
             return
@@ -217,6 +218,7 @@ class BlockchainBase:
         stop = offset + blocks_to_return
         logger.debug('Returning blocks head offset from %s to %s', -start, -stop)
         # TODO(dmu) HIGH: Consider performance optimizations for islice(self.iter_blocks_reversed(), start, stop, 1)
+        block = None
         for block in islice(self.iter_blocks_reversed(), start, stop, 1):
             assert (
                 account_root_file_block_number is None or account_root_file_block_number < block.message.block_number
@@ -224,6 +226,14 @@ class BlockchainBase:
 
             logger.debug('Returning block: %s', block)
             yield block
+
+        # Assert we traversed all blocks up to the account root file
+        if block:
+            block_number = block.message.block_number
+            assert (
+                account_root_file_block_number is None and block_number == 0 or
+                account_root_file_block_number is not None and block_number == account_root_file_block_number + 1
+            )
 
     def _get_balance_value_from_account_root_file(self,
                                                   account: str,
@@ -234,7 +244,8 @@ class BlockchainBase:
     def _get_balance_from_account_root_file(self,
                                             account: str,
                                             block_number: Optional[int] = None) -> Optional[AccountBalance]:
-        account_root_file = self.get_closest_account_root_file(block_number)
+        excludes_block_number = None if block_number is None else block_number + 1
+        account_root_file = self.get_closest_account_root_file(excludes_block_number)
         assert account_root_file
         return account_root_file.get_balance(account)
 
@@ -248,16 +259,16 @@ class BlockchainBase:
         if block_number < 0:
             raise ValueError('block_number must be greater or equal to 0')
 
-        prev_block_number = block_number - 1
-        account_root_file = self.get_closest_account_root_file(prev_block_number)
+        account_root_file = self.get_closest_account_root_file(block_number)
         if account_root_file is None:
-            logger.warning('Previous block number %s is beyond known account root files', prev_block_number)
+            logger.warning('Block number %s is beyond known account root files', block_number)
             return None
 
         if block_number == 0:
             assert account_root_file.is_initial()
             return account_root_file.get_next_block_identifier()
 
+        prev_block_number = block_number - 1
         if prev_block_number == account_root_file.last_block_number:
             return account_root_file.get_next_block_identifier()
 
@@ -290,26 +301,39 @@ class BlockchainBase:
             raise ValueError('before_block_number_inclusive must be greater or equal to -1')
 
         if excludes_block_number is None:
-            logger.debug('We need just the last ARF (partial or complete blockchain is expected)')
+            logger.debug('excludes_block_number is None: returning the last account root file')
             account_root_file = self.get_last_account_root_file()
         elif excludes_block_number == -1:
-            logger.debug('We need the initial (not just first though) ARF (complete blockchain is expected)')
+            logger.debug('excludes_block_number == -1: initial account root file is requested (not just first)')
             first_account_root_file = self.get_first_account_root_file()
             if first_account_root_file and first_account_root_file.is_initial():
-                logger.debug('We do have initial ARF -> complete blockchain')
+                logger.debug('Returning first account root file (which is also an initial account root file)')
                 account_root_file = first_account_root_file
             else:
-                logger.debug('We do not have initial ARF -> partial blockchain (unexpectedly)')
+                logger.warning('Initial account root file is not found')
                 account_root_file = None
         else:
-            logger.debug('We need an intermediate ARF (partial or complete blockchain is expected)')
+            logger.debug(
+                'excludes_block_number == %s: intermediate account root file is requested', excludes_block_number
+            )
             for account_root_file in self.iter_account_root_files_reversed():
+                logger.debug(
+                    'Traversing account root file with last_block_number=%s', account_root_file.last_block_number
+                )
                 last_block_number = account_root_file.last_block_number
-                if last_block_number is None or last_block_number <= excludes_block_number:
-                    logger.debug('We do have the intermediate ARF -> partial or complete blockchain')
+                if last_block_number is None:
+                    assert account_root_file.is_initial()
+                    logger.debug('Encountered initial account root file')
+                    break
+
+                if last_block_number < excludes_block_number:
+                    logger.debug(
+                        'Found account root file that does not include block number %s (last_block_number=%s)',
+                        excludes_block_number, last_block_number
+                    )
                     break
             else:
-                logger.debug('We do not have the intermediate ARF -> partial blockchain (unexpectedly short)')
+                logger.warning('Requested account root file is not found (partial blockchain is unexpectedly short)')
                 account_root_file = None
 
         if account_root_file is None:
@@ -322,27 +346,43 @@ class BlockchainBase:
         last_block = self.get_last_block()
         if last_block is None:
             logger.warning('Blocks are not found: making account root file does not make sense')
-            return
+            return None
 
         last_account_root_file = self.get_last_account_root_file()
+        assert last_account_root_file is not None
 
-        if (
-            not last_account_root_file.is_initial() and
-            last_block.message.block_number <= last_account_root_file.last_block_number
-        ):
-            logger.debug('The last block is already included in the last account root file')
-            return
+        if not last_account_root_file.is_initial():
+            assert last_account_root_file.last_block_number is not None
+            if last_block.message.block_number <= last_account_root_file.last_block_number:
+                logger.debug('The last block is already included in the last account root file')
+                return None
+
+        account_root_file = self.generate_account_root_file()
+        self.add_account_root_file(account_root_file)
+
+    def generate_account_root_file(self, last_block_number: Optional[int] = None) -> AccountRootFile:
+        last_account_root_file = self.get_closest_account_root_file(last_block_number)
+        assert last_account_root_file is not None
+        logger.debug(
+            'Generating account root file based on account root file with last_block_number=%s',
+            last_account_root_file.last_block_number
+        )
 
         account_root_file = copy.deepcopy(last_account_root_file)
         account_root_file_accounts = account_root_file.accounts
-        start_block_number = 0 if account_root_file.is_initial() else account_root_file.last_block_number + 1
 
         block = None
-        for block in self.iter_blocks_from(start_block_number):
+        for block in self.iter_blocks_from(account_root_file.get_next_block_number()):
+            if last_block_number is not None and block.message.block_number > last_block_number:
+                logger.debug('Traversed all blocks of interest')
+                break
+
+            logger.debug('Traversing block number %s', block.message.block_number)
             for account_number, account_balance in block.message.updated_balances.items():
+                logger.debug('Found %s account balance: %s', account_number, account_balance)
                 arf_balance = account_root_file_accounts.get(account_number)
                 if arf_balance is None:
-                    # because new account appears for the first time when it receives coin (it does not change lock)
+                    logger.debug('Account %s is met for the first time (empty lock is expected)', account_number)
                     assert account_balance.lock is None
                     arf_balance = AccountBalance(value=account_balance.value, lock=account_number)
                     account_root_file_accounts[account_number] = arf_balance
@@ -352,13 +392,12 @@ class BlockchainBase:
                     if lock:
                         arf_balance.lock = lock
 
-        # There should be at least one block, otherwise we would have existed on guard condition earlier
-        assert block is not None
+        if block is not None:
+            account_root_file.last_block_number = block.message.block_number
+            account_root_file.last_block_identifier = block.message.block_identifier
+            account_root_file.next_block_identifier = block.message_hash
 
-        account_root_file.last_block_number = block.message.block_number
-        account_root_file.last_block_identifier = block.message.block_identifier
-        account_root_file.next_block_identifier = block.message_hash
-        self.add_account_root_file(account_root_file)
+        return account_root_file
 
     def validate(self, block_offset: int = None, block_limit: int = None, is_partial_allowed: bool = True):
         validation_logger.debug('===> Validating the BLOCKCHAIN')
@@ -383,16 +422,18 @@ class BlockchainBase:
 
         is_initial = first_account_root_file.is_initial()
         for counter, account_root_file in enumerate(chain((first_account_root_file,), account_root_files_iter)):
-            # TODO(dmu) CRITICAL: Validate account balances
             with validates(f'account root file number {counter}', logger=validation_logger):
-                self.validate_account_root_file(account_root_file, is_initial=is_initial)
+                self.validate_account_root_file(account_root_file=account_root_file, is_initial=is_initial)
 
             is_initial = False  # only first iteration can be with initial
 
-    def validate_account_root_file(self, account_root_file, is_initial=False):
+    @validates('account root file (last_block_number={account_root_file.last_block_number})')
+    def validate_account_root_file(self, *, account_root_file, is_initial=False):
         account_root_file.validate(is_initial=is_initial)
         if is_initial:
             return
+
+        self.validate_account_root_file_balances(account_root_file=account_root_file)
 
         first_block = self.get_first_block()
         if not first_block:
@@ -420,6 +461,45 @@ class BlockchainBase:
                 raise ValidationError(
                     'Account root file next_block_identifier does not match last_block_number message hash'
                 )
+
+    @validates(
+        'account root file balances (last_block_number={account_root_file.last_block_number})', is_plural_target=True
+    )
+    def validate_account_root_file_balances(self, *, account_root_file):
+        generated_account_root_file = self.generate_account_root_file(account_root_file.last_block_number)
+        with validates('number of account root file balances'):
+            expected_accounts_count = len(generated_account_root_file.accounts)
+            actual_accounts_count = len(account_root_file.accounts)
+            if expected_accounts_count != actual_accounts_count:
+                raise ValidationError(
+                    f'Expected {expected_accounts_count} accounts, '
+                    f'but got {actual_accounts_count} in the account root file'
+                )
+
+        actual_accounts = account_root_file.accounts
+        for account_number, account_balance in generated_account_root_file.accounts.items():
+            with validates(f'account {account_number} existence'):
+                actual_account_balance = actual_accounts.get(account_number)
+                if actual_account_balance is None:
+                    raise ValidationError(f'Could not find {account_number} account in the account root file')
+
+            with validates(f'account {account_number} balance value'):
+                expect_value = account_balance.value
+                actual_value = actual_account_balance.value
+                if actual_value != expect_value:
+                    raise ValidationError(
+                        f'Expected {expect_value} balance value, '
+                        f'but got {actual_value} balance value for account {account_number}'
+                    )
+
+            with validates(f'account {account_number} balance lock'):
+                expect_lock = account_balance.lock
+                actual_lock = actual_account_balance.lock
+                if actual_lock != expect_lock:
+                    raise ValidationError(
+                        f'Expected {expect_lock} balance lock, but got {actual_lock} balance '
+                        f'lock for account {account_number}'
+                    )
 
     def validate_blocks(self, offset: Optional[int] = None, limit: Optional[int] = None):
         """

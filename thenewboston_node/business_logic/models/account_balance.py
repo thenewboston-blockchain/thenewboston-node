@@ -5,6 +5,7 @@ from typing import Optional
 from dataclasses_json import dataclass_json
 
 from thenewboston_node.business_logic.exceptions import ValidationError
+from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.constants import SENTINEL
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
@@ -18,22 +19,23 @@ class AccountBalance:
     value: int
     lock: str
 
+    @validates('account balance')
     def validate(self, validate_lock=True):
-        validation_logger.debug('Validating account balance attributes')
-        if not isinstance(self.value, int):
-            raise ValidationError('Account balance value must be an integer')
-        validation_logger.debug('Account balance value is an integer')
+        with validates('account balance attributes'):
+            with validates('account balance value'):
+                if not isinstance(self.value, int):
+                    raise ValidationError('Account balance value must be an integer')
 
-        if validate_lock:
-            if not isinstance(self.lock, str):
-                raise ValidationError('Account balance lock must be a string')
-            validation_logger.debug('Account balance lock is a string')
+                if self.value < 0:
+                    raise ValidationError('Account balance value must be a positive integer')
 
-            if not self.lock:
-                raise ValidationError('Account balance lock must be set')
-            validation_logger.debug('Account balance lock is set')
+            if validate_lock:
+                with validates('account balance lock'):
+                    if not isinstance(self.lock, str):
+                        raise ValidationError('Account balance lock must be a string')
 
-        validation_logger.debug('Account balance attributes are valid')
+                    if not self.lock:
+                        raise ValidationError('Account balance lock must be set')
 
 
 @fake_super_methods
@@ -52,5 +54,6 @@ class BlockAccountBalance(AccountBalance):
 
         return dict_
 
+    @validates('block account balance')
     def validate(self):
         super().validate(validate_lock=False)

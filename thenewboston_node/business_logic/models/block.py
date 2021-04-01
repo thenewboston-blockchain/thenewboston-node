@@ -6,7 +6,7 @@ from dataclasses_json import dataclass_json
 
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.node import get_signing_key
-from thenewboston_node.core.logging import verbose_timeit_method
+from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
@@ -61,38 +61,30 @@ class Block(SignableMixin):
 
         self.message_hash = message_hash
 
+    @validates('block')
     def validate(self, blockchain):
-        block_number = self.message.block_number
-        block_identifier = self.message.block_identifier
-        validation_logger.debug('Validating block number %s (identifier: %s)', block_number, block_identifier)
-        self.validate_node_identifier()
-        self.validate_message(blockchain)
-        validation_logger.debug('Validating block signature')
-        self.validate_signature()
-        validation_logger.debug('Block signature is valid')
-        self.validate_message_hash()
-        validation_logger.debug('Block number %s (identifier: %s) is valid', block_number, block_identifier)
+        with validates(f'block number {self.message.block_number} (identifier: {self.message.block_identifier})'):
+            self.validate_node_identifier()
+            self.validate_message(blockchain)
 
-    @verbose_timeit_method()
+            with validates('block signature'):
+                self.validate_signature()
+
+            self.validate_message_hash()
+
+    @validates('block node identifier')
     def validate_node_identifier(self):
-        validation_logger.debug('Validating block node identifier')
         if not self.node_identifier:
             raise ValidationError('Block node identifier must be set')
-        validation_logger.debug('Block node identifier is valid')
 
-    @verbose_timeit_method()
+    @validates('block message on block level')
     def validate_message(self, blockchain):
-        validation_logger.debug('Validating block message on block level')
         if not self.message:
             raise ValidationError('Block message must be not empty')
-        logger.debug('Block message is not empty (as expected)')
 
         self.message.validate(blockchain)
-        validation_logger.debug('Block message is valid on block level')
 
-    @verbose_timeit_method()
+    @validates('block message hash')
     def validate_message_hash(self):
-        validation_logger.debug('Validating block message hash')
         if self.message.get_hash() != self.message_hash:
             raise ValidationError('Block message hash is invalid')
-        validation_logger.debug('Block message hash is valid')

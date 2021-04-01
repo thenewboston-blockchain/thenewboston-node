@@ -5,6 +5,7 @@ from typing import Optional
 from dataclasses_json import dataclass_json
 
 from thenewboston_node.business_logic.exceptions import ValidationError
+from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.constants import SENTINEL
 from thenewboston_node.core.utils.cryptography import hash_normalized_dict, normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
@@ -77,51 +78,49 @@ class AccountRootFile:
             self.next_block_identifier is None
         )
 
+    @validates('account root file')
     def validate(self, is_initial=False):
-        validation_logger.debug('Validating account root file')
-        if is_initial:
-            if self.last_block_number is not None:
-                raise ValidationError(
-                    'Account root file last block number must not be set for initial account root file'
-                )
-            validation_logger.debug(
-                'Account root file last block number is not set for the initial account root file (as expected)'
-            )
-            if self.last_block_identifier is not None:
-                raise ValidationError(
-                    'Account root file last block identifier must not be set for initial account root file'
-                )
-            validation_logger.debug(
-                'Account root file last block identifier is not set for the initial account root file (as expected)'
-            )
-            if self.next_block_identifier is not None:
-                raise ValidationError(
-                    'Account root file next block identifier must not be set for initial account root file'
-                )
-            validation_logger.debug(
-                'Account root file next block identifier is not set for the initial account root file (as expected)'
-            )
-        else:
-            if not isinstance(self.last_block_number, int):
-                raise ValidationError('Account root file last block number must be an integer')
-            validation_logger.debug('Account root file last block number is an integer for account root file')
-            if not isinstance(self.last_block_identifier, str):
-                raise ValidationError('Account root file last block identifier must be a string')
-            validation_logger.debug('Account root file last block identifier is a string for account root file')
-            if not isinstance(self.next_block_identifier, str):
-                raise ValidationError('Account root file next block identifier must be a string')
-            validation_logger.debug('Account root file next block identifier is a string for account root file')
+        self.validate_attributes(is_initial=is_initial)
         self.validate_accounts()
-        validation_logger.debug('Account root file is valid')
 
+    @validates('account root file attributes', is_plural_target=True)
+    def validate_attributes(self, is_initial=False):
+        with validates('account root file last_block_number'):
+            if is_initial:
+                if self.last_block_number is not None:
+                    raise ValidationError(
+                        'Account root file last block number must not be set for initial account root file'
+                    )
+            else:
+                if not isinstance(self.last_block_number, int):
+                    raise ValidationError('Account root file last block number must be an integer')
+                if self.last_block_number < 0:
+                    raise ValidationError('Account root file last block number must be a non-negative integer')
+
+        with validates('account root file last_block_identifier'):
+            if is_initial:
+                if self.last_block_identifier is not None:
+                    raise ValidationError(
+                        'Account root file last block identifier must not be set for initial account root file'
+                    )
+            else:
+                if not isinstance(self.last_block_identifier, str):
+                    raise ValidationError('Account root file last block identifier must be a string')
+
+        with validates('account root file next_block_identifier'):
+            if is_initial:
+                if self.next_block_identifier is not None:
+                    raise ValidationError(
+                        'Account root file next block identifier must not be set for initial account root file'
+                    )
+            else:
+                if not isinstance(self.next_block_identifier, str):
+                    raise ValidationError('Account root file next block identifier must be a string')
+
+    @validates('account root file accounts', is_plural_target=True)
     def validate_accounts(self):
-        validation_logger.debug('Validating account root file accounts')
         for account, balance in self.accounts.items():
-            validation_logger.debug('Validating Account root file account %s', account)
-            if not isinstance(account, str):
-                raise ValidationError('Account root file account number must be a string')
-            validation_logger.debug('Account root file account number is a string')
-
-            balance.validate()
-            validation_logger.debug('Account root file account %s is valid', account)
-        validation_logger.debug('Account root file accounts are valid')
+            with validates(f'account root file account {account}'):
+                if not isinstance(account, str):
+                    raise ValidationError('Account root file account number must be a string')
+                balance.validate()

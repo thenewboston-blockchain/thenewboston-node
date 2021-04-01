@@ -2,13 +2,12 @@ import logging
 from typing import Optional
 
 from thenewboston_node.business_logic.exceptions import InvalidMessageSignatureError
-from thenewboston_node.core.logging import verbose_timeit_method
+from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import (
     derive_verify_key, generate_signature, hash_normalized_dict, is_signature_valid
 )
 
 logger = logging.getLogger(__name__)
-validation_logger = logging.getLogger(__name__ + '.validation_logger')
 
 
 class MessageMixin:
@@ -55,9 +54,8 @@ class SignableMixin:
 
         self.message_signature = message_signature
 
-    @verbose_timeit_method()
+    @validates('signature')
     def validate_signature(self):
-        validation_logger.debug('Validating signature')
         verify_key_field_name = self.verify_key_field_name
         if not verify_key_field_name:
             raise ValueError('`verify_key_field_name` class attribute must be set')
@@ -67,4 +65,3 @@ class SignableMixin:
             raise InvalidMessageSignatureError()
 
         self.message.validate_signature(verify_key, self.message_signature)
-        validation_logger.debug('Signature is valid')

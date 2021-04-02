@@ -17,7 +17,6 @@ from .base import MessageMixin
 from .transfer_request import TransferRequest
 
 logger = logging.getLogger(__name__)
-validation_logger = logging.getLogger(__name__ + '.validation_logger')
 
 
 def make_balance_lock(transfer_request):
@@ -127,7 +126,6 @@ class BlockMessage(MessageMixin):
         transfer_request = self.transfer_request
         if transfer_request is None:
             raise ValidationError('Block message transfer request must present')
-        validation_logger.debug('Block message transfer request is present (as expected)')
 
         transfer_request.validate(blockchain, self.block_number)
 
@@ -136,15 +134,12 @@ class BlockMessage(MessageMixin):
         timestamp = self.timestamp
         if timestamp is None:
             raise ValidationError('Block message timestamp must be set')
-        validation_logger.debug('Block message timestamp is set (as expected)')
 
         if not isinstance(timestamp, datetime):
             raise ValidationError('Block message timestamp must be datetime type')
-        validation_logger.debug('Block message timestamp is a datetime type')
 
         if timestamp.tzinfo is not None:
             raise ValidationError('Block message timestamp must be naive datetime (UTC timezone implied)')
-        validation_logger.debug('Block message timestamp is a naive datetime type')
 
         block_number = self.block_number
         assert block_number is not None
@@ -153,33 +148,27 @@ class BlockMessage(MessageMixin):
             assert prev_block is not None
             if timestamp <= prev_block.message.timestamp:
                 raise ValidationError('Block message timestamp must be greater than from previous block')
-            validation_logger.debug('Block message timestamp is greater than from previous block')
 
     @validates('block number')
     def validate_block_number(self):
         block_number = self.block_number
         if block_number is None:
             raise ValidationError('Block number must be set')
-        validation_logger.debug('Block number is set (as expected)')
 
         if not isinstance(block_number, int):
             raise ValidationError('Block number must be integer')
-        validation_logger.debug('Block number is an integer')
 
         if block_number < 0:
             raise ValidationError('Block number must be greater or equal to 0')
-        validation_logger.debug('Block number is greater or equal to 0')
 
     @validates('block identifier')
     def validate_block_identifier(self, blockchain):
         block_identifier = self.block_identifier
         if block_identifier is None:
             raise ValidationError('Block identifier must be set')
-        validation_logger.debug('Block identifier is set')
 
         if not isinstance(block_identifier, str):
             raise ValidationError('Block identifier must be a string')
-        validation_logger.debug('Block identifier is a string')
 
         block_number = self.block_number
         assert block_number is not None

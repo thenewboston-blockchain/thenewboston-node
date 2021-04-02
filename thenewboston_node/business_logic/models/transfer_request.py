@@ -16,7 +16,6 @@ from .transfer_request_message import TransferRequestMessage
 T = TypeVar('T', bound='TransferRequest')
 
 logger = logging.getLogger(__name__)
-validation_logger = logging.getLogger(__name__ + '.validation_logger')
 
 
 @fake_super_methods
@@ -63,31 +62,25 @@ class TransferRequest(SignableMixin):
         self.validate_amount(blockchain, block_number)
         self.validate_balance_lock(blockchain, block_number)
 
+    @validates('transfer request sender')
     def validate_sender(self):
-        validation_logger.debug('Validating transfer request sender')
         if not self.sender:
             raise ValidationError('Transfer request sender must be set')
-        validation_logger.debug('Transfer request sender is set (as expected)')
 
         if not isinstance(self.sender, str):
             raise ValidationError('Transfer request sender must be a string')
-        validation_logger.debug('Transfer request sender is a string')
-        validation_logger.debug('Transfer request sender is valid')
 
     def validate_message(self):
         self.message.validate()
 
+    @validates('amount on transfer request level')
     def validate_amount(self, blockchain, on_block_number: Optional[int] = None):
-        validation_logger.debug('Validating amount on transfer request level')
         balance = blockchain.get_balance_value(self.sender, on_block_number)
         if balance is None:
             raise ValidationError('Transfer request sender account balance is not found')
-        validation_logger.debug('Transfer request sender has balance (as expected)')
 
         if self.message.get_total_amount() > balance:
             raise ValidationError('Transfer request transactions total amount is greater than sender account balance')
-        validation_logger.debug('Transfer request sender has enough funds to transfer')
-        validation_logger.debug('Amount is valid on transfer request level')
 
     @validates('transfer request balance lock on transfer request level')
     def validate_balance_lock(self, blockchain, block_number: Optional[int] = None):

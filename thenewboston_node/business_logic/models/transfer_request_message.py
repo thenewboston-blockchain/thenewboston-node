@@ -1,5 +1,4 @@
 import copy
-import logging
 from dataclasses import dataclass
 from typing import Type, TypeVar
 
@@ -15,8 +14,6 @@ from .base import MessageMixin
 from .transaction import Transaction
 
 T = TypeVar('T', bound='TransferRequestMessage')
-
-validation_logger = logging.getLogger(__name__ + '.validation_logger')
 
 
 @fake_super_methods
@@ -79,24 +76,17 @@ class TransferRequestMessage(MessageMixin):
         if not self.balance_lock:
             raise ValidationError('Transfer request message balance lock must be set')
 
+    @validates('transfer request message transactions', is_plural_target=True)
     def validate_transactions(self):
-        validation_logger.debug('Validating transfer request message transactions')
-
         txs = self.txs
         if not isinstance(txs, list):
             raise ValidationError('Transfer request message txs must be a list')
-        validation_logger.debug('Transfer request message txs is a list (as expected)')
 
         if not txs:
             raise ValidationError('Transfer request message txs must contain at least one transaction')
-        validation_logger.debug('Transfer request message txs contains at least one transaction (as expected)')
 
         for tx in self.txs:
-            validation_logger.debug('Validating transaction %s on transfer request message level', tx)
-            if not isinstance(tx, Transaction):
-                raise ValidationError('Transfer request message txs must contain only Transactions types')
-            validation_logger.debug('%s is Transaction type as expected', tx)
-            tx.validate()
-            validation_logger.debug('%s is valid on transfer request message level', tx)
-
-        validation_logger.debug('Transfer request message transactions are valid')
+            with validates(f'Validating transaction {tx} on transfer request message level'):
+                if not isinstance(tx, Transaction):
+                    raise ValidationError('Transfer request message txs must contain only Transactions types')
+                tx.validate()

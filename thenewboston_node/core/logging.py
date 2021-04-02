@@ -3,7 +3,7 @@ import logging
 from itertools import chain
 from time import time
 
-from thenewboston_node.core.utils.misc import upper_first
+from .utils.misc import Default, upper_first
 
 module_logger = logging.getLogger(__name__)
 validation_logger = logging.getLogger(__name__ + '.validation')
@@ -84,11 +84,19 @@ def timeit(
 
 class validates:
 
-    def __init__(self, target_template, logger=validation_logger, level=logging.DEBUG, is_plural_target=False):
+    def __init__(
+        self,
+        target_template,
+        logger=validation_logger,
+        level=logging.DEBUG,
+        is_plural_target=False,
+        use_format_map=False
+    ):
         self.logger = logger
         self.level = level
         self.target_template = target_template
         self.is_plural_target = is_plural_target
+        self.use_format_map = use_format_map
 
     def log_validation_started(self, target):
         self.logger.log(self.level, 'Validating %s', target)
@@ -115,7 +123,10 @@ class validates:
 
         @functools.wraps(callable_)
         def wrapper(*args, **kwargs):
-            target = self.target_template.format(*args, **kwargs)
+            if self.use_format_map:
+                target = self.target_template.format_map(Default(**kwargs))
+            else:
+                target = self.target_template.format(*args, **kwargs)
             self.log_validation_started(target)
             try:
                 rv = callable_(*args, **kwargs)

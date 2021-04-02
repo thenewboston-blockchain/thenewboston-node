@@ -5,7 +5,7 @@ from typing import Type, TypeVar
 from dataclasses_json import dataclass_json
 
 from thenewboston_node.business_logic.exceptions import ValidationError
-from thenewboston_node.business_logic.network.base import NetworkBase
+from thenewboston_node.business_logic.models.node import Node, PrimaryValidator
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
@@ -31,13 +31,13 @@ class TransferRequestMessage(MessageMixin):
         )
 
     @classmethod
-    def from_main_transaction(cls: Type[T], blockchain, sender: str, recipient: str, amount: int) -> T:
-        network = NetworkBase.get_instance()
-        pv = network.get_primary_validator()
-        node = network.get_preferred_node()
+    def from_main_transaction(
+        cls: Type[T], *, blockchain, sender: str, recipient: str, amount: int, primary_validator: PrimaryValidator,
+        node: Node
+    ) -> T:
         txs = [
             Transaction(recipient=recipient, amount=amount),
-            Transaction(recipient=pv.identifier, amount=pv.fee_amount, fee=True),
+            Transaction(recipient=primary_validator.identifier, amount=primary_validator.fee_amount, fee=True),
             Transaction(recipient=node.identifier, amount=node.fee_amount, fee=True),
         ]
         return cls.from_transactions(blockchain, sender, txs)

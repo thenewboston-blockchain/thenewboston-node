@@ -509,6 +509,9 @@ class BlockchainBase:
         than miss something. We may reconsider this overlap in favor of validation performance.
         """
 
+        if offset is not None or limit is not None:
+            raise NotImplementedError('offset/limit is not supported yet')
+
         # TODO(dmu) CRITICAL: Validate that the first block is based on an existing root account file
 
         blocks_iter = cast(Iterable[Block], self.iter_blocks())
@@ -525,10 +528,18 @@ class BlockchainBase:
         except StopIteration:
             return
 
-        base_account_root_file = self.get_first_account_root_file()
-        assert base_account_root_file
+        first_block_number = first_block.message.block_number
+        base_account_root_file = self.get_closest_account_root_file(first_block_number)
+        if base_account_root_file is None:
+            raise ValidationError('Account root file prior to first block is not found')
+
+        if base_account_root_file.get_next_block_number() != first_block_number:
+            raise ValidationError('First block number does not match base account root file last block number')
+
+        if base_account_root_file.get_next_block_identifier() != first_block.message.block_identifier:
+            raise ValidationError('First block identifier does not match base account root file last block identifier')
+
         # TODO(dmu) CRITICAL: Support partial blockchains
-        assert base_account_root_file.is_initial()
 
         expected_block_number = base_account_root_file.get_next_block_number()
         expected_block_identifier = base_account_root_file.get_next_block_identifier()

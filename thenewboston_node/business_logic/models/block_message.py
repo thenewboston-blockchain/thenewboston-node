@@ -143,10 +143,28 @@ class BlockMessage(MessageMixin):
 
         block_number = self.block_number
         assert block_number is not None
+
         if block_number > 0:
-            prev_block = blockchain.get_block_by_number(block_number - 1)
-            assert prev_block is not None
-            if timestamp <= prev_block.message.timestamp:
+            prev_block_number = block_number - 1
+            prev_block = blockchain.get_block_by_number(prev_block_number)
+            if prev_block is None:
+                logger.debug('Partial blockchain detected')
+                account_root_file = blockchain.get_closest_account_root_file(block_number)
+                if account_root_file is None:
+                    raise ValidationError('Unexpected could not find base account root file')
+
+                if account_root_file.is_initial():
+                    raise ValidationError('Unexpected initial account root file found')
+
+                if account_root_file.last_block_number != prev_block_number:
+                    raise ValidationError('Base account root file block number mismatch')
+
+                assert account_root_file.last_block_timestamp
+                min_timestamp = account_root_file.last_block_timestamp
+            else:
+                min_timestamp = prev_block.message.timestamp
+
+            if timestamp <= min_timestamp:
                 raise ValidationError('Block message timestamp must be greater than from previous block')
 
     @validates('block number')

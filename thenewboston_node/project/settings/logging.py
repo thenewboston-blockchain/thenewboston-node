@@ -29,8 +29,8 @@ LOGGING = {
             'level': 'WARNING',
             'propagate': True,
         } for logger_name in (
-            'django', 'django.request', 'django.db.backends', 'django.template', 'thenewboston_node', 'urllib3',
-            'asyncio'
+            'django', 'django.request', 'django.db.backends', 'django.template', 'thenewboston_node',
+            'thenewboston_node.core.logging', 'urllib3', 'asyncio'
         )
     },
     'root': {

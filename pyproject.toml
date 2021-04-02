@@ -19,6 +19,7 @@ sentry-sdk = "^1.0.0"
 whitenoise = "^5.2.0"
 PyNaCl = "^1.4.0"
 dataclasses-json = "^0.5.2"
+tqdm = "^4.59.0"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.10.1"

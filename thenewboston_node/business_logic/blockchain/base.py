@@ -8,6 +8,7 @@ from django.conf import settings
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.account_balance import AccountBalance, BlockAccountBalance
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
+from thenewboston_node.business_logic.models.transfer_request import TransferRequest
 from thenewboston_node.core.logging import validates, verbose_timeit_method
 from thenewboston_node.core.utils.importing import import_from_string
 
@@ -93,6 +94,7 @@ class BlockchainBase:
         raise NotImplementedError('Must be implemented in a child class')
 
     # Base methods
+    @verbose_timeit_method(level=logging.INFO)
     def add_block(self, block: Block):
         block_number = block.message.block_number
         if block_number != self.get_next_block_number():
@@ -102,6 +104,11 @@ class BlockchainBase:
         # TODO(dmu) HIGH: Validate block_identifier
 
         self.persist_block(block)
+
+    @verbose_timeit_method(level=logging.INFO)
+    def add_block_from_transfer_request(self, transfer_request: TransferRequest):
+        block = Block.from_transfer_request(self, transfer_request)
+        self.add_block(block)
 
     def validate_before_block_number(self, before_block_number: Optional[int]) -> int:
         next_block_number = self.get_next_block_number()
@@ -399,15 +406,12 @@ class BlockchainBase:
         return account_root_file
 
     @validates('BLOCKCHAIN')
-    def validate(self, block_offset: int = None, block_limit: int = None, is_partial_allowed: bool = True):
+    def validate(self, is_partial_allowed: bool = True):
         if is_partial_allowed:
             raise NotImplementedError('Partial blockchains are not supported yet')
 
-        if block_offset is not None or block_limit is not None:
-            raise NotImplementedError('Block limit/offset is not fully supported yet')
-
         self.validate_account_root_files()
-        self.validate_blocks(offset=block_offset, limit=block_limit)
+        self.validate_blocks()
 
     @validates('account root files', is_plural_target=True)
     def validate_account_root_files(self):
@@ -499,27 +503,22 @@ class BlockchainBase:
                         f'lock for account {account_number}'
                     )
 
-    @validates('blockchain blocks (offset={offset}, limit={limit})', is_plural_target=True)
-    def validate_blocks(self, *, offset: Optional[int] = None, limit: Optional[int] = None):
+    @validates('blockchain blocks (offset={offset}, limit={limit})', is_plural_target=True, use_format_map=True)
+    def validate_blocks(self, *, offset: int = 0, limit: Optional[int] = None):
         """
         Validate blocks persisted in the blockchain. Some blockchain level validations may overlap with
         block level validations. We consider it OK since it is better to double check something rather
         than miss something. We may reconsider this overlap in favor of validation performance.
         """
-
-        if offset is not None or limit is not None:
-            raise NotImplementedError('offset/limit is not supported yet')
-
-        # TODO(dmu) CRITICAL: Validate that the first block is based on an existing root account file
+        assert offset >= 0
 
         blocks_iter = cast(Iterable[Block], self.iter_blocks())
-        if offset is not None or limit is not None:
-            start = offset or 0
+        if offset > 0 or limit is not None:
             # TODO(dmu) HIGH: Consider performance improvements when slicing
             if limit is None:
-                blocks_iter = islice(blocks_iter, start)
+                blocks_iter = islice(blocks_iter, offset)
             else:
-                blocks_iter = islice(blocks_iter, start, start + limit)
+                blocks_iter = islice(blocks_iter, offset, offset + limit)
 
         try:
             first_block = next(blocks_iter)  # type: ignore
@@ -531,16 +530,30 @@ class BlockchainBase:
         if base_account_root_file is None:
             raise ValidationError('Account root file prior to first block is not found')
 
-        if base_account_root_file.get_next_block_number() != first_block_number:
-            raise ValidationError('First block number does not match base account root file last block number')
+        expected_block_number = base_account_root_file.get_next_block_number() + offset
 
-        if base_account_root_file.get_next_block_identifier() != first_block.message.block_identifier:
-            raise ValidationError('First block identifier does not match base account root file last block identifier')
+        if offset == 0:
+            with validates('basing on an account root file'):
+
+                if base_account_root_file.get_next_block_number() != first_block_number:
+                    raise ValidationError('First block number does not match base account root file last block number')
+
+                if base_account_root_file.get_next_block_identifier() != first_block.message.block_identifier:
+                    raise ValidationError(
+                        'First block identifier does not match base account root file last block identifier'
+                    )
+
+                expected_block_identifier = base_account_root_file.get_next_block_identifier()
+        else:
+            prev_block = self.get_block_by_number(first_block_number - 1)
+            if prev_block is None:
+                raise ValidationError(f'Previous block for block number {first_block_number} is not found')
+
+            assert prev_block.message_hash
+            expected_block_identifier = prev_block.message_hash
 
         # TODO(dmu) CRITICAL: Support partial blockchains
 
-        expected_block_number = base_account_root_file.get_next_block_number()
-        expected_block_identifier = base_account_root_file.get_next_block_identifier()
         for block in chain((first_block,), blocks_iter):
             block.validate(self)
 

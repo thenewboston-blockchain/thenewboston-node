@@ -2,7 +2,6 @@ import copy
 import logging
 from typing import Generator, Optional
 
-from thenewboston_node.business_logic.exceptions import MissingEarlierBlocksError
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.business_logic.models.block import Block
 
@@ -16,11 +15,11 @@ class MemoryBlockchain(BlockchainBase):
     A blockchain implementation primarily for use in unittesting and being used as an example implementation
     """
 
-    def __init__(self, *, initial_account_root_file):
+    def __init__(self, *, base_account_root_file):
         self.account_root_files: list[AccountRootFile] = []
         self.blocks: list[Block] = []
 
-        super().__init__(initial_account_root_file=initial_account_root_file)
+        super().__init__(base_account_root_file=base_account_root_file)
 
     # Account root files related implemented methods
     def add_account_root_file(self, account_root_file: AccountRootFile):
@@ -87,7 +86,7 @@ class MemoryBlockchain(BlockchainBase):
             return blocks[block_index]
         except IndexError:
             assert blocks[0].message.block_number > block_number
-            raise MissingEarlierBlocksError()
+            return None
 
     def get_block_count(self) -> int:
         return len(self.blocks)

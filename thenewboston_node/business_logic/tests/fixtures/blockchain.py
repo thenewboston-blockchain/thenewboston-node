@@ -52,7 +52,7 @@ def forced_memory_blockchain(initial_account_root_file):
     blockchain_settings = {
         'class': 'thenewboston_node.business_logic.blockchain.memory_blockchain.MemoryBlockchain',
         'kwargs': {
-            'initial_account_root_file': initial_account_root_file
+            'base_account_root_file': initial_account_root_file
         }
     }
 
@@ -67,7 +67,7 @@ def forced_mock_blockchain(initial_account_root_file):
     blockchain_settings = {
         'class': 'thenewboston_node.business_logic.blockchain.mock_blockchain.MockBlockchain',
         'kwargs': {
-            'initial_account_root_file': initial_account_root_file
+            'base_account_root_file': initial_account_root_file
         }
     }
 

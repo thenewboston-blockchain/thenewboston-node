@@ -62,7 +62,7 @@ def forced_memory_blockchain(initial_account_root_file):
     BlockchainBase.clear_instance_cache()
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)  # Autouse for safety reasons
 def forced_mock_blockchain(initial_account_root_file):
     blockchain_settings = {
         'class': 'thenewboston_node.business_logic.blockchain.mock_blockchain.MockBlockchain',

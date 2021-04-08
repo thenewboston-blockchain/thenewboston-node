@@ -1,0 +1,24 @@
+import glob
+import os
+import stat
+from itertools import chain
+
+import pytest
+
+from thenewboston_node.core.utils.os import chmod_quite, remove_quite
+
+
+@pytest.fixture
+def base_file_path():
+    return f'/tmp/for-thenewboston-testing/long-filename-for-testing-{os.getpid()}.bin'
+
+
+@pytest.fixture
+def optimized_file_path():
+    optimized_file_path = f'/tmp/for-thenewboston-testing/l/o/n/g/f/i/l/e/long-filename-for-testing-{os.getpid()}.bin'
+    try:
+        yield optimized_file_path
+    finally:
+        for path in chain((optimized_file_path,), glob.glob(optimized_file_path + '.*')):
+            chmod_quite(path, stat.S_IWOTH)
+            remove_quite(path)

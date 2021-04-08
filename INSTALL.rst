@@ -41,7 +41,7 @@ to get the latest version for development.
 #. Fork https://github.com/thenewboston-developers/thenewboston-node repository
 #. Clone the fork::
 
-    git clone git@bitbucket.org:<replace with you github name>/thenewboston-node.git
+    git clone git@github.com:thenewboston-developers/thenewboston-node.git
 
 #. Add https://github.com/thenewboston-developers/thenewboston-node as upstream::
 

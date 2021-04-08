@@ -1,8 +1,6 @@
 import os
 import sys
 
-import pytest
-
 from .misc import yaml_coerce
 
 PYTEST_RUN_SLOW_TESTS = 'PYTEST_RUN_SLOW_TESTS'
@@ -18,4 +16,5 @@ def should_run(skip_name):
 
 
 def skip_slow(wrapped):
+    import pytest  # because pytest is a dev dependency
     return pytest.mark.skipif(not should_run(PYTEST_RUN_SLOW_TESTS), reason='Slow')(wrapped)

@@ -33,7 +33,7 @@ migrate:
 install-pre-commit:
 	poetry run pre-commit uninstall; poetry run pre-commit install
 
-.PHONY: dev-env-update
+.PHONY: update
 update: install migrate install-pre-commit ;
 
 .PHONY: create-superuser
@@ -49,5 +49,4 @@ lint:
 	poetry run pre-commit run --all-files
 
 .PHONY: lint-and-test
-lint-and-test: lint test
-	true
+lint-and-test: lint test ;

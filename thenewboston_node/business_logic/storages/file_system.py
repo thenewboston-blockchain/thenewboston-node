@@ -41,6 +41,10 @@ def drop_write_permissions(filename):
 
 
 class FileSystemStorage:
+    """
+    Storage transparently placing file to subdirectories (for file system performance reason) and
+    compressing / decompressing them for storage capacity optimization
+    """
 
     def __init__(self, max_depth=8, compressors=tuple(COMPRESSION_FUNCTIONS)):
         self.max_depth = max_depth
@@ -75,6 +79,25 @@ class FileSystemStorage:
         optimized_path = self.get_optimized_path(file_path)
         new_filename = self._compress(optimized_path)
         drop_write_permissions(new_filename)
+
+    def list_directory(self, directory_path):
+        for dir_path, _, filenames in os.walk(directory_path):
+            for filename in filenames:
+                for compressor in DECOMPRESSION_FUNCTIONS:
+                    if filename.endswith('.' + compressor):
+                        filename = filename[:-len(compressor) - 1]
+                        break
+
+                proposed_optimized_path = os.path.join(dir_path, filename)
+                path = os.path.join(directory_path, filename)
+                expected_optimized_path = self.get_optimized_path(path)
+                if proposed_optimized_path != expected_optimized_path:
+                    logger.warning(
+                        'Expected %s optimized path, but got %s', expected_optimized_path, proposed_optimized_path
+                    )
+                    continue
+
+                yield path
 
     @timeit_method()
     def _compress(self, file_path) -> str:

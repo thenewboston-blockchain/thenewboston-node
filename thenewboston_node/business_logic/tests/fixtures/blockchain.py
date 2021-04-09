@@ -52,7 +52,7 @@ def forced_memory_blockchain(initial_account_root_file):
     blockchain_settings = {
         'class': 'thenewboston_node.business_logic.blockchain.memory_blockchain.MemoryBlockchain',
         'kwargs': {
-            'base_account_root_file': initial_account_root_file
+            'account_root_files': [initial_account_root_file]
         }
     }
 
@@ -63,12 +63,10 @@ def forced_memory_blockchain(initial_account_root_file):
 
 
 @pytest.fixture(autouse=True)  # Autouse for safety reasons
-def forced_mock_blockchain(initial_account_root_file):
+def forced_mock_blockchain():
     blockchain_settings = {
         'class': 'thenewboston_node.business_logic.blockchain.mock_blockchain.MockBlockchain',
-        'kwargs': {
-            'base_account_root_file': initial_account_root_file
-        }
+        'kwargs': {}
     }
 
     BlockchainBase.clear_instance_cache()

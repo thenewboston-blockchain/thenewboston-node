@@ -1,5 +1,6 @@
 import glob
 import os
+import shutil
 import stat
 from itertools import chain
 
@@ -11,6 +12,22 @@ from thenewboston_node.core.utils.os import chmod_quite, remove_quite
 @pytest.fixture
 def base_file_path():
     return f'/tmp/for-thenewboston-testing/long-filename-for-testing-{os.getpid()}.bin'
+
+
+@pytest.fixture
+def blockchain_directory():
+    directory = '/tmp/for-thenewboston-blockchain-testing'
+    try:
+        yield directory
+    finally:
+        for dir_path, dir_names, filenames in os.walk(directory):
+            for dir_name in dir_names:
+                chmod_quite(os.path.join(dir_path, dir_name), 0o777)
+
+            for filename in filenames:
+                chmod_quite(os.path.join(dir_path, filename), 0o666)
+
+        shutil.rmtree(directory)
 
 
 @pytest.fixture

@@ -80,7 +80,17 @@ class FileSystemStorage:
         new_filename = self._compress(optimized_path)
         drop_write_permissions(new_filename)
 
-    def list_directory(self, directory_path):
+    def list_directory(self, directory_path, sort_direction=1):
+        if sort_direction not in (1, -1, None):
+            return ValueError('sort_direction must be either of the values: 1, -1, None')
+
+        generator = self._list_directory_generator(directory_path)
+        if sort_direction is None:
+            yield from generator
+        else:
+            yield from sorted(generator, reverse=sort_direction == -1)
+
+    def _list_directory_generator(self, directory_path):
         for dir_path, _, filenames in os.walk(directory_path):
             for filename in filenames:
                 for compressor in DECOMPRESSION_FUNCTIONS:

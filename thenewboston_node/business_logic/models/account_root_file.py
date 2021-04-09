@@ -13,6 +13,7 @@ from thenewboston_node.core.utils.cryptography import hash_normalized_dict, norm
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from .account_balance import AccountBalance
+from .base import CompactableMixin
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 @fake_super_methods
 @dataclass_json
 @dataclass
-class AccountRootFile:
+class AccountRootFile(CompactableMixin):
     accounts: dict[str, AccountBalance]
     last_block_number: Optional[int] = None
 

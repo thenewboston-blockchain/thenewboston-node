@@ -16,7 +16,7 @@ def base_file_path():
 
 @pytest.fixture
 def blockchain_directory():
-    directory = '/tmp/for-thenewboston-blockchain-testing'
+    directory = f'/tmp/for-thenewboston-blockchain-testing-{os.getpid()}'
     try:
         yield directory
     finally:
@@ -27,7 +27,8 @@ def blockchain_directory():
             for filename in filenames:
                 chmod_quite(os.path.join(dir_path, filename), 0o666)
 
-        shutil.rmtree(directory)
+        if os.path.isdir(directory):
+            shutil.rmtree(directory)
 
 
 @pytest.fixture

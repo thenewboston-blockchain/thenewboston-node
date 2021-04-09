@@ -15,11 +15,12 @@ class MemoryBlockchain(BlockchainBase):
     A blockchain implementation primarily for use in unittesting and being used as an example implementation
     """
 
-    def __init__(self, *, base_account_root_file):
-        self.account_root_files: list[AccountRootFile] = []
-        self.blocks: list[Block] = []
+    def __init__(self, account_root_files: list[AccountRootFile], blocks: Optional[list[Block]] = None, validate=True):
+        self.account_root_files: list[AccountRootFile] = copy.deepcopy(account_root_files)
+        self.blocks: list[Block] = copy.deepcopy(blocks) if blocks else []
 
-        super().__init__(base_account_root_file=base_account_root_file)
+        if validate:
+            self.validate()
 
     # Account root files related implemented methods
     def add_account_root_file(self, account_root_file: AccountRootFile):

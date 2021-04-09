@@ -29,7 +29,7 @@ def test_partial_blockchain(primary_validator, preferred_node):
         next_block_identifier='626dea61c1a6480d6a4c9cd657c7d7be52ddc38e5f2ec590b609ac01edde62fd',
     )
 
-    blockchain = MemoryBlockchain(base_account_root_file=base_account_root_file)
+    blockchain = MemoryBlockchain(account_root_files=[base_account_root_file])
     assert blockchain.get_block_count() == 0
     assert blockchain.get_balance_value(account1_key_pair.public) == 1000
     assert blockchain.get_balance_value(account2_key_pair.public) == 2000

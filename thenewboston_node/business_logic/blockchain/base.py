@@ -23,9 +23,6 @@ class BlockchainBase:
 
     _instance = None
 
-    def __init__(self, *, base_account_root_file):
-        self.add_account_root_file(base_account_root_file)
-
     @classmethod
     def get_instance(cls: Type[T]) -> T:
         instance = cls._instance

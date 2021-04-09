@@ -103,10 +103,10 @@ def test_list_directory(blockchain_directory):
     base_directory = os.path.join(blockchain_directory, 'test')
 
     fss = FileSystemStorage(compressors=('gz',))
+    fss.save(os.path.join(base_directory, '1434567890.txt'), b'A' * 1000, is_final=True)
     fss.save(os.path.join(base_directory, '1134567890.txt'), b'test1')
     fss.save(os.path.join(base_directory, '1234567890.txt'), b'test2')
     fss.save(os.path.join(base_directory, '1334567890.txt'), b'test3')
-    fss.save(os.path.join(base_directory, '1434567890.txt'), b'A' * 1000, is_final=True)
 
     assert {
         os.path.join(base_directory, '1134567890.txt'),

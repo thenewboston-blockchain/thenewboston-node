@@ -3,9 +3,27 @@ from typing import Optional
 
 from thenewboston_node.business_logic.exceptions import InvalidMessageSignatureError
 from thenewboston_node.core.logging import validates
+from thenewboston_node.core.utils.collections import replace_keys
 from thenewboston_node.core.utils.cryptography import (
     derive_verify_key, generate_signature, hash_normalized_dict, is_signature_valid
 )
+
+COMPACT_KEY_MAP = {
+    'accounts': 'a',
+    'last_block_number': 'lbn',
+    'last_block_identifier': 'lbi',
+    'last_block_timestamp': 'lbt',
+    'next_block_identifier': 'nbi',
+    'value': 'v',
+    'lock': 'l',
+}
+
+UNCOMPACT_KEY_MAP = {value: key for key, value in COMPACT_KEY_MAP.items()}
+
+# Assert that bidirectional mapping is defined correctly
+assert len(COMPACT_KEY_MAP) == len(UNCOMPACT_KEY_MAP)
+assert COMPACT_KEY_MAP.keys() == set(UNCOMPACT_KEY_MAP.values())
+assert UNCOMPACT_KEY_MAP.keys() == set(COMPACT_KEY_MAP.values())
 
 logger = logging.getLogger(__name__)
 
@@ -65,3 +83,13 @@ class SignableMixin:
             raise InvalidMessageSignatureError()
 
         self.message.validate_signature(verify_key, self.message_signature)
+
+
+class CompactableMixin:
+
+    @classmethod
+    def from_compact_dict(cls):
+        raise NotImplementedError
+
+    def to_compact_dict(self):
+        return replace_keys(self.to_dict(), COMPACT_KEY_MAP)

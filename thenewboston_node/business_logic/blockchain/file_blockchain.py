@@ -2,6 +2,8 @@ import logging
 import os.path
 from typing import Generator
 
+import msgpack
+
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.storages.file_system import FileSystemStorage
@@ -63,5 +65,7 @@ class FileBlockchain(BlockchainBase):
     def iter_blocks(self) -> Generator[Block, None, None]:
         storage = self.storage
         for file_path in storage.list_directory(self.blocks_directory):
-            assert file_path
-            yield NotImplemented
+            unpacker = msgpack.Unpacker()
+            unpacker.feed(storage.load(file_path))
+            for block_compact_dict in unpacker:
+                yield Block.from_compact_dict(block_compact_dict)

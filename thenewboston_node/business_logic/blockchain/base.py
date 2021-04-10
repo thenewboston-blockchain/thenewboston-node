@@ -52,9 +52,6 @@ class BlockchainBase:
     def persist_block(self, block: Block):
         raise NotImplementedError('Must be implemented in a child class')
 
-    def get_block_by_number(self, block_number: int) -> Optional[Block]:
-        raise NotImplementedError('Must be implemented in a child class')
-
     def iter_blocks(self) -> Generator[Block, None, None]:
         raise NotImplementedError('Must be implemented in a child class')
 
@@ -94,6 +91,19 @@ class BlockchainBase:
         # performance reasons
         logger.warning('Using low performance implementation of iter_blocks_reversed() method (override it)')
         yield from always_reversible(self.iter_blocks())
+
+    def get_block_by_number(self, block_number: int) -> Optional[Block]:
+        # Highly recommended to override this method in the particular implementation of the blockchain for
+        # performance reasons
+        logger.warning('Using low performance implementation of get_block_by_number() method (override it)')
+        for block in self.iter_blocks():
+            current_block_number = block.message.block_number
+            if current_block_number == block_number:
+                return block
+            elif current_block_number > block_number:
+                break
+
+        return None
 
     # * Base methods
     # ** Account root files related base methods

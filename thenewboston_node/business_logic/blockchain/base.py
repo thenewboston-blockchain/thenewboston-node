@@ -5,6 +5,8 @@ from typing import Generator, Iterable, Optional, Type, TypeVar, cast
 
 from django.conf import settings
 
+from more_itertools import always_reversible, ilen
+
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.account_balance import AccountBalance, BlockAccountBalance
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
@@ -43,29 +45,53 @@ class BlockchainBase:
         raise NotImplementedError('Must be implemented in a child class')
 
     def get_first_account_root_file(self) -> Optional[AccountRootFile]:
-        raise NotImplementedError('Must be implemented in a child class')
+        # Override this method if a particular blockchain implementation can provide a high performance
+        try:
+            return next(self.iter_account_root_files())
+        except StopIteration:
+            return None
 
     def get_last_account_root_file(self) -> Optional[AccountRootFile]:
-        raise NotImplementedError('Must be implemented in a child class')
+        # Override this method if a particular blockchain implementation can provide a high performance
+        try:
+            return next(self.iter_account_root_files_reversed())
+        except StopIteration:
+            return None
 
     def get_account_root_file_count(self) -> int:
-        raise NotImplementedError('Must be implemented in a child class')
+        # Highly recommended to override this method in the particular implementation of the blockchain for
+        # performance reasons
+        logger.warning('Using low performance implementation of get_account_root_file_count() method (override it)')
+        return ilen(self.iter_account_root_files())
 
     def iter_account_root_files(self) -> Generator[AccountRootFile, None, None]:
         raise NotImplementedError('Must be implemented in a child class')
 
     def iter_account_root_files_reversed(self) -> Generator[AccountRootFile, None, None]:
-        raise NotImplementedError('Must be implemented in a child class')
+        # Highly recommended to override this method in the particular implementation of the blockchain for
+        # performance reasons
+        logger.warning(
+            'Using low performance implementation of iter_account_root_files_reversed() method (override it)'
+        )
+        yield from always_reversible(self.iter_account_root_files())
 
     # Blocks related abstract methods
     def persist_block(self, block: Block):
         raise NotImplementedError('Must be implemented in a child class')
 
-    def get_last_block(self) -> Optional[Block]:
-        raise NotImplementedError('Must be implemented in a child class')
-
     def get_first_block(self) -> Optional[Block]:
-        raise NotImplementedError('Must be implemented in a child class')
+        # Override this method if a particular blockchain implementation can provide a high performance
+        try:
+            return next(self.iter_blocks())
+        except StopIteration:
+            return None
+
+    def get_last_block(self) -> Optional[Block]:
+        # Override this method if a particular blockchain implementation can provide a high performance
+        try:
+            return next(self.iter_blocks_reversed())
+        except StopIteration:
+            return None
 
     def get_block_by_number(self, block_number: int) -> Optional[Block]:
         raise NotImplementedError('Must be implemented in a child class')
@@ -74,7 +100,10 @@ class BlockchainBase:
         raise NotImplementedError('Must be implemented in a child class')
 
     def get_block_count(self) -> int:
-        raise NotImplementedError('Must be implemented in a child class')
+        # Highly recommended to override this method in the particular implementation of the blockchain for
+        # performance reasons
+        logger.warning('Using low performance implementation of get_block_count() method (override it)')
+        return ilen(self.iter_blocks())
 
     def iter_blocks(self) -> Generator[Block, None, None]:
         raise NotImplementedError('Must be implemented in a child class')
@@ -88,7 +117,10 @@ class BlockchainBase:
         yield from dropwhile(lambda _block: _block.message.block_number < block_number, self.iter_blocks())
 
     def iter_blocks_reversed(self) -> Generator[Block, None, None]:
-        raise NotImplementedError('Must be implemented in a child class')
+        # Highly recommended to override this method in the particular implementation of the blockchain for
+        # performance reasons
+        logger.warning('Using low performance implementation of iter_blocks_reversed() method (override it)')
+        yield from always_reversible(self.iter_blocks())
 
     # Base methods
     @verbose_timeit_method(level=logging.INFO)

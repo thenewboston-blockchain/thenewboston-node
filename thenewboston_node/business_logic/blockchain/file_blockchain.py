@@ -5,6 +5,7 @@ from typing import Generator
 import msgpack
 
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
+from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.storages.file_system import FileSystemStorage
 
 from .base import BlockchainBase
@@ -28,6 +29,12 @@ class FileBlockchain(BlockchainBase):
 
         if validate:
             self.validate()
+
+    def iter_blocks(self) -> Generator[Block, None, None]:
+        storage = self.storage
+        for file_path in storage.list_directory(self.blocks_directory):
+            assert file_path
+            yield NotImplemented
 
     def iter_account_root_files(self) -> Generator[AccountRootFile, None, None]:
         storage = self.storage

@@ -30,14 +30,13 @@ class FileBlockchain(BlockchainBase):
             self.validate()
 
     def iter_account_root_files(self) -> Generator[AccountRootFile, None, None]:
-        for filename in self.storage.list_directory(self.account_root_files_directory):
-            assert filename
-            yield NotImplemented
+        storage = self.storage
+        for file_path in storage.list_directory(self.account_root_files_directory):
+            yield AccountRootFile.from_compact_dict(msgpack.unpackb(storage.load(file_path)))
 
     def add_account_root_file(self, account_root_file: AccountRootFile):
-        msgpack_dict = msgpack.packb(account_root_file.to_compact_dict())
         last_block_number = account_root_file.last_block_number
 
         prefix = ('.' if last_block_number is None else str(last_block_number)).zfill(ORDER_OF_ACCOUNT_ROOT_FILE)
         file_path = os.path.join(self.account_root_files_directory, f'{prefix}-arf.msgpack')
-        self.storage.save(file_path, msgpack_dict, is_final=True)
+        self.storage.save(file_path, msgpack.packb(account_root_file.to_compact_dict()), is_final=True)

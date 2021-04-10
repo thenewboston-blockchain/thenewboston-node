@@ -88,8 +88,8 @@ class SignableMixin:
 class CompactableMixin:
 
     @classmethod
-    def from_compact_dict(cls):
-        raise NotImplementedError
+    def from_compact_dict(cls, compact_dict):
+        return cls.from_dict(replace_keys(compact_dict, UNCOMPACT_KEY_MAP))
 
     def to_compact_dict(self):
         return replace_keys(self.to_dict(), COMPACT_KEY_MAP)

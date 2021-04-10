@@ -21,6 +21,7 @@ PyNaCl = "^1.4.0"
 dataclasses-json = "^0.5.2"
 tqdm = "^4.59.0"
 msgpack = "^1.0.2"
+more-itertools = "^8.7.0"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.10.1"

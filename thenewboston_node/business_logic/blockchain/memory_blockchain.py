@@ -29,46 +29,15 @@ class MemoryBlockchain(BlockchainBase):
 
         self.account_root_files.append(account_root_file)
 
-    def get_first_account_root_file(self) -> Optional[AccountRootFile]:
-        account_root_files = self.account_root_files
-        if account_root_files:
-            return account_root_files[0]
-
-        return None
-
-    def get_last_account_root_file(self) -> Optional[AccountRootFile]:
-        account_root_files = self.account_root_files
-        if account_root_files:
-            return account_root_files[-1]
-
-        return None
-
     def get_account_root_file_count(self) -> int:
         return len(self.account_root_files)
 
     def iter_account_root_files(self) -> Generator[AccountRootFile, None, None]:
         yield from self.account_root_files
 
-    def iter_account_root_files_reversed(self) -> Generator[AccountRootFile, None, None]:
-        yield from reversed(self.account_root_files)
-
     # Blocks related implemented methods
     def persist_block(self, block: Block):
         self.blocks.append(copy.deepcopy(block))
-
-    def get_last_block(self) -> Optional[Block]:
-        blocks = self.blocks
-        if blocks:
-            return blocks[-1]
-
-        return None
-
-    def get_first_block(self) -> Optional[Block]:
-        blocks = self.blocks
-        if blocks:
-            return blocks[0]
-
-        return None
 
     def get_block_by_number(self, block_number: int) -> Optional[Block]:
         if block_number < 0:
@@ -94,6 +63,3 @@ class MemoryBlockchain(BlockchainBase):
 
     def iter_blocks(self) -> Generator[Block, None, None]:
         yield from self.blocks
-
-    def iter_blocks_reversed(self) -> Generator[Block, None, None]:
-        yield from reversed(self.blocks)

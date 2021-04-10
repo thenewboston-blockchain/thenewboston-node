@@ -13,7 +13,7 @@ from thenewboston_node.core.logging import validates, verbose_timeit_method
 from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
-from .base import SignableMixin
+from .base import MessagpackCompactableMixin, SignableMixin
 from .block_message import BlockMessage
 from .transfer_request import TransferRequest
 
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 @fake_super_methods
 @dataclass_json
 @dataclass
-class Block(SignableMixin):
+class Block(SignableMixin, MessagpackCompactableMixin):
     verify_key_field_name = 'node_identifier'
 
     node_identifier: str

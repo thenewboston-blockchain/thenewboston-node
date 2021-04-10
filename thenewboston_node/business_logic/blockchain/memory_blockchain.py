@@ -23,10 +23,7 @@ class MemoryBlockchain(BlockchainBase):
             self.validate()
 
     # Account root files related implemented methods
-    def add_account_root_file(self, account_root_file: AccountRootFile):
-        is_initial = False if self.account_root_files else account_root_file.is_initial()
-        account_root_file.validate(is_initial=is_initial)
-
+    def persist_account_root_file(self, account_root_file: AccountRootFile):
         self.account_root_files.append(account_root_file)
 
     def get_account_root_file_count(self) -> int:

@@ -1,6 +1,8 @@
 import logging
 from typing import Optional
 
+import msgpack
+
 from thenewboston_node.business_logic.exceptions import InvalidMessageSignatureError
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.collections import replace_keys
@@ -93,3 +95,13 @@ class CompactableMixin:
 
     def to_compact_dict(self):
         return replace_keys(self.to_dict(), COMPACT_KEY_MAP)
+
+
+class MessagpackCompactableMixin(CompactableMixin):
+
+    @classmethod
+    def from_messagepack(cls, messagepack_binary: bytes):
+        return cls.from_compact_dict(msgpack.unpackb(messagepack_binary))
+
+    def to_messagepack(self):
+        return msgpack.packb(self.to_compact_dict())

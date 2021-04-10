@@ -6,7 +6,6 @@ from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.core.utils.cryptography import KeyPair
 
 
-@pytest.mark.skip('Not implemented yet')
 @pytest.mark.usefixtures('forced_mock_network', 'get_primary_validator_mock', 'get_preferred_node_mock')
 def test_can_add_block(
     blockchain_directory,

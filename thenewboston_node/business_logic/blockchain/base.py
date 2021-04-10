@@ -40,32 +40,31 @@ class BlockchainBase:
     def clear_instance_cache(cls):
         cls._instance = None
 
-    # Account root files related abstract methods
-    def add_account_root_file(self, account_root_file: AccountRootFile):
+    # * Abstract methods
+    # ** Account root files related abstract methods
+    def persist_account_root_file(self, account_root_file: AccountRootFile):
         raise NotImplementedError('Must be implemented in a child class')
 
-    def get_first_account_root_file(self) -> Optional[AccountRootFile]:
-        # Override this method if a particular blockchain implementation can provide a high performance
-        try:
-            return next(self.iter_account_root_files())
-        except StopIteration:
-            return None
+    def iter_account_root_files(self) -> Generator[AccountRootFile, None, None]:
+        raise NotImplementedError('Must be implemented in a child class')
 
-    def get_last_account_root_file(self) -> Optional[AccountRootFile]:
-        # Override this method if a particular blockchain implementation can provide a high performance
-        try:
-            return next(self.iter_account_root_files_reversed())
-        except StopIteration:
-            return None
+    # ** Blocks related abstract methods
+    def persist_block(self, block: Block):
+        raise NotImplementedError('Must be implemented in a child class')
 
+    def get_block_by_number(self, block_number: int) -> Optional[Block]:
+        raise NotImplementedError('Must be implemented in a child class')
+
+    def iter_blocks(self) -> Generator[Block, None, None]:
+        raise NotImplementedError('Must be implemented in a child class')
+
+    # * Override recommended methods
+    # ** Account root files related override recommended methods
     def get_account_root_file_count(self) -> int:
         # Highly recommended to override this method in the particular implementation of the blockchain for
         # performance reasons
         logger.warning('Using low performance implementation of get_account_root_file_count() method (override it)')
         return ilen(self.iter_account_root_files())
-
-    def iter_account_root_files(self) -> Generator[AccountRootFile, None, None]:
-        raise NotImplementedError('Must be implemented in a child class')
 
     def iter_account_root_files_reversed(self) -> Generator[AccountRootFile, None, None]:
         # Highly recommended to override this method in the particular implementation of the blockchain for
@@ -75,38 +74,12 @@ class BlockchainBase:
         )
         yield from always_reversible(self.iter_account_root_files())
 
-    # Blocks related abstract methods
-    def persist_block(self, block: Block):
-        raise NotImplementedError('Must be implemented in a child class')
-
-    def get_first_block(self) -> Optional[Block]:
-        # Override this method if a particular blockchain implementation can provide a high performance
-        try:
-            return next(self.iter_blocks())
-        except StopIteration:
-            return None
-
-    def get_last_block(self) -> Optional[Block]:
-        # Override this method if a particular blockchain implementation can provide a high performance
-        try:
-            return next(self.iter_blocks_reversed())
-        except StopIteration:
-            return None
-
-    def get_block_by_number(self, block_number: int) -> Optional[Block]:
-        raise NotImplementedError('Must be implemented in a child class')
-
-    def get_block_by_identifier(self, block_number: int) -> Optional[Block]:
-        raise NotImplementedError('Must be implemented in a child class')
-
+    # ** Blocks related override recommended methods
     def get_block_count(self) -> int:
         # Highly recommended to override this method in the particular implementation of the blockchain for
         # performance reasons
         logger.warning('Using low performance implementation of get_block_count() method (override it)')
         return ilen(self.iter_blocks())
-
-    def iter_blocks(self) -> Generator[Block, None, None]:
-        raise NotImplementedError('Must be implemented in a child class')
 
     def iter_blocks_from(self, block_number: int) -> Generator[Block, None, None]:
         # TODO(dmu) HIGH: Implement higher performance iter_blocks_from() in child classes
@@ -122,7 +95,27 @@ class BlockchainBase:
         logger.warning('Using low performance implementation of iter_blocks_reversed() method (override it)')
         yield from always_reversible(self.iter_blocks())
 
-    # Base methods
+    # * Base methods
+    # ** Account root files related base methods
+    def add_account_root_file(self, account_root_file: AccountRootFile):
+        account_root_file.validate(is_initial=account_root_file.is_initial())
+        self.persist_account_root_file(account_root_file)
+
+    def get_first_account_root_file(self) -> Optional[AccountRootFile]:
+        # Override this method if a particular blockchain implementation can provide a high performance
+        try:
+            return next(self.iter_account_root_files())
+        except StopIteration:
+            return None
+
+    def get_last_account_root_file(self) -> Optional[AccountRootFile]:
+        # Override this method if a particular blockchain implementation can provide a high performance
+        try:
+            return next(self.iter_account_root_files_reversed())
+        except StopIteration:
+            return None
+
+    # ** Blocks related base methods
     @verbose_timeit_method(level=logging.INFO)
     def add_block(self, block: Block):
         block_number = block.message.block_number
@@ -134,6 +127,21 @@ class BlockchainBase:
 
         self.persist_block(block)
 
+    def get_first_block(self) -> Optional[Block]:
+        # Override this method if a particular blockchain implementation can provide a high performance
+        try:
+            return next(self.iter_blocks())
+        except StopIteration:
+            return None
+
+    def get_last_block(self) -> Optional[Block]:
+        # Override this method if a particular blockchain implementation can provide a high performance
+        try:
+            return next(self.iter_blocks_reversed())
+        except StopIteration:
+            return None
+
+    # Not sorted (yet) methods
     @verbose_timeit_method(level=logging.INFO)
     def add_block_from_transfer_request(self, transfer_request: TransferRequest):
         block = Block.from_transfer_request(self, transfer_request)
@@ -435,6 +443,7 @@ class BlockchainBase:
 
         return account_root_file
 
+    # Validation methods
     @validates('BLOCKCHAIN')
     def validate(self, is_partial_allowed: bool = True):
         self.validate_account_root_files(is_partial_allowed=is_partial_allowed)

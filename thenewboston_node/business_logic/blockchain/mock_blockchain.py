@@ -1,7 +1,7 @@
 from .base import BlockchainBase
 
 
-class MockBlockchain(BlockchainBase):
+class MockBlockchain(BlockchainBase):  # pragma: no cover
     """
     A blockchain dummy "implementation" to be mocked in unittests
     """

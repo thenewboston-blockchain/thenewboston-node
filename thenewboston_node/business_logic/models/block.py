@@ -6,10 +6,10 @@ from typing import Optional, Type, TypeVar
 from dataclasses_json import dataclass_json
 
 from thenewboston_node.business_logic.exceptions import ValidationError
-from thenewboston_node.business_logic.models.node import Node, PrimaryValidator
+from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
 from thenewboston_node.business_logic.network.base import NetworkBase
 from thenewboston_node.business_logic.node import get_signing_key
-from thenewboston_node.core.logging import validates, verbose_timeit_method
+from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
@@ -34,7 +34,7 @@ class Block(SignableMixin, MessagpackCompactableMixin):
     message_signature: Optional[str] = None
 
     @classmethod
-    @verbose_timeit_method(level=logging.INFO)
+    @timeit_method(level=logging.INFO, is_class_method=True)
     def from_transfer_request(cls: Type[T], blockchain, transfer_request: TransferRequest) -> T:
         signing_key = get_signing_key()
         block = cls(
@@ -53,7 +53,7 @@ class Block(SignableMixin, MessagpackCompactableMixin):
         amount: int,
         signing_key: str,
         primary_validator: Optional[PrimaryValidator] = None,
-        node: Optional[Node] = None
+        node: Optional[RegularNode] = None
     ) -> T:
         if primary_validator is None or node is None:
             warnings.warn('Skipping primary_validator and node is deprecated', DeprecationWarning)

@@ -4,8 +4,7 @@ from django.test import override_settings
 
 import pytest
 
-from thenewboston_node.business_logic.enums import NodeType
-from thenewboston_node.business_logic.models.node import Node, PrimaryValidator
+from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
 from thenewboston_node.business_logic.network.mock_network import MockNetwork
 
 
@@ -22,7 +21,7 @@ def get_primary_validator_mock(primary_validator):
 
 @pytest.fixture
 def preferred_node(node_key_pair):
-    return Node(identifier=node_key_pair.public, fee_amount=1, type_=NodeType.NODE.value)
+    return RegularNode(identifier=node_key_pair.public, fee_amount=1)
 
 
 @pytest.fixture

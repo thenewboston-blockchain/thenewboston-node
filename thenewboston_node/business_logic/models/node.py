@@ -17,3 +17,9 @@ class Node:
 @dataclass
 class PrimaryValidator(Node):
     type_: str = NodeType.PRIMARY_VALIDATOR.value
+
+
+@dataclass_json
+@dataclass
+class RegularNode(Node):
+    type_: str = NodeType.REGULAR_NODE.value

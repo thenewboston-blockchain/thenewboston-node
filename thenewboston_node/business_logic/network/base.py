@@ -2,7 +2,7 @@ from typing import Type, TypeVar
 
 from django.conf import settings
 
-from thenewboston_node.business_logic.models.node import Node, PrimaryValidator
+from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
 from thenewboston_node.core.utils.importing import import_from_string
 
 T = TypeVar('T', bound='NetworkBase')
@@ -29,8 +29,8 @@ class NetworkBase:
     def get_primary_validator(self) -> PrimaryValidator:
         raise NotImplementedError('Must be implemented in a child class')
 
-    def get_nodes(self, include_primary_validator=False) -> list[Node]:
+    def get_nodes(self, include_primary_validator=False) -> list[RegularNode]:
         raise NotImplementedError('Must be implemented in a child class')
 
-    def get_preferred_node(self) -> Node:
+    def get_preferred_node(self) -> RegularNode:
         raise NotImplementedError('Must be implemented in a child class')

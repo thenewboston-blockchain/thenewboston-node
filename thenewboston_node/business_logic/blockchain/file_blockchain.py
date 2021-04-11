@@ -3,6 +3,7 @@ import os.path
 from typing import Generator
 
 import msgpack
+from more_itertools import always_reversible, ilen
 
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.business_logic.models.block import Block
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 # TODO(dmu) LOW: Move these constants to configuration files
 ORDER_OF_ACCOUNT_ROOT_FILE = 10
 ORDER_OF_BLOCK = 20
-BLOCK_CHUNK_SIZE = 1000
+BLOCK_CHUNK_SIZE = 100
 
 
 class FileBlockchain(BlockchainBase):
@@ -41,10 +42,21 @@ class FileBlockchain(BlockchainBase):
         file_path = os.path.join(self.account_root_files_directory, f'{prefix}-arf.msgpack')
         self.storage.save(file_path, account_root_file.to_messagepack(), is_final=True)
 
-    def iter_account_root_files(self) -> Generator[AccountRootFile, None, None]:
+    def _iter_account_root_files(self, direction) -> Generator[AccountRootFile, None, None]:
+        assert direction in (1, -1)
+
         storage = self.storage
-        for file_path in storage.list_directory(self.account_root_files_directory):
+        for file_path in storage.list_directory(self.account_root_files_directory, sort_direction=direction):
             yield AccountRootFile.from_messagepack(storage.load(file_path))
+
+    def iter_account_root_files(self) -> Generator[AccountRootFile, None, None]:
+        yield from self._iter_account_root_files(1)
+
+    def iter_account_root_files_reversed(self) -> Generator[AccountRootFile, None, None]:
+        yield from self._iter_account_root_files(-1)
+
+    def get_account_root_file_count(self) -> int:
+        return ilen(self.storage.list_directory(self.account_root_files_directory))
 
     # Blocks methods
     def persist_block(self, block: Block):
@@ -62,10 +74,24 @@ class FileBlockchain(BlockchainBase):
         file_path = os.path.join(self.blocks_directory, f'{start_str}-{end_str}-block-chunk.msgpack')
         self.storage.append(file_path, block.to_messagepack(), is_final=is_final)
 
-    def iter_blocks(self) -> Generator[Block, None, None]:
+    def _iter_blocks(self, direction) -> Generator[Block, None, None]:
+        assert direction in (1, -1)
+
         storage = self.storage
-        for file_path in storage.list_directory(self.blocks_directory):
+        for file_path in storage.list_directory(self.blocks_directory, sort_direction=direction):
             unpacker = msgpack.Unpacker()
             unpacker.feed(storage.load(file_path))
+            if direction == -1:
+                unpacker = always_reversible(unpacker)
+
             for block_compact_dict in unpacker:
                 yield Block.from_compact_dict(block_compact_dict)
+
+    def iter_blocks(self) -> Generator[Block, None, None]:
+        yield from self._iter_blocks(1)
+
+    def iter_blocks_reversed(self) -> Generator[Block, None, None]:
+        yield from self._iter_blocks(-1)
+
+    def get_block_count(self) -> int:
+        return ilen(self.storage.list_directory(self.blocks_directory))

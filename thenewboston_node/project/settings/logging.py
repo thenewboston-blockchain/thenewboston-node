@@ -16,7 +16,7 @@ LOGGING = {
             'level': 'WARNING',
             'class': 'logging.StreamHandler',
             'formatter': 'standard',
-            'filters': ['sentry'],
+            'filters': [],
         },
         'pre_sentry_handler': {
             'level': 'DEBUG',
@@ -35,6 +35,6 @@ LOGGING = {
     },
     'root': {
         'level': 'DEBUG',
-        'handlers': ['console', 'pre_sentry_handler'],
+        'handlers': ['console'],
     }
 }

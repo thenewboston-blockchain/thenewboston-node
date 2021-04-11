@@ -12,6 +12,19 @@ if SENTRY_DSN:
     from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.logging import LoggingIntegration
 
+    handlers = LOGGING['root']['handlers']  # type: ignore # noqa: F821
+    if 'pre_sentry_handler' not in handlers:
+        try:
+            index = handlers.index('pre_sentry_handler')
+        except ValueError:
+            handlers.append('pre_sentry_handler')
+        else:
+            handlers.insert('pre_sentry_handler', index + 1)
+
+    console_handler_filters = LOGGING['handlers']['console']['filters']  # type: ignore # noqa: F821
+    if 'sentry' not in console_handler_filters:
+        console_handler_filters.append('sentry')
+
     logging_integration = LoggingIntegration(
         level=logging.DEBUG,  # Breadcrumbs level
         event_level=SENTRY_EVENT_LEVEL,  # type: ignore # noqa: F821

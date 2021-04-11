@@ -1,5 +1,6 @@
 import copy
 import logging
+import warnings
 from itertools import chain, dropwhile, islice
 from typing import Generator, Iterable, Optional, Type, TypeVar, cast
 
@@ -11,7 +12,7 @@ from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.account_balance import AccountBalance, BlockAccountBalance
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.business_logic.models.transfer_request import TransferRequest
-from thenewboston_node.core.logging import validates, verbose_timeit_method
+from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.importing import import_from_string
 
 from ..models.block import Block
@@ -60,13 +61,13 @@ class BlockchainBase:
     def get_account_root_file_count(self) -> int:
         # Highly recommended to override this method in the particular implementation of the blockchain for
         # performance reasons
-        logger.warning('Using low performance implementation of get_account_root_file_count() method (override it)')
+        warnings.warn('Using low performance implementation of get_account_root_file_count() method (override it)')
         return ilen(self.iter_account_root_files())
 
     def iter_account_root_files_reversed(self) -> Generator[AccountRootFile, None, None]:
         # Highly recommended to override this method in the particular implementation of the blockchain for
         # performance reasons
-        logger.warning(
+        warnings.warn(
             'Using low performance implementation of iter_account_root_files_reversed() method (override it)'
         )
         yield from always_reversible(self.iter_account_root_files())
@@ -75,12 +76,12 @@ class BlockchainBase:
     def get_block_count(self) -> int:
         # Highly recommended to override this method in the particular implementation of the blockchain for
         # performance reasons
-        logger.warning('Using low performance implementation of get_block_count() method (override it)')
+        warnings.warn('Using low performance implementation of get_block_count() method (override it)')
         return ilen(self.iter_blocks())
 
     def iter_blocks_from(self, block_number: int) -> Generator[Block, None, None]:
         # TODO(dmu) HIGH: Implement higher performance iter_blocks_from() in child classes
-        logger.warning(
+        warnings.warn(
             'Low performance iter_blocks_from() implementation is being used (override with better '
             'performance implementation)'
         )
@@ -89,13 +90,13 @@ class BlockchainBase:
     def iter_blocks_reversed(self) -> Generator[Block, None, None]:
         # Highly recommended to override this method in the particular implementation of the blockchain for
         # performance reasons
-        logger.warning('Using low performance implementation of iter_blocks_reversed() method (override it)')
+        warnings.warn('Using low performance implementation of iter_blocks_reversed() method (override it)')
         yield from always_reversible(self.iter_blocks())
 
     def get_block_by_number(self, block_number: int) -> Optional[Block]:
         # Highly recommended to override this method in the particular implementation of the blockchain for
         # performance reasons
-        logger.warning('Using low performance implementation of get_block_by_number() method (override it)')
+        warnings.warn('Using low performance implementation of get_block_by_number() method (override it)')
         for block in self.iter_blocks():
             current_block_number = block.message.block_number
             if current_block_number == block_number:
@@ -126,16 +127,22 @@ class BlockchainBase:
             return None
 
     # ** Blocks related base methods
-    @verbose_timeit_method(level=logging.INFO)
-    def add_block(self, block: Block):
+    @timeit_method(level=logging.INFO)
+    def add_block(self, block: Block, validate=True):
         block_number = block.message.block_number
-        if block_number != self.get_next_block_number():
-            raise ValidationError('Block number must be equal to next block number (== head block number + 1)')
+        if validate:
+            if block_number != self.get_next_block_number():
+                raise ValidationError('Block number must be equal to next block number (== head block number + 1)')
 
-        block.validate(self)
+            block.validate(self)
+
         # TODO(dmu) HIGH: Validate block_identifier
 
         self.persist_block(block)
+
+        period = settings.AUTO_CREATE_ACCOUNT_ROOT_FILE_EVERY_BLOCKS
+        if period is not None and block_number // period == 0 and block_number > 0:
+            self.make_account_root_file()
 
     def get_first_block(self) -> Optional[Block]:
         # Override this method if a particular blockchain implementation can provide a high performance
@@ -152,10 +159,10 @@ class BlockchainBase:
             return None
 
     # Not sorted (yet) methods
-    @verbose_timeit_method(level=logging.INFO)
-    def add_block_from_transfer_request(self, transfer_request: TransferRequest):
+    @timeit_method(level=logging.INFO)
+    def add_block_from_transfer_request(self, transfer_request: TransferRequest, validate=True):
         block = Block.from_transfer_request(self, transfer_request)
-        self.add_block(block)
+        self.add_block(block, validate=validate)
 
     def validate_before_block_number(self, before_block_number: Optional[int]) -> int:
         next_block_number = self.get_next_block_number()
@@ -180,7 +187,7 @@ class BlockchainBase:
 
         return balance_value
 
-    @verbose_timeit_method()
+    @timeit_method()
     def get_balance_lock(self, account: str, before_block_number: Optional[int] = None) -> str:
         """
         Return balance lock before `before_block_number` is applied. If `before_block_number` is not specified it
@@ -194,7 +201,7 @@ class BlockchainBase:
         lock = self._get_balance_lock_from_account_root_file(account, block_number)
         return account if lock is None else lock
 
-    @verbose_timeit_method()
+    @timeit_method()
     def _get_balance_lock_from_block(self, account: str, block_number: Optional[int] = None) -> Optional[str]:
         balance = self._get_balance_from_block(account, block_number, must_have_lock=True)
         return None if balance is None else balance.lock
@@ -209,7 +216,7 @@ class BlockchainBase:
         balance = self._get_balance_from_block(account, block_number)
         return None if balance is None else balance.value
 
-    @verbose_timeit_method()
+    @timeit_method()
     def _get_balance_from_block(self,
                                 account: str,
                                 block_number: Optional[int] = None,
@@ -582,25 +589,23 @@ class BlockchainBase:
         except StopIteration:
             return
 
-        first_block_number = first_block.message.block_number
-        base_account_root_file = self.get_closest_account_root_file(first_block_number)
-        if base_account_root_file is None:
+        first_account_root_file = self.get_first_account_root_file()
+        if first_account_root_file is None:
             raise ValidationError('Account root file prior to first block is not found')
 
-        expected_block_number = base_account_root_file.get_next_block_number() + offset
-
+        first_block_number = first_block.message.block_number
         if offset == 0:
             with validates('basing on an account root file'):
 
-                if base_account_root_file.get_next_block_number() != first_block_number:
+                if first_account_root_file.get_next_block_number() != first_block_number:
                     raise ValidationError('First block number does not match base account root file last block number')
 
-                if base_account_root_file.get_next_block_identifier() != first_block.message.block_identifier:
+                if first_account_root_file.get_next_block_identifier() != first_block.message.block_identifier:
                     raise ValidationError(
                         'First block identifier does not match base account root file last block identifier'
                     )
 
-            expected_block_identifier = base_account_root_file.get_next_block_identifier()
+            expected_block_identifier = first_account_root_file.get_next_block_identifier()
         else:
             prev_block = self.get_block_by_number(first_block_number - 1)
             if prev_block is None:
@@ -609,6 +614,7 @@ class BlockchainBase:
             assert prev_block.message_hash
             expected_block_identifier = prev_block.message_hash
 
+        expected_block_number = first_account_root_file.get_next_block_number() + offset
         for block in chain((first_block,), blocks_iter):
             block.validate(self)
 

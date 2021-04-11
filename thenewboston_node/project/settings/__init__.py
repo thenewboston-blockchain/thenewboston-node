@@ -1,3 +1,4 @@
+import logging
 import os
 from pathlib import Path
 
@@ -25,5 +26,7 @@ include(*(
     'logging.py',
     'custom.py',
 ) + overriding_settings + ('sentry.py', 'docker.py'))
+
+logging.captureWarnings(True)
 
 assert SECRET_KEY is not NotImplemented  # type: ignore # noqa: F821

@@ -20,7 +20,6 @@ class SentryFilter(logging.Filter):
         return True
 
 
-# This class in `sentry` module because it is required for attaching `SentryFilter`
 class FilteringNullHandler(logging.NullHandler):
 
     def handle(self, record):
@@ -31,8 +30,8 @@ def verbose_timeit_method(logger=module_logger, level=logging.DEBUG):
     return timeit(logger=logger, level=level, verbose=True, is_method=True)
 
 
-def timeit_method(logger=module_logger, level=logging.DEBUG):
-    return timeit(logger=logger, level=level, is_method=True)
+def timeit_method(logger=module_logger, level=logging.DEBUG, is_class_method=False):
+    return timeit(logger=logger, level=level, is_method=True, is_class_method=is_class_method)
 
 
 def timeit(
@@ -41,7 +40,8 @@ def timeit(
     verbose=False,
     verbose_args=False,
     verbose_return_value=False,
-    is_method=False
+    is_method=False,
+    is_class_method=False,
 ):
 
     def decorator(callable_):
@@ -51,7 +51,10 @@ def timeit(
             callable_name = callable_.__name__
             if is_method:
                 obj = args[0]
-                callable_name = '<{} object at {:#x}>.{}'.format(obj.__class__.__name__, id(obj), callable_name)
+                if is_class_method:
+                    callable_name = f'{obj.__name__}.{callable_name}'
+                else:
+                    callable_name = f'{obj.__class__.__name__}.{callable_name}'
 
             if verbose or verbose_args:
                 args_ = args[1:] if is_method else args

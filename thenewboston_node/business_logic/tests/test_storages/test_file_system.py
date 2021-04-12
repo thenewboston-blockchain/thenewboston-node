@@ -3,7 +3,8 @@ import os.path
 import stat
 from os import stat as os_stat
 
-from thenewboston_node.business_logic.storages.file_system import FileSystemStorage, make_optimized_file_path
+from thenewboston_node.business_logic.storages.decorators import make_optimized_file_path
+from thenewboston_node.business_logic.storages.file_system import get_filesystem_storage
 
 
 def test_make_optimized_file_path():
@@ -39,7 +40,7 @@ def test_make_optimized_file_path():
 
 
 def test_can_save(base_file_path, optimized_file_path):
-    fss = FileSystemStorage()
+    fss = get_filesystem_storage()
     fss.save(base_file_path, b'\x08Test')
     assert os.path.isfile(optimized_file_path)
     with open(optimized_file_path, 'rb') as fo:
@@ -47,13 +48,13 @@ def test_can_save(base_file_path, optimized_file_path):
 
 
 def test_can_save_finalize(base_file_path, optimized_file_path):
-    fss = FileSystemStorage()
+    fss = get_filesystem_storage()
     fss.save(base_file_path, b'\x08Test', is_final=True)
     assert os_stat(optimized_file_path).st_mode & (stat.S_IWGRP | stat.S_IWUSR | stat.S_IWOTH) == 0
 
 
 def test_can_finalize(base_file_path, optimized_file_path):
-    fss = FileSystemStorage()
+    fss = get_filesystem_storage()
     fss.save(base_file_path, b'\x08Test')
     assert os_stat(optimized_file_path).st_mode & (stat.S_IWGRP | stat.S_IWUSR | stat.S_IWOTH) != 0
 
@@ -62,7 +63,7 @@ def test_can_finalize(base_file_path, optimized_file_path):
 
 
 def test_can_append(base_file_path, optimized_file_path):
-    fss = FileSystemStorage()
+    fss = get_filesystem_storage()
     fss.save(base_file_path, b'\x08Test')
     assert os.path.isfile(optimized_file_path)
     with open(optimized_file_path, 'rb') as fo:
@@ -76,7 +77,7 @@ def test_can_append(base_file_path, optimized_file_path):
 def test_can_load(base_file_path, optimized_file_path):
     binary_data = b'\x08Test'
 
-    fss = FileSystemStorage()
+    fss = get_filesystem_storage()
     fss.save(base_file_path, binary_data)
     assert os.path.isfile(optimized_file_path)
     with open(optimized_file_path, 'rb') as fo:
@@ -88,7 +89,7 @@ def test_can_load(base_file_path, optimized_file_path):
 def test_compression(base_file_path, optimized_file_path):
     binary_data = b'A' * 10000
 
-    fss = FileSystemStorage(compressors=('gz',))
+    fss = get_filesystem_storage(compressors=('gz',))
     fss.save(base_file_path, binary_data, is_final=True)
     expected_path = optimized_file_path + '.gz'
     assert os.path.isfile(expected_path)
@@ -102,7 +103,7 @@ def test_compression(base_file_path, optimized_file_path):
 def test_list_directory(blockchain_directory):
     base_directory = os.path.join(blockchain_directory, 'test')
 
-    fss = FileSystemStorage(compressors=('gz',))
+    fss = get_filesystem_storage(compressors=('gz',))
     fss.save(os.path.join(base_directory, '1434567890.txt'), b'A' * 1000, is_final=True)
     fss.save(os.path.join(base_directory, '1134567890.txt'), b'test1')
     fss.save(os.path.join(base_directory, '1234567890.txt'), b'test2')

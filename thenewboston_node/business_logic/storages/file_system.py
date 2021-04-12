@@ -40,6 +40,14 @@ def drop_write_permissions(filename):
     os.chmod(filename, mode)
 
 
+def strip_compression_extension(filename):
+    for compressor in DECOMPRESSION_FUNCTIONS:
+        if filename.endswith('.' + compressor):
+            filename = filename[:-len(compressor) - 1]
+            break
+    return filename
+
+
 class FileSystemStorage:
     """
     Storage transparently placing file to subdirectories (for file system performance reason) and
@@ -93,10 +101,7 @@ class FileSystemStorage:
     def _list_directory_generator(self, directory_path):
         for dir_path, _, filenames in os.walk(directory_path):
             for filename in filenames:
-                for compressor in DECOMPRESSION_FUNCTIONS:
-                    if filename.endswith('.' + compressor):
-                        filename = filename[:-len(compressor) - 1]
-                        break
+                filename = strip_compression_extension(filename)
 
                 proposed_optimized_path = os.path.join(dir_path, filename)
                 path = os.path.join(directory_path, filename)

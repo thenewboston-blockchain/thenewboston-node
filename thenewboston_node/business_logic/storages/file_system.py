@@ -48,6 +48,22 @@ def strip_compression_extension(filename):
     return filename
 
 
+def walk_directory(directory_path):
+    for dir_path, _, filenames in os.walk(directory_path):
+        for filename in filenames:
+            yield os.path.join(dir_path, filename)
+
+
+def sort_filenames(file_paths, sort_direction):
+    if sort_direction not in (1, -1, None):
+        raise ValueError('sort_direction must be either of the values: 1, -1, None')
+
+    if sort_direction is not None:
+        reverse = sort_direction == -1
+        file_paths = sorted(file_paths, reverse=reverse)
+    return file_paths
+
+
 class FileSystemStorage:
     """
     Storage transparently placing file to subdirectories (for file system performance reason) and
@@ -89,29 +105,20 @@ class FileSystemStorage:
         drop_write_permissions(new_filename)
 
     def list_directory(self, directory_path, sort_direction=1):
-        if sort_direction not in (1, -1, None):
-            return ValueError('sort_direction must be either of the values: 1, -1, None')
+        file_paths = walk_directory(directory_path)
+        file_paths = map(strip_compression_extension, file_paths)
+        file_paths = self._map_to_non_optimized_paths(base_path=directory_path, file_paths=file_paths)
+        file_paths = sort_filenames(file_paths, sort_direction)
+        return file_paths
 
-        generator = self._list_directory_generator(directory_path)
-        if sort_direction is None:
-            yield from generator
-        else:
-            yield from sorted(generator, reverse=sort_direction == -1)
-
-    def _list_directory_generator(self, directory_path):
-        for dir_path, _, filenames in os.walk(directory_path):
-            for filename in filenames:
-                filename = strip_compression_extension(filename)
-
-                proposed_optimized_path = os.path.join(dir_path, filename)
-                path = os.path.join(directory_path, filename)
-                expected_optimized_path = self.get_optimized_path(path)
-                if proposed_optimized_path != expected_optimized_path:
-                    logger.warning(
-                        'Expected %s optimized path, but got %s', expected_optimized_path, proposed_optimized_path
-                    )
-                    continue
-
+    def _map_to_non_optimized_paths(self, base_path, file_paths):
+        for file_path in file_paths:
+            basename = os.path.basename(file_path)
+            path = os.path.join(base_path, basename)
+            expected_optimized_path = self.get_optimized_path(path)
+            if file_path != expected_optimized_path:
+                logger.warning('Expected %s optimized path, but got %s', expected_optimized_path, file_path)
+            else:
                 yield path
 
     @timeit_method()

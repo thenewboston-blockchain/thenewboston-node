@@ -3,13 +3,11 @@ import gzip
 import logging
 import lzma
 import os
-import os.path
-import re
 import stat
 
+from thenewboston_node.business_logic.storages.base import Storage, sort_filenames
+from thenewboston_node.business_logic.storages.decorators import OptimizedPathStorageDecorator
 from thenewboston_node.core.logging import timeit_method
-
-REMOVE_RE = re.compile(r'[^0-9a-z]')
 
 # TODO(dmu) LOW: Support more / better compression methods
 COMPRESSION_FUNCTIONS = {
@@ -27,40 +25,41 @@ DECOMPRESSION_FUNCTIONS = {
 logger = logging.getLogger(__name__)
 
 
-def make_optimized_file_path(path, max_depth):
-    directory, filename = os.path.split(path)
-    normalized_filename = REMOVE_RE.sub('', filename.rsplit('.', 1)[0].lower())
-    extra_path = '/'.join(normalized_filename[:max_depth])
-    return os.path.join(directory, extra_path, filename)
-
-
 def drop_write_permissions(filename):
     current_mode = os.stat(filename).st_mode
     mode = current_mode - (current_mode & (stat.S_IWGRP | stat.S_IWUSR | stat.S_IWOTH))
     os.chmod(filename, mode)
 
 
-class FileSystemStorage:
+def strip_compression_extension(filename):
+    for compressor in DECOMPRESSION_FUNCTIONS:
+        if filename.endswith('.' + compressor):
+            filename = filename[:-len(compressor) - 1]
+            break
+    return filename
+
+
+def walk_directory(directory_path):
+    for dir_path, _, filenames in os.walk(directory_path):
+        for filename in filenames:
+            yield os.path.join(dir_path, filename)
+
+
+class FileSystemStorage(Storage):
     """
-    Storage transparently placing file to subdirectories (for file system performance reason) and
-    compressing / decompressing them for storage capacity optimization
+    Compressing / decompressing storage for capacity optimization
     """
 
-    def __init__(self, max_depth=8, compressors=tuple(COMPRESSION_FUNCTIONS)):
-        self.max_depth = max_depth
+    def __init__(self, compressors=tuple(COMPRESSION_FUNCTIONS)):
         self.compressors = compressors
-
-    def get_optimized_path(self, file_path):
-        return make_optimized_file_path(file_path, self.max_depth)
 
     @timeit_method()
     def save(self, file_path, binary_data: bytes, is_final=False):
         self._persist(file_path, binary_data, 'wb', is_final=is_final)
 
     def load(self, file_path) -> bytes:
-        optimized_path = self.get_optimized_path(file_path)
         for decompressor, func in DECOMPRESSION_FUNCTIONS.items():
-            path = optimized_path + '.' + decompressor
+            path = file_path + '.' + decompressor
             try:
                 with open(path, mode='rb') as fo:
                     data = fo.read()
@@ -69,45 +68,21 @@ class FileSystemStorage:
 
             return func(data)  # type: ignore
 
-        with open(optimized_path, mode='rb') as fo:
+        with open(file_path, mode='rb') as fo:
             return fo.read()
 
     def append(self, file_path, binary_data: bytes, is_final=False):
         self._persist(file_path, binary_data, 'ab', is_final=is_final)
 
     def finalize(self, file_path):
-        optimized_path = self.get_optimized_path(file_path)
-        new_filename = self._compress(optimized_path)
+        new_filename = self._compress(file_path)
         drop_write_permissions(new_filename)
 
     def list_directory(self, directory_path, sort_direction=1):
-        if sort_direction not in (1, -1, None):
-            return ValueError('sort_direction must be either of the values: 1, -1, None')
-
-        generator = self._list_directory_generator(directory_path)
-        if sort_direction is None:
-            yield from generator
-        else:
-            yield from sorted(generator, reverse=sort_direction == -1)
-
-    def _list_directory_generator(self, directory_path):
-        for dir_path, _, filenames in os.walk(directory_path):
-            for filename in filenames:
-                for compressor in DECOMPRESSION_FUNCTIONS:
-                    if filename.endswith('.' + compressor):
-                        filename = filename[:-len(compressor) - 1]
-                        break
-
-                proposed_optimized_path = os.path.join(dir_path, filename)
-                path = os.path.join(directory_path, filename)
-                expected_optimized_path = self.get_optimized_path(path)
-                if proposed_optimized_path != expected_optimized_path:
-                    logger.warning(
-                        'Expected %s optimized path, but got %s', expected_optimized_path, proposed_optimized_path
-                    )
-                    continue
-
-                yield path
+        file_paths = walk_directory(directory_path)
+        file_paths = map(strip_compression_extension, file_paths)
+        file_paths = sort_filenames(file_paths, sort_direction)
+        return file_paths
 
     @timeit_method()
     def _compress(self, file_path) -> str:
@@ -147,15 +122,25 @@ class FileSystemStorage:
         return best_filename
 
     def _persist(self, file_path, binary_data: bytes, mode, is_final=False):
-        optimized_path = self.get_optimized_path(file_path)
-        directory = os.path.dirname(optimized_path)
+        directory = os.path.dirname(file_path)
         if directory:
             os.makedirs(directory, exist_ok=True)
 
         # TODO(dmu) HIGH: Optimize for 'wb' mode so we do not need to reread the file from
         #                 filesystem to compress it
-        with open(optimized_path, mode=mode) as fo:
+        with open(file_path, mode=mode) as fo:
             fo.write(binary_data)
 
         if is_final:
             self.finalize(file_path)
+
+
+def get_filesystem_storage(max_depth=8, compressors=tuple(COMPRESSION_FUNCTIONS)):
+    """
+    Storage transparently placing file to subdirectories (for file system performance reason) and
+    compressing / decompressing them for storage capacity optimization
+    """
+
+    fs_storage = FileSystemStorage(compressors=compressors)
+    optimized_fs_storage = OptimizedPathStorageDecorator(fs_storage, max_depth=max_depth)
+    return optimized_fs_storage

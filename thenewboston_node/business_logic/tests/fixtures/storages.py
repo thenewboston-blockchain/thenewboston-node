@@ -6,6 +6,7 @@ from itertools import chain
 
 import pytest
 
+from thenewboston_node.business_logic.tests.mocks.storage_mock import StorageMock
 from thenewboston_node.core.utils.os import chmod_quite, remove_quite
 
 
@@ -40,3 +41,8 @@ def optimized_file_path():
         for path in chain((optimized_file_path,), glob.glob(optimized_file_path + '.*')):
             chmod_quite(path, stat.S_IWOTH)
             remove_quite(path)
+
+
+@pytest.fixture
+def storage_mock():
+    return StorageMock()

@@ -7,7 +7,7 @@ from more_itertools import always_reversible, ilen
 
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.business_logic.models.block import Block
-from thenewboston_node.business_logic.storages.file_system import get_filesystem_storage
+from thenewboston_node.business_logic.storages.path_optimized_file_system import PathOptimizedFileSystemStorage
 
 from .base import BlockchainBase
 
@@ -29,7 +29,7 @@ class FileBlockchain(BlockchainBase):
         self.blocks_directory = os.path.join(base_directory, 'blocks')
         self.base_directory = base_directory
 
-        self.storage = get_filesystem_storage()
+        self.storage = PathOptimizedFileSystemStorage()
 
         if validate:
             self.validate()

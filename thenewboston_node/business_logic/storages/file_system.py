@@ -5,8 +5,6 @@ import lzma
 import os
 import stat
 
-from thenewboston_node.business_logic.storages.base import Storage, sort_filenames
-from thenewboston_node.business_logic.storages.decorators import OptimizedPathStorageDecorator
 from thenewboston_node.core.logging import timeit_method
 
 # TODO(dmu) LOW: Support more / better compression methods
@@ -34,18 +32,12 @@ def drop_write_permissions(filename):
 def strip_compression_extension(filename):
     for compressor in DECOMPRESSION_FUNCTIONS:
         if filename.endswith('.' + compressor):
-            filename = filename[:-len(compressor) - 1]
-            break
+            return filename[:-len(compressor) - 1]
+
     return filename
 
 
-def walk_directory(directory_path):
-    for dir_path, _, filenames in os.walk(directory_path):
-        for filename in filenames:
-            yield os.path.join(dir_path, filename)
-
-
-class FileSystemStorage(Storage):
+class FileSystemStorage:
     """
     Compressing / decompressing storage for capacity optimization
     """
@@ -75,14 +67,12 @@ class FileSystemStorage(Storage):
         self._persist(file_path, binary_data, 'ab', is_final=is_final)
 
     def finalize(self, file_path):
-        new_filename = self._compress(file_path)
-        drop_write_permissions(new_filename)
+        self._finalize(file_path)
 
     def list_directory(self, directory_path, sort_direction=1):
-        file_paths = walk_directory(directory_path)
-        file_paths = map(strip_compression_extension, file_paths)
-        file_paths = sort_filenames(file_paths, sort_direction)
-        return file_paths
+        # TODO(dmu) HIGH: Implement it to list only current directory to be consitent with other methods
+        #                     that are intended to operate on a give directory without nesting
+        raise NotImplementedError
 
     @timeit_method()
     def _compress(self, file_path) -> str:
@@ -132,15 +122,8 @@ class FileSystemStorage(Storage):
             fo.write(binary_data)
 
         if is_final:
-            self.finalize(file_path)
+            self._finalize(file_path)
 
-
-def get_filesystem_storage(max_depth=8, compressors=tuple(COMPRESSION_FUNCTIONS)):
-    """
-    Storage transparently placing file to subdirectories (for file system performance reason) and
-    compressing / decompressing them for storage capacity optimization
-    """
-
-    fs_storage = FileSystemStorage(compressors=compressors)
-    optimized_fs_storage = OptimizedPathStorageDecorator(fs_storage, max_depth=max_depth)
-    return optimized_fs_storage
+    def _finalize(self, file_path):
+        new_filename = self._compress(file_path)
+        drop_write_permissions(new_filename)

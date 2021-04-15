@@ -3,6 +3,7 @@ import os
 import shutil
 import stat
 from itertools import chain
+from pathlib import Path
 
 import pytest
 
@@ -18,6 +19,7 @@ def base_file_path():
 def blockchain_directory():
     directory = f'/tmp/for-thenewboston-blockchain-testing-{os.getpid()}'
     try:
+        os.makedirs(directory, exist_ok=True)
         yield directory
     finally:
         for dir_path, dir_names, filenames in os.walk(directory):
@@ -32,6 +34,11 @@ def blockchain_directory():
 
 
 @pytest.fixture
+def blockchain_path(blockchain_directory):
+    return Path(blockchain_directory)
+
+
+@pytest.fixture
 def optimized_file_path():
     optimized_file_path = f'/tmp/for-thenewboston-testing/l/o/n/g/f/i/l/e/long-filename-for-testing-{os.getpid()}.bin'
     try:
@@ -40,3 +47,13 @@ def optimized_file_path():
         for path in chain((optimized_file_path,), glob.glob(optimized_file_path + '.*')):
             chmod_quite(path, stat.S_IWOTH)
             remove_quite(path)
+
+
+@pytest.fixture
+def compressible_data():
+    return b'A' * 10000
+
+
+@pytest.fixture
+def incompressible_data():
+    return bytes(bytearray(range(256)))

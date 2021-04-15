@@ -4,9 +4,12 @@ import stat
 from os import stat as os_stat
 from unittest.mock import patch
 
+import pytest
+
 from thenewboston_node.business_logic.storages.path_optimized_file_system import (
     PathOptimizedFileSystemStorage, make_optimized_file_path
 )
+from thenewboston_node.business_logic.tests.test_storages.util import mkdir_and_touch
 
 
 def test_make_optimized_file_path():
@@ -166,3 +169,73 @@ def test_list_optimized_sorting_is_correct():
     with patch('os.walk') as os_walk_mock:
         os_walk_mock.return_value = return_value
         assert list(storage.list_directory('', -1)) == ['z.txt', 'ab.txt', 'a.txt']
+
+
+@pytest.mark.parametrize(
+    'sort_direction,expected', (
+        (1, ('1.txt', '10.txt', '2.txt')),
+        (-1, ('2.txt', '10.txt', '1.txt')),
+    )
+)
+def test_can_list_directory_with_sorting(blockchain_path, sort_direction, expected):
+    storage = PathOptimizedFileSystemStorage()
+    expected_absolute = [str(blockchain_path / rel_path) for rel_path in expected]
+
+    mkdir_and_touch(blockchain_path / '1/1.txt')
+    mkdir_and_touch(blockchain_path / '1/0/10.txt')
+    mkdir_and_touch(blockchain_path / '2/2.txt')
+
+    listed = list(storage.list_directory(blockchain_path, sort_direction=sort_direction))
+    assert listed == expected_absolute
+
+
+def test_can_list_directory_without_sorting(blockchain_path):
+    storage = PathOptimizedFileSystemStorage()
+
+    mkdir_and_touch(blockchain_path / '1/1.txt')
+    mkdir_and_touch(blockchain_path / '1/0/10.txt')
+    mkdir_and_touch(blockchain_path / '2/2.txt')
+
+    listed = storage.list_directory(blockchain_path, sort_direction=None)
+    assert {
+        str(blockchain_path / '1.txt'),
+        str(blockchain_path / '10.txt'),
+        str(blockchain_path / '2.txt'),
+    } == set(listed)
+
+
+@pytest.mark.parametrize('wrong_sort_direction', [2, -2, object(), 0, '1'])
+def test_list_directory_validate_sort_direction(blockchain_directory, wrong_sort_direction):
+    storage = PathOptimizedFileSystemStorage()
+    with pytest.raises(ValueError):
+        list(storage.list_directory(blockchain_directory, sort_direction=wrong_sort_direction))
+
+
+def test_non_optimized_paths_are_not_listed(blockchain_path):
+    storage = PathOptimizedFileSystemStorage()
+    non_optimized_file_path = 'file.txt'
+
+    mkdir_and_touch(blockchain_path / non_optimized_file_path)
+
+    listed = list(storage.list_directory(blockchain_path))
+    assert listed == []
+
+
+@pytest.mark.parametrize('compression', ('gz', 'bz2', 'xz'))
+def test_list_directory_strips_compression_extensions(blockchain_path, compression):
+    storage = PathOptimizedFileSystemStorage()
+
+    mkdir_and_touch(blockchain_path / f'a/a.txt.{compression}')
+
+    listed = list(storage.list_directory(blockchain_path))
+    assert listed == [str(blockchain_path / 'a.txt')]
+
+
+def test_list_directory_filename_is_not_duplicated_on_name_conflict(blockchain_path):
+    storage = PathOptimizedFileSystemStorage()
+
+    mkdir_and_touch(blockchain_path / 'f/i/l/e/file.txt')
+    mkdir_and_touch(blockchain_path / 'f/i/l/e/file.txt.gz')
+
+    listed = list(storage.list_directory(blockchain_path))
+    assert listed == [str(blockchain_path / 'file.txt')]

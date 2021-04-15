@@ -36,11 +36,11 @@ class PathOptimizedFileSystemStorage(FileSystemStorage):
         return super().append(self._get_optimized_path(file_path), binary_data, is_final=is_final)
 
     def finalize(self, file_path):
-        self._finalize(self._get_optimized_path(file_path))
+        return super().finalize(self._get_optimized_path(file_path))
 
     def list_directory(self, directory_path, sort_direction=1):
         if sort_direction not in (1, -1, None):
-            return ValueError('sort_direction must be either of the values: 1, -1, None')
+            raise ValueError('sort_direction must be either of the values: 1, -1, None')
 
         generator = self._list_directory_generator(directory_path)
         if sort_direction is None:
@@ -50,8 +50,9 @@ class PathOptimizedFileSystemStorage(FileSystemStorage):
 
     def _list_directory_generator(self, directory_path):
         for dir_path, _, filenames in os.walk(directory_path):
+            filenames = map(strip_compression_extension, filenames)
+            filenames = set(filenames)  # remove duplicated files after strip
             for filename in filenames:
-                filename = strip_compression_extension(filename)
                 file_path = os.path.join(dir_path, filename)
 
                 path = os.path.join(directory_path, filename)

@@ -5,6 +5,7 @@ import lzma
 import os
 import stat
 
+from thenewboston_node.business_logic.storages import exceptions
 from thenewboston_node.core.logging import timeit_method
 
 # TODO(dmu) LOW: Support more / better compression methods
@@ -20,13 +21,21 @@ DECOMPRESSION_FUNCTIONS = {
     'xz': lzma.decompress,
 }
 
+STAT_WRITE_PERMS_ALL = stat.S_IWGRP | stat.S_IWUSR | stat.S_IWOTH
+
 logger = logging.getLogger(__name__)
 
 
 def drop_write_permissions(filename):
     current_mode = os.stat(filename).st_mode
-    mode = current_mode - (current_mode & (stat.S_IWGRP | stat.S_IWUSR | stat.S_IWOTH))
+    mode = current_mode - (current_mode & STAT_WRITE_PERMS_ALL)
     os.chmod(filename, mode)
+
+
+def has_write_permissions(filename):
+    current_mode = os.stat(filename).st_mode
+    mode = current_mode & STAT_WRITE_PERMS_ALL
+    return bool(mode)
 
 
 def strip_compression_extension(filename):
@@ -35,6 +44,14 @@ def strip_compression_extension(filename):
             return filename[:-len(compressor) - 1]
 
     return filename
+
+
+def exist_compressed_file(file_path):
+    for decompressor in DECOMPRESSION_FUNCTIONS:
+        path = file_path + '.' + decompressor
+        if os.path.exists(path):
+            return True
+    return False
 
 
 class FileSystemStorage:
@@ -103,8 +120,7 @@ class FileSystemStorage:
 
         if best_filename != file_path:
             logger.debug('Writing compressed file: %s (%s bytes)', best_filename, len(best_data))
-            with open(best_filename, 'wb') as fo:
-                fo.write(best_data)
+            self._write_file(best_filename, best_data, mode='wb')
 
             logger.debug('Removing %s', file_path)
             os.remove(file_path)
@@ -118,8 +134,7 @@ class FileSystemStorage:
 
         # TODO(dmu) HIGH: Optimize for 'wb' mode so we do not need to reread the file from
         #                 filesystem to compress it
-        with open(file_path, mode=mode) as fo:
-            fo.write(binary_data)
+        self._write_file(file_path, binary_data, mode)
 
         if is_final:
             self._finalize(file_path)
@@ -127,3 +142,15 @@ class FileSystemStorage:
     def _finalize(self, file_path):
         new_filename = self._compress(file_path)
         drop_write_permissions(new_filename)
+
+    def _is_finalized(self, file_path):
+        return (
+            exist_compressed_file(file_path) or (os.path.exists(file_path) and not has_write_permissions(file_path))
+        )
+
+    def _write_file(self, file_path, binary_data: bytes, mode):
+        if self._is_finalized(file_path):
+            raise exceptions.FinalizedFileWriteError(f"File is finalized '{file_path}'")
+
+        with open(file_path, mode=mode) as fo:
+            fo.write(binary_data)

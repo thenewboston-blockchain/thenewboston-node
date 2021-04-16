@@ -239,3 +239,17 @@ def test_list_directory_filename_is_not_duplicated_on_name_conflict(blockchain_p
 
     listed = list(storage.list_directory(blockchain_path))
     assert listed == [str(blockchain_path / 'file.txt')]
+
+
+def test_move(blockchain_path):
+    source = str(blockchain_path / 'file1.txt')
+    destination = str(blockchain_path / 'file2.txt')
+
+    storage = PathOptimizedFileSystemStorage(max_depth=5)
+    storage.save(source, b'AAA')
+    assert os.path.isfile(str(blockchain_path / 'f/i/l/e/1/file1.txt'))
+
+    storage.move(source, destination)
+    assert os.path.isfile(str(blockchain_path / 'f/i/l/e/2/file2.txt'))
+    assert not os.path.isfile(str(blockchain_path / 'f/i/l/e/1/file1.txt'))
+    assert storage.load(destination) == b'AAA'

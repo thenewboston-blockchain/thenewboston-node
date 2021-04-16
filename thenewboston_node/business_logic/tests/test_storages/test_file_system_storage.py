@@ -1,6 +1,8 @@
+import os.path
+
 import pytest
 
-from thenewboston_node.business_logic.storages import exceptions
+from thenewboston_node.business_logic import exceptions
 from thenewboston_node.business_logic.storages.file_system import FileSystemStorage
 from thenewboston_node.business_logic.tests.test_storages.util import compress, decompress
 
@@ -72,7 +74,7 @@ def test_save_to_raw_finalized_file_raises_error(blockchain_path, compressible_d
         fss.save(file_path, compressible_data, is_final)
 
 
-def test_best_compression_method_is_chosen(blockchain_path, compressible_data, incompressible_data):
+def test_best_compression_method_is_chosen(blockchain_path, compressible_data):
     fss = FileSystemStorage(compressors=('gz', 'bz2', 'xz'))
     file_path = blockchain_path / 'file.txt'
     compressed_path = blockchain_path / 'file.txt.gz'
@@ -93,3 +95,15 @@ def test_load_finalized_file_on_name_conflict(blockchain_path):
 
     loaded_data = fss.load(file_path=str(non_finalized_file))
     assert loaded_data == b'finalized data'
+
+
+def test_move(blockchain_path):
+    source = str(blockchain_path / 'file1.txt')
+    destination = str(blockchain_path / 'file2.txt')
+
+    fss = FileSystemStorage()
+    fss.save(source, b'AAA')
+    fss.move(source, destination)
+    assert os.path.isfile(destination)
+    assert not os.path.isfile(source)
+    assert fss.load(destination) == b'AAA'

@@ -2,7 +2,7 @@ import logging
 import os
 import re
 
-from .file_system import FileSystemStorage, strip_compression_extension
+from .file_system import FileSystemStorage, ensure_directory_exists_for_file_path, strip_compression_extension
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +38,9 @@ class PathOptimizedFileSystemStorage(FileSystemStorage):
     def finalize(self, file_path):
         return super().finalize(self._get_optimized_path(file_path))
 
+    def is_finalized(self, file_path):
+        return super().is_finalized(self._get_optimized_path(file_path))
+
     def list_directory(self, directory_path, sort_direction=1):
         if sort_direction not in (1, -1, None):
             raise ValueError('sort_direction must be either of the values: 1, -1, None')
@@ -47,6 +50,11 @@ class PathOptimizedFileSystemStorage(FileSystemStorage):
             yield from generator
         else:
             yield from sorted(generator, reverse=sort_direction == -1)
+
+    def move(self, source, destination):
+        optimized_destination = self._get_optimized_path(destination)
+        ensure_directory_exists_for_file_path(optimized_destination)
+        super().move(self._get_optimized_path(source), optimized_destination)
 
     def _list_directory_generator(self, directory_path):
         for dir_path, _, filenames in os.walk(directory_path):

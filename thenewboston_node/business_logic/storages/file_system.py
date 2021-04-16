@@ -5,7 +5,7 @@ import lzma
 import os
 import stat
 
-from thenewboston_node.business_logic.storages import exceptions
+from thenewboston_node.business_logic import exceptions
 from thenewboston_node.core.logging import timeit_method
 
 # TODO(dmu) LOW: Support more / better compression methods
@@ -26,6 +26,12 @@ STAT_WRITE_PERMS_ALL = stat.S_IWGRP | stat.S_IWUSR | stat.S_IWOTH
 logger = logging.getLogger(__name__)
 
 
+def ensure_directory_exists_for_file_path(file_path):
+    directory = os.path.dirname(file_path)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+
+
 def drop_write_permissions(filename):
     current_mode = os.stat(filename).st_mode
     mode = current_mode - (current_mode & STAT_WRITE_PERMS_ALL)
@@ -33,9 +39,7 @@ def drop_write_permissions(filename):
 
 
 def has_write_permissions(filename):
-    current_mode = os.stat(filename).st_mode
-    mode = current_mode & STAT_WRITE_PERMS_ALL
-    return bool(mode)
+    return bool(os.stat(filename).st_mode & STAT_WRITE_PERMS_ALL)
 
 
 def strip_compression_extension(filename):
@@ -91,6 +95,9 @@ class FileSystemStorage:
         #                     that are intended to operate on a give directory without nesting
         raise NotImplementedError
 
+    def move(self, source, destination):
+        os.rename(source, destination)
+
     @timeit_method()
     def _compress(self, file_path) -> str:
         compressors = self.compressors
@@ -128,9 +135,7 @@ class FileSystemStorage:
         return best_filename
 
     def _persist(self, file_path, binary_data: bytes, mode, is_final=False):
-        directory = os.path.dirname(file_path)
-        if directory:
-            os.makedirs(directory, exist_ok=True)
+        ensure_directory_exists_for_file_path(file_path)
 
         # TODO(dmu) HIGH: Optimize for 'wb' mode so we do not need to reread the file from
         #                 filesystem to compress it
@@ -143,14 +148,15 @@ class FileSystemStorage:
         new_filename = self._compress(file_path)
         drop_write_permissions(new_filename)
 
-    def _is_finalized(self, file_path):
+    @staticmethod
+    def is_finalized(file_path):
         return (
             exist_compressed_file(file_path) or (os.path.exists(file_path) and not has_write_permissions(file_path))
         )
 
     def _write_file(self, file_path, binary_data: bytes, mode):
-        if self._is_finalized(file_path):
-            raise exceptions.FinalizedFileWriteError(f"File is finalized '{file_path}'")
+        if self.is_finalized(file_path):
+            raise exceptions.FinalizedFileWriteError(f'Could not write to finalized file: {file_path}')
 
         with open(file_path, mode=mode) as fo:
             fo.write(binary_data)

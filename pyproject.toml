@@ -22,6 +22,7 @@ dataclasses-json = "^0.5.2"
 tqdm = "^4.59.0"
 msgpack = "^1.0.2"
 more-itertools = "^8.7.0"
+cachetools = "^4.2.1"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.10.1"
@@ -32,6 +33,7 @@ pytest-django = "^4.1.0"
 pytest-xdist = "^2.2.1"
 pdbpp = "^0.10.2"
 colorlog = "^4.8.0"
+yappi = "^1.3.2"
 
 [tool.poetry.scripts]
 generate-blockchain = "thenewboston_node.cli.generate_blockchain:entry"

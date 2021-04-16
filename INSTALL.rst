@@ -79,7 +79,7 @@ to get the latest version for development.
     cp thenewboston_node/project/settings/templates/.env .
     vim .env  # edit file if needed
 
-#. Do `Update`_ section
+#. Install dependencies, run migrations, etc by doing `Update`_ section steps
 #. Create superuser::
 
     make create-superuser

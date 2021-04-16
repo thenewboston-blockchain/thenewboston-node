@@ -24,6 +24,7 @@ else:
 include(*(
     'base.py',
     'logging.py',
+    'blockchain.py',
     'custom.py',
 ) + overriding_settings + ('sentry.py', 'docker.py'))
 

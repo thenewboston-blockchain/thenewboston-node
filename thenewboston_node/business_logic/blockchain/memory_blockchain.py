@@ -21,7 +21,9 @@ class MemoryBlockchain(BlockchainBase):
         blocks: Optional[list[Block]] = None,
         validate=True,
         drop_intermediate_account_root_files=True,
+        **kwargs,
     ):
+        super().__init__(**kwargs)
         self.account_root_files: list[AccountRootFile] = (
             copy.deepcopy(account_root_files) if account_root_files else []
         )

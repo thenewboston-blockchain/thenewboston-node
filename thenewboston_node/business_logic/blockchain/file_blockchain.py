@@ -1,7 +1,7 @@
 import logging
 import os.path
 import re
-from typing import Generator
+from typing import Generator, Optional
 
 import msgpack
 from cachetools import LRUCache
@@ -167,6 +167,16 @@ class FileBlockchain(BlockchainBase):
             assert start <= block_number
 
             yield from self._iter_blocks_from_file_path(file_path, direction=1, start=block_number)
+
+    def get_block_by_number(self, block_number: int) -> Optional[Block]:
+        block = self.blocks_cache.get(block_number)
+        if block is not None:
+            return block
+
+        try:
+            return next(self.iter_blocks_from(block_number))
+        except StopIteration:
+            return None
 
     def get_block_count(self) -> int:
         count = 0

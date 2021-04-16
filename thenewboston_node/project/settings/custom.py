@@ -12,5 +12,3 @@ NETWORK = {
     'class': 'thenewboston_node.business_logic.network.tcp_network.TCPNetwork',
     'kwargs': {},
 }
-
-AUTO_CREATE_ACCOUNT_ROOT_FILE_EVERY_BLOCKS = 100

@@ -12,7 +12,7 @@ from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.account_balance import AccountBalance, BlockAccountBalance
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.business_logic.models.transfer_request import TransferRequest
-from thenewboston_node.core.logging import timeit_method, validates
+from thenewboston_node.core.logging import timeit, timeit_method, validates
 from thenewboston_node.core.utils.importing import import_from_string
 
 from ..models.block import Block
@@ -25,6 +25,9 @@ logger = logging.getLogger(__name__)
 class BlockchainBase:
 
     _instance = None
+
+    def __init__(self, arf_creation_period_in_blocks=None):
+        self.arf_creation_period_in_blocks = arf_creation_period_in_blocks
 
     @classmethod
     def get_instance(cls: Type[T]) -> T:
@@ -140,8 +143,8 @@ class BlockchainBase:
 
         self.persist_block(block)
 
-        period = settings.AUTO_CREATE_ACCOUNT_ROOT_FILE_EVERY_BLOCKS
-        if period is not None and block_number // period == 0 and block_number > 0:
+        period = self.arf_creation_period_in_blocks
+        if period is not None and (block_number + 1) % period == 0:
             self.make_account_root_file()
 
     def get_first_block(self) -> Optional[Block]:
@@ -233,6 +236,7 @@ class BlockchainBase:
 
         return None
 
+    @timeit(is_method=True, verbose_args=True)
     def get_blocks_until_account_root_file(self, from_block_number: Optional[int] = None):
         """
         Return generator of block traversing from `from_block_number` block (or head block if not specified)
@@ -256,6 +260,7 @@ class BlockchainBase:
             return
 
         account_root_file_block_number = account_root_file.last_block_number
+        logger.debug('Closest account root file last block number is %s', account_root_file_block_number)
         assert (
             from_block_number is None or account_root_file_block_number is None or
             account_root_file_block_number <= from_block_number
@@ -264,6 +269,8 @@ class BlockchainBase:
         current_head_block = self.get_last_block()
         assert current_head_block
         current_head_block_number = current_head_block.message.block_number
+        logger.debug('Head block number is %s', current_head_block_number)
+
         if from_block_number is None or from_block_number > current_head_block_number:
             offset = 0
         else:
@@ -276,24 +283,25 @@ class BlockchainBase:
 
         start = offset
         stop = offset + blocks_to_return
-        logger.debug('Returning blocks head offset from %s to %s', -start, -stop)
+        logger.debug(
+            'Returning blocks head offset from %s to %s (%s block(s) to return)', -start, -stop, blocks_to_return
+        )
         # TODO(dmu) HIGH: Consider performance optimizations for islice(self.iter_blocks_reversed(), start, stop, 1)
         block = None
         for block in islice(self.iter_blocks_reversed(), start, stop, 1):
-            assert (
-                account_root_file_block_number is None or account_root_file_block_number < block.message.block_number
-            )
-
-            logger.debug('Returning block: %s', block)
+            block_number = block.message.block_number
+            assert account_root_file_block_number is None or account_root_file_block_number < block_number
+            logger.debug('Returning block number: %s', block_number)
             yield block
 
+        logger.debug('All blocks have been iterated over')
         # Assert we traversed all blocks up to the account root file
         if block:
             block_number = block.message.block_number
-            assert (
-                account_root_file_block_number is None and block_number == 0 or
-                account_root_file_block_number is not None and block_number == account_root_file_block_number + 1
-            )
+            if account_root_file_block_number is None:
+                assert block_number == 0
+            else:
+                assert block_number == account_root_file_block_number + 1
 
     def _get_balance_value_from_account_root_file(self,
                                                   account: str,

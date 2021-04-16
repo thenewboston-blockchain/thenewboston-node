@@ -19,7 +19,8 @@ logger = logging.getLogger(__name__)
 # TODO(dmu) LOW: Move these constants to configuration files
 ORDER_OF_ACCOUNT_ROOT_FILE = 10
 ORDER_OF_BLOCK = 20
-BLOCK_CHUNK_SIZE = 100
+
+ACCOUNT_ROOT_FILE_FILENAME_TEMPLATE = '{last_block_number}-arf.msgpack'
 BLOCK_CHUNK_FILENAME_TEMPLATE = '{start}-{end}-block-chunk.msgpack'
 BLOCK_CHUNK_FILENAME_RE = re.compile(
     BLOCK_CHUNK_FILENAME_TEMPLATE.format(start=r'(?P<start>\d+)', end=r'(?P<end>\d+)')
@@ -30,25 +31,55 @@ def get_start_end(file_path):
     filename = os.path.basename(file_path)
     match = BLOCK_CHUNK_FILENAME_RE.match(filename)
     if match:
-        return int(match.group('start')), int(match.group('end'))
+        start = int(match.group('start'))
+        end = int(match.group('end'))
+        assert start <= end
+        return start, end
 
     return None, None
 
 
 class FileBlockchain(BlockchainBase):
 
-    def __init__(self, base_directory, validate=True, account_root_files_cache_size=128, blocks_cache_size=1024):
+    def __init__(
+        self,
+        base_directory,
+        validate=True,
+
+        # Account root files
+        account_root_files_subdir='account-root-files',
+        account_root_files_cache_size=128,
+
+        # Blocks
+        blocks_subdir='blocks',
+        block_chunk_size=100,
+        blocks_cache_size=None,
+
+        # Misc
+        storage_kwargs=None,
+        **kwargs
+    ):
         if not os.path.isabs(base_directory):
             raise ValueError('base_directory must be an absolute path')
 
-        self.account_root_files_directory = os.path.join(base_directory, 'account-root-files')
-        self.blocks_directory = os.path.join(base_directory, 'blocks')
+        arf_creation_period_in_blocks = kwargs.setdefault('arf_creation_period_in_blocks', block_chunk_size)
+        super().__init__(**kwargs)
+
+        self.block_chunk_size = block_chunk_size
+
+        self.account_root_files_directory = os.path.join(base_directory, account_root_files_subdir)
+        self.blocks_directory = os.path.join(base_directory, blocks_subdir)
+
         self.base_directory = base_directory
 
-        self.storage = PathOptimizedFileSystemStorage()
+        self.storage = PathOptimizedFileSystemStorage(**(storage_kwargs or {}))
 
         self.account_root_files_cache = LRUCache(account_root_files_cache_size)
-        self.blocks_cache = LRUCache(blocks_cache_size)
+        self.blocks_cache = LRUCache(
+            # We do not really need to cache more than `arf_creation_period_in_blocks` blocks since
+            # we use use account root file as a base
+            arf_creation_period_in_blocks * 2 if blocks_cache_size is None else blocks_cache_size
+        )
 
         if validate:
             self.validate()
@@ -58,7 +89,9 @@ class FileBlockchain(BlockchainBase):
         last_block_number = account_root_file.last_block_number
 
         prefix = ('.' if last_block_number is None else str(last_block_number)).zfill(ORDER_OF_ACCOUNT_ROOT_FILE)
-        file_path = os.path.join(self.account_root_files_directory, f'{prefix}-arf.msgpack')
+        file_path = os.path.join(
+            self.account_root_files_directory, ACCOUNT_ROOT_FILE_FILENAME_TEMPLATE.format(last_block_number=prefix)
+        )
         self.storage.save(file_path, account_root_file.to_messagepack(), is_final=True)
 
     def _load_account_root_file(self, file_path):
@@ -90,10 +123,12 @@ class FileBlockchain(BlockchainBase):
 
     # Blocks methods
     def persist_block(self, block: Block):
-        block_number = block.message.block_number
-        chunk_number, offset = divmod(block_number, BLOCK_CHUNK_SIZE)
+        block_chunk_size = self.block_chunk_size
 
-        chunk_block_number_start = chunk_number * BLOCK_CHUNK_SIZE
+        block_number = block.message.block_number
+        chunk_number, offset = divmod(block_number, block_chunk_size)
+
+        chunk_block_number_start = chunk_number * block_chunk_size
         start_str = str(chunk_block_number_start).zfill(ORDER_OF_BLOCK)
         end_str = str(block_number).zfill(ORDER_OF_BLOCK)
 
@@ -113,18 +148,28 @@ class FileBlockchain(BlockchainBase):
         if append_filename != filename:
             self.storage.move(append_file_path, file_path)
 
-        if offset == BLOCK_CHUNK_SIZE - 1:
+        if offset == block_chunk_size - 1:
             self.storage.finalize(file_path)
 
     def iter_blocks(self) -> Generator[Block, None, None]:
         yield from self._iter_blocks(1)
 
+    @timeit(verbose_args=True, is_method=True)
     def iter_blocks_reversed(self) -> Generator[Block, None, None]:
         yield from self._iter_blocks(-1)
 
     def get_block_count(self) -> int:
-        return ilen(self.storage.list_directory(self.blocks_directory))
+        count = 0
+        for file_path in self.storage.list_directory(self.blocks_directory):
+            start, end = get_start_end(file_path)
+            assert start is not None
+            assert end is not None
 
+            count += end - start + 1
+
+        return count
+
+    @timeit(verbose_args=True, is_method=True)
     def _iter_blocks(self, direction) -> Generator[Block, None, None]:
         assert direction in (1, -1)
 
@@ -133,18 +178,24 @@ class FileBlockchain(BlockchainBase):
             start, end = get_start_end(file_path)
             assert start is not None
             assert end is not None
+
             last_block_number = None
             for block in self._iter_blocks_from_cache(start, end, direction):
                 last_block_number = block.message.block_number
                 yield block
 
-            assert last_block_number is None or last_block_number <= end
-            if last_block_number == end:
-                continue
+            if last_block_number is not None:
+                if direction == 1:
+                    assert last_block_number <= end
+                    if last_block_number == end:
+                        continue
+                else:
+                    assert start <= last_block_number
+                    if last_block_number == start:
+                        continue
 
             yield from self._iter_blocks_from_file(file_path, direction, start=last_block_number)
 
-    @timeit(verbose_args=True, is_method=True)
     def _iter_blocks_from_file(self, file_path, direction, start=None):
         assert direction in (1, -1)
 
@@ -166,7 +217,6 @@ class FileBlockchain(BlockchainBase):
             self.blocks_cache[block_number] = block
             yield block
 
-    @timeit(verbose_args=True, is_method=True)
     def _iter_blocks_from_cache(self, start_block_number, end_block_number, direction):
         assert direction in (1, -1)
 
@@ -174,8 +224,8 @@ class FileBlockchain(BlockchainBase):
         if direction == -1:
             iter_ = always_reversible(iter_)
 
-        for key in iter_:
-            block = self.blocks_cache.get(key)
+        for block_number in iter_:
+            block = self.blocks_cache.get(block_number)
             if block is None:
                 break
 

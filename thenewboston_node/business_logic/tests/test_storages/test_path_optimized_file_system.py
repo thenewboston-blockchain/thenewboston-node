@@ -9,7 +9,7 @@ import pytest
 from thenewboston_node.business_logic.storages.path_optimized_file_system import (
     PathOptimizedFileSystemStorage, make_optimized_file_path
 )
-from thenewboston_node.business_logic.tests.test_storages.util import mkdir_and_touch
+from thenewboston_node.business_logic.tests.test_storages.utils import mkdir_and_touch
 
 
 def test_make_optimized_file_path():

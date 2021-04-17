@@ -4,7 +4,7 @@ import pytest
 
 from thenewboston_node.business_logic import exceptions
 from thenewboston_node.business_logic.storages.file_system import FileSystemStorage
-from thenewboston_node.business_logic.tests.test_storages.util import compress, decompress
+from thenewboston_node.business_logic.tests.test_storages.utils import compress, decompress
 
 
 @pytest.mark.parametrize('compression', ('gz', 'bz2', 'xz'))

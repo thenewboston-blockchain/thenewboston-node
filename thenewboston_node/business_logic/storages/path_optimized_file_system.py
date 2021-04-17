@@ -58,9 +58,14 @@ class PathOptimizedFileSystemStorage(FileSystemStorage):
 
     def _list_directory_generator(self, directory_path):
         for dir_path, _, filenames in os.walk(directory_path):
-            filenames = map(strip_compression_extension, filenames)
-            filenames = set(filenames)  # remove duplicated files after strip
-            for filename in filenames:
+            original_filenames = map(strip_compression_extension, filenames)
+            unique_filenames = set(original_filenames)  # remove duplicated files after strip
+
+            duplicates = len(filenames) - len(unique_filenames)
+            if duplicates:
+                logger.warning(f'Duplicated files found: {duplicates}')
+
+            for filename in unique_filenames:
                 file_path = os.path.join(dir_path, filename)
 
                 path = os.path.join(directory_path, filename)

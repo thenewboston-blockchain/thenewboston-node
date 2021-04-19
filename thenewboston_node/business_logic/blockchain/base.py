@@ -204,6 +204,12 @@ class BlockchainBase:
         lock = self._get_balance_lock_from_account_root_file(account, block_number)
         return account if lock is None else lock
 
+    def get_account_balance(self, account) -> AccountBalance:
+        return AccountBalance(
+            value=self.get_balance_value(account) or 0,
+            lock=self.get_balance_lock(account),
+        )
+
     @timeit_method()
     def _get_balance_lock_from_block(self, account: str, block_number: Optional[int] = None) -> Optional[str]:
         balance = self._get_balance_from_block(account, block_number, must_have_lock=True)

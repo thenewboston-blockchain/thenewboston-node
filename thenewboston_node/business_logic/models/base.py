@@ -11,13 +11,34 @@ from thenewboston_node.core.utils.cryptography import (
 )
 
 COMPACT_KEY_MAP = {
+    # account root file
     'accounts': 'a',
     'last_block_number': 'lbn',
     'last_block_identifier': 'lbi',
     'last_block_timestamp': 'lbt',
     'next_block_identifier': 'nbi',
+    # account balance
     'value': 'v',
     'lock': 'l',
+    # block
+    'node_identifier': 'ni',
+    'message': 'm',
+    'message_hash': 'mh',
+    'message_signature': 'ms',
+    # block message
+    'transfer_request': 'tr',
+    'timestamp': 't',
+    'block_number': 'bn',
+    'block_identifier': 'bi',
+    'updated_balances': 'ub',
+    # transfer request
+    'sender': 's',
+    # transfer request message
+    'balance_lock': 'bl',
+    # transaction
+    'recipient': 'r',
+    'amount': 'at',
+    'fee': 'f',
 }
 
 UNCOMPACT_KEY_MAP = {value: key for key, value in COMPACT_KEY_MAP.items()}

@@ -163,6 +163,29 @@ optional = false
 python-versions = ">=3.6,<4.0"
 
 [[package]]
+name = "djangorestframework"
+version = "3.12.4"
+description = "Web APIs for Django, made easy."
+category = "main"
+optional = false
+python-versions = ">=3.5"
+
+[package.dependencies]
+django = ">=2.2"
+
+[[package]]
+name = "djangorestframework-dataclasses"
+version = "0.9"
+description = "A dataclasses serializer for Django REST Framework"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+django = ">=2.0"
+djangorestframework = ">=3.9"
+
+[[package]]
 name = "execnet"
 version = "1.8.0"
 description = "execnet: rapid multi-Python deployment"
@@ -666,7 +689,7 @@ test = ["gevent (>=20.6.2)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "5ef1c4e7850ac6c25550af57953a7422a1206a0064ec0e43aa41f6ca62e5ad86"
+content-hash = "e85dfb79ff03af57798836223a535388af3f7570adf99b0cd583cfbd17e394c3"
 
 [metadata.files]
 apipkg = [
@@ -817,6 +840,14 @@ django = [
 django-split-settings = [
     {file = "django-split-settings-1.0.1.tar.gz", hash = "sha256:2da16cd967cd38315ec7ff0ae0c9db8488f8528bb2e5de26cd898328dc4bbeac"},
     {file = "django_split_settings-1.0.1-py3-none-any.whl", hash = "sha256:8d636649023289d0ef0ba08b0a4f37761adc94a29ee0ebfe65922c3cb0594ede"},
+]
+djangorestframework = [
+    {file = "djangorestframework-3.12.4-py3-none-any.whl", hash = "sha256:6d1d59f623a5ad0509fe0d6bfe93cbdfe17b8116ebc8eda86d45f6e16e819aaf"},
+    {file = "djangorestframework-3.12.4.tar.gz", hash = "sha256:f747949a8ddac876e879190df194b925c177cdeb725a099db1460872f7c0a7f2"},
+]
+djangorestframework-dataclasses = [
+    {file = "djangorestframework-dataclasses-0.9.tar.gz", hash = "sha256:ad04e820ee3ce1ac44e38347a24f53c62b642f2a08d910e61c289d9d1a7a8b69"},
+    {file = "djangorestframework_dataclasses-0.9-py3-none-any.whl", hash = "sha256:2b05e08d3e9c52268d50a1b82ccafa52baac6b7df8ba08ce82b32e661c5a9434"},
 ]
 execnet = [
     {file = "execnet-1.8.0-py2.py3-none-any.whl", hash = "sha256:7a13113028b1e1cc4c6492b28098b3c6576c9dccc7973bfe47b342afadafb2ac"},

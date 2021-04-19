@@ -20,7 +20,7 @@ def test_root_account_file_is_created_every_x_block(
         validate=False,
         arf_creation_period_in_blocks=5,
         account_root_files_subdir='account-root-files',
-        storage_kwargs={'compressors': ()}
+        account_root_files_storage_kwargs={'compressors': ()}
     )
     blockchain.add_account_root_file(initial_account_root_file)
     assert os.path.isfile(str(blockchain_path / 'account-root-files/0/0/0/0/0/0/0/0/000000000.-arf.msgpack'))

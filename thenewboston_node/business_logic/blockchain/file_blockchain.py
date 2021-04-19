@@ -56,7 +56,8 @@ class FileBlockchain(BlockchainBase):
         blocks_cache_size=None,
 
         # Misc
-        storage_kwargs=None,
+        blocks_storage_kwargs=None,
+        account_root_files_storage_kwargs=None,
         **kwargs
     ):
         if not os.path.isabs(base_directory):
@@ -72,7 +73,8 @@ class FileBlockchain(BlockchainBase):
 
         self.base_directory = base_directory
 
-        self.storage = PathOptimizedFileSystemStorage(**(storage_kwargs or {}))
+        self.block_storage = PathOptimizedFileSystemStorage(**(blocks_storage_kwargs or {}))
+        self.account_root_files_storage = PathOptimizedFileSystemStorage(**(account_root_files_storage_kwargs or {}))
 
         self.account_root_files_cache = LRUCache(account_root_files_cache_size)
         self.blocks_cache = LRUCache(
@@ -86,21 +88,22 @@ class FileBlockchain(BlockchainBase):
 
     # Account root files methods
     def persist_account_root_file(self, account_root_file: AccountRootFile):
+        storage = self.account_root_files_storage
         last_block_number = account_root_file.last_block_number
 
         prefix = ('.' if last_block_number is None else str(last_block_number)).zfill(ORDER_OF_ACCOUNT_ROOT_FILE)
         file_path = os.path.join(
             self.account_root_files_directory, ACCOUNT_ROOT_FILE_FILENAME_TEMPLATE.format(last_block_number=prefix)
         )
-        self.storage.save(file_path, account_root_file.to_messagepack(), is_final=True)
+        storage.save(file_path, account_root_file.to_messagepack(), is_final=True)
 
     def _load_account_root_file(self, file_path):
         cache = self.account_root_files_cache
         account_root_file = cache.get(file_path)
         if account_root_file is None:
-            storage = self.storage
+            storage = self.account_root_files_storage
             assert storage.is_finalized(file_path)
-            account_root_file = AccountRootFile.from_messagepack(self.storage.load(file_path))
+            account_root_file = AccountRootFile.from_messagepack(storage.load(file_path))
             cache[file_path] = account_root_file
 
         return account_root_file
@@ -108,7 +111,7 @@ class FileBlockchain(BlockchainBase):
     def _iter_account_root_files(self, direction) -> Generator[AccountRootFile, None, None]:
         assert direction in (1, -1)
 
-        storage = self.storage
+        storage = self.account_root_files_storage
         for file_path in storage.list_directory(self.account_root_files_directory, sort_direction=direction):
             yield self._load_account_root_file(file_path)
 
@@ -119,10 +122,12 @@ class FileBlockchain(BlockchainBase):
         yield from self._iter_account_root_files(-1)
 
     def get_account_root_file_count(self) -> int:
-        return ilen(self.storage.list_directory(self.account_root_files_directory))
+        storage = self.account_root_files_storage
+        return ilen(storage.list_directory(self.account_root_files_directory))
 
     # Blocks methods
     def persist_block(self, block: Block):
+        storage = self.block_storage
         block_chunk_size = self.block_chunk_size
 
         block_number = block.message.block_number
@@ -142,14 +147,14 @@ class FileBlockchain(BlockchainBase):
         filename = BLOCK_CHUNK_FILENAME_TEMPLATE.format(start=start_str, end=end_str)
 
         append_file_path = os.path.join(self.blocks_directory, append_filename)
-        self.storage.append(append_file_path, block.to_messagepack())
+        storage.append(append_file_path, block.to_messagepack())
 
         file_path = os.path.join(self.blocks_directory, filename)
         if append_filename != filename:
-            self.storage.move(append_file_path, file_path)
+            storage.move(append_file_path, file_path)
 
         if offset == block_chunk_size - 1:
-            self.storage.finalize(file_path)
+            storage.finalize(file_path)
 
     def iter_blocks(self) -> Generator[Block, None, None]:
         yield from self._iter_blocks(1)
@@ -221,9 +226,10 @@ class FileBlockchain(BlockchainBase):
 
     def _iter_blocks_from_file(self, file_path, direction, start=None):
         assert direction in (1, -1)
+        storage = self.block_storage
 
         unpacker = msgpack.Unpacker()
-        unpacker.feed(self.storage.load(file_path))
+        unpacker.feed(storage.load(file_path))
         if direction == -1:
             unpacker = always_reversible(unpacker)
 
@@ -255,4 +261,5 @@ class FileBlockchain(BlockchainBase):
             yield block
 
     def _list_block_directory(self, direction=1):
-        yield from self.storage.list_directory(self.blocks_directory, sort_direction=direction)
+        storage = self.block_storage
+        yield from storage.list_directory(self.blocks_directory, sort_direction=direction)

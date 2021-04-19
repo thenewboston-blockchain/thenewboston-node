@@ -107,3 +107,25 @@ def test_move(blockchain_path):
     assert os.path.isfile(destination)
     assert not os.path.isfile(source)
     assert fss.load(destination) == b'AAA'
+
+
+@pytest.mark.parametrize('is_final', (True, False))
+def test_cannot_append_to_compressed_finalized_file(blockchain_path, compressible_data, is_final):
+    fss = FileSystemStorage(compressors=('gz',))
+    file_path = str(blockchain_path / 'file.txt')
+
+    fss.save(file_path, binary_data=compressible_data, is_final=True)
+
+    with pytest.raises(exceptions.FinalizedFileWriteError):
+        fss.append(file_path, b'appended data', is_final)
+
+
+@pytest.mark.parametrize('is_final', (True, False))
+def test_cannot_append_to_raw_finalized_file(blockchain_path, incompressible_data, is_final):
+    fss = FileSystemStorage(compressors=())
+    file_path = str(blockchain_path / 'file.txt')
+
+    fss.save(file_path, binary_data=incompressible_data, is_final=True)
+
+    with pytest.raises(exceptions.FinalizedFileWriteError):
+        fss.append(file_path, b'appended data', is_final)

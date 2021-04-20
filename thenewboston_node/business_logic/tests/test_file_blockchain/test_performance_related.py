@@ -3,7 +3,7 @@ from thenewboston_node.business_logic.tests.factories import BlockFactory
 
 
 def test_iter_blocks_from_cache(blockchain_directory):
-    blockchain = FileBlockchain(blockchain_directory, validate=False)
+    blockchain = FileBlockchain(base_directory=blockchain_directory)
     blockchain.blocks_cache[0] = block0 = BlockFactory(message_hash='0')
     blockchain.blocks_cache[1] = block1 = BlockFactory(message_hash='1')
     blockchain.blocks_cache[2] = block2 = BlockFactory(message_hash='2')

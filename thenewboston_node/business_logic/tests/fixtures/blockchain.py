@@ -7,7 +7,7 @@ import pytest
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.blockchain.mock_blockchain import MockBlockchain
-from thenewboston_node.business_logic.utils.blockchain import generate_blockchain
+from thenewboston_node.business_logic.tests.factories import add_blocks_to_blockchain
 
 LARGE_MEMORY_BLOCKCHAIN_SIZE = 100
 
@@ -44,40 +44,53 @@ def get_balance_lock_mock():
         yield mock
 
 
-@pytest.fixture
-def forced_memory_blockchain(initial_account_root_file):
-    blockchain_settings = {
-        'class': 'thenewboston_node.business_logic.blockchain.memory_blockchain.MemoryBlockchain',
-        'kwargs': {
-            'account_root_files': [initial_account_root_file]
-        }
-    }
+def yield_forced_blockchain(class_, initial_account_root_file, class_kwargs=None):
+    blockchain_settings = {'class': class_, 'kwargs': class_kwargs or {}}
 
     BlockchainBase.clear_instance_cache()
     with override_settings(BLOCKCHAIN=blockchain_settings):
-        yield BlockchainBase.get_instance()
+        blockchain = BlockchainBase.get_instance()
+        blockchain.add_account_root_file(initial_account_root_file)
+        blockchain.validate()
+        yield blockchain
     BlockchainBase.clear_instance_cache()
+
+
+@pytest.fixture
+def forced_memory_blockchain(initial_account_root_file):
+    yield from yield_forced_blockchain(
+        'thenewboston_node.business_logic.blockchain.memory_blockchain.MemoryBlockchain',
+        initial_account_root_file,
+    )
+
+
+@pytest.fixture
+def forced_file_blockchain(initial_account_root_file, blockchain_directory):
+    yield from yield_forced_blockchain(
+        'thenewboston_node.business_logic.blockchain.file_blockchain.FileBlockchain',
+        initial_account_root_file,
+        class_kwargs={
+            'base_directory': blockchain_directory,
+        }
+    )
 
 
 @pytest.fixture(autouse=True)  # Autouse for safety reasons
-def forced_mock_blockchain():
-    blockchain_settings = {
-        'class': 'thenewboston_node.business_logic.blockchain.mock_blockchain.MockBlockchain',
-        'kwargs': {}
-    }
-
-    BlockchainBase.clear_instance_cache()
-    with override_settings(BLOCKCHAIN=blockchain_settings):
-        yield BlockchainBase.get_instance()
-    BlockchainBase.clear_instance_cache()
+def forced_mock_blockchain(initial_account_root_file):
+    yield from yield_forced_blockchain(
+        'thenewboston_node.business_logic.blockchain.mock_blockchain.MockBlockchain', initial_account_root_file
+    )
 
 
 @pytest.fixture
-def large_memory_blockchain(forced_memory_blockchain, treasury_account_key_pair):
-    generate_blockchain(
-        forced_memory_blockchain,
-        LARGE_MEMORY_BLOCKCHAIN_SIZE,
-        add_initial_account_root_file=False,
-        treasury_account_key_pair=treasury_account_key_pair
-    )
-    yield forced_memory_blockchain
+def large_blockchain(treasury_account_key_pair):
+    blockchain = BlockchainBase.get_instance()
+
+    accounts = blockchain.get_first_account_root_file().accounts
+    assert len(accounts) == 1
+    treasury_account, account_balance = list(accounts.items())[0]
+    assert treasury_account_key_pair.public == treasury_account
+    assert account_balance.value > 10000000000  # tons of money present
+
+    add_blocks_to_blockchain(blockchain, 100, treasury_account_key_pair.private)
+    yield blockchain

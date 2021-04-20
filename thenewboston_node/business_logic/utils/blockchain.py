@@ -1,3 +1,4 @@
+import logging
 import random
 
 from tqdm import tqdm
@@ -12,6 +13,8 @@ from thenewboston_node.core.utils.cryptography import generate_key_pair
 
 MAX_AMOUNT = 100
 
+logger = logging.getLogger(__name__)
+
 
 def pick_recipient(candidates, exclude=(), pick_existing_probability=0.5):
     recipient = None
@@ -23,6 +26,7 @@ def pick_recipient(candidates, exclude=(), pick_existing_probability=0.5):
 
     if recipient is None:
         recipient_key_pair = generate_key_pair()
+        logger.info('New recipient account: %s', recipient_key_pair)
         recipient = recipient_key_pair.public
         private_key = recipient_key_pair.private
 
@@ -42,6 +46,7 @@ def generate_blockchain(
 ):
     treasury_account_key_pair = treasury_account_key_pair or generate_key_pair()
     treasury_account = treasury_account_key_pair.public
+    logger.info('Using treasury account: %s', treasury_account_key_pair)
 
     if add_initial_account_root_file and blockchain.get_account_root_file_count() == 0:
         initial_account_root_file = AccountRootFile(

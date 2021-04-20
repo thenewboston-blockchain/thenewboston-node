@@ -1,5 +1,6 @@
 import argparse
 import os
+import os.path
 import sys
 
 import django
@@ -11,12 +12,16 @@ from thenewboston_node.business_logic.utils.blockchain import generate_blockchai
 
 def main(size, path=None, validate=True):
     if path:
-        os.makedirs(path, exist_ok=True)
-        blockchain = FileBlockchain(path, validate=False)
-    else:
-        blockchain = MemoryBlockchain(validate=False)
+        if os.path.exists(path):
+            print(f'Path {path} already exists')
+            return
 
-    generate_blockchain(blockchain, size)
+        os.makedirs(path)
+        blockchain = FileBlockchain(base_directory=os.path.abspath(path))
+    else:
+        blockchain = MemoryBlockchain()
+
+    generate_blockchain(blockchain, size, validate=validate)
 
 
 def get_args():
@@ -25,9 +30,7 @@ def get_args():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument('size', type=int, help='Number of blocks to generate')
-    parser.add_argument(
-        '--path', help='Blockchain base directory absolute path (by default memory blockchain is used)'
-    )
+    parser.add_argument('--path', help='Blockchain base directory (if not specified then memory blockchain is used)')
     parser.add_argument('--do-not-validate', action='store_true')
     return parser.parse_args()
 

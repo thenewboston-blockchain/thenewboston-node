@@ -68,7 +68,7 @@ to get the latest version for development.
 
     mkdir local
     cp thenewboston_node/project/settings/templates/settings.py ./local/settings.py
-    cp thenewboston_node/project/settings/templates/settings.py ./local/settings.unittests.py
+    cp thenewboston_node/project/settings/templates/settings.unittests.py ./local/settings.unittests.py
 
     # Edit files if needed
     vim ./local/settings.py
@@ -83,6 +83,12 @@ to get the latest version for development.
 #. Create superuser::
 
     make create-superuser
+
+#. Generate sample blockchain::
+
+    # Generate account numbers will be logged on INFO level
+    mkdir -p local/blockchain
+    generate-blockchain --path local/blockchain --do-not-validate 200
 
 Update
 ++++++

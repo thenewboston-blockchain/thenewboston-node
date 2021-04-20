@@ -8,3 +8,6 @@ class MockBlockchain(BlockchainBase):  # pragma: no cover
 
     def add_account_root_file(self, account_root_file):
         pass
+
+    def validate(self, is_partial_allowed: bool = True):
+        pass

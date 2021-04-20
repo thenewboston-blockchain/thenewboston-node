@@ -13,3 +13,4 @@ max-linenumber = 500
 multiline-quotes = double
 per-file-ignores =
     thenewboston_node/project/settings/templates/settings.py:F821
+    thenewboston_node/project/settings/templates/settings.unittests.py:F821

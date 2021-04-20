@@ -21,6 +21,6 @@ def primary_validator_key_pair() -> KeyPair:
 @pytest.fixture
 def treasury_account_key_pair() -> KeyPair:
     return KeyPair(
-        '4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732',
-        '1104d51eb539e66fa108f99d18ab179aa98c10678961821ddd87bfdbf351cb79',
+        public='4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732',
+        private='1104d51eb539e66fa108f99d18ab179aa98c10678961821ddd87bfdbf351cb79',
     )

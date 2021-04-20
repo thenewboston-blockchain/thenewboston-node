@@ -17,9 +17,9 @@ class MemoryBlockchain(BlockchainBase):
 
     def __init__(
         self,
+        *,
         account_root_files: list[AccountRootFile] = None,
         blocks: Optional[list[Block]] = None,
-        validate=True,
         drop_intermediate_account_root_files=True,
         **kwargs,
     ):
@@ -29,9 +29,6 @@ class MemoryBlockchain(BlockchainBase):
         )
         self.blocks: list[Block] = copy.deepcopy(blocks) if blocks else []
         self.drop_intermediate_account_root_files = drop_intermediate_account_root_files
-
-        if validate:
-            self.validate()
 
     # Account root files related implemented methods
     def persist_account_root_file(self, account_root_file: AccountRootFile):

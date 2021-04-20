@@ -43,21 +43,19 @@ class FileBlockchain(BlockchainBase):
 
     def __init__(
         self,
+        *,
         base_directory,
-        validate=True,
 
         # Account root files
         account_root_files_subdir='account-root-files',
         account_root_files_cache_size=128,
+        account_root_files_storage_kwargs=None,
 
         # Blocks
         blocks_subdir='blocks',
         block_chunk_size=100,
         blocks_cache_size=None,
-
-        # Misc
         blocks_storage_kwargs=None,
-        account_root_files_storage_kwargs=None,
         **kwargs
     ):
         if not os.path.isabs(base_directory):
@@ -82,9 +80,6 @@ class FileBlockchain(BlockchainBase):
             # we use use account root file as a base
             arf_creation_period_in_blocks * 2 if blocks_cache_size is None else blocks_cache_size
         )
-
-        if validate:
-            self.validate()
 
     # Account root files methods
     def persist_account_root_file(self, account_root_file: AccountRootFile):

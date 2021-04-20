@@ -6,9 +6,24 @@ from thenewboston_node.business_logic.models.block_message import BlockMessage
 from thenewboston_node.business_logic.models.transaction import Transaction
 from thenewboston_node.business_logic.models.transfer_request import TransferRequest
 from thenewboston_node.business_logic.models.transfer_request_message import TransferRequestMessage
+from thenewboston_node.business_logic.utils.blockchain import generate_blockchain
+from thenewboston_node.core.utils.cryptography import KeyPair, derive_verify_key
 from thenewboston_node.core.utils.factory import factory
 
 DEFAULT_ACCOUNT = 'd5356888dc9303e44ce52b1e06c3165a7759b9df1e6a6dfbd33ee1c3df1ab4d1'
+
+
+def add_blocks_to_blockchain(blockchain, block_count, treasury_account_private_key):
+    treasury_account_key_pair = KeyPair(
+        public=derive_verify_key(treasury_account_private_key), private=treasury_account_private_key
+    )
+    generate_blockchain(
+        blockchain,
+        block_count,
+        add_initial_account_root_file=False,
+        validate=False,
+        treasury_account_key_pair=treasury_account_key_pair
+    )
 
 
 @factory(Transaction)

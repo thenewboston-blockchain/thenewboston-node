@@ -162,6 +162,22 @@ class BlockchainBase:
             return None
 
     # Not sorted (yet) methods
+    def iter_known_accounts(self):
+        known_accounts = set()
+        for block in self.get_blocks_until_account_root_file():
+            block_accounts = set(block.message.updated_balances.keys())
+            new_accounts = block_accounts - known_accounts
+            known_accounts |= new_accounts
+            for new_account in new_accounts:
+                yield new_account
+
+        last_account_root_file = self.get_first_account_root_file()
+        account_root_file_accounts = last_account_root_file.accounts.keys()
+        new_accounts = account_root_file_accounts - known_accounts
+        known_accounts |= new_accounts
+        for new_account in new_accounts:
+            yield new_account
+
     @timeit_method(level=logging.INFO)
     def add_block_from_transfer_request(self, transfer_request: TransferRequest, validate=True):
         block = Block.from_transfer_request(self, transfer_request)

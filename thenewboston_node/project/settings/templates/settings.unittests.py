@@ -14,5 +14,3 @@ LOGGING['handlers']['console']['level'] = 'DEBUG'
 LOGGING['handlers']['console']['formatter'] = 'colored'
 
 IS_LOCAL_SETTINGS_FILE_APPLIED = True
-
-BLOCKCHAIN['kwargs']['base_directory'] = '<replace with absolute path to local/blockchain directory>'

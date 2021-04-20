@@ -15,7 +15,7 @@ def test_can_add_block(
     primary_validator_key_pair: KeyPair,
     node_key_pair: KeyPair,
 ):
-    blockchain = FileBlockchain(blockchain_directory, validate=False)
+    blockchain = FileBlockchain(base_directory=blockchain_directory)
     blockchain.add_account_root_file(initial_account_root_file)
     blockchain.validate()
 

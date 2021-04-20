@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from thenewboston_node.business_logic.models.account_balance import AccountBalance, BlockAccountBalance
+from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.models.block_message import BlockMessage
 from thenewboston_node.business_logic.models.transaction import Transaction
@@ -49,13 +50,13 @@ class TransferRequestFactory:
 @factory(AccountBalance)
 class AccountBalanceFactory:
     value = 1000
-    lock = 'test value'
+    lock = '9e310e76f63b83abef5674d5cd1445535c9aa7395a96e0381edc368a2840a598'
 
 
 @factory(BlockAccountBalance)
 class BlockAccountBalanceFactory:
     value = 1000
-    lock = 'test value'
+    lock = '9e310e76f63b83abef5674d5cd1445535c9aa7395a96e0381edc368a2840a598'
 
 
 @factory(BlockMessage)
@@ -63,8 +64,8 @@ class BlockMessageFactory:
     transfer_request = TransferRequestFactory()
     timestamp = datetime(2021, 1, 1)
     block_number = 1000
-    block_identifier = 2000
-    updated_balances = {'test key': BlockAccountBalanceFactory()}
+    block_identifier = 'd606af9d1d769192813d71051148ef1896e3d85062c31ad3e62331e25d9c96bc'
+    updated_balances = {DEFAULT_ACCOUNT: BlockAccountBalanceFactory()}
 
 
 @factory(Block)
@@ -73,3 +74,11 @@ class BlockFactory:
     message = BlockMessageFactory()
     message_hash = None
     message_signature = None
+
+
+@factory(AccountRootFile)
+class AccountRootFileFactory:
+    accounts = {DEFAULT_ACCOUNT: AccountBalanceFactory()}
+    last_block_number = None
+    last_block_identifier = None
+    last_block_timestamp = None

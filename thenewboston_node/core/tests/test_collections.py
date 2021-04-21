@@ -1,4 +1,6 @@
-from thenewboston_node.core.utils.collections import replace_keys
+import pytest
+
+from thenewboston_node.core.utils.collections import map_values, replace_keys
 
 
 def test_replace_keys():
@@ -69,3 +71,44 @@ def test_replace_keys():
             'd': [1, 2, 3]
         }, 2, 3]
     }
+
+
+@pytest.mark.parametrize(
+    'source,expected_result', (  # yapf: disable
+        (['upper'], ['upper']),
+        ({'upper': 'text'}, {'upper': 'TEXT'}),
+        ({'outer': [{'upper': 'text'}]}, {'outer': [{'upper': 'TEXT'}]}),
+        ({'upper': ['one', 'two']}, {'upper': ['ONE', 'TWO']}),
+        ({'outer': {'upper': 'text'}}, {'outer': {'upper': 'TEXT'}}),
+        ({'upper': {}}, {'upper': {}}),
+        ({'upper': []}, {'upper': []}),
+        ({'upper': ()}, {'upper': []}),
+        ({'no_upper': None}, {'no_upper': None}),
+        ({'no_upper': 'text'}, {'no_upper': 'text'}),
+    )  # yapf: enable
+)
+def test_map_values(source, expected_result):
+    replace_map = {
+        'upper': str.upper,
+    }
+
+    result = map_values(source, replace_map)
+
+    assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    'source,expected_result', (  # yapf: disable
+        ({'outer': [{'upper': 'text'}]}, {'outer': [{'UPPER': 'text'}]}),
+        ({'outer': [[{'upper': 'text'}]]}, {'outer': [[{'UPPER': 'text'}]]}),
+        ({'outer': {'upper': 'text'}}, {'outer': {'UPPER': 'text'}}),
+    )  # yapf: enable
+)
+def test_map_subkeys(source, expected_result):
+    replace_map = {
+        'outer': str.upper,
+    }
+
+    result = map_values(source, replace_map, subkeys=True)
+
+    assert result == expected_result

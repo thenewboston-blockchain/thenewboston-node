@@ -25,6 +25,7 @@ more-itertools = "^8.7.0"
 cachetools = "^4.2.1"
 djangorestframework = "^3.12.4"
 djangorestframework-dataclasses = "^0.9"
+drf-spectacular = "^0.15.1"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.10.1"

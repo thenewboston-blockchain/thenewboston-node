@@ -1,3 +1,4 @@
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
@@ -8,6 +9,10 @@ from ..serializers.account_balance import AccountBalanceSerializer
 
 class AccountBalanceViewSet(ViewSet):
 
+    @extend_schema(
+        responses=AccountBalanceSerializer,
+        parameters=[OpenApiParameter('id', str, OpenApiParameter.PATH, description='Account number')],
+    )
     def retrieve(self, request, pk=None):
         # TODO(dmu) MEDIUM: There is a room for performance optimization use something like `?fields=` to
         #                   retrieval of unneeded fields using get_balance_value() and get_balance_lock() directly.

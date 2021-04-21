@@ -4,6 +4,9 @@ from thenewboston_node.business_logic.models.account_balance import AccountBalan
 
 
 class AccountBalanceSerializer(DataclassSerializer):
+    """
+    Represents account balance state
+    """
 
     class Meta:
         dataclass = AccountBalance

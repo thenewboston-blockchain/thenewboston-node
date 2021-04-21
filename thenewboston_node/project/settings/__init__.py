@@ -21,12 +21,15 @@ else:
     LOCAL_SETTINGS_PATH = str(ROOT_DIR / (local_settings_path_base + '.py'))
     overriding_settings = (optional(LOCAL_SETTINGS_PATH), 'envvars.py')  # type: ignore
 
+# yapf: disable
 include(*(
     'base.py',
     'logging.py',
     'blockchain.py',
+    'rest_framework.py',
     'custom.py',
 ) + overriding_settings + ('sentry.py', 'docker.py'))
+# yapf: enable
 
 logging.captureWarnings(True)
 

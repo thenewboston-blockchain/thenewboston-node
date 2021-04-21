@@ -32,6 +32,7 @@ class TransactionFactory:
     recipient = DEFAULT_ACCOUNT
     amount = 100
     fee = None
+    memo = None
 
 
 @factory(TransferRequestMessage)

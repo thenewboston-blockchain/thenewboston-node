@@ -1,0 +1,1 @@
+MEMO_MAX_LENGTH = 64

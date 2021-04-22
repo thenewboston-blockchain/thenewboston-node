@@ -79,13 +79,16 @@ def test_transfer_request_message_fields_are_compacted(long_name, short_name):
     assert long_name not in transfer_request_msg_dict
 
 
-@pytest.mark.parametrize('long_name,short_name', (
-    ('recipient', 'r'),
-    ('amount', 'at'),
-    ('fee', 'f'),
-))
+@pytest.mark.parametrize(
+    'long_name,short_name', (
+        ('recipient', 'r'),
+        ('amount', 'at'),
+        ('fee', 'f'),
+        ('memo', 'mm'),
+    )
+)
 def test_transaction_fields_are_compacted(long_name, short_name):
-    transaction = factories.TransactionFactory(fee=True)
+    transaction = factories.TransactionFactory(fee=True, memo='Memo')
     transfer_request_msg = factories.TransferRequestMessageFactory(txs=[transaction])
     transfer_request = factories.TransferRequestFactory(message=transfer_request_msg)
     message = factories.BlockMessageFactory(transfer_request=transfer_request)

@@ -39,6 +39,7 @@ COMPACT_KEY_MAP = {
     'recipient': 'r',
     'amount': 'at',
     'fee': 'f',
+    'memo': 'mm',
 }
 
 UNCOMPACT_KEY_MAP = {value: key for key, value in COMPACT_KEY_MAP.items()}

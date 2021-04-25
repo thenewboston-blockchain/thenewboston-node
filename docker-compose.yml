@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.9'
 
 services:
   db:
@@ -12,20 +12,49 @@ services:
     volumes:
       - postgresql-data:/var/lib/postgresql/data
 
+  reverse-proxy:
+    image: nginx:1.19.10-alpine
+    ports:
+      - 8555:8555
+    volumes:
+      - type: volume
+        source: nginx-conf.d
+        target: /etc/nginx/conf.d
+        volume:
+          nocopy: true
+        read_only: true
+      - type: volume
+        source: blockchain
+        target: /var/lib/blockchain
+        volume:
+          nocopy: true
+        read_only: true
+    depends_on:
+      # Depends on node to get the volume data for nginx configuration
+      - node
+
   node:
     build: .
     image: thenewboston-node:current
     environment:
-      - IN_DOCKER=true
       - THENEWBOSTON_NODE_DATABASES={"default":{"HOST":"db"}}
     env_file:
       - .env
     command: ./run.sh
     ports:
-      - 8000:8000
+      # We expose it for testing purposes only
+      # (in production the access must be done via reverse proxy)
+      - 127.0.0.1:8000:8000
     depends_on:
       - db
+    volumes:
+      - nginx-conf.d:/etc/nginx/conf.d
+      - blockchain:/var/lib/blockchain
 
 volumes:
   postgresql-data:
+    driver: local
+  nginx-conf.d:
+    driver: local
+  blockchain:
     driver: local

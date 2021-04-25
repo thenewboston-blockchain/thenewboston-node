@@ -12,11 +12,11 @@ from thenewboston_node.business_logic.utils.blockchain import generate_blockchai
 
 def main(size, path=None, validate=True):
     if path:
-        if os.path.exists(path):
-            print(f'Path {path} already exists')
+        if os.listdir(path):
+            print(f'Path {path} contains files')
             return
 
-        os.makedirs(path)
+        os.makedirs(path, exist_ok=True)
         blockchain = FileBlockchain(base_directory=os.path.abspath(path))
     else:
         blockchain = MemoryBlockchain()

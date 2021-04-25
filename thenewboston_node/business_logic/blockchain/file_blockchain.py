@@ -66,13 +66,13 @@ class FileBlockchain(BlockchainBase):
 
         self.block_chunk_size = block_chunk_size
 
-        self.account_root_files_directory = os.path.join(base_directory, account_root_files_subdir)
-        self.blocks_directory = os.path.join(base_directory, blocks_subdir)
+        account_root_files_directory = os.path.join(base_directory, account_root_files_subdir)
+        block_directory = os.path.join(base_directory, blocks_subdir)
 
-        self.base_directory = base_directory
-
-        self.block_storage = PathOptimizedFileSystemStorage(**(blocks_storage_kwargs or {}))
-        self.account_root_files_storage = PathOptimizedFileSystemStorage(**(account_root_files_storage_kwargs or {}))
+        self.block_storage = PathOptimizedFileSystemStorage(base_path=block_directory, **(blocks_storage_kwargs or {}))
+        self.account_root_files_storage = PathOptimizedFileSystemStorage(
+            base_path=account_root_files_directory, **(account_root_files_storage_kwargs or {})
+        )
 
         self.account_root_files_cache = LRUCache(account_root_files_cache_size)
         self.blocks_cache = LRUCache(
@@ -87,9 +87,7 @@ class FileBlockchain(BlockchainBase):
         last_block_number = account_root_file.last_block_number
 
         prefix = ('.' if last_block_number is None else str(last_block_number)).zfill(ORDER_OF_ACCOUNT_ROOT_FILE)
-        file_path = os.path.join(
-            self.account_root_files_directory, ACCOUNT_ROOT_FILE_FILENAME_TEMPLATE.format(last_block_number=prefix)
-        )
+        file_path = ACCOUNT_ROOT_FILE_FILENAME_TEMPLATE.format(last_block_number=prefix)
         storage.save(file_path, account_root_file.to_messagepack(), is_final=True)
 
     def _load_account_root_file(self, file_path):
@@ -107,7 +105,7 @@ class FileBlockchain(BlockchainBase):
         assert direction in (1, -1)
 
         storage = self.account_root_files_storage
-        for file_path in storage.list_directory(self.account_root_files_directory, sort_direction=direction):
+        for file_path in storage.list_directory(sort_direction=direction):
             yield self._load_account_root_file(file_path)
 
     def iter_account_root_files(self) -> Generator[AccountRootFile, None, None]:
@@ -118,7 +116,7 @@ class FileBlockchain(BlockchainBase):
 
     def get_account_root_file_count(self) -> int:
         storage = self.account_root_files_storage
-        return ilen(storage.list_directory(self.account_root_files_directory))
+        return ilen(storage.list_directory())
 
     # Blocks methods
     def persist_block(self, block: Block):
@@ -141,15 +139,13 @@ class FileBlockchain(BlockchainBase):
         append_filename = BLOCK_CHUNK_FILENAME_TEMPLATE.format(start=start_str, end=append_end_str)
         filename = BLOCK_CHUNK_FILENAME_TEMPLATE.format(start=start_str, end=end_str)
 
-        append_file_path = os.path.join(self.blocks_directory, append_filename)
-        storage.append(append_file_path, block.to_messagepack())
+        storage.append(append_filename, block.to_messagepack())
 
-        file_path = os.path.join(self.blocks_directory, filename)
         if append_filename != filename:
-            storage.move(append_file_path, file_path)
+            storage.move(append_filename, filename)
 
         if offset == block_chunk_size - 1:
-            storage.finalize(file_path)
+            storage.finalize(filename)
 
     def iter_blocks(self) -> Generator[Block, None, None]:
         yield from self._iter_blocks(1)
@@ -257,4 +253,4 @@ class FileBlockchain(BlockchainBase):
 
     def _list_block_directory(self, direction=1):
         storage = self.block_storage
-        yield from storage.list_directory(self.blocks_directory, sort_direction=direction)
+        yield from storage.list_directory(sort_direction=direction)

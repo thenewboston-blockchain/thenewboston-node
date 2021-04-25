@@ -4,6 +4,8 @@ import logging
 import lzma
 import os
 import stat
+from pathlib import Path
+from typing import Union
 
 from thenewboston_node.business_logic import exceptions
 from thenewboston_node.core.logging import timeit_method
@@ -63,16 +65,18 @@ class FileSystemStorage:
     Compressing / decompressing storage for capacity optimization
     """
 
-    def __init__(self, compressors=tuple(COMPRESSION_FUNCTIONS)):
+    def __init__(self, base_path: Union[str, Path], compressors=tuple(COMPRESSION_FUNCTIONS)):
+        self.base_path = Path(base_path).resolve()
         self.compressors = compressors
 
     @timeit_method()
-    def save(self, file_path, binary_data: bytes, is_final=False):
+    def save(self, file_path: Union[str, Path], binary_data: bytes, is_final=False):
         self._persist(file_path, binary_data, 'wb', is_final=is_final)
 
-    def load(self, file_path) -> bytes:
+    def load(self, file_path: Union[str, Path]) -> bytes:
+        file_path = self._get_absolute_path(file_path)
         for decompressor, func in DECOMPRESSION_FUNCTIONS.items():
-            path = file_path + '.' + decompressor
+            path = str(file_path) + '.' + decompressor
             try:
                 with open(path, mode='rb') as fo:
                     data = fo.read()
@@ -84,22 +88,43 @@ class FileSystemStorage:
         with open(file_path, mode='rb') as fo:
             return fo.read()
 
-    def append(self, file_path, binary_data: bytes, is_final=False):
+    def append(self, file_path: Union[str, Path], binary_data: bytes, is_final=False):
         self._persist(file_path, binary_data, 'ab', is_final=is_final)
 
-    def finalize(self, file_path):
+    def finalize(self, file_path: Union[str, Path]):
+        file_path = self._get_absolute_path(file_path)
         self._finalize(file_path)
 
-    def list_directory(self, directory_path, sort_direction=1):
+    def list_directory(self, prefix=None, sort_direction=1):
         # TODO(dmu) HIGH: Implement it to list only current directory to be consitent with other methods
         #                     that are intended to operate on a give directory without nesting
         raise NotImplementedError
 
-    def move(self, source, destination):
+    def move(self, source: Union[str, Path], destination: Union[str, Path]):
+        source = self._get_absolute_path(source)
+        destination = self._get_absolute_path(destination)
+        ensure_directory_exists_for_file_path(destination)
         os.rename(source, destination)
 
+    def is_finalized(self, file_path: Union[str, Path]):
+        file_path = self._get_absolute_path(file_path)
+        return self._is_finalized(file_path)
+
+    def _get_absolute_path(self, file_path: Union[str, Path]) -> Path:
+        base_path = self.base_path
+        path = Path(file_path)
+        abs_path = (base_path / path).resolve()
+
+        if path.is_absolute():
+            raise ValueError(f"Cannot use absolute path: '{path}'")
+
+        if not abs_path.is_relative_to(base_path):
+            raise ValueError(f"Path '{abs_path}' is not relative to '{base_path}'")
+
+        return abs_path
+
     @timeit_method()
-    def _compress(self, file_path) -> str:
+    def _compress(self, file_path: Path) -> Path:
         compressors = self.compressors
         if not compressors:
             return file_path
@@ -121,7 +146,7 @@ class FileSystemStorage:
             )
             # TODO(dmu) LOW: For compressed_size == best[0] choose fastest compression
             if compressed_size < len(best_data):
-                best_filename = file_path + '.' + compressor
+                best_filename = Path(str(file_path) + '.' + compressor)
                 best_data = compressed_data
                 logger.debug('New best %s: %s size', best_filename, len(best_data))
 
@@ -134,8 +159,9 @@ class FileSystemStorage:
 
         return best_filename
 
-    def _persist(self, file_path, binary_data: bytes, mode, is_final=False):
-        ensure_directory_exists_for_file_path(file_path)
+    def _persist(self, file_path: Union[str, Path], binary_data: bytes, mode, is_final=False):
+        file_path = self._get_absolute_path(file_path)
+        ensure_directory_exists_for_file_path(str(file_path))
 
         # TODO(dmu) HIGH: Optimize for 'wb' mode so we do not need to reread the file from
         #                 filesystem to compress it
@@ -144,19 +170,20 @@ class FileSystemStorage:
         if is_final:
             self._finalize(file_path)
 
-    def _finalize(self, file_path):
+    def _finalize(self, file_path: Path):
         new_filename = self._compress(file_path)
         drop_write_permissions(new_filename)
 
     @staticmethod
-    def is_finalized(file_path):
+    def _is_finalized(file_path: Path):
         return (
-            exist_compressed_file(file_path) or (os.path.exists(file_path) and not has_write_permissions(file_path))
+            exist_compressed_file(str(file_path)) or
+            (os.path.exists(file_path) and not has_write_permissions(file_path))
         )
 
-    def _write_file(self, file_path, binary_data: bytes, mode):
-        if self.is_finalized(file_path):
+    def _write_file(self, file_path: Path, binary_data: bytes, mode):
+        if self._is_finalized(file_path):
             raise exceptions.FinalizedFileWriteError(f'Could not write to finalized file: {file_path}')
 
-        with open(file_path, mode=mode) as fo:
+        with file_path.open(mode=mode) as fo:
             fo.write(binary_data)

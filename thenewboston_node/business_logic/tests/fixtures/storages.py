@@ -11,8 +11,18 @@ from thenewboston_node.core.utils.os import chmod_quite, remove_quite
 
 
 @pytest.fixture
-def base_file_path():
-    return f'/tmp/for-thenewboston-testing/long-filename-for-testing-{os.getpid()}.bin'
+def base_filename():
+    return f'long-filename-for-testing-{os.getpid()}.bin'
+
+
+@pytest.fixture
+def optimized_filename():
+    return f'l/o/n/g/f/i/l/e/long-filename-for-testing-{os.getpid()}.bin'
+
+
+@pytest.fixture
+def base_file_path(blockchain_path, base_filename):
+    return str(blockchain_path / base_filename)
 
 
 @pytest.fixture
@@ -39,8 +49,8 @@ def blockchain_path(blockchain_directory):
 
 
 @pytest.fixture
-def optimized_file_path():
-    optimized_file_path = f'/tmp/for-thenewboston-testing/l/o/n/g/f/i/l/e/long-filename-for-testing-{os.getpid()}.bin'
+def optimized_file_path(blockchain_path, optimized_filename):
+    optimized_file_path = str(blockchain_path / optimized_filename)
     try:
         yield optimized_file_path
     finally:

@@ -15,17 +15,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-from django.views.generic.base import RedirectView
 
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 import thenewboston_node.accounts.urls
+import thenewboston_node.web.urls
 
 API_PREFIX = 'api/'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', RedirectView.as_view(pattern_name='admin:index')),
+    path('', include(thenewboston_node.web.urls)),
 
     # local apps
     path(API_PREFIX + 'v1/', include(thenewboston_node.accounts.urls)),

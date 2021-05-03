@@ -50,3 +50,11 @@ lint:
 
 .PHONY: lint-and-test
 lint-and-test: lint test ;
+
+.PHONY: docs-rst
+docs-rst:
+	sphinx-build -M rst docs/source docs
+
+.PHONY: docs-html
+docs-html:
+	sphinx-build -M html docs/source docs

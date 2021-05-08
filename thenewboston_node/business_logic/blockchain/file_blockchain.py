@@ -160,9 +160,7 @@ class FileBlockchain(BlockchainBase):
             if end < block_number:
                 continue
 
-            assert start <= block_number
-
-            yield from self._iter_blocks_from_file_path(file_path, direction=1, start=block_number)
+            yield from self._iter_blocks_from_file_cached(file_path, direction=1, start=max(start, block_number))
 
     def get_block_by_number(self, block_number: int) -> Optional[Block]:
         block = self.blocks_cache.get(block_number)
@@ -190,30 +188,25 @@ class FileBlockchain(BlockchainBase):
         assert direction in (1, -1)
 
         for file_path in self._list_block_directory(direction):
-            yield from self._iter_blocks_from_file_path(file_path, direction)
+            yield from self._iter_blocks_from_file_cached(file_path, direction)
 
-    def _iter_blocks_from_file_path(self, file_path, direction, start=None):
-        file_start, end = get_start_end(file_path)
-        start = file_start if start is None else start
-        assert start is not None
-        assert end is not None
+    def _iter_blocks_from_file_cached(self, file_path, direction, start=None):
+        assert direction in (1, -1)
 
-        last_block_number = None
-        for block in self._iter_blocks_from_cache(start, end, direction):
-            last_block_number = block.message.block_number
+        file_start, file_end = get_start_end(file_path)
+        if direction == 1:
+            next_block_number = cache_start = file_start if start is None else start
+            cache_end = file_end
+        else:
+            cache_start = file_start
+            next_block_number = cache_end = file_end if start is None else start
+
+        for block in self._iter_blocks_from_cache(cache_start, cache_end, direction):
+            next_block_number = block.message.block_number + (1 if direction == 1 else -1)
             yield block
 
-        if last_block_number is not None:
-            if direction == 1:
-                assert last_block_number <= end
-                if last_block_number == end:
-                    return
-            else:
-                assert start <= last_block_number
-                if last_block_number == start:
-                    return
-
-        yield from self._iter_blocks_from_file(file_path, direction, start=last_block_number)
+        if file_start <= next_block_number <= file_end:
+            yield from self._iter_blocks_from_file(file_path, direction, start=next_block_number)
 
     def _iter_blocks_from_file(self, file_path, direction, start=None):
         assert direction in (1, -1)
@@ -229,9 +222,9 @@ class FileBlockchain(BlockchainBase):
             block_number = block.message.block_number
             # TODO(dmu) HIGH: Implement a better skip
             if start is not None:
-                if direction == 1 and block_number <= start:
+                if direction == 1 and block_number < start:
                     continue
-                elif direction == -1 and block_number >= start:
+                elif direction == -1 and block_number > start:
                     continue
 
             self.blocks_cache[block_number] = block

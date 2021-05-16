@@ -11,7 +11,7 @@ from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
-from . import TransferRequestMessage
+from . import CoinTransferSignedRequestMessage
 from .base import SignableMixin
 
 T = TypeVar('T', bound='TransferRequest')
@@ -26,11 +26,13 @@ class TransferRequest(SignableMixin):
     verify_key_field_name = 'sender'
 
     sender: str
-    message: TransferRequestMessage
+    message: CoinTransferSignedRequestMessage
     message_signature: Optional[str] = None
 
     @classmethod
-    def from_transfer_request_message(cls: Type[T], message: TransferRequestMessage, signing_key: str) -> T:
+    def from_coin_transfer_signed_request_message(
+        cls: Type[T], message: CoinTransferSignedRequestMessage, signing_key: str
+    ) -> T:
         request = cls(sender=derive_verify_key(signing_key), message=copy.deepcopy(message))
         request.sign(signing_key)
         return request
@@ -42,7 +44,7 @@ class TransferRequest(SignableMixin):
         primary_validator: PrimaryValidator, node: RegularNode
     ) -> T:
         sender = derive_verify_key(signing_key)
-        message = TransferRequestMessage.from_main_transaction(
+        message = CoinTransferSignedRequestMessage.from_main_transaction(
             blockchain=blockchain,
             sender=sender,
             recipient=recipient,
@@ -50,7 +52,7 @@ class TransferRequest(SignableMixin):
             primary_validator=primary_validator,
             node=node,
         )
-        return cls.from_transfer_request_message(message, signing_key)
+        return cls.from_coin_transfer_signed_request_message(message, signing_key)
 
     def override_to_dict(self):  # this one turns into to_dict()
         dict_ = self.super_to_dict()

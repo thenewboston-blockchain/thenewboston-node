@@ -10,16 +10,16 @@ from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
-from ..base import MessageMixin
-from . import CoinTransferTransaction
+from ..base import HumanizedClassNameMixin, MessageMixin
+from .coin_transfer_transaction import CoinTransferTransaction
 
-T = TypeVar('T', bound='TransferRequestMessage')
+T = TypeVar('T', bound='CoinTransferSignedRequestMessage')
 
 
 @fake_super_methods
 @dataclass_json
 @dataclass
-class TransferRequestMessage(MessageMixin):
+class CoinTransferSignedRequestMessage(MessageMixin, HumanizedClassNameMixin):
     balance_lock: str
     txs: list[CoinTransferTransaction]
 
@@ -76,19 +76,19 @@ class TransferRequestMessage(MessageMixin):
     @validates('transfer request message balance lock')
     def validate_balance_lock(self):
         if not self.balance_lock:
-            raise ValidationError('Transfer request message balance lock must be set')
+            raise ValidationError(f'{self.humanized_class_name} balance lock must be set')
 
     @validates('transfer request message transactions', is_plural_target=True)
     def validate_transactions(self):
         txs = self.txs
         if not isinstance(txs, list):
-            raise ValidationError('Transfer request message txs must be a list')
+            raise ValidationError(f'{self.humanized_class_name} txs must be a list')
 
         if not txs:
-            raise ValidationError('Transfer request message txs must contain at least one transaction')
+            raise ValidationError(f'{self.humanized_class_name} txs must contain at least one transaction')
 
         for tx in self.txs:
-            with validates(f'Validating transaction {tx} on transfer request message level'):
+            with validates(f'Validating transaction {tx} on {self.get_humanized_class_name(False)} level'):
                 if not isinstance(tx, CoinTransferTransaction):
-                    raise ValidationError('Transfer request message txs must contain only Transactions types')
+                    raise ValidationError(f'{self.humanized_class_name} txs must contain only Transactions types')
                 tx.validate()

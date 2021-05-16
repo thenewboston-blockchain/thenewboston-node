@@ -1,13 +1,13 @@
 import pytest
 
-from thenewboston_node.business_logic.models import CoinTransferTransaction, TransferRequestMessage
+from thenewboston_node.business_logic.models import CoinTransferSignedRequestMessage, CoinTransferTransaction
 
 
 @pytest.fixture
-def sample_transfer_request_message(
+def sample_coin_transfer_signed_request_message(
     treasury_account_key_pair, user_account_key_pair, node_key_pair, primary_validator_key_pair
 ):
-    return TransferRequestMessage(
+    return CoinTransferSignedRequestMessage(
         balance_lock=treasury_account_key_pair.public,
         txs=[
             CoinTransferTransaction(amount=10, recipient=user_account_key_pair.public),

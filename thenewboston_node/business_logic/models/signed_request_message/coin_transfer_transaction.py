@@ -10,6 +10,8 @@ from thenewboston_node.core.utils.constants import SENTINEL
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 from thenewboston_node.core.utils.misc import humanize_camel_case
 
+from ..base import HumanizedClassNameMixin
+
 
 # TODO(dmu) LOW: Implement a better way of removing optional fields or allow them in normalized message
 def remove_key_if_optional(dict_, key, optional_values=(None,)):
@@ -21,7 +23,7 @@ def remove_key_if_optional(dict_, key, optional_values=(None,)):
 @fake_super_methods
 @dataclass_json
 @dataclass
-class CoinTransferTransaction:
+class CoinTransferTransaction(HumanizedClassNameMixin):
     recipient: str
     amount: int
     fee: Optional[bool] = None  # None value won't be serialized

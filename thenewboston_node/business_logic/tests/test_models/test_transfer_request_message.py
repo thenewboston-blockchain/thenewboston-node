@@ -1,7 +1,7 @@
 import pytest
 
 from thenewboston_node.business_logic.exceptions import ValidationError
-from thenewboston_node.business_logic.models.transaction import Transaction
+from thenewboston_node.business_logic.models import CoinTransferTransaction
 from thenewboston_node.business_logic.models.transfer_request_message import TransferRequestMessage
 
 
@@ -19,12 +19,12 @@ def test_get_normalized_sorts_transactions():
     message = TransferRequestMessage(
         balance_lock='',
         txs=[
-            Transaction(amount=10, recipient='c'),
-            Transaction(amount=10, recipient='b'),
-            Transaction(amount=12, recipient='a'),
-            Transaction(amount=12, recipient='a', fee=True),
-            Transaction(amount=10, recipient='a', fee=True),
-            Transaction(amount=10, recipient='a'),
+            CoinTransferTransaction(amount=10, recipient='c'),
+            CoinTransferTransaction(amount=10, recipient='b'),
+            CoinTransferTransaction(amount=12, recipient='a'),
+            CoinTransferTransaction(amount=12, recipient='a', fee=True),
+            CoinTransferTransaction(amount=10, recipient='a', fee=True),
+            CoinTransferTransaction(amount=10, recipient='a'),
         ]
     )
     assert message.get_normalized() == (
@@ -55,7 +55,7 @@ def test_validate_balance_lock(sample_transfer_request_message):
 
 def test_validate_transactions(sample_transfer_request_message: TransferRequestMessage):
     sample_transfer_request_message.txs[0].amount = -1
-    with pytest.raises(ValidationError, match='Transaction amount must be greater or equal to 1'):
+    with pytest.raises(ValidationError, match='Coin transfer transaction amount must be greater or equal to 1'):
         sample_transfer_request_message.validate()
 
     sample_transfer_request_message.txs[0] = 'dummy'  # type: ignore

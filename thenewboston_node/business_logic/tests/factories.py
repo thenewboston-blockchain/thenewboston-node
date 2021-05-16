@@ -5,7 +5,6 @@ from thenewboston_node.business_logic.models.account_balance import AccountBalan
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.models.block_message import BlockMessage
-from thenewboston_node.business_logic.models.transaction import Transaction
 from thenewboston_node.business_logic.models.transfer_request import TransferRequest
 from thenewboston_node.business_logic.models.transfer_request_message import TransferRequestMessage
 from thenewboston_node.business_logic.utils.blockchain import generate_blockchain
@@ -36,7 +35,7 @@ class CoinTransferTransactionFactory:
     memo = None
 
 
-@factory(Transaction)
+@factory(CoinTransferTransaction)
 class DeleteMeTransactionFactory:
     recipient = DEFAULT_ACCOUNT
     amount = 100

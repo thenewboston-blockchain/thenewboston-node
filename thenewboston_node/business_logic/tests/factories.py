@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from thenewboston_node.business_logic.models import CoinTransferTransaction
 from thenewboston_node.business_logic.models.account_balance import AccountBalance, BlockAccountBalance
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.business_logic.models.block import Block
@@ -27,8 +28,16 @@ def add_blocks_to_blockchain(blockchain, block_count, treasury_account_private_k
     )
 
 
+@factory(CoinTransferTransaction)
+class CoinTransferTransactionFactory:
+    recipient = DEFAULT_ACCOUNT
+    amount = 100
+    fee = None
+    memo = None
+
+
 @factory(Transaction)
-class TransactionFactory:
+class DeleteMeTransactionFactory:
     recipient = DEFAULT_ACCOUNT
     amount = 100
     fee = None
@@ -38,7 +47,7 @@ class TransactionFactory:
 @factory(TransferRequestMessage)
 class TransferRequestMessageFactory:
     balance_lock = DEFAULT_ACCOUNT
-    txs = [TransactionFactory(amount=99), TransactionFactory(amount=1, fee=True)]  # type: ignore
+    txs = [DeleteMeTransactionFactory(amount=99), DeleteMeTransactionFactory(amount=1, fee=True)]  # type: ignore
 
 
 @factory(TransferRequest)

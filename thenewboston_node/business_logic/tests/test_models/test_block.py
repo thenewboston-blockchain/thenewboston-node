@@ -4,8 +4,8 @@ from unittest.mock import patch
 import pytest
 
 from thenewboston_node.business_logic.blockchain.mock_blockchain import MockBlockchain
+from thenewboston_node.business_logic.models import CoinTransferTransaction
 from thenewboston_node.business_logic.models.block import Block
-from thenewboston_node.business_logic.models.transaction import Transaction
 from thenewboston_node.business_logic.models.transfer_request import TransferRequest
 from thenewboston_node.business_logic.models.transfer_request_message import TransferRequestMessage
 from thenewboston_node.business_logic.node import get_signing_key
@@ -192,8 +192,8 @@ def test_can_duplicate_recipients(
     message = TransferRequestMessage(
         balance_lock=forced_mock_blockchain.get_balance_lock(sender),
         txs=[
-            Transaction(recipient=recipient, amount=3),
-            Transaction(recipient=recipient, amount=5),
+            CoinTransferTransaction(recipient=recipient, amount=3),
+            CoinTransferTransaction(recipient=recipient, amount=5),
         ]
     )
     request = TransferRequest.from_transfer_request_message(message, treasury_account_key_pair.private)

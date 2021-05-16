@@ -10,8 +10,8 @@ from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
+from . import CoinTransferTransaction
 from .base import MessageMixin
-from .transaction import Transaction
 
 T = TypeVar('T', bound='TransferRequestMessage')
 
@@ -21,10 +21,10 @@ T = TypeVar('T', bound='TransferRequestMessage')
 @dataclass
 class TransferRequestMessage(MessageMixin):
     balance_lock: str
-    txs: list[Transaction]
+    txs: list[CoinTransferTransaction]
 
     @classmethod
-    def from_transactions(cls: Type[T], blockchain, sender: str, txs: list[Transaction]) -> T:
+    def from_transactions(cls: Type[T], blockchain, sender: str, txs: list[CoinTransferTransaction]) -> T:
         return cls(
             balance_lock=blockchain.get_balance_lock(sender),
             txs=copy.deepcopy(txs),
@@ -36,9 +36,11 @@ class TransferRequestMessage(MessageMixin):
         node: RegularNode
     ) -> T:
         txs = [
-            Transaction(recipient=recipient, amount=amount),
-            Transaction(recipient=primary_validator.identifier, amount=primary_validator.fee_amount, fee=True),
-            Transaction(recipient=node.identifier, amount=node.fee_amount, fee=True),
+            CoinTransferTransaction(recipient=recipient, amount=amount),
+            CoinTransferTransaction(
+                recipient=primary_validator.identifier, amount=primary_validator.fee_amount, fee=True
+            ),
+            CoinTransferTransaction(recipient=node.identifier, amount=node.fee_amount, fee=True),
         ]
         return cls.from_transactions(blockchain, sender, txs)
 
@@ -58,7 +60,7 @@ class TransferRequestMessage(MessageMixin):
         message_dict = self.to_dict()  # type: ignore
 
         for tx in message_dict['txs']:
-            # This should fire when we add new fields to Transaction and forget to amend the sorting key
+            # This should fire when we add new fields to CoinTransferTransaction and forget to amend the sorting key
             assert len(tx) <= 3
         message_dict['txs'] = sorted(
             message_dict['txs'], key=lambda x: (x['recipient'], x.get('fee', False), x['amount'])
@@ -87,6 +89,6 @@ class TransferRequestMessage(MessageMixin):
 
         for tx in self.txs:
             with validates(f'Validating transaction {tx} on transfer request message level'):
-                if not isinstance(tx, Transaction):
+                if not isinstance(tx, CoinTransferTransaction):
                     raise ValidationError('Transfer request message txs must contain only Transactions types')
                 tx.validate()

@@ -1,7 +1,6 @@
 import pytest
 
-from thenewboston_node.business_logic.models import CoinTransferTransaction
-from thenewboston_node.business_logic.models.transfer_request_message import TransferRequestMessage
+from thenewboston_node.business_logic.models import CoinTransferTransaction, TransferRequestMessage
 
 
 @pytest.fixture

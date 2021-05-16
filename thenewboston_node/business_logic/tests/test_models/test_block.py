@@ -4,10 +4,9 @@ from unittest.mock import patch
 import pytest
 
 from thenewboston_node.business_logic.blockchain.mock_blockchain import MockBlockchain
-from thenewboston_node.business_logic.models import CoinTransferTransaction
+from thenewboston_node.business_logic.models import CoinTransferTransaction, TransferRequestMessage
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.models.transfer_request import TransferRequest
-from thenewboston_node.business_logic.models.transfer_request_message import TransferRequestMessage
 from thenewboston_node.business_logic.node import get_signing_key
 from thenewboston_node.core.utils.cryptography import KeyPair, derive_verify_key
 

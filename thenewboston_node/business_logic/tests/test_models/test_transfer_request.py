@@ -5,9 +5,8 @@ import pytest
 
 from thenewboston_node.business_logic.blockchain.mock_blockchain import MockBlockchain
 from thenewboston_node.business_logic.exceptions import InvalidMessageSignatureError, ValidationError
-from thenewboston_node.business_logic.models import CoinTransferTransaction
+from thenewboston_node.business_logic.models import CoinTransferTransaction, TransferRequestMessage
 from thenewboston_node.business_logic.models.transfer_request import TransferRequest
-from thenewboston_node.business_logic.models.transfer_request_message import TransferRequestMessage
 
 
 def test_can_create_transfer_request_from_dict(sample_transfer_request_dict):

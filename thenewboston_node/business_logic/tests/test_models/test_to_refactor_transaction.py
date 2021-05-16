@@ -11,7 +11,7 @@ from thenewboston_node.business_logic.tests import factories
 def test_transaction_optional_keys_are_not_serialized(key, value):
     # TODO(dmu) HIGH: This test must test transaction without using outer structures
     transaction = factories.DeleteMeTransactionFactory(**{key: value})
-    trm = factories.TransferRequestMessageFactory(txs=[transaction])
+    trm = factories.CoinTransferSignedRequestMessageFactory(txs=[transaction])
     tr = factories.TransferRequestFactory(message=trm)
     block_message = factories.BlockMessageFactory(transfer_request=tr)
     block = factories.BlockFactory(message=block_message)
@@ -26,7 +26,7 @@ def test_non_ascii_memo_is_serialized_correctly():
     # TODO(dmu) HIGH: This test must test transaction without using outer structures
     memo = 'Тестовое сообщение'  # Test message in Russian
     transaction = factories.DeleteMeTransactionFactory(memo=memo)
-    trm = factories.TransferRequestMessageFactory(txs=[transaction])
+    trm = factories.CoinTransferSignedRequestMessageFactory(txs=[transaction])
     tr = factories.TransferRequestFactory(message=trm)
     block_message = factories.BlockMessageFactory(transfer_request=tr)
     block = factories.BlockFactory(message=block_message)

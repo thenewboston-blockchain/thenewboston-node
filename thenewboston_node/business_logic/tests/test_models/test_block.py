@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pytest
 
 from thenewboston_node.business_logic.blockchain.mock_blockchain import MockBlockchain
-from thenewboston_node.business_logic.models import CoinTransferTransaction, TransferRequestMessage
+from thenewboston_node.business_logic.models import CoinTransferSignedRequestMessage, CoinTransferTransaction
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.models.transfer_request import TransferRequest
 from thenewboston_node.business_logic.node import get_signing_key
@@ -118,10 +118,10 @@ def test_can_create_block_from_main_transaction(
     assert transfer_request.message_signature
 
     # Assert block_message.transfer_request.message
-    transfer_request_message = transfer_request.message
-    assert transfer_request_message.balance_lock
-    assert len(transfer_request_message.txs) == 3
-    txs_dict = {tx.recipient: tx for tx in transfer_request_message.txs}
+    coin_transfer_signed_request_message = transfer_request.message
+    assert coin_transfer_signed_request_message.balance_lock
+    assert len(coin_transfer_signed_request_message.txs) == 3
+    txs_dict = {tx.recipient: tx for tx in coin_transfer_signed_request_message.txs}
     assert len(txs_dict) == 3
 
     assert txs_dict[user_account_key_pair.public].amount == 20
@@ -133,7 +133,7 @@ def test_can_create_block_from_main_transaction(
     assert txs_dict[node_key_pair.public].amount == 1
     assert txs_dict[node_key_pair.public].fee
 
-    assert transfer_request_message.get_total_amount() == 25
+    assert coin_transfer_signed_request_message.get_total_amount() == 25
 
 
 @pytest.mark.usefixtures('get_next_block_identifier_mock', 'get_next_block_number_mock', 'get_account_balance_mock')
@@ -188,14 +188,14 @@ def test_can_duplicate_recipients(
 
     sender = treasury_account_key_pair.public
     recipient = user_account_key_pair.public
-    message = TransferRequestMessage(
+    message = CoinTransferSignedRequestMessage(
         balance_lock=forced_mock_blockchain.get_balance_lock(sender),
         txs=[
             CoinTransferTransaction(recipient=recipient, amount=3),
             CoinTransferTransaction(recipient=recipient, amount=5),
         ]
     )
-    request = TransferRequest.from_transfer_request_message(message, treasury_account_key_pair.private)
+    request = TransferRequest.from_coin_transfer_signed_request_message(message, treasury_account_key_pair.private)
 
     with patch.object(MockBlockchain, 'get_balance_value', new=get_account_balance):
         block = Block.from_transfer_request(forced_mock_blockchain, request)

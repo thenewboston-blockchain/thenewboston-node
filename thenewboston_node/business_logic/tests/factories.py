@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from thenewboston_node.business_logic.models import CoinTransferTransaction, TransferRequestMessage
+from thenewboston_node.business_logic.models import CoinTransferSignedRequestMessage, CoinTransferTransaction
 from thenewboston_node.business_logic.models.account_balance import AccountBalance, BlockAccountBalance
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.business_logic.models.block import Block
@@ -42,8 +42,8 @@ class DeleteMeTransactionFactory:
     memo = None
 
 
-@factory(TransferRequestMessage)
-class TransferRequestMessageFactory:
+@factory(CoinTransferSignedRequestMessage)
+class CoinTransferSignedRequestMessageFactory:
     balance_lock = DEFAULT_ACCOUNT
     txs = [DeleteMeTransactionFactory(amount=99), DeleteMeTransactionFactory(amount=1, fee=True)]  # type: ignore
 
@@ -51,7 +51,7 @@ class TransferRequestMessageFactory:
 @factory(TransferRequest)
 class TransferRequestFactory:
     sender = DEFAULT_ACCOUNT
-    message = TransferRequestMessageFactory()
+    message = CoinTransferSignedRequestMessageFactory()
     message_signature = None
 
 

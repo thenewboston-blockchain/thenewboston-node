@@ -9,6 +9,7 @@ from thenewboston_node.core.utils.collections import map_values, replace_keys
 from thenewboston_node.core.utils.cryptography import (
     derive_verify_key, generate_signature, hash_normalized_dict, is_signature_valid
 )
+from thenewboston_node.core.utils.misc import humanize_camel_case
 
 COMPACT_KEY_MAP = {
     # account root file
@@ -188,3 +189,13 @@ class MessagpackCompactableMixin(CompactableMixin):
     def to_messagepack(self, compact_keys=True, compact_values=True):
         compact_dict = self.to_compact_dict(compact_keys=compact_keys, compact_values=compact_values)
         return msgpack.packb(compact_dict)
+
+
+class HumanizedClassNameMixin:
+
+    def get_humanized_class_name(self, apply_upper_first=True):
+        return humanize_camel_case(self.__class__.__name__, apply_upper_first=apply_upper_first)
+
+    @property
+    def humanized_class_name(self):
+        return self.get_humanized_class_name()

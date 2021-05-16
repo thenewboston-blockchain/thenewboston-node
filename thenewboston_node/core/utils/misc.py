@@ -1,3 +1,5 @@
+import re
+
 import yaml
 
 
@@ -15,9 +17,17 @@ def bytes_to_hex(bytes_: bytes) -> str:
     return bytes(bytes_).hex()
 
 
-def upper_first(string):
-    # string.capitalize() also lowers all other letters, so we upper_first() function
-    return string[:1].upper() + string[1:]
+def upper_first(value):
+    # value.capitalize() also lowers all other letters, so we upper_first() function
+    return value[:1].upper() + value[1:]
+
+
+def humanize_camel_case(value, apply_upper_first=True):
+    value = re.sub(r'(?<!^)(?=[A-Z])', ' ', value).lower()
+    if apply_upper_first:
+        value = upper_first(value)
+
+    return value
 
 
 def yaml_coerce(value):

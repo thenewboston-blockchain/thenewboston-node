@@ -7,7 +7,7 @@ from thenewboston_node.business_logic.tests import factories
 
 def test_validate_memo_max_length():
     memo = 'A' * 65
-    transaction = factories.TransactionFactory(memo=memo)
+    transaction = factories.DeleteMeTransactionFactory(memo=memo)
     with pytest.raises(ValidationError) as exc_info:
         transaction.validate()
 
@@ -20,7 +20,7 @@ def test_validate_memo_max_length():
     ('fee', False),
 ))
 def test_transaction_optional_keys_are_not_serialized(key, value):
-    transaction = factories.TransactionFactory(**{key: value})
+    transaction = factories.DeleteMeTransactionFactory(**{key: value})
     trm = factories.TransferRequestMessageFactory(txs=[transaction])
     tr = factories.TransferRequestFactory(message=trm)
     block_message = factories.BlockMessageFactory(transfer_request=tr)
@@ -34,7 +34,7 @@ def test_transaction_optional_keys_are_not_serialized(key, value):
 
 def test_non_ascii_memo_is_serialized_correctly():
     memo = 'Тестовое сообщение'  # Test message in Russian
-    transaction = factories.TransactionFactory(memo=memo)
+    transaction = factories.DeleteMeTransactionFactory(memo=memo)
     trm = factories.TransferRequestMessageFactory(txs=[transaction])
     tr = factories.TransferRequestFactory(message=trm)
     block_message = factories.BlockMessageFactory(transfer_request=tr)

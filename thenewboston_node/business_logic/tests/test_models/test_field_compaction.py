@@ -88,7 +88,7 @@ def test_transfer_request_message_fields_are_compacted(long_name, short_name):
     )
 )
 def test_transaction_fields_are_compacted(long_name, short_name):
-    transaction = factories.TransactionFactory(fee=True, memo='Memo')
+    transaction = factories.DeleteMeTransactionFactory(fee=True, memo='Memo')
     transfer_request_msg = factories.TransferRequestMessageFactory(txs=[transaction])
     transfer_request = factories.TransferRequestFactory(message=transfer_request_msg)
     message = factories.BlockMessageFactory(transfer_request=transfer_request)
@@ -189,7 +189,7 @@ def test_transfer_request_message_fields_are_stored_in_bytes(field_name, value):
     'field_name,value', [('recipient', '8d3bf5323afa7a8c6bc9418288e96491a0434a98925bf392835bfdb5a4f817ff')]
 )
 def test_transaction_fields_are_stored_in_bytes(field_name, value):
-    tx = factories.TransactionFactory(**{field_name: value})
+    tx = factories.DeleteMeTransactionFactory(**{field_name: value})
     transfer_request_msg = factories.TransferRequestMessageFactory(txs=[tx])
     transfer_request = factories.TransferRequestFactory(message=transfer_request_msg)
     block_msg = factories.BlockMessageFactory(transfer_request=transfer_request)

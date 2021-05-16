@@ -1,8 +1,7 @@
 import pytest
 
 from thenewboston_node.business_logic.exceptions import ValidationError
-from thenewboston_node.business_logic.models import CoinTransferTransaction
-from thenewboston_node.business_logic.models.transfer_request_message import TransferRequestMessage
+from thenewboston_node.business_logic.models import CoinTransferTransaction, TransferRequestMessage
 
 
 def test_get_normalized(sample_transfer_request):

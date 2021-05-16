@@ -10,8 +10,8 @@ from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
+from ..base import MessageMixin
 from . import CoinTransferTransaction
-from .base import MessageMixin
 
 T = TypeVar('T', bound='TransferRequestMessage')
 

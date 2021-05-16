@@ -11,8 +11,8 @@ from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
+from . import TransferRequestMessage
 from .base import SignableMixin
-from .transfer_request_message import TransferRequestMessage
 
 T = TypeVar('T', bound='TransferRequest')
 

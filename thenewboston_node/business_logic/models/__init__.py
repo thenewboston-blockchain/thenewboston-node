@@ -1,1 +1,1 @@
-from .signed_request_message import CoinTransferTransaction  # noqa: F401
+from .signed_request_message import CoinTransferTransaction, TransferRequestMessage  # noqa: F401

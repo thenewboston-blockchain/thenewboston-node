@@ -1,7 +1,7 @@
 import copy
 import logging
 from dataclasses import dataclass
-from typing import Optional, Type, TypeVar
+from typing import Type, TypeVar
 
 from dataclasses_json import dataclass_json
 
@@ -21,11 +21,7 @@ logger = logging.getLogger(__name__)
 @dataclass_json
 @dataclass
 class SignedRequest(SignableMixin):
-    verify_key_field_name = 'signer'
-
-    signer: str
     message: SignedRequestMessage
-    signature: Optional[str] = None
 
     @classmethod
     def from_signed_request_message(cls: Type[T], message: SignedRequestMessage, signing_key: str) -> T:
@@ -42,7 +38,8 @@ class SignedRequest(SignableMixin):
     @validates('signed request')
     def validate(self):
         self.validate_message()
-        self.validate_signature()
+        with validates('block signature'):
+            self.validate_signature()
 
     @validates('signed request message')
     def validate_message(self):

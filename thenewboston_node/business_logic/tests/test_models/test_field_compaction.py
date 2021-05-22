@@ -7,10 +7,10 @@ from thenewboston_node.business_logic.tests import factories
 
 @pytest.mark.parametrize(
     'long_name,short_name', (
-        ('node_identifier', 'ni'),
+        ('signer', 's'),
         ('message', 'm'),
         ('message_hash', 'mh'),
-        ('signature', 'ms'),
+        ('signature', 'si'),
     )
 )
 def test_block_fields_are_compacted(long_name, short_name):
@@ -58,7 +58,7 @@ def test_updated_balances_fields_are_compacted(long_name, short_name):
 @pytest.mark.parametrize('long_name,short_name', (
     ('signer', 's'),
     ('message', 'm'),
-    ('signature', 'ms'),
+    ('signature', 'si'),
 ))
 def test_transfer_request_fields_are_compacted(long_name, short_name):
     block = factories.BlockFactory()
@@ -120,7 +120,7 @@ def test_can_load_account_root_file_from_compacted_dict():
 
 @pytest.mark.parametrize(
     'field_name,value', [
-        ('node_identifier', '4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732'),
+        ('signer', '4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732'),
         ('message_hash', '9677f4cbd7aaf32ba9615416f7bd0991b7de1434a7fa2c31add25c3355ef3959'),
         (
             'signature', (

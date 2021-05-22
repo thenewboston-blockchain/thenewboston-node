@@ -7,18 +7,16 @@ from thenewboston_node.core.utils.collections import map_values, replace_keys
 COMPACT_KEY_MAP = {
     # account root file
     'accounts': 'a',
-    'last_block_number': 'lbn',
-    'last_block_identifier': 'lbi',
-    'last_block_timestamp': 'lbt',
-    'next_block_identifier': 'nbi',
+    'last_block_number': 'ln',
+    'last_block_identifier': 'li',
+    'last_block_timestamp': 'lt',
+    'next_block_identifier': 'ni',
     # account balance
     'value': 'v',
     'lock': 'l',
     # block
-    'node_identifier': 'ni',
     'message': 'm',
     'message_hash': 'mh',
-    'signature': 'ms',
     # block message
     'transfer_request': 'tr',
     'timestamp': 't',
@@ -26,7 +24,6 @@ COMPACT_KEY_MAP = {
     'block_identifier': 'bi',
     'updated_balances': 'ub',
     # transfer request
-    'signer': 's',
     # transfer request message
     'balance_lock': 'bl',
     # transaction
@@ -34,6 +31,9 @@ COMPACT_KEY_MAP = {
     'amount': 'at',
     'fee': 'f',
     'memo': 'mm',
+    # common
+    'signer': 's',
+    'signature': 'si',
 }
 
 UNCOMPACT_KEY_MAP = {value: key for key, value in COMPACT_KEY_MAP.items()}
@@ -52,24 +52,22 @@ def bytes_to_hex(value):
 
 
 COMPACT_VALUE_MAP = {
-    'node_identifier': hex_to_bytes,
+    'signer': hex_to_bytes,
     'message_hash': hex_to_bytes,
     'signature': hex_to_bytes,
     'block_identifier': hex_to_bytes,
     'balance_lock': hex_to_bytes,
     'recipient': hex_to_bytes,
-    'signer': hex_to_bytes,
     'lock': hex_to_bytes,
 }
 
 UNCOMPACT_VALUE_MAP = {
-    'node_identifier': bytes_to_hex,
+    'signer': bytes_to_hex,
     'message_hash': bytes_to_hex,
     'signature': bytes_to_hex,
     'block_identifier': bytes_to_hex,
     'balance_lock': bytes_to_hex,
     'recipient': bytes_to_hex,
-    'signer': bytes_to_hex,
     'lock': bytes_to_hex,
 }
 

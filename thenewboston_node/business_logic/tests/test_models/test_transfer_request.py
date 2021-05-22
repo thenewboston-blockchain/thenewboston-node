@@ -12,7 +12,7 @@ from thenewboston_node.business_logic.models import (
 
 def test_can_create_transfer_request_from_dict(sample_transfer_request_dict):
     transfer_request = CoinTransferSignedRequest.from_dict(sample_transfer_request_dict)
-    assert transfer_request.sender == sample_transfer_request_dict['sender']
+    assert transfer_request.signer == sample_transfer_request_dict['signer']
     assert transfer_request.message.balance_lock == sample_transfer_request_dict['message']['balance_lock']
 
     txs_dict = sample_transfer_request_dict['message']['txs']
@@ -50,13 +50,13 @@ def test_validate_amount(forced_mock_blockchain, sample_transfer_request):
 def test_validate_amount_raises(forced_mock_blockchain, sample_transfer_request):
     sample_transfer_request_copy = copy.deepcopy(sample_transfer_request)
     with patch.object(MockBlockchain, 'get_balance_value', return_value=None):
-        with pytest.raises(ValidationError, match='Transfer request sender account balance is not found'):
+        with pytest.raises(ValidationError, match='Transfer request signer account balance is not found'):
             sample_transfer_request_copy.validate_amount(forced_mock_blockchain)
 
     sample_transfer_request_copy = copy.deepcopy(sample_transfer_request)
     with patch.object(MockBlockchain, 'get_balance_value', return_value=425 + 1 + 4 - 1):
         with pytest.raises(
-            ValidationError, match='Transfer request transactions total amount is greater than sender account balance'
+            ValidationError, match='Transfer request transactions total amount is greater than signer account balance'
         ):
             sample_transfer_request_copy.validate_amount(forced_mock_blockchain)
 
@@ -93,16 +93,16 @@ def test_validate(forced_mock_blockchain, sample_transfer_request):
 
 
 def test_invalid_sender(forced_mock_blockchain, sample_transfer_request):
-    sample_transfer_request.sender = ''
-    with pytest.raises(ValidationError, match='Transfer request sender must be set'):
+    sample_transfer_request.signer = ''
+    with pytest.raises(ValidationError, match='Transfer request signer must be set'):
         sample_transfer_request.validate(forced_mock_blockchain)
 
-    sample_transfer_request.sender = None
-    with pytest.raises(ValidationError, match='Transfer request sender must be set'):
+    sample_transfer_request.signer = None
+    with pytest.raises(ValidationError, match='Transfer request signer must be set'):
         sample_transfer_request.validate(forced_mock_blockchain)
 
-    sample_transfer_request.sender = 12
-    with pytest.raises(ValidationError, match='Transfer request sender must be a string'):
+    sample_transfer_request.signer = 12
+    with pytest.raises(ValidationError, match='Transfer request signer must be a string'):
         sample_transfer_request.validate(forced_mock_blockchain)
 
 
@@ -116,7 +116,7 @@ def test_invalid_transfer_request_for_signature(forced_mock_blockchain, sample_t
 def test_invalid_transfer_request_for_amount(forced_mock_blockchain, sample_transfer_request):
     with patch.object(MockBlockchain, 'get_balance_value', return_value=425 + 1 + 4 - 1):
         with pytest.raises(
-            ValidationError, match='Transfer request transactions total amount is greater than sender account balance'
+            ValidationError, match='Transfer request transactions total amount is greater than signer account balance'
         ):
             sample_transfer_request.validate(forced_mock_blockchain)
 
@@ -145,7 +145,7 @@ def test_can_create_from_coin_transfer_signed_request_message(user_account_key_p
     request = CoinTransferSignedRequest.from_coin_transfer_signed_request_message(
         message, user_account_key_pair.private
     )
-    assert request.sender == user_account_key_pair.public
+    assert request.signer == user_account_key_pair.public
     assert request.message == message
     assert request.message is not message
     assert request.message_signature

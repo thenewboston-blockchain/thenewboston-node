@@ -23,9 +23,9 @@ logger = logging.getLogger(__name__)
 @dataclass_json
 @dataclass
 class CoinTransferSignedRequest(SignableMixin):
-    verify_key_field_name = 'sender'
+    verify_key_field_name = 'signer'
 
-    sender: str
+    signer: str
     message: CoinTransferSignedRequestMessage
     message_signature: Optional[str] = None
 
@@ -33,7 +33,7 @@ class CoinTransferSignedRequest(SignableMixin):
     def from_coin_transfer_signed_request_message(
         cls: Type[T], message: CoinTransferSignedRequestMessage, signing_key: str
     ) -> T:
-        request = cls(sender=derive_verify_key(signing_key), message=copy.deepcopy(message))
+        request = cls(signer=derive_verify_key(signing_key), message=copy.deepcopy(message))
         request.sign(signing_key)
         return request
 
@@ -43,10 +43,9 @@ class CoinTransferSignedRequest(SignableMixin):
         cls: Type[T], *, blockchain, recipient: str, amount: int, signing_key: str,
         primary_validator: PrimaryValidator, node: RegularNode
     ) -> T:
-        sender = derive_verify_key(signing_key)
         message = CoinTransferSignedRequestMessage.from_main_transaction(
             blockchain=blockchain,
-            sender=sender,
+            coin_sender=derive_verify_key(signing_key),
             recipient=recipient,
             amount=amount,
             primary_validator=primary_validator,
@@ -76,27 +75,27 @@ class CoinTransferSignedRequest(SignableMixin):
         self.validate_amount(blockchain, block_number)
         self.validate_balance_lock(blockchain, block_number)
 
-    @validates('transfer request sender')
+    @validates('transfer request signer')
     def validate_sender(self):
-        if not self.sender:
-            raise ValidationError('Transfer request sender must be set')
+        if not self.signer:
+            raise ValidationError('Transfer request signer must be set')
 
-        if not isinstance(self.sender, str):
-            raise ValidationError('Transfer request sender must be a string')
+        if not isinstance(self.signer, str):
+            raise ValidationError('Transfer request signer must be a string')
 
     def validate_message(self):
         self.message.validate()
 
     @validates('amount on transfer request level')
     def validate_amount(self, blockchain, on_block_number: Optional[int] = None):
-        balance = blockchain.get_balance_value(self.sender, on_block_number)
+        balance = blockchain.get_balance_value(self.signer, on_block_number)
         if balance is None:
-            raise ValidationError('Transfer request sender account balance is not found')
+            raise ValidationError('Transfer request signer account balance is not found')
 
         if self.message.get_total_amount() > balance:
-            raise ValidationError('Transfer request transactions total amount is greater than sender account balance')
+            raise ValidationError('Transfer request transactions total amount is greater than signer account balance')
 
     @validates('transfer request balance lock on transfer request level')
     def validate_balance_lock(self, blockchain, block_number: Optional[int] = None):
-        if self.message.balance_lock != blockchain.get_balance_lock(self.sender, block_number):
+        if self.message.balance_lock != blockchain.get_balance_lock(self.signer, block_number):
             raise ValidationError('Transfer request balance lock does not match expected balance lock')

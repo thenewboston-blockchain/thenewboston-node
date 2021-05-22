@@ -33,7 +33,7 @@ COMPACT_KEY_MAP = {
     'block_identifier': 'bi',
     'updated_balances': 'ub',
     # transfer request
-    'sender': 's',
+    'signer': 's',
     # transfer request message
     'balance_lock': 'bl',
     # transaction
@@ -65,7 +65,7 @@ COMPACT_VALUE_MAP = {
     'block_identifier': hex_to_bytes,
     'balance_lock': hex_to_bytes,
     'recipient': hex_to_bytes,
-    'sender': hex_to_bytes,
+    'signer': hex_to_bytes,
     'lock': hex_to_bytes,
 }
 
@@ -76,7 +76,7 @@ UNCOMPACT_VALUE_MAP = {
     'block_identifier': bytes_to_hex,
     'balance_lock': bytes_to_hex,
     'recipient': bytes_to_hex,
-    'sender': bytes_to_hex,
+    'signer': bytes_to_hex,
     'lock': bytes_to_hex,
 }
 

@@ -12,9 +12,9 @@ from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
+from . import CoinTransferSignedRequest
 from .account_balance import BlockAccountBalance
 from .base import MessageMixin
-from .transfer_request import TransferRequest
 
 logger = logging.getLogger(__name__)
 
@@ -24,8 +24,9 @@ def make_balance_lock(transfer_request):
     return transfer_request.message.get_hash()
 
 
-def calculate_updated_balances(get_balance_value: Callable[[str], Optional[int]],
-                               transfer_request: TransferRequest) -> dict[str, BlockAccountBalance]:
+def calculate_updated_balances(
+    get_balance_value: Callable[[str], Optional[int]], transfer_request: CoinTransferSignedRequest
+) -> dict[str, BlockAccountBalance]:
     updated_balances: dict[str, BlockAccountBalance] = {}
     sent_amount = 0
     for transaction in transfer_request.message.txs:
@@ -56,7 +57,7 @@ def calculate_updated_balances(get_balance_value: Callable[[str], Optional[int]]
 @dataclass_json
 @dataclass
 class BlockMessage(MessageMixin):
-    transfer_request: TransferRequest
+    transfer_request: CoinTransferSignedRequest
     # We need timestamp, block_number and block_identifier to be signed and hashed therefore
     # they are include in BlockMessage, not in Block
     timestamp: datetime = field(  # naive datetime in UTC
@@ -78,7 +79,7 @@ class BlockMessage(MessageMixin):
         return dict_
 
     @classmethod
-    def from_transfer_request(cls, blockchain, transfer_request: TransferRequest):
+    def from_transfer_request(cls, blockchain, transfer_request: CoinTransferSignedRequest):
         if not transfer_request.sender:
             raise ValueError('Sender must be set')
 

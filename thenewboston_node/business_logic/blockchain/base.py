@@ -9,9 +9,9 @@ from django.conf import settings
 from more_itertools import always_reversible, ilen
 
 from thenewboston_node.business_logic.exceptions import ValidationError
+from thenewboston_node.business_logic.models import CoinTransferSignedRequest
 from thenewboston_node.business_logic.models.account_balance import AccountBalance, BlockAccountBalance
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
-from thenewboston_node.business_logic.models.transfer_request import TransferRequest
 from thenewboston_node.core.logging import timeit, timeit_method, validates
 from thenewboston_node.core.utils.importing import import_from_string
 
@@ -179,7 +179,7 @@ class BlockchainBase:
             yield new_account
 
     @timeit_method(level=logging.INFO)
-    def add_block_from_transfer_request(self, transfer_request: TransferRequest, validate=True):
+    def add_block_from_transfer_request(self, transfer_request: CoinTransferSignedRequest, validate=True):
         block = Block.from_transfer_request(self, transfer_request)
         self.add_block(block, validate=validate)
 

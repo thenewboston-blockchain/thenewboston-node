@@ -28,7 +28,7 @@ def test_can_create_block_from_transfer_request(
 
     assert block.message
     assert block.message_hash
-    assert block.message_signature
+    assert block.signature
     block.validate_signature()
     assert block.node_identifier
     assert block.node_identifier == derive_verify_key(get_signing_key())
@@ -83,7 +83,7 @@ def test_can_create_block_from_main_transaction(
     # Assert block
     assert block.message
     assert block.message_hash
-    assert block.message_signature
+    assert block.signature
 
     block.validate_signature()
     assert block.node_identifier
@@ -118,7 +118,7 @@ def test_can_create_block_from_main_transaction(
     # Assert block_message.transfer_request
     transfer_request = block_message.transfer_request
     assert transfer_request.signer == treasury_account_key_pair.public
-    assert transfer_request.message_signature
+    assert transfer_request.signature
 
     # Assert block_message.transfer_request.message
     coin_transfer_signed_request_message = transfer_request.message
@@ -149,7 +149,7 @@ def test_normalized_block_message(forced_mock_blockchain, sample_transfer_reques
         '{"amount":1,"fee":true,"recipient":"5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8"},'
         '{"amount":4,"fee":true,"recipient":'
         '"ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314"}]},'
-        '"message_signature":"8c1b5719745cdc81e71905e874c1f1fb938d941dd6d03ddc6dc39fc60ca42dcb8a17bb2e721c3f2a'
+        '"signature":"8c1b5719745cdc81e71905e874c1f1fb938d941dd6d03ddc6dc39fc60ca42dcb8a17bb2e721c3f2a'
         '128a2dff35a3b0f843efe78893adde78a27192ca54212a08",'
         '"signer":"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732"},"updated_balances":{'
         '"484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc":{"value":425},'

@@ -31,7 +31,7 @@ class Block(SignableMixin, MessagpackCompactableMixin):
     node_identifier: str
     message: BlockMessage
     message_hash: Optional[str] = None
-    message_signature: Optional[str] = None
+    signature: Optional[str] = None
 
     @classmethod
     @timeit_method(level=logging.INFO, is_class_method=True)

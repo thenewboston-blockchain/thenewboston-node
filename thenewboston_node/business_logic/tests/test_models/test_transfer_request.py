@@ -22,7 +22,7 @@ def test_can_create_transfer_request_from_dict(sample_transfer_request_dict):
         assert tx.recipient == tx_dict['recipient']
         assert tx.fee == tx_dict.get('fee')
 
-    assert transfer_request.message_signature == sample_transfer_request_dict['message_signature']
+    assert transfer_request.signature == sample_transfer_request_dict['signature']
 
 
 def test_validate_signature(sample_transfer_request):
@@ -31,13 +31,12 @@ def test_validate_signature(sample_transfer_request):
 
 def test_validate_signature_raises(sample_transfer_request):
     sample_transfer_request_copy = copy.deepcopy(sample_transfer_request)
-    sample_transfer_request_copy.message_signature = 'invalid' + sample_transfer_request_copy.message_signature[
-        len('invalid'):]
+    sample_transfer_request_copy.signature = 'invalid' + sample_transfer_request_copy.signature[len('invalid'):]
     with pytest.raises(InvalidMessageSignatureError):
         sample_transfer_request_copy.validate_signature()
 
     sample_transfer_request_copy = copy.deepcopy(sample_transfer_request)
-    sample_transfer_request_copy.message_signature = 'aaaaa' + sample_transfer_request_copy.message_signature[5:]
+    sample_transfer_request_copy.signature = 'aaaaa' + sample_transfer_request_copy.signature[5:]
     with pytest.raises(InvalidMessageSignatureError):
         sample_transfer_request_copy.validate_signature()
 
@@ -108,7 +107,7 @@ def test_invalid_sender(forced_mock_blockchain, sample_transfer_request):
 
 def test_invalid_transfer_request_for_signature(forced_mock_blockchain, sample_transfer_request):
     sample_transfer_request_copy = copy.deepcopy(sample_transfer_request)
-    sample_transfer_request_copy.message_signature = 'aaaaa' + sample_transfer_request_copy.message_signature[5:]
+    sample_transfer_request_copy.signature = 'aaaaa' + sample_transfer_request_copy.signature[5:]
     with pytest.raises(InvalidMessageSignatureError):
         sample_transfer_request_copy.validate(forced_mock_blockchain)
 
@@ -148,5 +147,5 @@ def test_can_create_from_coin_transfer_signed_request_message(user_account_key_p
     assert request.signer == user_account_key_pair.public
     assert request.message == message
     assert request.message is not message
-    assert request.message_signature
+    assert request.signature
     request.validate_signature()

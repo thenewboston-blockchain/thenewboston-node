@@ -25,7 +25,7 @@ COMPACT_KEY_MAP = {
     'node_identifier': 'ni',
     'message': 'm',
     'message_hash': 'mh',
-    'message_signature': 'ms',
+    'signature': 'ms',
     # block message
     'transfer_request': 'tr',
     'timestamp': 't',
@@ -61,7 +61,7 @@ def bytes_to_hex(value):
 COMPACT_VALUE_MAP = {
     'node_identifier': hex_to_bytes,
     'message_hash': hex_to_bytes,
-    'message_signature': hex_to_bytes,
+    'signature': hex_to_bytes,
     'block_identifier': hex_to_bytes,
     'balance_lock': hex_to_bytes,
     'recipient': hex_to_bytes,
@@ -72,7 +72,7 @@ COMPACT_VALUE_MAP = {
 UNCOMPACT_VALUE_MAP = {
     'node_identifier': bytes_to_hex,
     'message_hash': bytes_to_hex,
-    'message_signature': bytes_to_hex,
+    'signature': bytes_to_hex,
     'block_identifier': bytes_to_hex,
     'balance_lock': bytes_to_hex,
     'recipient': bytes_to_hex,
@@ -138,11 +138,11 @@ class SignableMixin:
             logger.warning('`%s` value does not match with signing key', verify_key_field_name)
 
         message_signature = self.message.generate_signature(signing_key)
-        stored_message_signature = self.message_signature
+        stored_message_signature = self.signature
         if stored_message_signature and stored_message_signature != message_signature:
             logger.warning('Overwriting existing message signature')
 
-        self.message_signature = message_signature
+        self.signature = message_signature
 
     @validates('signature')
     def validate_signature(self):
@@ -151,10 +151,10 @@ class SignableMixin:
             raise ValueError('`verify_key_field_name` class attribute must be set')
 
         verify_key = getattr(self, verify_key_field_name)
-        if not (verify_key and self.message_signature):
+        if not (verify_key and self.signature):
             raise InvalidMessageSignatureError()
 
-        self.message.validate_signature(verify_key, self.message_signature)
+        self.message.validate_signature(verify_key, self.signature)
 
 
 class CompactableMixin:

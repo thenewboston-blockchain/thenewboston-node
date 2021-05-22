@@ -53,7 +53,7 @@ class CoinTransferSignedRequestMessageFactory:
 class CoinTransferSignedRequestFactory:
     signer = DEFAULT_ACCOUNT
     message = CoinTransferSignedRequestMessageFactory()
-    message_signature = None
+    signature = None
 
 
 @factory(AccountBalance)
@@ -82,7 +82,7 @@ class BlockFactory:
     node_identifier = DEFAULT_ACCOUNT
     message = BlockMessageFactory()
     message_hash = None
-    message_signature = None
+    signature = None
 
 
 @factory(AccountRootFile)

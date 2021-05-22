@@ -27,7 +27,7 @@ class CoinTransferSignedRequest(SignableMixin):
 
     signer: str
     message: CoinTransferSignedRequestMessage
-    message_signature: Optional[str] = None
+    signature: Optional[str] = None
 
     @classmethod
     def from_coin_transfer_signed_request_message(

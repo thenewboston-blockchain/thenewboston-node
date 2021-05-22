@@ -13,7 +13,7 @@ from thenewboston_node.core.utils.cryptography import hash_normalized_dict, norm
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from .account_balance import AccountBalance
-from .base import MessagpackCompactableMixin
+from .mixins.compactable import MessagpackCompactableMixin
 
 logger = logging.getLogger(__name__)
 

@@ -1,34 +1,35 @@
 import inspect
 
+OVERRIDING_METHOD_PREFIX = 'override_'
+OVERRIDING_METHOD_PREFIX_LEN = len('override_')
+
 
 def fake_super_methods(cls):
     # We have to do this black magic because dataclass_json is implemented
-    # as dectorator, not as base class
+    # as decorator, not as base class
 
-    for name, method in inspect.getmembers(cls, lambda x: (inspect.isfunction or inspect.ismethod)):
-        if not name.startswith('override_'):
+    for method_name, method in inspect.getmembers(cls, lambda x: (inspect.isfunction or inspect.ismethod)):
+        if not method_name.startswith(OVERRIDING_METHOD_PREFIX):  # skip regular methods
             continue
 
-        new_name = name[len('override_'):]
+        actual_name = method_name[OVERRIDING_METHOD_PREFIX_LEN:]
 
-        # Move super method
-        super_method = getattr(cls, new_name, None)
+        super_method = getattr(cls, actual_name, None)
         if super_method:
-            setattr(cls, 'super_' + new_name, super_method)
+            setattr(cls, 'super_' + actual_name, super_method)  # rename base method, so it can be called
 
-        # Move overriding method
         try:
-            method.__name__ = new_name
+            method.__name__ = actual_name
         except AttributeError:
             pass
 
-        assert method.__qualname__.endswith('.' + name)
+        assert method.__qualname__.endswith('.' + method_name)
         try:
-            method.__qualname__ = method.__qualname__[:-len(name)] + new_name
+            method.__qualname__ = method.__qualname__[:-len(method_name)] + actual_name
         except AttributeError:
             pass
 
-        setattr(cls, new_name, method)
-        delattr(cls, name)
+        setattr(cls, actual_name, method)  # rename method to actual name (without prefix)
+        delattr(cls, method_name)  # remove original method (with prefix)
 
     return cls

@@ -14,7 +14,7 @@ from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from . import CoinTransferSignedRequest
 from .account_balance import BlockAccountBalance
-from .base import MessageMixin
+from .mixins.message import MessageMixin
 
 logger = logging.getLogger(__name__)
 

@@ -198,9 +198,7 @@ def test_can_duplicate_recipients(
             CoinTransferTransaction(recipient=recipient, amount=5),
         ]
     )
-    request = CoinTransferSignedRequest.from_coin_transfer_signed_request_message(
-        message, treasury_account_key_pair.private
-    )
+    request = CoinTransferSignedRequest.from_signed_request_message(message, treasury_account_key_pair.private)
 
     with patch.object(MockBlockchain, 'get_balance_value', new=get_account_balance):
         block = Block.from_transfer_request(forced_mock_blockchain, request)

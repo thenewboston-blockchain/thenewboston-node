@@ -93,15 +93,15 @@ def test_validate(forced_mock_blockchain, sample_transfer_request):
 
 def test_invalid_sender(forced_mock_blockchain, sample_transfer_request):
     sample_transfer_request.signer = ''
-    with pytest.raises(ValidationError, match='Transfer request signer must be set'):
+    with pytest.raises(ValidationError, match='Signer must be set'):
         sample_transfer_request.validate(forced_mock_blockchain)
 
     sample_transfer_request.signer = None
-    with pytest.raises(ValidationError, match='Transfer request signer must be set'):
+    with pytest.raises(ValidationError, match='Signer must be set'):
         sample_transfer_request.validate(forced_mock_blockchain)
 
     sample_transfer_request.signer = 12
-    with pytest.raises(ValidationError, match='Transfer request signer must be a string'):
+    with pytest.raises(ValidationError, match='Signer must be a string'):
         sample_transfer_request.validate(forced_mock_blockchain)
 
 
@@ -141,9 +141,7 @@ def test_can_create_from_coin_transfer_signed_request_message(user_account_key_p
             )
         ]
     )
-    request = CoinTransferSignedRequest.from_coin_transfer_signed_request_message(
-        message, user_account_key_pair.private
-    )
+    request = CoinTransferSignedRequest.from_signed_request_message(message, user_account_key_pair.private)
     assert request.signer == user_account_key_pair.public
     assert request.message == message
     assert request.message is not message

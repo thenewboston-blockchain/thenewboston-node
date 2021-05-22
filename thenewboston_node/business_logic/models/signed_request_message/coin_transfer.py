@@ -24,16 +24,16 @@ class CoinTransferSignedRequestMessage(MessageMixin, HumanizedClassNameMixin):
     txs: list[CoinTransferTransaction]
 
     @classmethod
-    def from_transactions(cls: Type[T], blockchain, sender: str, txs: list[CoinTransferTransaction]) -> T:
+    def from_transactions(cls: Type[T], blockchain, coin_sender: str, txs: list[CoinTransferTransaction]) -> T:
         return cls(
-            balance_lock=blockchain.get_balance_lock(sender),
+            balance_lock=blockchain.get_balance_lock(coin_sender),
             txs=copy.deepcopy(txs),
         )
 
     @classmethod
     def from_main_transaction(
-        cls: Type[T], *, blockchain, sender: str, recipient: str, amount: int, primary_validator: PrimaryValidator,
-        node: RegularNode
+        cls: Type[T], *, blockchain, coin_sender: str, recipient: str, amount: int,
+        primary_validator: PrimaryValidator, node: RegularNode
     ) -> T:
         txs = [
             CoinTransferTransaction(recipient=recipient, amount=amount),
@@ -42,7 +42,7 @@ class CoinTransferSignedRequestMessage(MessageMixin, HumanizedClassNameMixin):
             ),
             CoinTransferTransaction(recipient=node.identifier, amount=node.fee_amount, fee=True),
         ]
-        return cls.from_transactions(blockchain, sender, txs)
+        return cls.from_transactions(blockchain, coin_sender, txs)
 
     def get_total_amount(self) -> int:
         return sum(tx.amount for tx in self.txs)

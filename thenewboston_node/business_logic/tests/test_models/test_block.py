@@ -17,7 +17,7 @@ def test_can_create_block_from_transfer_request(
     forced_mock_blockchain, sample_transfer_request: CoinTransferSignedRequest
 ):
 
-    sender = sample_transfer_request.sender
+    sender = sample_transfer_request.signer
     assert sender
 
     def get_account_balance(self, account):
@@ -117,7 +117,7 @@ def test_can_create_block_from_main_transaction(
 
     # Assert block_message.transfer_request
     transfer_request = block_message.transfer_request
-    assert transfer_request.sender == treasury_account_key_pair.public
+    assert transfer_request.signer == treasury_account_key_pair.public
     assert transfer_request.message_signature
 
     # Assert block_message.transfer_request.message
@@ -151,7 +151,7 @@ def test_normalized_block_message(forced_mock_blockchain, sample_transfer_reques
         '"ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314"}]},'
         '"message_signature":"8c1b5719745cdc81e71905e874c1f1fb938d941dd6d03ddc6dc39fc60ca42dcb8a17bb2e721c3f2a'
         '128a2dff35a3b0f843efe78893adde78a27192ca54212a08",'
-        '"sender":"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732"},"updated_balances":{'
+        '"signer":"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732"},"updated_balances":{'
         '"484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc":{"value":425},'
         '"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732":'
         '{"lock":"ae4116766c916e761c5ab7590e2426f9c391078519d8cef8673ee3fe0cdb75ad","value":20},'
@@ -161,7 +161,7 @@ def test_normalized_block_message(forced_mock_blockchain, sample_transfer_reques
     )
 
     def get_account_balance(self, account):
-        return 450 if account == sample_transfer_request.sender else 0
+        return 450 if account == sample_transfer_request.signer else 0
 
     with patch.object(MockBlockchain, 'get_balance_value', new=get_account_balance):
         block = Block.from_transfer_request(forced_mock_blockchain, sample_transfer_request)

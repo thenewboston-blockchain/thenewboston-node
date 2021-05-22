@@ -50,8 +50,8 @@ class CoinTransferSignedRequestMessageFactory:
 
 
 @factory(CoinTransferSignedRequest)
-class TransferRequestFactory:
-    sender = DEFAULT_ACCOUNT
+class CoinTransferSignedRequestFactory:
+    signer = DEFAULT_ACCOUNT
     message = CoinTransferSignedRequestMessageFactory()
     message_signature = None
 
@@ -70,7 +70,7 @@ class BlockAccountBalanceFactory:
 
 @factory(BlockMessage)
 class BlockMessageFactory:
-    transfer_request = TransferRequestFactory()
+    transfer_request = CoinTransferSignedRequestFactory()
     timestamp = datetime(2021, 1, 1)
     block_number = 1000
     block_identifier = 'd606af9d1d769192813d71051148ef1896e3d85062c31ad3e62331e25d9c96bc'

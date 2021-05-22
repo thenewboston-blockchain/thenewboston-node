@@ -41,12 +41,12 @@ def calculate_updated_balances(
         balance.value += amount
         sent_amount += amount
 
-    sender = transfer_request.sender
-    sender_balance = get_balance_value(sender)
+    coin_sender = transfer_request.signer
+    sender_balance = get_balance_value(coin_sender)
     assert sender_balance is not None
     assert sender_balance >= sent_amount
 
-    updated_balances[sender] = BlockAccountBalance(
+    updated_balances[coin_sender] = BlockAccountBalance(
         value=sender_balance - sent_amount, lock=make_balance_lock(transfer_request)
     )
 
@@ -80,7 +80,7 @@ class BlockMessage(MessageMixin):
 
     @classmethod
     def from_transfer_request(cls, blockchain, transfer_request: CoinTransferSignedRequest):
-        if not transfer_request.sender:
+        if not transfer_request.signer:
             raise ValueError('Sender must be set')
 
         # TODO(dmu) HIGH: Move source of time to Blockchain?
@@ -207,11 +207,11 @@ class BlockMessage(MessageMixin):
             if len(updated_balances) < 2:
                 raise ValidationError('block message updated balances must contain at least 2 balances')
 
-        sender = self.transfer_request.sender
-        with validates('block message updated balances sender account balance'):
+        sender = self.transfer_request.signer
+        with validates('block message updated balances signer account balance'):
             sender_account_balance = updated_balances.get(sender)
             if sender_account_balance is None:
-                raise ValidationError('block message updated balances must contain sender account balance')
+                raise ValidationError('block message updated balances must contain signer account balance')
 
         with validates('all account balances', is_plural_target=True):
             for account, account_balance in updated_balances.items():
@@ -232,7 +232,7 @@ class BlockMessage(MessageMixin):
     def validate_updated_balance_lock(self, *, account, account_balance, is_sender=False):
         if is_sender:
             if not account_balance.lock:
-                raise ValidationError('Block message updated balances must contain sender account balance lock')
+                raise ValidationError('Block message updated balances must contain signer account balance lock')
 
             expected_balance_lock = make_balance_lock(self.transfer_request)
             if account_balance.lock != expected_balance_lock:

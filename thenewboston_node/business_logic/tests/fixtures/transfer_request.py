@@ -6,7 +6,7 @@ from thenewboston_node.business_logic.models import CoinTransferSignedRequest
 @pytest.fixture
 def sample_transfer_request_dict():
     return {
-        'sender':
+        'signer':
             '4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732',
         'message': {
             'balance_lock':

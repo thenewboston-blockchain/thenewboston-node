@@ -24,7 +24,7 @@ def sample_transfer_request_dict():
                 'recipient': 'ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314'
             }]
         },
-        'message_signature': (
+        'signature': (
             '8c1b5719745cdc81e71905e874c1f1fb938d941dd6d03ddc6dc39fc60ca42dcb8a17bb2e721c3f2a'
             '128a2dff35a3b0f843efe78893adde78a27192ca54212a08'
         )

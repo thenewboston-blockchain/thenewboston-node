@@ -27,19 +27,16 @@ logger = logging.getLogger(__name__)
 @dataclass_json
 @dataclass
 class Block(SignableMixin, MessagpackCompactableMixin):
-    verify_key_field_name = 'node_identifier'
 
-    node_identifier: str
     message: BlockMessage
     message_hash: Optional[str] = None
-    signature: Optional[str] = None
 
     @classmethod
     @timeit_method(level=logging.INFO, is_class_method=True)
     def from_transfer_request(cls: Type[T], blockchain, transfer_request: CoinTransferSignedRequest) -> T:
         signing_key = get_signing_key()
         block = cls(
-            node_identifier=derive_verify_key(signing_key),
+            signer=derive_verify_key(signing_key),
             message=BlockMessage.from_transfer_request(blockchain, transfer_request)
         )
         block.sign(signing_key)
@@ -89,18 +86,10 @@ class Block(SignableMixin, MessagpackCompactableMixin):
     @validates('block')
     def validate(self, blockchain):
         with validates(f'block number {self.message.block_number} (identifier: {self.message.block_identifier})'):
-            self.validate_node_identifier()
             self.validate_message(blockchain)
-
+            self.validate_message_hash()
             with validates('block signature'):
                 self.validate_signature()
-
-            self.validate_message_hash()
-
-    @validates('block node identifier')
-    def validate_node_identifier(self):
-        if not self.node_identifier:
-            raise ValidationError('Block node identifier must be set')
 
     @validates('block message on block level')
     def validate_message(self, blockchain):

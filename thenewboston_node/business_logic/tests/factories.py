@@ -79,7 +79,7 @@ class BlockMessageFactory:
 
 @factory(Block)
 class BlockFactory:
-    node_identifier = DEFAULT_ACCOUNT
+    signer = DEFAULT_ACCOUNT
     message = BlockMessageFactory()
     message_hash = None
     signature = None

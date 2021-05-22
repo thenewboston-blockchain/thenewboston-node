@@ -30,8 +30,8 @@ def test_can_create_block_from_transfer_request(
     assert block.message_hash
     assert block.signature
     block.validate_signature()
-    assert block.node_identifier
-    assert block.node_identifier == derive_verify_key(get_signing_key())
+    assert block.signer
+    assert block.signer == derive_verify_key(get_signing_key())
 
     block_message = block.message
 
@@ -86,8 +86,8 @@ def test_can_create_block_from_main_transaction(
     assert block.signature
 
     block.validate_signature()
-    assert block.node_identifier
-    assert block.node_identifier == derive_verify_key(get_signing_key())
+    assert block.signer
+    assert block.signer == derive_verify_key(get_signing_key())
 
     # Assert block.message
     block_message = block.message

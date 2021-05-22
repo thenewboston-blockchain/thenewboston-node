@@ -1,5 +1,8 @@
 import logging
+from dataclasses import dataclass
 from typing import Optional
+
+from dataclasses_json import dataclass_json
 
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.mixins.message import MessageMixin
@@ -9,23 +12,21 @@ from thenewboston_node.core.utils.cryptography import derive_verify_key
 logger = logging.getLogger(__name__)
 
 
+@dataclass_json
+@dataclass
 class SignableMixin:
 
-    verify_key_field_name: Optional[str] = None
-
+    signer: str
     message: MessageMixin
+    signature: Optional[str] = None
 
     def sign(self, signing_key):
-        verify_key_field_name = self.verify_key_field_name
-        if not verify_key_field_name:
-            raise ValueError('`verify_key_field_name` class attribute must be set')
-
         verify_key = derive_verify_key(signing_key)
-        stored_verify_key = getattr(self, verify_key_field_name, None)
+        stored_verify_key = self.signer
         if not stored_verify_key:
-            logger.warning('Signing message with empty `%s` value', verify_key_field_name)
+            logger.warning('Signing message with an empty signer')
         elif stored_verify_key != verify_key:
-            logger.warning('`%s` value does not match with signing key', verify_key_field_name)
+            logger.warning('Signer does not match with signing key')
 
         message_signature = self.message.generate_signature(signing_key)
         stored_message_signature = self.signature
@@ -48,11 +49,7 @@ class SignableMixin:
 
     @validates('signer')
     def validate_signer(self):
-        verify_key_field_name = self.verify_key_field_name
-        if not verify_key_field_name:
-            raise ValueError('`verify_key_field_name` class attribute must be set')
-
-        signer = getattr(self, verify_key_field_name)
+        signer = self.signer
         if not signer:
             raise ValidationError('Signer must be set')
 

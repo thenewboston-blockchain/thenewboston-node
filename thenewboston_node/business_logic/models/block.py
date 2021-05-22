@@ -14,8 +14,9 @@ from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from . import CoinTransferSignedRequest
-from .base import MessagpackCompactableMixin, SignableMixin
 from .block_message import BlockMessage
+from .mixins.compactable import MessagpackCompactableMixin
+from .mixins.signable import SignableMixin
 
 T = TypeVar('T', bound='Block')
 

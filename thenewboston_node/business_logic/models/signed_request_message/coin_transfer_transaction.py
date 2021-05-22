@@ -10,7 +10,7 @@ from thenewboston_node.core.utils.constants import SENTINEL
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 from thenewboston_node.core.utils.misc import humanize_camel_case
 
-from ..base import HumanizedClassNameMixin
+from ..mixins.misc import HumanizedClassNameMixin
 
 
 # TODO(dmu) LOW: Implement a better way of removing optional fields or allow them in normalized message

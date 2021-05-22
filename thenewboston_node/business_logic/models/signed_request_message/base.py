@@ -1,13 +1,11 @@
 from dataclasses import dataclass
-from typing import TypeVar
 
 from dataclasses_json import dataclass_json
 
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
-from ..base import HumanizedClassNameMixin, MessageMixin
-
-T = TypeVar('T', bound='SignedRequestMessage')
+from ..mixins.message import MessageMixin
+from ..mixins.misc import HumanizedClassNameMixin
 
 
 @fake_super_methods

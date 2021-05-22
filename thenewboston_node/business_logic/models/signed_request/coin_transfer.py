@@ -1,4 +1,3 @@
-import copy
 import logging
 from dataclasses import dataclass
 from typing import Optional, Type, TypeVar
@@ -11,8 +10,8 @@ from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
-from ..base import SignableMixin
 from ..signed_request_message import CoinTransferSignedRequestMessage
+from .base import SignedRequest
 
 T = TypeVar('T', bound='CoinTransferSignedRequest')
 
@@ -22,20 +21,8 @@ logger = logging.getLogger(__name__)
 @fake_super_methods
 @dataclass_json
 @dataclass
-class CoinTransferSignedRequest(SignableMixin):
-    verify_key_field_name = 'signer'
-
-    signer: str
+class CoinTransferSignedRequest(SignedRequest):
     message: CoinTransferSignedRequestMessage
-    signature: Optional[str] = None
-
-    @classmethod
-    def from_coin_transfer_signed_request_message(
-        cls: Type[T], message: CoinTransferSignedRequestMessage, signing_key: str
-    ) -> T:
-        request = cls(signer=derive_verify_key(signing_key), message=copy.deepcopy(message))
-        request.sign(signing_key)
-        return request
 
     @classmethod
     @timeit_method(level=logging.INFO)
@@ -51,13 +38,11 @@ class CoinTransferSignedRequest(SignableMixin):
             primary_validator=primary_validator,
             node=node,
         )
-        return cls.from_coin_transfer_signed_request_message(message, signing_key)
+        return cls.from_signed_request_message(message, signing_key)
 
-    def override_to_dict(self):  # this one turns into to_dict()
-        dict_ = self.super_to_dict()
-        # TODO(dmu) LOW: Implement a better way of removing optional fields or allow them in normalized message
-        dict_['message'] = self.message.to_dict()
-        return dict_
+    def override_to_dict(self):
+        # we can and should call base method the normal way because it is defined in the base class
+        return super().to_dict()
 
     def get_sent_amount(self):
         assert self.message
@@ -67,24 +52,11 @@ class CoinTransferSignedRequest(SignableMixin):
         assert self.message
         return self.message.get_amount(recipient)
 
-    @validates('transfer request')
+    @validates('coin transfer signed request')
     def validate(self, blockchain, block_number: Optional[int] = None):
-        self.validate_sender()
-        self.validate_message()
-        self.validate_signature()
+        super().validate()
         self.validate_amount(blockchain, block_number)
         self.validate_balance_lock(blockchain, block_number)
-
-    @validates('transfer request signer')
-    def validate_sender(self):
-        if not self.signer:
-            raise ValidationError('Transfer request signer must be set')
-
-        if not isinstance(self.signer, str):
-            raise ValidationError('Transfer request signer must be a string')
-
-    def validate_message(self):
-        self.message.validate()
 
     @validates('amount on transfer request level')
     def validate_amount(self, blockchain, on_block_number: Optional[int] = None):

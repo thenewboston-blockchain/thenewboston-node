@@ -1,11 +1,12 @@
 from datetime import datetime
 
-from thenewboston_node.business_logic.models import CoinTransferSignedRequestMessage, CoinTransferTransaction
+from thenewboston_node.business_logic.models import (
+    CoinTransferSignedRequest, CoinTransferSignedRequestMessage, CoinTransferTransaction
+)
 from thenewboston_node.business_logic.models.account_balance import AccountBalance, BlockAccountBalance
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.models.block_message import BlockMessage
-from thenewboston_node.business_logic.models.transfer_request import TransferRequest
 from thenewboston_node.business_logic.utils.blockchain import generate_blockchain
 from thenewboston_node.core.utils.cryptography import KeyPair, derive_verify_key
 from thenewboston_node.core.utils.factory import factory
@@ -48,7 +49,7 @@ class CoinTransferSignedRequestMessageFactory:
     txs = [DeleteMeTransactionFactory(amount=99), DeleteMeTransactionFactory(amount=1, fee=True)]  # type: ignore
 
 
-@factory(TransferRequest)
+@factory(CoinTransferSignedRequest)
 class TransferRequestFactory:
     sender = DEFAULT_ACCOUNT
     message = CoinTransferSignedRequestMessageFactory()

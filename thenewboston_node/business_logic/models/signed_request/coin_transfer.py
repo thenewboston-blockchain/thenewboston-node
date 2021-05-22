@@ -11,10 +11,10 @@ from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
-from . import CoinTransferSignedRequestMessage
-from .base import SignableMixin
+from ..base import SignableMixin
+from ..signed_request_message import CoinTransferSignedRequestMessage
 
-T = TypeVar('T', bound='TransferRequest')
+T = TypeVar('T', bound='CoinTransferSignedRequest')
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 @fake_super_methods
 @dataclass_json
 @dataclass
-class TransferRequest(SignableMixin):
+class CoinTransferSignedRequest(SignableMixin):
     verify_key_field_name = 'sender'
 
     sender: str

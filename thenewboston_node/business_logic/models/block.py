@@ -13,9 +13,9 @@ from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
+from . import CoinTransferSignedRequest
 from .base import MessagpackCompactableMixin, SignableMixin
 from .block_message import BlockMessage
-from .transfer_request import TransferRequest
 
 T = TypeVar('T', bound='Block')
 
@@ -35,7 +35,7 @@ class Block(SignableMixin, MessagpackCompactableMixin):
 
     @classmethod
     @timeit_method(level=logging.INFO, is_class_method=True)
-    def from_transfer_request(cls: Type[T], blockchain, transfer_request: TransferRequest) -> T:
+    def from_transfer_request(cls: Type[T], blockchain, transfer_request: CoinTransferSignedRequest) -> T:
         signing_key = get_signing_key()
         block = cls(
             node_identifier=derive_verify_key(signing_key),
@@ -61,7 +61,7 @@ class Block(SignableMixin, MessagpackCompactableMixin):
             primary_validator = primary_validator or network.get_primary_validator()
             node = node or network.get_preferred_node()
 
-        transfer_request = TransferRequest.from_main_transaction(
+        transfer_request = CoinTransferSignedRequest.from_main_transaction(
             blockchain=blockchain,
             recipient=recipient,
             amount=amount,

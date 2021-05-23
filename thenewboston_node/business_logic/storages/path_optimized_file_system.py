@@ -10,6 +10,8 @@ logger = logging.getLogger(__name__)
 
 REMOVE_RE = re.compile(r'[^0-9a-z]')
 
+DEFAULT_MAX_DEPTH = 8
+
 
 def make_optimized_file_path(path, max_depth):
     directory, filename = os.path.split(path)
@@ -24,7 +26,7 @@ class PathOptimizedFileSystemStorage(FileSystemStorage):
     subdirectories (for file system performance reason)
     """
 
-    def __init__(self, base_path: Union[str, Path], max_depth=8, **kwargs):
+    def __init__(self, base_path: Union[str, Path], max_depth=DEFAULT_MAX_DEPTH, **kwargs):
         super().__init__(base_path=base_path, **kwargs)
         self.max_depth = max_depth
 

@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'drf_spectacular',
+    'thenewboston_node.core',
     'thenewboston_node.web',
 ]
 

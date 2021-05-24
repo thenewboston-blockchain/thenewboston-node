@@ -9,7 +9,7 @@ from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.models.block_message import BlockMessage
 from thenewboston_node.business_logic.utils.blockchain import generate_blockchain
 from thenewboston_node.core.utils.cryptography import KeyPair, derive_verify_key
-from thenewboston_node.core.utils.factory import factory
+from thenewboston_node.core.utils.factory import Factory, factory
 
 DEFAULT_ACCOUNT = 'd5356888dc9303e44ce52b1e06c3165a7759b9df1e6a6dfbd33ee1c3df1ab4d1'
 
@@ -28,15 +28,7 @@ def add_blocks_to_blockchain(blockchain, block_count, treasury_account_private_k
 
 
 @factory(CoinTransferTransaction)
-class CoinTransferTransactionFactory:
-    recipient = DEFAULT_ACCOUNT
-    amount = 100
-    fee = None
-    memo = None
-
-
-@factory(CoinTransferTransaction)
-class DeleteMeTransactionFactory:
+class CoinTransferTransactionFactory(Factory):
     recipient = DEFAULT_ACCOUNT
     amount = 100
     fee = None
@@ -44,41 +36,41 @@ class DeleteMeTransactionFactory:
 
 
 @factory(CoinTransferSignedRequestMessage)
-class CoinTransferSignedRequestMessageFactory:
+class CoinTransferSignedRequestMessageFactory(Factory):
     balance_lock = DEFAULT_ACCOUNT
-    txs = [DeleteMeTransactionFactory(amount=99), DeleteMeTransactionFactory(amount=1, fee=True)]  # type: ignore
+    txs = [CoinTransferTransactionFactory(amount=99), CoinTransferTransactionFactory(amount=1, fee=True)]
 
 
 @factory(CoinTransferSignedRequest)
-class CoinTransferSignedRequestFactory:
+class CoinTransferSignedRequestFactory(Factory):
     signer = DEFAULT_ACCOUNT
     message = CoinTransferSignedRequestMessageFactory()
     signature = None
 
 
 @factory(AccountBalance)
-class AccountBalanceFactory:
+class AccountBalanceFactory(Factory):
     value = 1000
-    lock = '9e310e76f63b83abef5674d5cd1445535c9aa7395a96e0381edc368a2840a598'
+    lock = DEFAULT_ACCOUNT
 
 
 @factory(BlockAccountBalance)
-class BlockAccountBalanceFactory:
+class BlockAccountBalanceFactory(Factory):
     value = 1000
-    lock = '9e310e76f63b83abef5674d5cd1445535c9aa7395a96e0381edc368a2840a598'
+    lock = DEFAULT_ACCOUNT
 
 
 @factory(BlockMessage)
-class BlockMessageFactory:
+class BlockMessageFactory(Factory):
     transfer_request = CoinTransferSignedRequestFactory()
     timestamp = datetime(2021, 1, 1)
-    block_number = 1000
+    block_number = 0
     block_identifier = 'd606af9d1d769192813d71051148ef1896e3d85062c31ad3e62331e25d9c96bc'
     updated_balances = {DEFAULT_ACCOUNT: BlockAccountBalanceFactory()}
 
 
 @factory(Block)
-class BlockFactory:
+class BlockFactory(Factory):
     signer = DEFAULT_ACCOUNT
     message = BlockMessageFactory()
     message_hash = None
@@ -86,8 +78,18 @@ class BlockFactory:
 
 
 @factory(AccountRootFile)
-class AccountRootFileFactory:
+class InitialAccountRootFileFactory(Factory):
     accounts = {DEFAULT_ACCOUNT: AccountBalanceFactory()}
     last_block_number = None
     last_block_identifier = None
     last_block_timestamp = None
+    next_block_identifier = None
+
+
+@factory(AccountRootFile)
+class AccountRootFileFactory(Factory):
+    accounts = {DEFAULT_ACCOUNT: AccountBalanceFactory()}
+    last_block_number = 0
+    last_block_identifier = 'd606af9d1d769192813d71051148ef1896e3d85062c31ad3e62331e25d9c96bc'
+    last_block_timestamp = datetime(2021, 1, 1)
+    next_block_identifier = 'c5082e9985991b717c21acf5a94a4715e1a88c3d72d478deb3d764f186d59967'

@@ -15,8 +15,13 @@ logger = logging.getLogger(__name__)
 @dataclass_json
 @dataclass
 class AccountBalance:
+    """Account balance state"""
+
     value: int
+    """Amount balance value in coins"""
+
     lock: str
+    """Account balance lock"""
 
     @validates('account balance')
     def validate(self, validate_lock=True):
@@ -41,6 +46,8 @@ class AccountBalance:
 @dataclass_json
 @dataclass
 class BlockAccountBalance(AccountBalance):
+    """Account balance state when block is validated"""
+
     lock: Optional[str] = None  # type: ignore
 
     def override_to_dict(self):  # this one turns into to_dict()

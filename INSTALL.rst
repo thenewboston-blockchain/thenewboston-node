@@ -26,7 +26,7 @@ to get the latest version for development.
     apt update && \
     apt install make build-essential libssl-dev zlib1g-dev libbz2-dev \
                 libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev \
-                libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl
+                libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl python3-docutils
 
 #. Install Docker according to https://docs.docker.com/engine/install/
    (known working: Docker version 20.10.1, build 831ebea)

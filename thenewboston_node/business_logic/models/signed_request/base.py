@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SignedRequest(SignableMixin):
     message: SignedRequestMessage
+    """Request payload"""
 
     @classmethod
     def from_signed_request_message(cls: Type[T], message: SignedRequestMessage, signing_key: str) -> T:

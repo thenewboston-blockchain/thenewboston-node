@@ -13,10 +13,10 @@ from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
-from . import CoinTransferSignedRequest
 from .block_message import BlockMessage
 from .mixins.compactable import MessagpackCompactableMixin
 from .mixins.signable import SignableMixin
+from .signed_request import CoinTransferSignedRequest
 
 T = TypeVar('T', bound='Block')
 
@@ -27,9 +27,20 @@ logger = logging.getLogger(__name__)
 @dataclass_json
 @dataclass
 class Block(SignableMixin, MessagpackCompactableMixin):
+    """
+    Blocks represent a description of change to the network.
+    These originate from signed requests and may include:
 
+     - a transfer of coins between accounts
+     - the registration of a username
+     - a new node being added to the network
+     - etc...
+    """
     message: BlockMessage
+    """Block payload"""
+
     message_hash: Optional[str] = None
+    """Hash value of message field"""
 
     @classmethod
     @timeit_method(level=logging.INFO, is_class_method=True)

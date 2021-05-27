@@ -17,8 +17,13 @@ logger = logging.getLogger(__name__)
 class SignableMixin:
 
     signer: str
+    """Signer's account number"""
+
     message: MessageMixin
+    """Payload"""
+
     signature: Optional[str] = None
+    """Signature of the message"""
 
     def sign(self, signing_key):
         verify_key = derive_verify_key(signing_key)

@@ -50,3 +50,9 @@ lint:
 
 .PHONY: lint-and-test
 lint-and-test: lint test ;
+
+docs-rst:
+	./docs/source/generate_documentation.py > docs/build/index.rst
+
+docs-html: docs-rst
+	rst2html docs/build/index.rst docs/build/index.html

@@ -1,170 +1,252 @@
-Thenewboston blockchain documentation
-=====================================
+thenewboston blockchain format
+******************************
 
+Directory structure
+===================
 
-1. File system general structure
---------------------------------
++------------------------------------+------------------------------------+
+| Content                            | Path                               |
++====================================+====================================+
+| Blockchain root directory          | ``/path/to/blockchain/root/``      |
++------------------------------------+------------------------------------+
+| `Account root files`_ directory    | ``+---{{ (file_blockchain.account_root_file_subdir + '/``').ljust(28) }} |
++------------------------------------+------------------------------------+
+| `Block chunk files`_ directory     | ``+---{{ (file_blockchain.blocks_subdir + '/``').ljust(28) }} |
++------------------------------------+------------------------------------+
 
-Blockchain and root account files are stored on the filesystem
-in two separate subdirectories:
+Directory nesting
+=================
 
-- *"{{ file_blockchain.blocks_subdir }}"* for blockchain
-- *"{{ file_blockchain.account_root_file_subdir }}"* for root account files
+For filesystem access optimization files are saved to nested directories of
+``{{ file_blockchain.file_optimization_max_depth }}`` levels. It is used for storing both
+account root files and block chunk files.
 
-Blocks and root account files are serialized to MessagePack_ format and
-saved as *.msgpack* files. The files can also be compressed using algorithms:
++---------------------------------+---------------------------------------------------------------+
+| Content                         | Path                                                          |
++=================================+===============================================================+
+| A root directory                | ``/path/to/blockchain/root/file-type-specific-directory``     |
++---------------------------------+---------------------------------------------------------------+
+{% for level in range(file_blockchain.file_optimization_max_depth) -%}
+| {{ level }} level subdirectory            | ``{{ ((('.  ' + '   ' * (level - 1)) if level else '') + '+---' + level.__str__() + '-th character of filename``').ljust(59) }} |
++---------------------------------+---------------------------------------------------------------+
+{% endfor %}
 
-{% for compressor in file_blockchain.compressors %}
+Examples:
+
+- ``0000100199-arf.msgpack.xz`` to be saved to ``/path/to/blockchain/root/{{ file_blockchain.make_optimized_file_path('0000100199-arf.msgpack.xz', file_blockchain.file_optimization_max_depth) }}``
+- ``00012300000000000100-00012300000000000199-block-chunk.msgpack.xz`` to be saved to as
+  ``/path/to/blockchain/root/{{ file_blockchain.make_optimized_file_path('00012300000000000100-00012300000000000199-block-chunk.msgpack.xz', file_blockchain.file_optimization_max_depth) }}``
+
+Files format
+============
+
+Both account root files and block chunk files have the same format, but different business logic
+related structure. Latter is described in sections `Account root file structure`_ and
+`Block chunk file structure`_. This section describes general technical format regardless to
+the actual data being stored in the files.
+
+General filename template is ``base-name.msgpack[.compressor]``:
+
+- ``base-name`` is specific to file type and described in other sections
+- ``.msgpack`` denotes that data is stored in MessagePack_ format
+- ``.compressor`` represents compression algorithm if present
+
+Supported compression algorithms:
+
+{% for compressor in file_blockchain.compressors -%}
 - {{ compressor }}
 {% endfor %}
 
-In this case, the corresponding extension is added to file like
-*example.msgpack.gz*. The exact compression method is chosen to get the best
-compression in each case.
-
-
-2. File path optimization
----------------------------
-
-When the number of block files or root account files is too high it gets
-inefficient to keep them in one
-directory because it requires O(n) operations to look for a file in that
-directory. To overcome this issue all the files are stored in a tree-like file
-structure so that every file is stored inside
-*{{ file_blockchain.file_optimization_max_depth }}* subdirectories.
-Directory names are taken from the file name parts.
-
-Example:
-    A file named *0123456789.msgpack.xz* will be saved to
-    *{{ file_blockchain.make_optimized_file_path('0123456789.msgpack.xz',
-    file_blockchain.file_optimization_max_depth) }}*
-
-
-3. Blockchain file structure
-------------------------------
-
-Validated blocks are stored in chunks of *{{ file_blockchain.block_chunk_size }}*
-blocks. Block numeration starts with *0* and each subsequent block number is
-incremented by *1*. Every block chunk is stored in a file named according to
-the first block and the last block. To get a valid block chunk file name:
-
-#. The first and last block numbers are converted to a string and filled with leading
-   zeros to get a string *{{ file_blockchain.order_of_block }}* characters long.
-#. The results are used to format the template
-   *"{{ file_blockchain.block_chunk_template }}"*
-
-
-Example:
-    Blocks from *100* till *199* will be saved to
-    *{{ file_blockchain.get_block_chunk_filename(100, 199) }}*
-
-The steps needed to extract block data from the file:
-
-#. *(OPTIONAL)* Decompress file if it's compressed
-#. Make sequential read block by block using MessagePack_ tools
-
-Block structure in MessagePack_ format can be translated to JSON.
-Coin transfer block example in JSON looks like this:
-
-.. code-block:: JSON
-
-    {{ models.block.sample.to_compact_dict(compact_keys=True, compact_values=False) |
-       tojson(indent=4) | indent }}
-
-Keys are in a non human-readable format in this example. This is done to free
-up file system space as much as possible. To make it more convenient let's
-substitute short keys to full-size keys (See `Appendix A. Data structures short key map`_):
-
-.. code-block:: JSON
-
-    {{ models.block.sample.to_dict() | tojson(indent=4) | indent }}
-
-
-4. Block schema
+Deserialization
 ---------------
 
-{% for model_doc in models.block.docs %}
-.. _{{ model_doc.model }}:
++-----------------------------------------+------------------------------------+-------------------------------------------------+
+| Source                                  | Deserialization step               | Result                                          |
++=========================================+====================================+=================================================+
+| ``base-name.msgpack{{ ('[.' + '|'.join(file_blockchain.compressors) + ']``').ljust(20) }} | `Decompress`_                      | MessagePack_ binary: ``base-name.msgpack``      |
++-----------------------------------------+------------------------------------+-------------------------------------------------+
+| ``base-name.msgpack``                   | `Deserialize from MessagePack`_    | In-memory MessagePack_ compacted object         |
++-----------------------------------------+------------------------------------+-------------------------------------------------+
+| In-memory MessagePack_ compacted object | `Uncompact`_                       | In-memory MessagePack_ object                   |
++-----------------------------------------+------------------------------------+-------------------------------------------------+
 
-**{{ model_doc.model }}**
+Decompress
+^^^^^^^^^^
+
+Just use corresponding decompression algorithm. Here is how we do it in Python::
+
+    DECOMPRESSION_FUNCTIONS = {
+        'gz': gzip.decompress,
+        'bz2': bz2.decompress,
+        'xz': lzma.decompress,
+    }
+
+Deserialize from MessagePack
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Account root file contains a single serialized MessagePack object.
+- See `Block chunk file format`_
+
+Uncompact
+^^^^^^^^^
+
+Restore human readable key names
+''''''''''''''''''''''''''''''''
+.. list-table::
+   :header-rows: 1
+
+   * - Compact (short) key name
+     - Rename
+     - Humanized (long) key name
+
+{% for long_key, short_key in compact_key_map %}
+   * - {{ short_key }}
+     - ->
+     - {{ long_key }}
+{% endfor %}
+
+Convert byte array to hexadecimal representation
+''''''''''''''''''''''''''''''''''''''''''''''''
+
+TODO(dmu) HIGH: Get information from code which values to be converted
+
+Account root files
+==================
+
+Account root files directory
+----------------------------
+
+Account root files are saved to ``/path/to/blockchain/root/{{ file_blockchain.account_root_file_subdir }}/``
+in a nested directory structure as described in `Directory nesting`_ section
+
+For example, file named ``0000100199-arf.msgpack.xz`` will be saved to as
+``/path/to/blockchain/root/{{ file_blockchain.make_optimized_file_path('0000100199-arf.msgpack.xz', file_blockchain.file_optimization_max_depth) }}``
+
+Account root file structure
+---------------------------
+
+Account root filename format
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Filename template is "``{{ file_blockchain.account_root_file_template.format(last_block_number='x' *  file_blockchain.order_of_account_root_file) }}[.compressor]``"
+where "``{{ 'x' *  file_blockchain.order_of_account_root_file }}``" is the last block number of the account root file and "``.compressor``" represents compression algorithm
+if present.
+
+Filename example of last block number 199 compressed with LZMA compression: ``{{ file_blockchain.get_account_root_filename(199) }}.xz``.
+
+NOTE: Initial root account file filename is ``{{ file_blockchain.get_account_root_filename(None) }}``.
+
+Account root file format
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+{% for model_doc in models.root_account_file.docs %}
+{{ model_doc.model }}
+{{ "'" * model_doc.model.__len__() }}
 
 {{ model_doc.docstring }}
 
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Is mandatory
+
 {% for attr in model_doc.attrs %}
-
-- *{{ attr.name }}*: {{ attr.type }}{% if attr.is_optional %}, *optional* {% endif %}
-    {{ attr.docstring }}
-
+   * - {{ attr.name }}
+     - {% if attr.type in ('string', 'integer', 'datetime', 'object', 'bool', 'array') %}{{ attr.type }}{% else %}`{{ attr.type }}`_{% endif %}
+     - {{ attr.docstring }}
+     - {% if attr.is_optional %}No{% else %}Yes{% endif %}
+{% endfor %}
 {% endfor %}
 
-{% endfor %}
+Account root file example
+'''''''''''''''''''''''''
 
+.. code-block:: JSON
 
-5. Root account file structure
---------------------------------
+    {{ models.root_account_file.sample.to_dict() | tojson(indent=4) | indent }}
 
-Root account file is a snapshot of all account balances at any point in time.
-At the snapshot root account a file is serialized to MessagePack_
-and saved to file named as block number at which the snapshot is taken.
-Then filename is prepended with *0* to correspond to the length of
-*{{ file_blockchain.order_of_account_root_file }}*. Then it's used to format
-the string *{{ file_blockchain.account_root_file_template }}*.
-
-Example:
-    Root account file at block number 5100 will be saved to
-    *{{ file_blockchain.get_account_root_filename(5100) }}*.
-
-There must be an initial root account file on the network startup. It's named
-*{{ file_blockchain.get_account_root_filename(None) }}*.
-
-Root account files can be converted to JSON the same way it's done for block
-files. Let's see an example root account file:
+Compacted account root file example
+'''''''''''''''''''''''''''''''''''
 
 .. code-block:: JSON
 
     {{ models.root_account_file.sample.to_compact_dict(compact_keys=True, compact_values=False) |
        tojson(indent=4) | indent }}
 
+Block chunk files
+=================
 
-With expanded keys (See `Appendix A. Data structures short key map`_):
+Account root files are saved to ``/path/to/blockchain/root/{{ file_blockchain.blocks_subdir }}/``
+in a nested directory structure as described in `Directory nesting`_ section
 
-.. code-block:: JSON
+For example, file named ``00012300000000000100-00012300000000000199-block-chunk.msgpack.xz`` will be saved to as
+``/path/to/blockchain/root/{{ file_blockchain.make_optimized_file_path('00012300000000000100-00012300000000000199-block-chunk.msgpack.xz', file_blockchain.file_optimization_max_depth) }}``
 
-    {{ models.root_account_file.sample.to_dict() | tojson(indent=4) | indent }}
+Block chunk file structure
+--------------------------
+
+Block chunk filename format
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Filename template is "``{{ file_blockchain.block_chunk_template.format(start='x' *  file_blockchain.order_of_block, end='y' *  file_blockchain.order_of_block) }}[.compressor]``"
+where "``{{ 'x' *  file_blockchain.order_of_block }}``" is the first block number of the block chunk file,
+"``{{ 'y' *  file_blockchain.order_of_block }}``" is the last block number of the block chunk file
+and "``.compressor``" represents compression algorithm if present.
+
+Filename example of block chunk file for block from 100 to 199 compressed with LZMA compression: ``{{ file_blockchain.get_block_chunk_filename(100, 199) }}``
 
 
-6. Root account file schema
----------------------------
+Block chunk file format
+^^^^^^^^^^^^^^^^^^^^^^^
 
-{% for model_doc in models.root_account_file.docs %}
-.. _{{ model_doc.model }}:
+Block chunk file contains multiple streamed serialized MessagePack objects: each block is
+serialized and the MessagePack_ binary appended to the file (it is NOT a serializes array
+of blocks).
 
-**{{ model_doc.model }}**
+Block structure
+^^^^^^^^^^^^^^^
+
+{% for model_doc in models.block.docs %}
+{{ model_doc.model }}
+{{ "'" * model_doc.model.__len__() }}
 
 {{ model_doc.docstring }}
-
-{% for attr in model_doc.attrs %}
-
-- *{{ attr.name }}*: {{ attr.type }}{% if attr.is_optional %}, *optional* {% endif %}
-    {{ attr.docstring }}
-
-{% endfor %}
-
-{% endfor %}
-
-
-Appendix A. Data structures short key map
------------------------------------------
 
 .. list-table::
    :header-rows: 1
 
-   * - Long key
-     - Short key
+   * - Name
+     - Type
+     - Description
+     - Is mandatory
 
-{% for long_key, short_key in compact_key_map %}
-   * - {{ long_key }}
-     - {{ short_key }}
+{% for attr in model_doc.attrs %}
+   * - {{ attr.name }}
+     - {% if attr.type in ('string', 'integer', 'datetime', 'object', 'bool', 'array') %}{{ attr.type }}{% else %}`{{ attr.type }}`_{% endif %}
+     - {{ attr.docstring }}
+     - {% if attr.is_optional %}No{% else %}Yes{% endif %}
 {% endfor %}
+{% endfor %}
+
+Block example
+'''''''''''''
+
+.. code-block:: JSON
+
+    {{ models.block.sample.to_dict() | tojson(indent=4) | indent }}
+
+Compacted block example
+'''''''''''''''''''''''
+
+Byte arrays are shown as hexadecimals for representation purposes:
+
+.. code-block:: JSON
+
+    {{ models.block.sample.to_compact_dict(compact_keys=True, compact_values=False) |
+       tojson(indent=4) | indent }}
+
 .. Links targets
 .. _MessagePack: https://msgpack.org/

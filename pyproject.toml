@@ -27,6 +27,8 @@ djangorestframework = "^3.12.4"
 djangorestframework-dataclasses = "^0.9"
 drf-spectacular = "^0.15.1"
 daphne = "^3.0.2"
+Pygments = "^2.9.0"
+docutils = "^0.17.1"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.10.1"

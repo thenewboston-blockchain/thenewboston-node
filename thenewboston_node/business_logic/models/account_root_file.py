@@ -25,7 +25,7 @@ class AccountRootFile(MessagpackCompactableMixin):
     """Historical snapshot of all account balances at any point in time"""
 
     accounts: dict[str, AccountBalance]
-    """Map like {"`account_number`": `AccountBalance`, ...}"""
+    """Map like {"account_number": `AccountBalance`_, ...}"""
 
     last_block_number: Optional[int] = None
     """Block number at which snapshot was taken"""

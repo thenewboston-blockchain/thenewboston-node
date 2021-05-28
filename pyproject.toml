@@ -43,9 +43,6 @@ yappi = "^1.3.2"
 Jinja2 = "^2.11.3"
 class-doc = "^0.2.6"
 
-[tool.poetry.scripts]
-generate-blockchain = "thenewboston_node.cli.generate_blockchain:entry"
-
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "thenewboston_node.project.settings"
 python_files = "test_*.py"

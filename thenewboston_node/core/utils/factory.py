@@ -1,6 +1,13 @@
 from copy import deepcopy
 
 
+# Just to suppress type checking for factory classes
+class Factory:
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+
 def factory(dataclass):
 
     def factory_decorator(factory_class):

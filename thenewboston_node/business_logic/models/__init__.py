@@ -1,5 +1,5 @@
 # flake8: noqa
-from .account_balance import AccountBalance, BlockAccountBalance
+from .account_balance import AccountState, BlockAccountBalance
 from .account_root_file import AccountRootFile
 from .block import Block
 from .block_message import BlockMessage

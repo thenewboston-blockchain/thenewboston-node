@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.models import CoinTransferSignedRequest
-from thenewboston_node.business_logic.models.account_balance import AccountBalance
+from thenewboston_node.business_logic.models.account_balance import AccountState
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
 from thenewboston_node.business_logic.node import get_node_identifier
@@ -34,7 +34,7 @@ def pick_recipient(candidates, exclude=(), pick_existing_probability=0.5):
 
 
 def get_initial_balances(blockchain):
-    return {account: balance.value for account, balance in blockchain.get_first_account_root_file().accounts.items()}
+    return {account: balance.balance for account, balance in blockchain.get_first_account_root_file().accounts.items()}
 
 
 def generate_blockchain(
@@ -50,7 +50,7 @@ def generate_blockchain(
 
     if add_initial_account_root_file and blockchain.get_account_root_file_count() == 0:
         initial_account_root_file = AccountRootFile(
-            accounts={treasury_account: AccountBalance(value=281474976710656, lock=treasury_account)}
+            accounts={treasury_account: AccountState(balance=281474976710656, lock=treasury_account)}
         )
         blockchain.add_account_root_file(initial_account_root_file)
 

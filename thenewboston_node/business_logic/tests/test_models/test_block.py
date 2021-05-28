@@ -50,16 +50,16 @@ def test_can_create_block_from_transfer_request(
     assert isinstance(updated_balances, dict)
     assert len(updated_balances) == 4
 
-    assert updated_balances[sender].value == 450 - 425 - 4 - 1
+    assert updated_balances[sender].balance == 450 - 425 - 4 - 1
     assert updated_balances[sender].lock
 
-    assert updated_balances['484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc'].value == 425
+    assert updated_balances['484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc'].balance == 425
     assert updated_balances['484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc'].lock is None
 
-    assert updated_balances['ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314'].value == 4
+    assert updated_balances['ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314'].balance == 4
     assert updated_balances['ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314'].lock is None
 
-    assert updated_balances['5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8'].value == 1
+    assert updated_balances['5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8'].balance == 1
     assert updated_balances['5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8'].lock is None
 
 
@@ -103,16 +103,16 @@ def test_can_create_block_from_main_transaction(
     assert isinstance(updated_balances, dict)
     assert len(updated_balances) == 4
 
-    assert updated_balances[treasury_account_key_pair.public].value == 430 - 25
+    assert updated_balances[treasury_account_key_pair.public].balance == 430 - 25
     assert updated_balances[treasury_account_key_pair.public].lock
 
-    assert updated_balances[user_account_key_pair.public].value == 20
+    assert updated_balances[user_account_key_pair.public].balance == 20
     assert updated_balances[user_account_key_pair.public].lock is None
 
-    assert updated_balances[primary_validator_key_pair.public].value == 4
+    assert updated_balances[primary_validator_key_pair.public].balance == 4
     assert updated_balances[primary_validator_key_pair.public].lock is None
 
-    assert updated_balances[node_key_pair.public].value == 1
+    assert updated_balances[node_key_pair.public].balance == 1
     assert updated_balances[node_key_pair.public].lock is None
 
     # Assert block_message.transfer_request
@@ -152,11 +152,14 @@ def test_normalized_block_message(forced_mock_blockchain, sample_transfer_reques
         '"signature":"8c1b5719745cdc81e71905e874c1f1fb938d941dd6d03ddc6dc39fc60ca42dcb8a17bb2e721c3f2a'
         '128a2dff35a3b0f843efe78893adde78a27192ca54212a08",'
         '"signer":"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732"},"updated_balances":{'
-        '"484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc":{"value":425},'
+        '"484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc":{"balance":425},'
         '"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732":'
-        '{"lock":"ae4116766c916e761c5ab7590e2426f9c391078519d8cef8673ee3fe0cdb75ad","value":20},'
-        '"5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8":{"value":1},'
-        '"ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314":{"value":4}'
+        '{'
+        '"balance":20,'
+        '"lock":"ae4116766c916e761c5ab7590e2426f9c391078519d8cef8673ee3fe0cdb75ad"'
+        '},'
+        '"5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8":{"balance":1},'
+        '"ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314":{"balance":4}'
         '}}'
     )
 
@@ -208,12 +211,12 @@ def test_can_duplicate_recipients(
 
     sender_balance = block.message.get_balance(treasury_account_key_pair.public)
     assert sender_balance
-    assert sender_balance.value == 430 - 3 - 5
+    assert sender_balance.balance == 430 - 3 - 5
     assert sender_balance.lock
 
     recipient_balance = block.message.get_balance(user_account_key_pair.public)
     assert recipient_balance
-    assert recipient_balance.value == 10 + 3 + 5
+    assert recipient_balance.balance == 10 + 3 + 5
 
 
 @pytest.mark.skip('Not implemented yet')

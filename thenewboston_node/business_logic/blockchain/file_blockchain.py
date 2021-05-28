@@ -217,7 +217,8 @@ class FileBlockchain(BlockchainBase):
             next_block_number = cache_end = file_end if start is None else start
 
         for block in self._iter_blocks_from_cache(cache_start, cache_end, direction):
-            next_block_number = block.message.block_number + (1 if direction == 1 else -1)
+            assert next_block_number == block.message.block_number
+            next_block_number += direction
             yield block
 
         if file_start <= next_block_number <= file_end:

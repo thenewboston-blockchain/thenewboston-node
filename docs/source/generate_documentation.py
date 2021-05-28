@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import builtins
 import datetime
 import os
 import sys
@@ -168,8 +169,8 @@ def is_optional(type_):
     return origin is typing.Union and type(None) in args
 
 
-def get_data():
-    data = {
+def get_context():
+    return {
         'models': {
             'block': {
                 'sample': BLOCK_SAMPLE,
@@ -195,14 +196,14 @@ def get_data():
             'make_optimized_file_path': path_optimized_file_system.make_optimized_file_path,
         },
         'compact_key_map': sorted(COMPACT_KEY_MAP.items()),
+        'builtins': builtins,
     }
-    return data
 
 
-def render(data):
+def render(context):
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(BASE_PATH))
     template = env.get_template(TEMPLATE_PATH)
-    return template.render(**data)
+    return template.render(context)
 
 
 def setup():
@@ -213,8 +214,7 @@ def setup():
 
 def main():
     setup()
-    data = get_data()
-    rendered = render(data)
+    rendered = render(get_context())
     print(rendered)
 
 

@@ -47,7 +47,7 @@ def calculate_updated_balances(
     assert sender_balance >= sent_amount
 
     updated_balances[coin_sender] = BlockAccountBalance(
-        balance=sender_balance - sent_amount, lock=make_balance_lock(transfer_request)
+        balance=sender_balance - sent_amount, balance_lock=make_balance_lock(transfer_request)
     )
 
     return updated_balances
@@ -243,17 +243,17 @@ class BlockMessage(MessageMixin):
     @validates('account {account} balance lock')
     def validate_updated_balance_lock(self, *, account, account_balance, is_sender=False):
         if is_sender:
-            if not account_balance.lock:
+            if not account_balance.balance_lock:
                 raise ValidationError('Block message updated balances must contain signer account lock')
 
             expected_balance_lock = make_balance_lock(self.transfer_request)
-            if account_balance.lock != expected_balance_lock:
+            if account_balance.balance_lock != expected_balance_lock:
                 raise ValidationError(
-                    f'Expected {expected_balance_lock} balance lock, but got {account_balance.lock} '
+                    f'Expected {expected_balance_lock} balance lock, but got {account_balance.balance_lock} '
                     f'for account {account}'
                 )
         else:
-            if account_balance.lock:
+            if account_balance.balance_lock:
                 raise ValidationError(
                     'block message updated balances must not contain balance lock for '
                     'recipient accounts'

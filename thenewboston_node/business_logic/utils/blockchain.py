@@ -50,7 +50,7 @@ def generate_blockchain(
 
     if add_initial_account_root_file and blockchain.get_account_root_file_count() == 0:
         initial_account_root_file = AccountRootFile(
-            accounts={treasury_account: AccountState(balance=281474976710656, lock=treasury_account)}
+            accounts={treasury_account: AccountState(balance=281474976710656, balance_lock=treasury_account)}
         )
         blockchain.add_account_root_file(initial_account_root_file)
 

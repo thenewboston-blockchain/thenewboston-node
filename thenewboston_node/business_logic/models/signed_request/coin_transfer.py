@@ -70,5 +70,5 @@ class CoinTransferSignedRequest(SignedRequest):
 
     @validates('transfer request balance lock on transfer request level')
     def validate_balance_lock(self, blockchain, block_number: Optional[int] = None):
-        if self.message.balance_lock != blockchain.get_account_lock(self.signer, block_number):
+        if self.message.balance_lock != blockchain.get_account_balance_lock(self.signer, block_number):
             raise ValidationError('Transfer request balance lock does not match expected balance lock')

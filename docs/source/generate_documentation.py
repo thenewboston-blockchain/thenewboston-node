@@ -91,17 +91,17 @@ ROOT_ACCOUNT_FILE_SAMPLE = models.AccountRootFile(
         '1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a':
             models.AccountState(
                 balance=1,
-                lock='1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a',
+                balance_lock='1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a',
             ),
         '4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732':
             models.AccountState(
                 balance=4,
-                lock='4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732',
+                balance_lock='4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732',
             ),
         '8d3bf5323afa7a8c6bc9418288e96491a0434a98925bf392835bfdb5a4f817ff':
             models.AccountState(
                 balance=54,
-                lock='8d3bf5323afa7a8c6bc9418288e96491a0434a98925bf392835bfdb5a4f817ff',
+                balance_lock='8d3bf5323afa7a8c6bc9418288e96491a0434a98925bf392835bfdb5a4f817ff',
             ),
     },
     last_block_number=100,

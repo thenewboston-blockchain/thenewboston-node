@@ -10,7 +10,7 @@ USER_ACCOUNT_2 = 'a5aa1b3dadbef7b31a6bd2ff11139fc4e4b4a691a5ae9dfe69f6ba6bd01dde
 initial_arf = factories.InitialAccountRootFileFactory(
     accounts={USER_ACCOUNT_1: factories.AccountBalanceFactory(
         balance=1000,
-        lock=USER_ACCOUNT_1,
+        balance_lock=USER_ACCOUNT_1,
     )}
 )
 
@@ -34,11 +34,11 @@ block_0 = factories.BlockFactory(
         updated_balances={
             USER_ACCOUNT_1: factories.BlockAccountBalanceFactory(
                 balance=901,
-                lock='user-account-1-lock',
+                balance_lock='user-account-1-lock',
             ),
             USER_ACCOUNT_2: factories.BlockAccountBalanceFactory(
                 balance=99,
-                lock=None,
+                balance_lock=None,
             )
         }
     ),
@@ -57,11 +57,11 @@ def test_generate_root_account_file(blockchain_base):
         accounts={
             USER_ACCOUNT_1: factories.AccountBalanceFactory(
                 balance=901,
-                lock='user-account-1-lock',
+                balance_lock='user-account-1-lock',
             ),
             USER_ACCOUNT_2: factories.AccountBalanceFactory(
                 balance=99,
-                lock=USER_ACCOUNT_2,
+                balance_lock=USER_ACCOUNT_2,
             )
         },
         last_block_number=0,

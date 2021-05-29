@@ -207,7 +207,7 @@ class BlockchainBase:
         return balance
 
     @timeit_method()
-    def get_account_lock(self, account: str, before_block_number: Optional[int] = None) -> str:
+    def get_account_balance_lock(self, account: str, before_block_number: Optional[int] = None) -> str:
         """
         Return balance lock before `before_block_number` is applied. If `before_block_number` is not specified it
         defaults to the next block number.
@@ -221,18 +221,20 @@ class BlockchainBase:
         return account if lock is None else lock
 
     def get_account_state(self, account: str) -> AccountState:
-        return AccountState(balance=self.get_account_balance(account) or 0, lock=self.get_account_lock(account))
+        return AccountState(
+            balance=self.get_account_balance(account) or 0, balance_lock=self.get_account_balance_lock(account)
+        )
 
     @timeit_method()
     def _get_account_lock_from_block(self, account: str, block_number: Optional[int] = None) -> Optional[str]:
         balance = self._get_balance_from_block(account, block_number, must_have_lock=True)
-        return None if balance is None else balance.lock
+        return None if balance is None else balance.balance_lock
 
     def _get_account_lock_from_account_root_file(self,
                                                  account: str,
                                                  block_number: Optional[int] = None) -> Optional[str]:
         balance = self._get_balance_from_account_root_file(account, block_number)
-        return None if balance is None else balance.lock
+        return None if balance is None else balance.balance_lock
 
     def _get_account_balance_from_block(self, account: str, block_number: Optional[int] = None) -> Optional[int]:
         balance = self._get_balance_from_block(account, block_number)
@@ -247,7 +249,7 @@ class BlockchainBase:
             balance = block.message.get_balance(account)
             if balance is not None:
                 if must_have_lock:
-                    lock = balance.lock
+                    lock = balance.balance_lock
                     if lock:
                         return balance
                 else:
@@ -470,14 +472,14 @@ class BlockchainBase:
                 arf_balance = account_root_file_accounts.get(account_number)
                 if arf_balance is None:
                     logger.debug('Account %s is met for the first time (empty lock is expected)', account_number)
-                    assert account_balance.lock is None
-                    arf_balance = AccountState(balance=account_balance.balance, lock=account_number)
+                    assert account_balance.balance_lock is None
+                    arf_balance = AccountState(balance=account_balance.balance, balance_lock=account_number)
                     account_root_file_accounts[account_number] = arf_balance
                 else:
                     arf_balance.balance = account_balance.balance
-                    lock = account_balance.lock
+                    lock = account_balance.balance_lock
                     if lock:
-                        arf_balance.lock = lock
+                        arf_balance.balance_lock = lock
 
         if block is not None:
             account_root_file.last_block_number = block.message.block_number
@@ -586,8 +588,8 @@ class BlockchainBase:
                     )
 
             with validates(f'account {account_number} balance lock'):
-                expect_lock = account_state.lock
-                actual_lock = actual_account_state.lock
+                expect_lock = account_state.balance_lock
+                actual_lock = actual_account_state.balance_lock
                 if actual_lock != expect_lock:
                     raise ValidationError(
                         f'Expected {expect_lock} balance lock, but got {actual_lock} balance '

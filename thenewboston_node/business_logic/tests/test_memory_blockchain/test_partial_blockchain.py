@@ -19,9 +19,9 @@ def test_partial_blockchain(primary_validator, preferred_node):
 
     base_account_root_file = AccountRootFile(
         accounts={
-            account1_key_pair.public: AccountState(balance=1000, lock=fake_lock1),
-            account2_key_pair.public: AccountState(balance=2000, lock=fake_lock2),
-            account3_key_pair.public: AccountState(balance=3000, lock=fake_lock3),
+            account1_key_pair.public: AccountState(balance=1000, balance_lock=fake_lock1),
+            account2_key_pair.public: AccountState(balance=2000, balance_lock=fake_lock2),
+            account3_key_pair.public: AccountState(balance=3000, balance_lock=fake_lock3),
         },
         last_block_number=1234,
         last_block_identifier='23203d245b5e128465669223b5220b3061af1e2e72b0429ef26b07ce3a2282e7',

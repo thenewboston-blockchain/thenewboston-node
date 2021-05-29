@@ -11,7 +11,7 @@ def treasury_initial_balance():
 
 @pytest.fixture
 def initial_account_root_file(treasury_account, treasury_initial_balance) -> AccountRootFile:
-    accounts = {treasury_account: AccountState(balance=treasury_initial_balance, lock=treasury_account)}
+    accounts = {treasury_account: AccountState(balance=treasury_initial_balance, balance_lock=treasury_account)}
     return AccountRootFile(accounts=accounts)
 
 

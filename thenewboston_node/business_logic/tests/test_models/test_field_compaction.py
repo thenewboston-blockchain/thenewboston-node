@@ -42,7 +42,7 @@ def test_block_message_fields_are_compacted(long_name, short_name):
 
 @pytest.mark.parametrize('long_name,short_name', (
     ('balance', 'b'),
-    ('lock', 'l'),
+    ('balance_lock', 'bl'),
 ))
 def test_updated_balances_fields_are_compacted(long_name, short_name):
     balance = factories.BlockAccountBalanceFactory(balance=1000)
@@ -201,7 +201,7 @@ def test_transaction_fields_are_stored_in_bytes(field_name, value):
 
 
 @pytest.mark.parametrize(
-    'field_name,value', [('lock', '9e310e76f63b83abef5674d5cd1445535c9aa7395a96e0381edc368a2840a598')]
+    'field_name,value', [('balance_lock', '9e310e76f63b83abef5674d5cd1445535c9aa7395a96e0381edc368a2840a598')]
 )
 def test_updated_balances_fields_are_stored_in_bytes(field_name, value):
     account = '1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a'

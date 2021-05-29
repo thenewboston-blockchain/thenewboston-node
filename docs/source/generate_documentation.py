@@ -79,7 +79,7 @@ BLOCK_SAMPLE = models.Block(
             '23408655057f4ed8593c2d36bc98fb468112fdac186bec616ec2f2ba45c579c02108',
             signer='cb0467e380e032881e3f5c26878da3584f1dc1f2262ef77ba5e1fa7ef4b2821c',
         ),
-        account_state_updates={
+        updated_account_states={
             '1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a':
                 thenewboston_node.business_logic.models.account_state_update.AccountStateUpdate(balance=1),
             '4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732':

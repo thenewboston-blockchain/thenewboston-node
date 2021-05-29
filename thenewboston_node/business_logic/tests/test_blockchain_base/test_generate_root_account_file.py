@@ -31,7 +31,7 @@ block_0 = factories.BlockFactory(
                 ]
             ),
         ),
-        account_state_updates={
+        updated_account_states={
             USER_ACCOUNT_1: factories.AccountStateUpdateFactory(
                 balance=901,
                 balance_lock='user-account-1-lock',

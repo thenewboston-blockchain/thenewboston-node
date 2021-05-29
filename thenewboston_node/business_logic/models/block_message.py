@@ -12,7 +12,7 @@ from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
-from .account_balance import BlockAccountBalance
+from .account_balance import AccountStateUpdate
 from .mixins.message import MessageMixin
 from .signed_request import CoinTransferSignedRequest
 
@@ -26,17 +26,17 @@ def make_balance_lock(transfer_request):
 
 def calculate_updated_balances(
     get_account_balance: Callable[[str], Optional[int]], transfer_request: CoinTransferSignedRequest
-) -> dict[str, BlockAccountBalance]:
-    updated_balances: dict[str, BlockAccountBalance] = {}
+) -> dict[str, AccountStateUpdate]:
+    account_state_updates: dict[str, AccountStateUpdate] = {}
     sent_amount = 0
     for transaction in transfer_request.message.txs:
         recipient = transaction.recipient
         amount = transaction.amount
 
-        balance = updated_balances.get(recipient)
+        balance = account_state_updates.get(recipient)
         if balance is None:
-            balance = BlockAccountBalance(balance=get_account_balance(recipient) or 0)
-            updated_balances[recipient] = balance
+            balance = AccountStateUpdate(balance=get_account_balance(recipient) or 0)
+            account_state_updates[recipient] = balance
 
         balance.balance += amount
         sent_amount += amount
@@ -46,11 +46,11 @@ def calculate_updated_balances(
     assert sender_balance is not None
     assert sender_balance >= sent_amount
 
-    updated_balances[coin_sender] = BlockAccountBalance(
+    account_state_updates[coin_sender] = AccountStateUpdate(
         balance=sender_balance - sent_amount, balance_lock=make_balance_lock(transfer_request)
     )
 
-    return updated_balances
+    return account_state_updates
 
 
 @fake_super_methods
@@ -80,14 +80,14 @@ class BlockMessage(MessageMixin):
     block_identifier: str
     """Unique block identifier"""
 
-    updated_balances: dict[str, BlockAccountBalance]
-    """New account balance values like {"account_number": `BlockAccountBalance`_, ...}"""
+    account_state_updates: dict[str, AccountStateUpdate]
+    """Account state updates: {"account_number": `AccountStateUpdate`_, ...}"""
 
     def override_to_dict(self):  # this one turns into to_dict()
         dict_ = self.super_to_dict()
         # TODO(dmu) LOW: Implement a better way of removing optional fields or allow them in normalized message
         dict_['transfer_request'] = self.transfer_request.to_dict()
-        dict_['updated_balances'] = {key: value.to_dict() for key, value in self.updated_balances.items()}
+        dict_['account_state_updates'] = {key: value.to_dict() for key, value in self.account_state_updates.items()}
         return dict_
 
     @classmethod
@@ -106,14 +106,14 @@ class BlockMessage(MessageMixin):
             timestamp=timestamp,
             block_number=block_number,
             block_identifier=block_identifier,
-            updated_balances=calculate_updated_balances(blockchain.get_account_balance, transfer_request),
+            account_state_updates=calculate_updated_balances(blockchain.get_account_balance, transfer_request),
         )
 
     def get_normalized(self) -> bytes:
         return normalize_dict(self.to_dict())  # type: ignore
 
-    def get_balance(self, account: str) -> Optional[BlockAccountBalance]:
-        return (self.updated_balances or {}).get(account)
+    def get_balance(self, account: str) -> Optional[AccountStateUpdate]:
+        return (self.account_state_updates or {}).get(account)
 
     def get_sent_amount(self):
         assert self.transfer_request
@@ -210,23 +210,23 @@ class BlockMessage(MessageMixin):
     @validates('block message updated balances')
     def validate_updated_balances(self, blockchain):
 
-        updated_balances = self.updated_balances
+        account_state_updates = self.account_state_updates
 
         with validates('block message updated balances content'):
-            if updated_balances is None:
+            if account_state_updates is None:
                 raise ValidationError('Block message must contain updated balances')
 
-            if len(updated_balances) < 2:
+            if len(account_state_updates) < 2:
                 raise ValidationError('block message updated balances must contain at least 2 balances')
 
         sender = self.transfer_request.signer
         with validates('block message updated balances signer account balance'):
-            sender_account_balance = updated_balances.get(sender)
+            sender_account_balance = account_state_updates.get(sender)
             if sender_account_balance is None:
                 raise ValidationError('block message updated balances must contain signer account balance')
 
         with validates('all account balances', is_plural_target=True):
-            for account, account_balance in updated_balances.items():
+            for account, account_balance in account_state_updates.items():
                 account_balance.validate()
                 with validates(f'account {account} updated balance on block message level'):
                     if not isinstance(account, str):

@@ -22,7 +22,7 @@ COMPACT_KEY_MAP = {
     'timestamp': 't',
     'block_number': 'bn',
     'block_identifier': 'bi',
-    'updated_balances': 'ub',
+    'account_state_updates': 'u',
     # transaction
     'recipient': 'r',
     'amount': 'at',
@@ -67,12 +67,12 @@ UNCOMPACT_VALUE_MAP = {
 }
 
 COMPACT_SUBKEY_MAP = {
-    'updated_balances': hex_to_bytes,
+    'account_state_updates': hex_to_bytes,
     'accounts': hex_to_bytes,
 }
 
 UNCOMPACT_SUBKEY_MAP = {
-    'updated_balances': bytes_to_hex,
+    'account_state_updates': bytes_to_hex,
     'accounts': bytes_to_hex,
 }
 

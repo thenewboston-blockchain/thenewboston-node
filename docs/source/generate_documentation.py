@@ -26,7 +26,7 @@ TEMPLATE_PATH = 'index.rst'
 BLOCK_MODELS = (
     models.Block,
     models.BlockMessage,
-    models.BlockAccountBalance,
+    models.AccountStateUpdate,
     models.CoinTransferSignedRequest,
     models.CoinTransferSignedRequestMessage,
     models.CoinTransferTransaction,
@@ -78,10 +78,10 @@ BLOCK_SAMPLE = models.Block(
             '23408655057f4ed8593c2d36bc98fb468112fdac186bec616ec2f2ba45c579c02108',
             signer='cb0467e380e032881e3f5c26878da3584f1dc1f2262ef77ba5e1fa7ef4b2821c',
         ),
-        updated_balances={
-            '1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a': models.BlockAccountBalance(balance=1),
-            '4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732': models.BlockAccountBalance(balance=4),
-            '8d3bf5323afa7a8c6bc9418288e96491a0434a98925bf392835bfdb5a4f817ff': models.BlockAccountBalance(balance=54),
+        account_state_updates={
+            '1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a': models.AccountStateUpdate(balance=1),
+            '4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732': models.AccountStateUpdate(balance=4),
+            '8d3bf5323afa7a8c6bc9418288e96491a0434a98925bf392835bfdb5a4f817ff': models.AccountStateUpdate(balance=54),
         },
     ),
 )

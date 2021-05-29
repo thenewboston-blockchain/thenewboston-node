@@ -10,7 +10,7 @@ from more_itertools import always_reversible, ilen
 
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models import CoinTransferSignedRequest
-from thenewboston_node.business_logic.models.account_balance import AccountState, BlockAccountBalance
+from thenewboston_node.business_logic.models.account_balance import AccountState, AccountStateUpdate
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.core.logging import timeit, timeit_method, validates
 from thenewboston_node.core.utils.importing import import_from_string
@@ -165,7 +165,7 @@ class BlockchainBase:
     def iter_known_accounts(self):
         known_accounts = set()
         for block in self.get_blocks_until_account_root_file():
-            block_accounts = set(block.message.updated_balances.keys())
+            block_accounts = set(block.message.account_state_updates.keys())
             new_accounts = block_accounts - known_accounts
             known_accounts |= new_accounts
             for new_account in new_accounts:
@@ -244,7 +244,7 @@ class BlockchainBase:
     def _get_balance_from_block(self,
                                 account: str,
                                 block_number: Optional[int] = None,
-                                must_have_lock: bool = False) -> Optional[BlockAccountBalance]:
+                                must_have_lock: bool = False) -> Optional[AccountStateUpdate]:
         for block in self.get_blocks_until_account_root_file(block_number):
             balance = block.message.get_balance(account)
             if balance is not None:
@@ -467,7 +467,7 @@ class BlockchainBase:
                 break
 
             logger.debug('Traversing block number %s', block.message.block_number)
-            for account_number, account_balance in block.message.updated_balances.items():
+            for account_number, account_balance in block.message.account_state_updates.items():
                 logger.debug('Found %s account balance: %s', account_number, account_balance)
                 arf_balance = account_root_file_accounts.get(account_number)
                 if arf_balance is None:

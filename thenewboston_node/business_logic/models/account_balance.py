@@ -45,7 +45,7 @@ class AccountState:
 @fake_super_methods
 @dataclass_json
 @dataclass
-class BlockAccountBalance(AccountState):
+class AccountStateUpdate(AccountState):
     """Account balance state when block is validated"""
 
     balance_lock: Optional[str] = None  # type: ignore

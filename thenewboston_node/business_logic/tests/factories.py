@@ -3,7 +3,7 @@ from datetime import datetime
 from thenewboston_node.business_logic.models import (
     CoinTransferSignedRequest, CoinTransferSignedRequestMessage, CoinTransferTransaction
 )
-from thenewboston_node.business_logic.models.account_balance import AccountState, BlockAccountBalance
+from thenewboston_node.business_logic.models.account_balance import AccountState, AccountStateUpdate
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.models.block_message import BlockMessage
@@ -49,13 +49,13 @@ class CoinTransferSignedRequestFactory(Factory):
 
 
 @factory(AccountState)
-class AccountBalanceFactory(Factory):
+class AccountStateFactory(Factory):
     balance = 1000
     balance_lock = DEFAULT_ACCOUNT
 
 
-@factory(BlockAccountBalance)
-class BlockAccountBalanceFactory(Factory):
+@factory(AccountStateUpdate)
+class AccountStateUpdateFactory(Factory):
     balance = 1000
     balance_lock = DEFAULT_ACCOUNT
 
@@ -66,7 +66,7 @@ class BlockMessageFactory(Factory):
     timestamp = datetime(2021, 1, 1)
     block_number = 0
     block_identifier = 'd606af9d1d769192813d71051148ef1896e3d85062c31ad3e62331e25d9c96bc'
-    updated_balances = {DEFAULT_ACCOUNT: BlockAccountBalanceFactory()}
+    account_state_updates = {DEFAULT_ACCOUNT: AccountStateUpdateFactory()}
 
 
 @factory(Block)
@@ -79,7 +79,7 @@ class BlockFactory(Factory):
 
 @factory(AccountRootFile)
 class InitialAccountRootFileFactory(Factory):
-    accounts = {DEFAULT_ACCOUNT: AccountBalanceFactory()}
+    accounts = {DEFAULT_ACCOUNT: AccountStateFactory()}
     last_block_number = None
     last_block_identifier = None
     last_block_timestamp = None
@@ -88,7 +88,7 @@ class InitialAccountRootFileFactory(Factory):
 
 @factory(AccountRootFile)
 class AccountRootFileFactory(Factory):
-    accounts = {DEFAULT_ACCOUNT: AccountBalanceFactory()}
+    accounts = {DEFAULT_ACCOUNT: AccountStateFactory()}
     last_block_number = 0
     last_block_identifier = 'd606af9d1d769192813d71051148ef1896e3d85062c31ad3e62331e25d9c96bc'
     last_block_timestamp = datetime(2021, 1, 1)

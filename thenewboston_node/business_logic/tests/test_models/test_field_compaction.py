@@ -28,7 +28,7 @@ def test_block_fields_are_compacted(long_name, short_name):
         ('timestamp', 't'),
         ('block_number', 'bn'),
         ('block_identifier', 'bi'),
-        ('updated_balances', 'ub'),
+        ('account_state_updates', 'u'),
     )
 )
 def test_block_message_fields_are_compacted(long_name, short_name):
@@ -45,11 +45,11 @@ def test_block_message_fields_are_compacted(long_name, short_name):
     ('balance_lock', 'bl'),
 ))
 def test_updated_balances_fields_are_compacted(long_name, short_name):
-    balance = factories.BlockAccountBalanceFactory(balance=1000)
-    block_message = factories.BlockMessageFactory(updated_balances={'key': balance})
+    balance = factories.AccountStateUpdateFactory(balance=1000)
+    block_message = factories.BlockMessageFactory(account_state_updates={'key': balance})
     block = factories.BlockFactory(message=block_message)
 
-    block_balance_dict = block.to_compact_dict(compact_values=False)['m']['ub']['key']
+    block_balance_dict = block.to_compact_dict(compact_values=False)['m']['u']['key']
 
     assert short_name in block_balance_dict
     assert long_name not in block_balance_dict
@@ -205,29 +205,29 @@ def test_transaction_fields_are_stored_in_bytes(field_name, value):
 )
 def test_updated_balances_fields_are_stored_in_bytes(field_name, value):
     account = '1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a'
-    block_account_balance = factories.BlockAccountBalanceFactory(**{field_name: value})
-    updated_balances = {
+    block_account_balance = factories.AccountStateUpdateFactory(**{field_name: value})
+    account_state_updates = {
         account: block_account_balance,
     }
-    block_msg = factories.BlockMessageFactory(updated_balances=updated_balances)
+    block_msg = factories.BlockMessageFactory(account_state_updates=account_state_updates)
     block = factories.BlockFactory(message=block_msg)
 
     account_bytes = bytes.fromhex(account)
-    compact_dict = block.to_compact_dict(compact_keys=False)['message']['updated_balances'][account_bytes]
+    compact_dict = block.to_compact_dict(compact_keys=False)['message']['account_state_updates'][account_bytes]
 
     assert compact_dict[field_name] == bytes.fromhex(value)
 
 
 def test_updated_balances_keys_are_stored_in_bytes():
     account = '1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a'
-    block_account_balance = factories.BlockAccountBalanceFactory()
-    updated_balances = {
+    block_account_balance = factories.AccountStateUpdateFactory()
+    account_state_updates = {
         account: block_account_balance,
     }
-    block_msg = factories.BlockMessageFactory(updated_balances=updated_balances)
+    block_msg = factories.BlockMessageFactory(account_state_updates=account_state_updates)
     block = factories.BlockFactory(message=block_msg)
 
-    updated_balances_dict = block.to_compact_dict(compact_keys=False)['message']['updated_balances']
+    updated_balances_dict = block.to_compact_dict(compact_keys=False)['message']['account_state_updates']
 
     assert set(updated_balances_dict.keys()) == {bytes.fromhex(account)}
 
@@ -249,7 +249,7 @@ def test_block_messagepack_with_compact_values_is_smaller():
 
 def test_account_root_file_accounts_are_stored_in_bytes():
     account = 'cb0467e380e032881e3f5c26878da3584f1dc1f2262ef77ba5e1fa7ef4b2821c'
-    account_root_file = factories.AccountRootFileFactory(accounts={account: factories.AccountBalanceFactory()})
+    account_root_file = factories.AccountRootFileFactory(accounts={account: factories.AccountStateFactory()})
 
     compact_dict = account_root_file.to_compact_dict(compact_keys=False)['accounts']
 

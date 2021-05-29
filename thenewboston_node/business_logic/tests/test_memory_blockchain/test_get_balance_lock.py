@@ -24,7 +24,7 @@ def test_get_account_lock(
     blockchain.add_block(block0)
     assert blockchain.get_next_block_number() == 1
 
-    block0_treasury_account_balance = block0.message.updated_balances.get(treasury_account)
+    block0_treasury_account_balance = block0.message.account_state_updates.get(treasury_account)
     assert block0_treasury_account_balance
     assert blockchain.get_account_balance_lock(treasury_account) == block0_treasury_account_balance.balance_lock
     assert blockchain.get_account_balance_lock(treasury_account, 0) == treasury_account
@@ -33,7 +33,7 @@ def test_get_account_lock(
     blockchain.add_block(block1)
     assert blockchain.get_next_block_number() == 2
 
-    block1_treasury_account_balance = block1.message.updated_balances.get(treasury_account)
+    block1_treasury_account_balance = block1.message.account_state_updates.get(treasury_account)
     assert block1_treasury_account_balance
 
     assert blockchain.get_account_balance_lock(treasury_account) == block1_treasury_account_balance.balance_lock

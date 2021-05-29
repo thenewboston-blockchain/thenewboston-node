@@ -45,22 +45,25 @@ def test_can_create_block_from_transfer_request(
 
     assert block_message.block_number == 0
     assert block_message.block_identifier == 'next-block-identifier'
-    updated_balances = block_message.updated_balances
+    account_state_updates = block_message.account_state_updates
 
-    assert isinstance(updated_balances, dict)
-    assert len(updated_balances) == 4
+    assert isinstance(account_state_updates, dict)
+    assert len(account_state_updates) == 4
 
-    assert updated_balances[sender].balance == 450 - 425 - 4 - 1
-    assert updated_balances[sender].balance_lock
+    assert account_state_updates[sender].balance == 450 - 425 - 4 - 1
+    assert account_state_updates[sender].balance_lock
 
-    assert updated_balances['484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc'].balance == 425
-    assert updated_balances['484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc'].balance_lock is None
+    assert account_state_updates['484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc'].balance == 425
+    assert account_state_updates['484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc'
+                                 ].balance_lock is None
 
-    assert updated_balances['ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314'].balance == 4
-    assert updated_balances['ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314'].balance_lock is None
+    assert account_state_updates['ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314'].balance == 4
+    assert account_state_updates['ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314'
+                                 ].balance_lock is None
 
-    assert updated_balances['5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8'].balance == 1
-    assert updated_balances['5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8'].balance_lock is None
+    assert account_state_updates['5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8'].balance == 1
+    assert account_state_updates['5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8'
+                                 ].balance_lock is None
 
 
 @pytest.mark.usefixtures(
@@ -98,22 +101,22 @@ def test_can_create_block_from_main_transaction(
 
     assert block_message.block_number == 0
     assert block_message.block_identifier == 'next-block-identifier'
-    updated_balances = block_message.updated_balances
+    account_state_updates = block_message.account_state_updates
 
-    assert isinstance(updated_balances, dict)
-    assert len(updated_balances) == 4
+    assert isinstance(account_state_updates, dict)
+    assert len(account_state_updates) == 4
 
-    assert updated_balances[treasury_account_key_pair.public].balance == 430 - 25
-    assert updated_balances[treasury_account_key_pair.public].balance_lock
+    assert account_state_updates[treasury_account_key_pair.public].balance == 430 - 25
+    assert account_state_updates[treasury_account_key_pair.public].balance_lock
 
-    assert updated_balances[user_account_key_pair.public].balance == 20
-    assert updated_balances[user_account_key_pair.public].balance_lock is None
+    assert account_state_updates[user_account_key_pair.public].balance == 20
+    assert account_state_updates[user_account_key_pair.public].balance_lock is None
 
-    assert updated_balances[primary_validator_key_pair.public].balance == 4
-    assert updated_balances[primary_validator_key_pair.public].balance_lock is None
+    assert account_state_updates[primary_validator_key_pair.public].balance == 4
+    assert account_state_updates[primary_validator_key_pair.public].balance_lock is None
 
-    assert updated_balances[node_key_pair.public].balance == 1
-    assert updated_balances[node_key_pair.public].balance_lock is None
+    assert account_state_updates[node_key_pair.public].balance == 1
+    assert account_state_updates[node_key_pair.public].balance_lock is None
 
     # Assert block_message.transfer_request
     transfer_request = block_message.transfer_request
@@ -142,16 +145,8 @@ def test_can_create_block_from_main_transaction(
 @pytest.mark.usefixtures('get_next_block_identifier_mock', 'get_next_block_number_mock', 'get_account_state_mock')
 def test_normalized_block_message(forced_mock_blockchain, sample_transfer_request):
     expected_message_template = (
-        '{"block_identifier":"next-block-identifier","block_number":0,"timestamp":"<replace-with-timestamp>",'
-        '"transfer_request":{"message":{"balance_lock":'
-        '"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732","txs":'
-        '[{"amount":425,"recipient":"484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc"},'
-        '{"amount":1,"fee":true,"recipient":"5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8"},'
-        '{"amount":4,"fee":true,"recipient":'
-        '"ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314"}]},'
-        '"signature":"8c1b5719745cdc81e71905e874c1f1fb938d941dd6d03ddc6dc39fc60ca42dcb8a17bb2e721c3f2a'
-        '128a2dff35a3b0f843efe78893adde78a27192ca54212a08",'
-        '"signer":"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732"},"updated_balances":{'
+        '{'
+        '"account_state_updates":{'
         '"484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc":{"balance":425},'
         '"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732":'
         '{'
@@ -160,7 +155,18 @@ def test_normalized_block_message(forced_mock_blockchain, sample_transfer_reques
         '},'
         '"5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8":{"balance":1},'
         '"ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314":{"balance":4}'
-        '}}'
+        '},'
+        '"block_identifier":"next-block-identifier","block_number":0,"timestamp":"<replace-with-timestamp>",'
+        '"transfer_request":{"message":{"balance_lock":'
+        '"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732","txs":'
+        '[{"amount":425,"recipient":"484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc"},'
+        '{"amount":1,"fee":true,"recipient":"5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8"},'
+        '{"amount":4,"fee":true,"recipient":'
+        '"ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314"}]},'
+        '"signature":"8c1b5719745cdc81e71905e874c1f1fb938d941dd6d03ddc6dc39fc60ca42dcb8a17bb2e721c3f2a'
+        '128a2dff35a3b0f843efe78893adde78a27192ca54212a08",'
+        '"signer":"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732"}'
+        '}'
     )
 
     def get_account_state(self, account):
@@ -206,8 +212,8 @@ def test_can_duplicate_recipients(
     with patch.object(MockBlockchain, 'get_account_balance', new=get_account_state):
         block = Block.from_transfer_request(forced_mock_blockchain, request)
 
-    updated_balances = block.message.updated_balances
-    assert len(updated_balances) == 2
+    account_state_updates = block.message.account_state_updates
+    assert len(account_state_updates) == 2
 
     sender_balance = block.message.get_balance(treasury_account_key_pair.public)
     assert sender_balance

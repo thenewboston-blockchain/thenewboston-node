@@ -66,7 +66,7 @@ class BlockMessageFactory(Factory):
     timestamp = datetime(2021, 1, 1)
     block_number = 0
     block_identifier = 'd606af9d1d769192813d71051148ef1896e3d85062c31ad3e62331e25d9c96bc'
-    account_state_updates = {DEFAULT_ACCOUNT: AccountStateUpdateFactory()}
+    updated_account_states = {DEFAULT_ACCOUNT: AccountStateUpdateFactory()}
 
 
 @factory(Block)

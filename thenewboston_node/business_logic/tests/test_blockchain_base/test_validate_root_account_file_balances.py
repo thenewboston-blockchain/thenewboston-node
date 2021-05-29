@@ -29,7 +29,7 @@ block_0 = factories.BlockFactory(
                 )]
             )
         ),
-        account_state_updates={
+        updated_account_states={
             USER_ACCOUNT_1: factories.AccountStateUpdateFactory(balance=89, balance_lock=MESSAGE_HASH),
             USER_ACCOUNT_2: factories.AccountStateUpdateFactory(balance=11, balance_lock=None),
         }

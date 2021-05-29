@@ -165,7 +165,7 @@ class BlockchainBase:
     def iter_known_accounts(self):
         known_accounts = set()
         for block in self.get_blocks_until_account_root_file():
-            block_accounts = set(block.message.account_state_updates.keys())
+            block_accounts = set(block.message.updated_account_states.keys())
             new_accounts = block_accounts - known_accounts
             known_accounts |= new_accounts
             for new_account in new_accounts:
@@ -467,7 +467,7 @@ class BlockchainBase:
                 break
 
             logger.debug('Traversing block number %s', block.message.block_number)
-            for account_number, account_balance in block.message.account_state_updates.items():
+            for account_number, account_balance in block.message.updated_account_states.items():
                 logger.debug('Found %s account balance: %s', account_number, account_balance)
                 arf_balance = account_root_file_accounts.get(account_number)
                 if arf_balance is None:

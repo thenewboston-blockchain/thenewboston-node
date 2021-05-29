@@ -51,7 +51,7 @@ def test_get_account_lock_before_transaction(file_blockchain_w_memory_storage, t
 
 def test_account_lock_after_transaction(file_blockchain_w_memory_storage, treasury_account):
     block = file_blockchain_w_memory_storage.get_last_block()
-    updated_treasury_balance = block.message.account_state_updates[treasury_account]
+    updated_treasury_balance = block.message.updated_account_states[treasury_account]
 
     balance_lock = file_blockchain_w_memory_storage.get_account_balance_lock(account=treasury_account)
     assert balance_lock == updated_treasury_balance.balance_lock

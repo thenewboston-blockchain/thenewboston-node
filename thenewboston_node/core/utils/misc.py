@@ -30,6 +30,14 @@ def humanize_camel_case(value, apply_upper_first=True):
     return value
 
 
+def humanize_snake_case(value, apply_upper_first=True):
+    value = value.replace('_', ' ')
+    if apply_upper_first:
+        value = upper_first(value)
+
+    return value
+
+
 def yaml_coerce(value):
     if isinstance(value, str):
         return yaml.load('dummy: ' + value, Loader=yaml.SafeLoader)['dummy']

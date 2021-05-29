@@ -9,7 +9,7 @@ from django.conf import settings
 from more_itertools import always_reversible, ilen
 
 from thenewboston_node.business_logic.exceptions import ValidationError
-from thenewboston_node.business_logic.models import AccountStateUpdate, CoinTransferSignedRequest
+from thenewboston_node.business_logic.models import CoinTransferSignedRequest
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.business_logic.models.account_state import AccountState
 from thenewboston_node.core.logging import timeit, timeit_method, validates
@@ -227,7 +227,7 @@ class BlockchainBase:
 
     @timeit_method()
     def _get_account_lock_from_block(self, account: str, block_number: Optional[int] = None) -> Optional[str]:
-        balance = self._get_balance_from_block(account, block_number, must_have_lock=True)
+        balance = self._get_account_state_from_block(account, block_number, must_have_lock=True)
         return None if balance is None else balance.balance_lock
 
     def _get_account_lock_from_account_root_file(self,
@@ -237,14 +237,16 @@ class BlockchainBase:
         return None if balance is None else balance.balance_lock
 
     def _get_account_balance_from_block(self, account: str, block_number: Optional[int] = None) -> Optional[int]:
-        balance = self._get_balance_from_block(account, block_number)
-        return None if balance is None else balance.balance
+        account_state = self._get_account_state_from_block(account, block_number)
+        return None if account_state is None else account_state.balance
 
     @timeit_method()
-    def _get_balance_from_block(self,
-                                account: str,
-                                block_number: Optional[int] = None,
-                                must_have_lock: bool = False) -> Optional[AccountStateUpdate]:
+    def _get_account_state_from_block(
+        self,
+        account: str,
+        block_number: Optional[int] = None,
+        must_have_lock: bool = False
+    ) -> Optional[AccountState]:
         for block in self.get_blocks_until_account_root_file(block_number):
             balance = block.message.get_balance(account)
             if balance is not None:

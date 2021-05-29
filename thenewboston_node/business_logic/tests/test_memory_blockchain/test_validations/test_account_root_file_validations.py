@@ -11,7 +11,7 @@ def test_validate_account_root_files_raises(forced_memory_blockchain: MemoryBloc
     assert blockchain.account_root_files
     for balance in blockchain.account_root_files[0].accounts.values():
         balance.balance_lock = ''
-    with pytest.raises(ValidationError, match='Account lock must be set'):
+    with pytest.raises(ValidationError, match='Account state balance_lock must be not empty'):
         blockchain.validate_account_root_files()
 
     blockchain.account_root_files = []

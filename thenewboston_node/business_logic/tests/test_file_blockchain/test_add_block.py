@@ -8,7 +8,8 @@ from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.core.utils.cryptography import KeyPair
 
 
-def test_block_chunk_is_rotated(file_blockchain_w_memory_storage, user_account, signing_key):
+def test_block_chunk_is_rotated(file_blockchain_w_memory_storage, user_account, treasury_account_signing_key):
+    signing_key = treasury_account_signing_key
     blockchain = file_blockchain_w_memory_storage
     file1 = '00000000000000000000-00000000000000000001-block-chunk.msgpack'
     file2 = '00000000000000000002-00000000000000000003-block-chunk.msgpack'
@@ -30,7 +31,8 @@ def test_block_chunk_is_rotated(file_blockchain_w_memory_storage, user_account, 
     assert blockchain.block_storage.finalized == {file1, file2}
 
 
-def test_block_is_appended(file_blockchain_w_memory_storage, user_account, signing_key):
+def test_block_is_appended(file_blockchain_w_memory_storage, user_account, treasury_account_signing_key):
+    signing_key = treasury_account_signing_key
     blockchain = file_blockchain_w_memory_storage
     filename = '00000000000000000000-00000000000000000001-block-chunk.msgpack'
 
@@ -43,7 +45,8 @@ def test_block_is_appended(file_blockchain_w_memory_storage, user_account, signi
     assert blockchain.block_storage.finalized == set()
 
 
-def test_cannot_add_block_twice(file_blockchain_w_memory_storage, user_account, signing_key):
+def test_cannot_add_block_twice(file_blockchain_w_memory_storage, user_account, treasury_account_signing_key):
+    signing_key = treasury_account_signing_key
     blockchain = file_blockchain_w_memory_storage
     block = Block.from_main_transaction(blockchain, user_account, 10, signing_key)
     blockchain.add_block(block)

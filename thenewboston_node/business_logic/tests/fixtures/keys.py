@@ -56,5 +56,5 @@ def treasury_account(treasury_account_key_pair):
 
 
 @pytest.fixture
-def signing_key(treasury_account_key_pair):
+def treasury_account_signing_key(treasury_account_key_pair):
     return treasury_account_key_pair.private

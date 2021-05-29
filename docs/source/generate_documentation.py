@@ -34,7 +34,7 @@ BLOCK_MODELS = (
 
 ROOT_ACCOUNT_FILE_MODELS = (
     models.AccountRootFile,
-    models.AccountBalance,
+    models.AccountState,
 )
 
 TYPE_NAME_MAP = {
@@ -79,9 +79,9 @@ BLOCK_SAMPLE = models.Block(
             signer='cb0467e380e032881e3f5c26878da3584f1dc1f2262ef77ba5e1fa7ef4b2821c',
         ),
         updated_balances={
-            '1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a': models.BlockAccountBalance(value=1),
-            '4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732': models.BlockAccountBalance(value=4),
-            '8d3bf5323afa7a8c6bc9418288e96491a0434a98925bf392835bfdb5a4f817ff': models.BlockAccountBalance(value=54),
+            '1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a': models.BlockAccountBalance(balance=1),
+            '4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732': models.BlockAccountBalance(balance=4),
+            '8d3bf5323afa7a8c6bc9418288e96491a0434a98925bf392835bfdb5a4f817ff': models.BlockAccountBalance(balance=54),
         },
     ),
 )
@@ -89,18 +89,18 @@ BLOCK_SAMPLE = models.Block(
 ROOT_ACCOUNT_FILE_SAMPLE = models.AccountRootFile(
     accounts={
         '1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a':
-            models.AccountBalance(
-                value=1,
+            models.AccountState(
+                balance=1,
                 lock='1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a',
             ),
         '4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732':
-            models.AccountBalance(
-                value=4,
+            models.AccountState(
+                balance=4,
                 lock='4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732',
             ),
         '8d3bf5323afa7a8c6bc9418288e96491a0434a98925bf392835bfdb5a4f817ff':
-            models.AccountBalance(
-                value=54,
+            models.AccountState(
+                balance=54,
                 lock='8d3bf5323afa7a8c6bc9418288e96491a0434a98925bf392835bfdb5a4f817ff',
             ),
     },

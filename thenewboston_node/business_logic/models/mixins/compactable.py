@@ -12,7 +12,7 @@ COMPACT_KEY_MAP = {
     'last_block_timestamp': 'lt',
     'next_block_identifier': 'ni',
     # account balance
-    'value': 'v',
+    'balance': 'b',
     'lock': 'l',
     # block
     'message': 'm',

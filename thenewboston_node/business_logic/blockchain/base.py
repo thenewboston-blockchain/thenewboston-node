@@ -10,7 +10,7 @@ from more_itertools import always_reversible, ilen
 
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models import CoinTransferSignedRequest
-from thenewboston_node.business_logic.models.account_balance import AccountBalance, BlockAccountBalance
+from thenewboston_node.business_logic.models.account_balance import AccountState, BlockAccountBalance
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.core.logging import timeit, timeit_method, validates
 from thenewboston_node.core.utils.importing import import_from_string
@@ -220,9 +220,9 @@ class BlockchainBase:
         lock = self._get_balance_lock_from_account_root_file(account, block_number)
         return account if lock is None else lock
 
-    def get_account_balance(self, account: str) -> AccountBalance:
-        return AccountBalance(
-            value=self.get_balance_value(account) or 0,
+    def get_account_balance(self, account: str) -> AccountState:
+        return AccountState(
+            balance=self.get_balance_value(account) or 0,
             lock=self.get_balance_lock(account),
         )
 
@@ -239,7 +239,7 @@ class BlockchainBase:
 
     def _get_balance_value_from_block(self, account: str, block_number: Optional[int] = None) -> Optional[int]:
         balance = self._get_balance_from_block(account, block_number)
-        return None if balance is None else balance.value
+        return None if balance is None else balance.balance
 
     @timeit_method()
     def _get_balance_from_block(self,
@@ -329,11 +329,11 @@ class BlockchainBase:
                                                   account: str,
                                                   block_number: Optional[int] = None) -> Optional[int]:
         balance = self._get_balance_from_account_root_file(account, block_number)
-        return None if balance is None else balance.value
+        return None if balance is None else balance.balance
 
     def _get_balance_from_account_root_file(self,
                                             account: str,
-                                            block_number: Optional[int] = None) -> Optional[AccountBalance]:
+                                            block_number: Optional[int] = None) -> Optional[AccountState]:
         excludes_block_number = None if block_number is None else block_number + 1
         account_root_file = self.get_closest_account_root_file(excludes_block_number)
         assert account_root_file
@@ -474,10 +474,10 @@ class BlockchainBase:
                 if arf_balance is None:
                     logger.debug('Account %s is met for the first time (empty lock is expected)', account_number)
                     assert account_balance.lock is None
-                    arf_balance = AccountBalance(value=account_balance.value, lock=account_number)
+                    arf_balance = AccountState(balance=account_balance.balance, lock=account_number)
                     account_root_file_accounts[account_number] = arf_balance
                 else:
-                    arf_balance.value = account_balance.value
+                    arf_balance.balance = account_balance.balance
                     lock = account_balance.lock
                     if lock:
                         arf_balance.lock = lock
@@ -580,8 +580,8 @@ class BlockchainBase:
                     raise ValidationError(f'Could not find {account_number} account in the account root file')
 
             with validates(f'account {account_number} balance value'):
-                expect_value = account_balance.value
-                actual_value = actual_account_balance.value
+                expect_value = account_balance.balance
+                actual_value = actual_account_balance.balance
                 if actual_value != expect_value:
                     raise ValidationError(
                         f'Expected {expect_value} balance value, '

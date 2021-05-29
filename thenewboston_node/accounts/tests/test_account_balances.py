@@ -12,7 +12,7 @@ def test_can_get_account_balances(forced_memory_blockchain: MemoryBlockchain, ap
 
     response = api_client.get(f'/api/v1/account-balances/{account_number}/')
     assert response.status_code == 200
-    assert response.json() == {'value': value, 'lock': lock}
+    assert response.json() == {'balance': value, 'lock': lock}
 
 
 def test_can_get_account_balances_on_file_blockchain(
@@ -30,4 +30,4 @@ def test_can_get_account_balances_on_file_blockchain(
 
         response = api_client.get(f'/api/v1/account-balances/{account_number}/')
         assert response.status_code == 200
-        assert response.json() == {'value': value, 'lock': lock}
+        assert response.json() == {'balance': value, 'lock': lock}

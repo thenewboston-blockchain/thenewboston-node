@@ -1,6 +1,6 @@
 from rest_framework_dataclasses.serializers import DataclassSerializer
 
-from thenewboston_node.business_logic.models.account_balance import AccountBalance
+from thenewboston_node.business_logic.models.account_balance import AccountState
 
 
 class AccountBalanceSerializer(DataclassSerializer):
@@ -9,4 +9,4 @@ class AccountBalanceSerializer(DataclassSerializer):
     """
 
     class Meta:
-        dataclass = AccountBalance
+        dataclass = AccountState

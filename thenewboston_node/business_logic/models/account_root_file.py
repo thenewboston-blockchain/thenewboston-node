@@ -12,7 +12,7 @@ from thenewboston_node.core.utils.constants import SENTINEL
 from thenewboston_node.core.utils.cryptography import hash_normalized_dict, normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
-from .account_balance import AccountBalance
+from .account_balance import AccountState
 from .mixins.compactable import MessagpackCompactableMixin
 
 logger = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 class AccountRootFile(MessagpackCompactableMixin):
     """Historical snapshot of all account balances at any point in time"""
 
-    accounts: dict[str, AccountBalance]
+    accounts: dict[str, AccountState]
     """Map like {"account_number": `AccountBalance`_, ...}"""
 
     last_block_number: Optional[int] = None
@@ -58,13 +58,13 @@ class AccountRootFile(MessagpackCompactableMixin):
 
         return dict_
 
-    def get_balance(self, account: str) -> Optional[AccountBalance]:
+    def get_balance(self, account: str) -> Optional[AccountState]:
         return self.accounts.get(account)
 
     def get_balance_value(self, account: str) -> Optional[int]:
         balance = self.get_balance(account)
         if balance is not None:
-            return balance.value
+            return balance.balance
 
         return None
 

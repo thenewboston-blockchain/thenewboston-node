@@ -41,11 +41,11 @@ def test_block_message_fields_are_compacted(long_name, short_name):
 
 
 @pytest.mark.parametrize('long_name,short_name', (
-    ('value', 'v'),
+    ('balance', 'b'),
     ('lock', 'l'),
 ))
 def test_updated_balances_fields_are_compacted(long_name, short_name):
-    balance = factories.BlockAccountBalanceFactory(value=1000)
+    balance = factories.BlockAccountBalanceFactory(balance=1000)
     block_message = factories.BlockMessageFactory(updated_balances={'key': balance})
     block = factories.BlockFactory(message=block_message)
 

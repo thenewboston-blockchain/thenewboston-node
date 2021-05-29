@@ -3,7 +3,7 @@ from datetime import datetime
 from thenewboston_node.business_logic.models import (
     CoinTransferSignedRequest, CoinTransferSignedRequestMessage, CoinTransferTransaction
 )
-from thenewboston_node.business_logic.models.account_balance import AccountBalance, BlockAccountBalance
+from thenewboston_node.business_logic.models.account_balance import AccountState, BlockAccountBalance
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.models.block_message import BlockMessage
@@ -48,15 +48,15 @@ class CoinTransferSignedRequestFactory(Factory):
     signature = None
 
 
-@factory(AccountBalance)
+@factory(AccountState)
 class AccountBalanceFactory(Factory):
-    value = 1000
+    balance = 1000
     lock = DEFAULT_ACCOUNT
 
 
 @factory(BlockAccountBalance)
 class BlockAccountBalanceFactory(Factory):
-    value = 1000
+    balance = 1000
     lock = DEFAULT_ACCOUNT
 
 

@@ -31,7 +31,7 @@ def test_balances_are_correct(
     accounts = account_root_file.accounts
 
     assert len(accounts) == 4
-    assert accounts[treasury_account].value == treasury_initial_balance - primary_validator_fee - node_fee - 100
-    assert accounts[user_account].value == 100
-    assert accounts[primary_validator_identifier].value == primary_validator_fee
-    assert accounts[node_identifier].value == node_fee
+    assert accounts[treasury_account].balance == treasury_initial_balance - primary_validator_fee - node_fee - 100
+    assert accounts[user_account].balance == 100
+    assert accounts[primary_validator_identifier].balance == primary_validator_fee
+    assert accounts[node_identifier].balance == node_fee

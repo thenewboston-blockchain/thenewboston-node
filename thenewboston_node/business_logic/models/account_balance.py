@@ -14,38 +14,38 @@ logger = logging.getLogger(__name__)
 
 @dataclass_json
 @dataclass
-class AccountBalance:
-    """Account balance state"""
+class AccountState:
+    """Account state"""
 
-    value: int
-    """Amount balance value in coins"""
+    balance: int
+    """Balance"""
 
     lock: str
-    """Account balance lock"""
+    """Lock"""
 
-    @validates('account balance')
+    @validates('account state')
     def validate(self, validate_lock=True):
-        with validates('account balance attributes'):
-            with validates('account balance value'):
-                if not isinstance(self.value, int):
-                    raise ValidationError('Account balance value must be an integer')
+        with validates('account state attributes'):
+            with validates('account balance'):
+                if not isinstance(self.balance, int):
+                    raise ValidationError('Account balance must be an integer')
 
-                if self.value < 0:
-                    raise ValidationError('Account balance value must be a positive integer')
+                if self.balance < 0:
+                    raise ValidationError('Account balance must be a positive integer')
 
             if validate_lock:
-                with validates('account balance lock'):
+                with validates('account lock'):
                     if not isinstance(self.lock, str):
-                        raise ValidationError('Account balance lock must be a string')
+                        raise ValidationError('Account lock must be a string')
 
                     if not self.lock:
-                        raise ValidationError('Account balance lock must be set')
+                        raise ValidationError('Account lock must be set')
 
 
 @fake_super_methods
 @dataclass_json
 @dataclass
-class BlockAccountBalance(AccountBalance):
+class BlockAccountBalance(AccountState):
     """Account balance state when block is validated"""
 
     lock: Optional[str] = None  # type: ignore

@@ -12,7 +12,7 @@ def test_can_make_root_account_file_on_last_block(
     blockchain = forced_memory_blockchain
     user_account = user_account_key_pair.public
     treasury_account = treasury_account_key_pair.public
-    treasury_initial_balance = blockchain.get_balance_value(treasury_account)
+    treasury_initial_balance = blockchain.get_account_balance(treasury_account)
     assert treasury_initial_balance is not None
 
     assert blockchain.get_closest_account_root_file() == initial_account_root_file

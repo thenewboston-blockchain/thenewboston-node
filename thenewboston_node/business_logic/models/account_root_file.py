@@ -61,14 +61,14 @@ class AccountRootFile(MessagpackCompactableMixin):
     def get_balance(self, account: str) -> Optional[AccountState]:
         return self.accounts.get(account)
 
-    def get_balance_value(self, account: str) -> Optional[int]:
+    def get_account_balance(self, account: str) -> Optional[int]:
         balance = self.get_balance(account)
         if balance is not None:
             return balance.balance
 
         return None
 
-    def get_balance_lock(self, account: str) -> str:
+    def get_account_lock(self, account: str) -> str:
         balance = self.get_balance(account)
         if balance is not None:
             return balance.lock

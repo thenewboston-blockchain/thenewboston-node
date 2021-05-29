@@ -31,10 +31,10 @@ def test_partial_blockchain(primary_validator, preferred_node):
 
     blockchain = MemoryBlockchain(account_root_files=[base_account_root_file])
     assert blockchain.get_block_count() == 0
-    assert blockchain.get_balance_value(account1_key_pair.public) == 1000
-    assert blockchain.get_balance_value(account2_key_pair.public) == 2000
-    assert blockchain.get_balance_value(account3_key_pair.public) == 3000
-    assert blockchain.get_balance_value(new_account_key_pair.public) is None
+    assert blockchain.get_account_balance(account1_key_pair.public) == 1000
+    assert blockchain.get_account_balance(account2_key_pair.public) == 2000
+    assert blockchain.get_account_balance(account3_key_pair.public) == 3000
+    assert blockchain.get_account_balance(new_account_key_pair.public) is None
     blockchain.validate()
 
     transfer_request1 = CoinTransferSignedRequest.from_main_transaction(
@@ -50,10 +50,10 @@ def test_partial_blockchain(primary_validator, preferred_node):
     blockchain.validate()
 
     assert blockchain.get_block_count() == 1
-    assert blockchain.get_balance_value(account1_key_pair.public) == 1000 - 10 - 4 - 1
-    assert blockchain.get_balance_value(account2_key_pair.public) == 2000 + 10
-    assert blockchain.get_balance_value(account3_key_pair.public) == 3000
-    assert blockchain.get_balance_value(new_account_key_pair.public) is None
+    assert blockchain.get_account_balance(account1_key_pair.public) == 1000 - 10 - 4 - 1
+    assert blockchain.get_account_balance(account2_key_pair.public) == 2000 + 10
+    assert blockchain.get_account_balance(account3_key_pair.public) == 3000
+    assert blockchain.get_account_balance(new_account_key_pair.public) is None
 
     transfer_request2 = CoinTransferSignedRequest.from_main_transaction(
         blockchain=blockchain,
@@ -68,18 +68,18 @@ def test_partial_blockchain(primary_validator, preferred_node):
     blockchain.validate()
 
     assert blockchain.get_block_count() == 2
-    assert blockchain.get_balance_value(account1_key_pair.public) == 1000 - 10 - 4 - 1
-    assert blockchain.get_balance_value(account2_key_pair.public) == 2000 + 10 - 20 - 4 - 1
-    assert blockchain.get_balance_value(account3_key_pair.public) == 3000
-    assert blockchain.get_balance_value(new_account_key_pair.public) == 20
+    assert blockchain.get_account_balance(account1_key_pair.public) == 1000 - 10 - 4 - 1
+    assert blockchain.get_account_balance(account2_key_pair.public) == 2000 + 10 - 20 - 4 - 1
+    assert blockchain.get_account_balance(account3_key_pair.public) == 3000
+    assert blockchain.get_account_balance(new_account_key_pair.public) == 20
 
     blockchain.make_account_root_file()
     blockchain.validate()
 
-    assert blockchain.get_balance_value(account1_key_pair.public) == 1000 - 10 - 4 - 1
-    assert blockchain.get_balance_value(account2_key_pair.public) == 2000 + 10 - 20 - 4 - 1
-    assert blockchain.get_balance_value(account3_key_pair.public) == 3000
-    assert blockchain.get_balance_value(new_account_key_pair.public) == 20
+    assert blockchain.get_account_balance(account1_key_pair.public) == 1000 - 10 - 4 - 1
+    assert blockchain.get_account_balance(account2_key_pair.public) == 2000 + 10 - 20 - 4 - 1
+    assert blockchain.get_account_balance(account3_key_pair.public) == 3000
+    assert blockchain.get_account_balance(new_account_key_pair.public) == 20
 
     transfer_request3 = CoinTransferSignedRequest.from_main_transaction(
         blockchain=blockchain,
@@ -93,7 +93,7 @@ def test_partial_blockchain(primary_validator, preferred_node):
     blockchain.add_block_from_transfer_request(transfer_request3)
     blockchain.validate()
 
-    assert blockchain.get_balance_value(account1_key_pair.public) == 1000 - 10 - 4 - 1
-    assert blockchain.get_balance_value(account2_key_pair.public) == 2000 + 10 - 20 - 4 - 1 + 30
-    assert blockchain.get_balance_value(account3_key_pair.public) == 3000 - 30 - 4 - 1
-    assert blockchain.get_balance_value(new_account_key_pair.public) == 20
+    assert blockchain.get_account_balance(account1_key_pair.public) == 1000 - 10 - 4 - 1
+    assert blockchain.get_account_balance(account2_key_pair.public) == 2000 + 10 - 20 - 4 - 1 + 30
+    assert blockchain.get_account_balance(account3_key_pair.public) == 3000 - 30 - 4 - 1
+    assert blockchain.get_account_balance(new_account_key_pair.public) == 20

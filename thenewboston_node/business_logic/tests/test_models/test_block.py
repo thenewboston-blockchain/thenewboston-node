@@ -20,10 +20,10 @@ def test_can_create_block_from_transfer_request(
     sender = sample_transfer_request.signer
     assert sender
 
-    def get_account_balance(self, account):
+    def get_account_state(self, account):
         return 450 if account == sender else 0
 
-    with patch.object(MockBlockchain, 'get_balance_value', new=get_account_balance):
+    with patch.object(MockBlockchain, 'get_account_balance', new=get_account_state):
         block = Block.from_transfer_request(forced_mock_blockchain, sample_transfer_request)
 
     assert block.message
@@ -64,18 +64,18 @@ def test_can_create_block_from_transfer_request(
 
 
 @pytest.mark.usefixtures(
-    'forced_mock_network', 'get_next_block_identifier_mock', 'get_next_block_number_mock', 'get_account_balance_mock',
-    'get_balance_lock_mock', 'get_primary_validator_mock', 'get_preferred_node_mock'
+    'forced_mock_network', 'get_next_block_identifier_mock', 'get_next_block_number_mock', 'get_account_state_mock',
+    'get_account_lock_mock', 'get_primary_validator_mock', 'get_preferred_node_mock'
 )
 def test_can_create_block_from_main_transaction(
     forced_mock_blockchain, treasury_account_key_pair: KeyPair, user_account_key_pair: KeyPair,
     primary_validator_key_pair: KeyPair, node_key_pair: KeyPair
 ):
 
-    def get_account_balance(self, account):
+    def get_account_state(self, account):
         return 430 if account == treasury_account_key_pair.public else 0
 
-    with patch.object(MockBlockchain, 'get_balance_value', new=get_account_balance):
+    with patch.object(MockBlockchain, 'get_account_balance', new=get_account_state):
         block = Block.from_main_transaction(
             forced_mock_blockchain, user_account_key_pair.public, 20, signing_key=treasury_account_key_pair.private
         )
@@ -139,7 +139,7 @@ def test_can_create_block_from_main_transaction(
     assert coin_transfer_signed_request_message.get_total_amount() == 25
 
 
-@pytest.mark.usefixtures('get_next_block_identifier_mock', 'get_next_block_number_mock', 'get_account_balance_mock')
+@pytest.mark.usefixtures('get_next_block_identifier_mock', 'get_next_block_number_mock', 'get_account_state_mock')
 def test_normalized_block_message(forced_mock_blockchain, sample_transfer_request):
     expected_message_template = (
         '{"block_identifier":"next-block-identifier","block_number":0,"timestamp":"<replace-with-timestamp>",'
@@ -163,10 +163,10 @@ def test_normalized_block_message(forced_mock_blockchain, sample_transfer_reques
         '}}'
     )
 
-    def get_account_balance(self, account):
+    def get_account_state(self, account):
         return 450 if account == sample_transfer_request.signer else 0
 
-    with patch.object(MockBlockchain, 'get_balance_value', new=get_account_balance):
+    with patch.object(MockBlockchain, 'get_account_balance', new=get_account_state):
         block = Block.from_transfer_request(forced_mock_blockchain, sample_transfer_request)
 
     expected_message = expected_message_template.replace(
@@ -175,7 +175,7 @@ def test_normalized_block_message(forced_mock_blockchain, sample_transfer_reques
     assert block.message.get_normalized() == expected_message
 
 
-@pytest.mark.usefixtures('get_next_block_identifier_mock', 'get_next_block_number_mock', 'get_account_balance_mock')
+@pytest.mark.usefixtures('get_next_block_identifier_mock', 'get_next_block_number_mock', 'get_account_state_mock')
 def test_can_serialize_deserialize(forced_mock_blockchain, sample_transfer_request):
     block = Block.from_transfer_request(forced_mock_blockchain, sample_transfer_request)
     serialized_dict = block.to_dict()
@@ -184,18 +184,18 @@ def test_can_serialize_deserialize(forced_mock_blockchain, sample_transfer_reque
     assert deserialized_block is not block
 
 
-@pytest.mark.usefixtures('get_next_block_identifier_mock', 'get_next_block_number_mock', 'get_balance_lock_mock')
+@pytest.mark.usefixtures('get_next_block_identifier_mock', 'get_next_block_number_mock', 'get_account_lock_mock')
 def test_can_duplicate_recipients(
     forced_mock_blockchain: MockBlockchain, treasury_account_key_pair: KeyPair, user_account_key_pair: KeyPair
 ):
 
-    def get_account_balance(self, account):
+    def get_account_state(self, account):
         return 430 if account == treasury_account_key_pair.public else 10
 
     sender = treasury_account_key_pair.public
     recipient = user_account_key_pair.public
     message = CoinTransferSignedRequestMessage(
-        balance_lock=forced_mock_blockchain.get_balance_lock(sender),
+        balance_lock=forced_mock_blockchain.get_account_lock(sender),
         txs=[
             CoinTransferTransaction(recipient=recipient, amount=3),
             CoinTransferTransaction(recipient=recipient, amount=5),
@@ -203,7 +203,7 @@ def test_can_duplicate_recipients(
     )
     request = CoinTransferSignedRequest.from_signed_request_message(message, treasury_account_key_pair.private)
 
-    with patch.object(MockBlockchain, 'get_balance_value', new=get_account_balance):
+    with patch.object(MockBlockchain, 'get_account_balance', new=get_account_state):
         block = Block.from_transfer_request(forced_mock_blockchain, request)
 
     updated_balances = block.message.updated_balances

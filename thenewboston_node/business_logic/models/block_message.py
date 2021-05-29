@@ -25,7 +25,7 @@ def make_balance_lock(transfer_request):
 
 
 def calculate_updated_balances(
-    get_balance_value: Callable[[str], Optional[int]], transfer_request: CoinTransferSignedRequest
+    get_account_balance: Callable[[str], Optional[int]], transfer_request: CoinTransferSignedRequest
 ) -> dict[str, BlockAccountBalance]:
     updated_balances: dict[str, BlockAccountBalance] = {}
     sent_amount = 0
@@ -35,14 +35,14 @@ def calculate_updated_balances(
 
         balance = updated_balances.get(recipient)
         if balance is None:
-            balance = BlockAccountBalance(balance=get_balance_value(recipient) or 0)
+            balance = BlockAccountBalance(balance=get_account_balance(recipient) or 0)
             updated_balances[recipient] = balance
 
         balance.balance += amount
         sent_amount += amount
 
     coin_sender = transfer_request.signer
-    sender_balance = get_balance_value(coin_sender)
+    sender_balance = get_account_balance(coin_sender)
     assert sender_balance is not None
     assert sender_balance >= sent_amount
 
@@ -106,7 +106,7 @@ class BlockMessage(MessageMixin):
             timestamp=timestamp,
             block_number=block_number,
             block_identifier=block_identifier,
-            updated_balances=calculate_updated_balances(blockchain.get_balance_value, transfer_request),
+            updated_balances=calculate_updated_balances(blockchain.get_account_balance, transfer_request),
         )
 
     def get_normalized(self) -> bytes:
@@ -237,7 +237,7 @@ class BlockMessage(MessageMixin):
                         account=account, account_balance=account_balance, is_sender=is_sender
                     )
                     self.validate_updated_balance_value(
-                        account=account, account_balance=account_balance, blockchain=blockchain, is_sender=is_sender
+                        account=account, account_state=account_balance, blockchain=blockchain, is_sender=is_sender
                     )
 
     @validates('account {account} balance lock')
@@ -260,8 +260,8 @@ class BlockMessage(MessageMixin):
                 )
 
     @validates('account {account} balance value')
-    def validate_updated_balance_value(self, *, account, account_balance, blockchain, is_sender=False):
-        initial_balance = blockchain.get_balance_value(account, self.block_number)
+    def validate_updated_balance_value(self, *, account, account_state, blockchain, is_sender=False):
+        initial_balance = blockchain.get_account_balance(account, self.block_number)
         if is_sender:
             if initial_balance is None:
                 raise ValidationError(
@@ -269,13 +269,13 @@ class BlockMessage(MessageMixin):
                     f'on block {self.block_number}'
                 )
 
-            expected_balance_value = initial_balance - self.get_sent_amount()
+            expected_balance = initial_balance - self.get_sent_amount()
         else:
             initial_balance = initial_balance or 0
-            expected_balance_value = initial_balance + self.get_recipient_amount(account)
+            expected_balance = initial_balance + self.get_recipient_amount(account)
 
-        if account_balance.balance != expected_balance_value:
+        if account_state.balance != expected_balance:
             raise ValidationError(
-                f'Expected {expected_balance_value} balance value, but got {account_balance.value} '
+                f'Expected {expected_balance} balance value, but got {account_state.value} '
                 f'for account {account}'
             )

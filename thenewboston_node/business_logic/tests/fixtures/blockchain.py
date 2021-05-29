@@ -46,7 +46,7 @@ def get_account_state_mock():
 
 @pytest.fixture
 def get_account_lock_mock():
-    with patch.object(MockBlockchain, 'get_account_lock', return_value='fake-balance-lock') as mock:
+    with patch.object(MockBlockchain, 'get_account_balance_lock', return_value='fake-balance-lock') as mock:
         yield mock
 
 

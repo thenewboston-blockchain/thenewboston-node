@@ -20,8 +20,8 @@ class AccountState:
     balance: int
     """Balance"""
 
-    lock: str
-    """Lock"""
+    balance_lock: str
+    """Balance lock"""
 
     @validates('account state')
     def validate(self, validate_lock=True):
@@ -35,10 +35,10 @@ class AccountState:
 
             if validate_lock:
                 with validates('account lock'):
-                    if not isinstance(self.lock, str):
+                    if not isinstance(self.balance_lock, str):
                         raise ValidationError('Account lock must be a string')
 
-                    if not self.lock:
+                    if not self.balance_lock:
                         raise ValidationError('Account lock must be set')
 
 
@@ -48,15 +48,15 @@ class AccountState:
 class BlockAccountBalance(AccountState):
     """Account balance state when block is validated"""
 
-    lock: Optional[str] = None  # type: ignore
+    balance_lock: Optional[str] = None  # type: ignore
 
     def override_to_dict(self):  # this one turns into to_dict()
         dict_ = self.super_to_dict()
 
         # TODO(dmu) LOW: Implement a better way of removing optional fields or allow them in normalized message
-        value = dict_.get('lock', SENTINEL)
+        value = dict_.get('balance_lock', SENTINEL)
         if value is None:
-            del dict_['lock']
+            del dict_['balance_lock']
 
         return dict_
 

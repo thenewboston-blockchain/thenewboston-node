@@ -25,7 +25,7 @@ class AccountRootFile(MessagpackCompactableMixin):
     """Historical snapshot of all account balances at any point in time"""
 
     accounts: dict[str, AccountState]
-    """Map like {"account_number": `AccountBalance`_, ...}"""
+    """Map like {"account_number": `AccountState`_, ...}"""
 
     last_block_number: Optional[int] = None
     """Block number at which snapshot was taken"""
@@ -68,10 +68,10 @@ class AccountRootFile(MessagpackCompactableMixin):
 
         return None
 
-    def get_account_lock(self, account: str) -> str:
+    def get_account_balance_lock(self, account: str) -> str:
         balance = self.get_balance(account)
         if balance is not None:
-            return balance.lock
+            return balance.balance_lock
 
         return account
 

@@ -15,7 +15,7 @@ class AccountBalanceViewSet(ViewSet):
     )
     def retrieve(self, request, pk=None):
         # TODO(dmu) MEDIUM: There is a room for performance optimization use something like `?fields=` to
-        #                   retrieval of unneeded fields using get_account_balance() and get_account_lock() directly.
+        #                   retrieval of unneeded fields using get_account_balance() and get_account_balance_lock() directly.
         #                   Also see `drf-flex-fields` and `django-restql`.
         assert pk is not None
 

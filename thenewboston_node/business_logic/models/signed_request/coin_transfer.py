@@ -61,7 +61,7 @@ class CoinTransferSignedRequest(SignedRequest):
 
     @validates('amount on transfer request level')
     def validate_amount(self, blockchain, on_block_number: Optional[int] = None):
-        balance = blockchain.get_balance_value(self.signer, on_block_number)
+        balance = blockchain.get_account_balance(self.signer, on_block_number)
         if balance is None:
             raise ValidationError('Transfer request signer account balance is not found')
 
@@ -70,5 +70,5 @@ class CoinTransferSignedRequest(SignedRequest):
 
     @validates('transfer request balance lock on transfer request level')
     def validate_balance_lock(self, blockchain, block_number: Optional[int] = None):
-        if self.message.balance_lock != blockchain.get_balance_lock(self.signer, block_number):
+        if self.message.balance_lock != blockchain.get_account_lock(self.signer, block_number):
             raise ValidationError('Transfer request balance lock does not match expected balance lock')

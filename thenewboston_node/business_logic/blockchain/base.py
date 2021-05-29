@@ -194,50 +194,47 @@ class BlockchainBase:
 
         return before_block_number
 
-    def get_balance_value(self, account: str, before_block_number: Optional[int] = None) -> Optional[int]:
+    def get_account_balance(self, account: str, before_block_number: Optional[int] = None) -> Optional[int]:
         """
         Return balance value before `before_block_number` is applied. If `before_block_number` is not specified it
         defaults to the next block number.
         """
         block_number = self.validate_before_block_number(before_block_number) - 1
-        balance_value = self._get_balance_value_from_block(account, block_number)
-        if balance_value is None:
-            balance_value = self._get_balance_value_from_account_root_file(account, block_number)
+        balance = self._get_account_balance_from_block(account, block_number)
+        if balance is None:
+            balance = self._get_account_balance_from_account_root_file(account, block_number)
 
-        return balance_value
+        return balance
 
     @timeit_method()
-    def get_balance_lock(self, account: str, before_block_number: Optional[int] = None) -> str:
+    def get_account_lock(self, account: str, before_block_number: Optional[int] = None) -> str:
         """
         Return balance lock before `before_block_number` is applied. If `before_block_number` is not specified it
         defaults to the next block number.
         """
         block_number = self.validate_before_block_number(before_block_number) - 1
-        lock = self._get_balance_lock_from_block(account, block_number)
+        lock = self._get_account_lock_from_block(account, block_number)
         if lock:
             return lock
 
-        lock = self._get_balance_lock_from_account_root_file(account, block_number)
+        lock = self._get_account_lock_from_account_root_file(account, block_number)
         return account if lock is None else lock
 
-    def get_account_balance(self, account: str) -> AccountState:
-        return AccountState(
-            balance=self.get_balance_value(account) or 0,
-            lock=self.get_balance_lock(account),
-        )
+    def get_account_state(self, account: str) -> AccountState:
+        return AccountState(balance=self.get_account_balance(account) or 0, lock=self.get_account_lock(account))
 
     @timeit_method()
-    def _get_balance_lock_from_block(self, account: str, block_number: Optional[int] = None) -> Optional[str]:
+    def _get_account_lock_from_block(self, account: str, block_number: Optional[int] = None) -> Optional[str]:
         balance = self._get_balance_from_block(account, block_number, must_have_lock=True)
         return None if balance is None else balance.lock
 
-    def _get_balance_lock_from_account_root_file(self,
+    def _get_account_lock_from_account_root_file(self,
                                                  account: str,
                                                  block_number: Optional[int] = None) -> Optional[str]:
         balance = self._get_balance_from_account_root_file(account, block_number)
         return None if balance is None else balance.lock
 
-    def _get_balance_value_from_block(self, account: str, block_number: Optional[int] = None) -> Optional[int]:
+    def _get_account_balance_from_block(self, account: str, block_number: Optional[int] = None) -> Optional[int]:
         balance = self._get_balance_from_block(account, block_number)
         return None if balance is None else balance.balance
 
@@ -325,9 +322,9 @@ class BlockchainBase:
             else:
                 assert block_number == account_root_file_block_number + 1
 
-    def _get_balance_value_from_account_root_file(self,
-                                                  account: str,
-                                                  block_number: Optional[int] = None) -> Optional[int]:
+    def _get_account_balance_from_account_root_file(self,
+                                                    account: str,
+                                                    block_number: Optional[int] = None) -> Optional[int]:
         balance = self._get_balance_from_account_root_file(account, block_number)
         return None if balance is None else balance.balance
 
@@ -573,24 +570,24 @@ class BlockchainBase:
                 )
 
         actual_accounts = account_root_file.accounts
-        for account_number, account_balance in generated_account_root_file.accounts.items():
+        for account_number, account_state in generated_account_root_file.accounts.items():
             with validates(f'account {account_number} existence'):
-                actual_account_balance = actual_accounts.get(account_number)
-                if actual_account_balance is None:
+                actual_account_state = actual_accounts.get(account_number)
+                if actual_account_state is None:
                     raise ValidationError(f'Could not find {account_number} account in the account root file')
 
             with validates(f'account {account_number} balance value'):
-                expect_value = account_balance.balance
-                actual_value = actual_account_balance.balance
-                if actual_value != expect_value:
+                expect_balance = account_state.balance
+                actual_state = actual_account_state.balance
+                if actual_state != expect_balance:
                     raise ValidationError(
-                        f'Expected {expect_value} balance value, '
-                        f'but got {actual_value} balance value for account {account_number}'
+                        f'Expected {expect_balance} balance value, '
+                        f'but got {actual_state} balance value for account {account_number}'
                     )
 
             with validates(f'account {account_number} balance lock'):
-                expect_lock = account_balance.lock
-                actual_lock = actual_account_balance.lock
+                expect_lock = account_state.lock
+                actual_lock = actual_account_state.lock
                 if actual_lock != expect_lock:
                     raise ValidationError(
                         f'Expected {expect_lock} balance lock, but got {actual_lock} balance '

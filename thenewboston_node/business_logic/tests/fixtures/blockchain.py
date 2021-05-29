@@ -39,14 +39,14 @@ def get_next_block_identifier_mock():
 
 
 @pytest.fixture
-def get_account_balance_mock():
-    with patch.object(MockBlockchain, 'get_balance_value', return_value=430) as mock:
+def get_account_state_mock():
+    with patch.object(MockBlockchain, 'get_account_balance', return_value=430) as mock:
         yield mock
 
 
 @pytest.fixture
-def get_balance_lock_mock():
-    with patch.object(MockBlockchain, 'get_balance_lock', return_value='fake-balance-lock') as mock:
+def get_account_lock_mock():
+    with patch.object(MockBlockchain, 'get_account_lock', return_value='fake-balance-lock') as mock:
         yield mock
 
 
@@ -90,9 +90,9 @@ def large_blockchain(treasury_account_key_pair):
 
     accounts = blockchain.get_first_account_root_file().accounts
     assert len(accounts) == 1
-    treasury_account, account_balance = list(accounts.items())[0]
+    treasury_account, account_state = list(accounts.items())[0]
     assert treasury_account_key_pair.public == treasury_account
-    assert account_balance.value > 10000000000  # tons of money present
+    assert account_state.balance > 10000000000  # tons of money present
 
     add_blocks_to_blockchain(blockchain, 100, treasury_account_key_pair.private)
     yield blockchain

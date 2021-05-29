@@ -12,7 +12,7 @@ from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
-from .account_balance import AccountStateUpdate
+from . import AccountStateUpdate
 from .mixins.message import MessageMixin
 from .signed_request import CoinTransferSignedRequest
 

@@ -1,7 +1,7 @@
 import pytest
 
-from thenewboston_node.business_logic.models.account_balance import AccountState
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
+from thenewboston_node.business_logic.models.account_state import AccountState
 
 
 @pytest.fixture

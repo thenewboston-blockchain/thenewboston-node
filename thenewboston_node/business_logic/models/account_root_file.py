@@ -12,7 +12,7 @@ from thenewboston_node.core.utils.constants import SENTINEL
 from thenewboston_node.core.utils.cryptography import hash_normalized_dict, normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
-from .account_balance import AccountState
+from .account_state import AccountState
 from .mixins.compactable import MessagpackCompactableMixin
 
 logger = logging.getLogger(__name__)

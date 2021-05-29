@@ -1,10 +1,10 @@
 from datetime import datetime
 
 from thenewboston_node.business_logic.models import (
-    CoinTransferSignedRequest, CoinTransferSignedRequestMessage, CoinTransferTransaction
+    AccountStateUpdate, CoinTransferSignedRequest, CoinTransferSignedRequestMessage, CoinTransferTransaction
 )
-from thenewboston_node.business_logic.models.account_balance import AccountState, AccountStateUpdate
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
+from thenewboston_node.business_logic.models.account_state import AccountState
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.models.block_message import BlockMessage
 from thenewboston_node.business_logic.utils.blockchain import generate_blockchain

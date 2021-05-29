@@ -2,8 +2,8 @@ from datetime import datetime
 
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
 from thenewboston_node.business_logic.models import CoinTransferSignedRequest
-from thenewboston_node.business_logic.models.account_balance import AccountState
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
+from thenewboston_node.business_logic.models.account_state import AccountState
 from thenewboston_node.core.utils.cryptography import generate_key_pair
 
 

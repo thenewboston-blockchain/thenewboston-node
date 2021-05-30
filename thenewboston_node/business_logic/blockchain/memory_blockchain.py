@@ -24,30 +24,30 @@ class MemoryBlockchain(BlockchainBase):
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self.account_root_files: list[BlockchainState] = (
+        self.blockchain_states: list[BlockchainState] = (
             copy.deepcopy(account_root_files) if account_root_files else []
         )
         self.blocks: list[Block] = copy.deepcopy(blocks) if blocks else []
         self.drop_intermediate_account_root_files = drop_intermediate_account_root_files
 
     # Account root files related implemented methods
-    def persist_account_root_file(self, account_root_file: BlockchainState):
-        self.account_root_files.append(account_root_file)
+    def persist_blockchain_state(self, account_root_file: BlockchainState):
+        self.blockchain_states.append(account_root_file)
 
     def get_account_root_file_count(self) -> int:
-        return len(self.account_root_files)
+        return len(self.blockchain_states)
 
     def iter_account_root_files(self) -> Generator[BlockchainState, None, None]:
-        yield from self.account_root_files
+        yield from self.blockchain_states
 
     def iter_account_root_files_reversed(self) -> Generator[BlockchainState, None, None]:
-        yield from reversed(self.account_root_files)
+        yield from reversed(self.blockchain_states)
 
-    def make_account_root_file(self):
-        super().make_account_root_file()
-        account_root_files = self.account_root_files
-        if self.drop_intermediate_account_root_files and len(account_root_files) > 2:
-            self.account_root_files = [account_root_files[0], account_root_files[-1]]
+    def snapshot_blockchain_state(self):
+        super().snapshot_blockchain_state()
+        blockchain_states = self.blockchain_states
+        if self.drop_intermediate_account_root_files and len(blockchain_states) > 2:
+            self.blockchain_states = [blockchain_states[0], blockchain_states[-1]]
 
     # Blocks related implemented methods
     def persist_block(self, block: Block):

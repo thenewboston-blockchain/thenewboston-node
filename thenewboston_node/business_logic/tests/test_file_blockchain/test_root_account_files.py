@@ -10,7 +10,7 @@ from thenewboston_node.core.utils.cryptography import KeyPair
 @pytest.mark.usefixtures('forced_mock_network', 'get_primary_validator_mock', 'get_preferred_node_mock')
 def test_blockchain_state_is_created_every_x_block(
     blockchain_path,
-    initial_account_root_file,
+    blockchain_genesis_state,
     treasury_account_key_pair: KeyPair,
     user_account_key_pair: KeyPair,
 ):
@@ -21,7 +21,7 @@ def test_blockchain_state_is_created_every_x_block(
         account_root_files_subdir='account-root-files',
         account_root_files_storage_kwargs={'compressors': ()}
     )
-    blockchain.add_account_root_file(initial_account_root_file)
+    blockchain.add_blockchain_state(blockchain_genesis_state)
     assert os.path.isfile(str(blockchain_path / 'account-root-files/0/0/0/0/0/0/0/0/000000000.-arf.msgpack'))
     blockchain.validate()
 

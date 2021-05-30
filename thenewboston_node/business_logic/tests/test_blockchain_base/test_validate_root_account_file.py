@@ -7,27 +7,27 @@ from thenewboston_node.business_logic.tests import factories
 from thenewboston_node.business_logic.utils.iter import get_generator
 
 
-def test_blockchain_initial_account_root_file_is_validated(blockchain_base):
+def test_blockchain_blockchain_genesis_state_is_validated(blockchain_base):
     initial_arf = factories.InitialAccountRootFileFactory()
 
     with patch.object(blockchain_base, 'iter_account_root_files', get_generator([initial_arf])):
         blockchain_base.validate_account_root_files(is_partial_allowed=False)
 
 
-def test_blockchain_without_initial_account_root_file_is_validated(blockchain_base):
+def test_blockchain_without_blockchain_genesis_state_is_validated(blockchain_base):
     non_initial_arf = factories.AccountRootFileFactory()
 
     with patch.object(blockchain_base, 'iter_account_root_files', get_generator([non_initial_arf])):
         blockchain_base.validate_account_root_files(is_partial_allowed=True)
 
 
-def test_blockchain_must_have_at_least_initial_account_root_file(blockchain_base):
+def test_blockchain_must_have_at_least_blockchain_genesis_state(blockchain_base):
     with patch.object(blockchain_base, 'iter_account_root_files', get_generator([])):
         with pytest.raises(ValidationError, match='Blockchain must contain at least one account root file'):
             blockchain_base.validate_account_root_files()
 
 
-def test_blockchain_must_start_with_initial_account_root_file(blockchain_base):
+def test_blockchain_must_start_with_blockchain_genesis_state(blockchain_base):
     non_initial_arf = factories.AccountRootFileFactory()
 
     with patch.object(blockchain_base, 'iter_account_root_files', get_generator([non_initial_arf])):

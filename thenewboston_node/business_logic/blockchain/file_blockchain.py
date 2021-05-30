@@ -111,11 +111,11 @@ class FileBlockchain(BlockchainBase):
 
     # Account root files methods
     @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
-    def add_account_root_file(self, account_root_file: BlockchainState):
-        return super().add_account_root_file(account_root_file)
+    def add_blockchain_state(self, state: BlockchainState):
+        return super().add_blockchain_state(state)
 
     @ensure_locked(lock_attr='file_lock', exception=EXPECTED_LOCK_EXCEPTION)
-    def persist_account_root_file(self, account_root_file: BlockchainState):
+    def persist_blockchain_state(self, account_root_file: BlockchainState):
         storage = self.account_root_files_storage
         last_block_number = account_root_file.last_block_number
 

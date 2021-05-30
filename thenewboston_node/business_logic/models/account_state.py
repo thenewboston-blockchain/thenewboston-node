@@ -26,6 +26,9 @@ class AccountState(HumanizedClassNameMixin):
     balance_lock: Optional[str] = None  # type: ignore
     """Balance lock"""
 
+    network_addresses: Optional[list[str]] = None  # type: ignore
+    """Network addresses"""
+
     def override_to_dict(self):  # this one turns into to_dict()
         dict_ = self.super_to_dict()
 
@@ -33,7 +36,7 @@ class AccountState(HumanizedClassNameMixin):
         for name in self.__dataclass_fields__.keys():
             value = dict_.get(name, SENTINEL)
             if value is None:
-                del dict_['balance_lock']
+                del dict_[name]
 
         return dict_
 
@@ -53,6 +56,14 @@ class AccountState(HumanizedClassNameMixin):
     def validate_balance_lock(self):
         validate_not_empty(f'{self.humanized_class_name_lowered} balance_lock', self.balance_lock)
         validate_type(f'{self.humanized_class_name_lowered} balance_lock', self.balance_lock, str)
+
+    @validates()
+    def validate_network_addresses(self):
+        # It is totally fine to have value of empty list [], this means deregistration of all previously registered
+        # addresses
+        validate_type(f'{self.humanized_class_name_lowered} network_addresses', self.network_addresses, list)
+        for index, network_address in enumerate(self.network_addresses):
+            validate_type(f'{self.humanized_class_name_lowered} network_addresses[{index}]', network_address, str)
 
 
 # TODO(dmu) CRITICAL: Assert all attributes are optional

@@ -6,7 +6,7 @@ from thenewboston_node.business_logic.models.block import Block
 
 @pytest.mark.usefixtures('forced_mock_network', 'get_primary_validator_mock', 'get_preferred_node_mock')
 def test_can_make_blockchain_state_on_last_block(
-    forced_memory_blockchain: BlockchainBase, initial_account_root_file, treasury_account_key_pair,
+    forced_memory_blockchain: BlockchainBase, blockchain_genesis_state, treasury_account_key_pair,
     user_account_key_pair, primary_validator, preferred_node
 ):
     blockchain = forced_memory_blockchain
@@ -15,20 +15,20 @@ def test_can_make_blockchain_state_on_last_block(
     treasury_initial_balance = blockchain.get_account_balance(treasury_account)
     assert treasury_initial_balance is not None
 
-    assert blockchain.get_closest_account_root_file() == initial_account_root_file
-    assert blockchain.get_closest_account_root_file(-1) == initial_account_root_file
-    assert initial_account_root_file.account_states[treasury_account].balance_lock == treasury_account
+    assert blockchain.get_closest_account_root_file() == blockchain_genesis_state
+    assert blockchain.get_closest_account_root_file(-1) == blockchain_genesis_state
+    assert blockchain_genesis_state.account_states[treasury_account].balance_lock == treasury_account
     assert blockchain.get_account_root_file_count() == 1
 
-    blockchain.make_account_root_file()
+    blockchain.snapshot_blockchain_state()
     assert blockchain.get_account_root_file_count() == 1
 
     block0 = Block.from_main_transaction(blockchain, user_account, 30, signing_key=treasury_account_key_pair.private)
     blockchain.add_block(block0)
 
-    blockchain.make_account_root_file()
+    blockchain.snapshot_blockchain_state()
     assert blockchain.get_account_root_file_count() == 2
-    blockchain.make_account_root_file()
+    blockchain.snapshot_blockchain_state()
     assert blockchain.get_account_root_file_count() == 2
 
     account_root_file = blockchain.get_last_account_root_file()
@@ -61,7 +61,7 @@ def test_can_make_blockchain_state_on_last_block(
     )
     blockchain.add_block(block2)
 
-    blockchain.make_account_root_file()
+    blockchain.snapshot_blockchain_state()
     account_root_file = blockchain.get_last_account_root_file()
 
     assert account_root_file is not None

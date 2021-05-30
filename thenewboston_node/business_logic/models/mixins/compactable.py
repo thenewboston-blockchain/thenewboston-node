@@ -23,6 +23,7 @@ COMPACT_KEY_MAP = {
     'block_number': 'bn',
     'block_identifier': 'bi',
     'updated_account_states': 'u',
+    'network_addresses': 'na',
     # transaction
     'recipient': 'r',
     'amount': 'at',

@@ -46,7 +46,7 @@ class BlockchainBase:
 
     # * Abstract methods
     # ** Account root files related abstract methods
-    def persist_account_root_file(self, account_root_file: BlockchainState):
+    def persist_blockchain_state(self, account_root_file: BlockchainState):
         raise NotImplementedError('Must be implemented in a child class')
 
     def iter_account_root_files(self) -> Generator[BlockchainState, None, None]:
@@ -111,9 +111,9 @@ class BlockchainBase:
 
     # * Base methods
     # ** Account root files related base methods
-    def add_account_root_file(self, account_root_file: BlockchainState):
-        account_root_file.validate(is_initial=account_root_file.is_initial())
-        self.persist_account_root_file(account_root_file)
+    def add_blockchain_state(self, state: BlockchainState):
+        state.validate(is_initial=state.is_initial())
+        self.persist_blockchain_state(state)
 
     def get_first_account_root_file(self) -> Optional[BlockchainState]:
         # Override this method if a particular blockchain implementation can provide a high performance
@@ -145,7 +145,7 @@ class BlockchainBase:
 
         period = self.arf_creation_period_in_blocks
         if period is not None and (block_number + 1) % period == 0:
-            self.make_account_root_file()
+            self.snapshot_blockchain_state()
 
     def get_first_block(self) -> Optional[Block]:
         # Override this method if a particular blockchain implementation can provide a high performance
@@ -182,7 +182,7 @@ class BlockchainBase:
     def add_block_from_signed_change_request(
         self, signed_change_request: CoinTransferSignedChangeRequest, validate=True
     ):
-        block = Block.from_signed_change_request(self, signed_change_request)
+        block = Block.create_from_signed_change_request(self, signed_change_request)
         self.add_block(block, validate=validate)
 
     def validate_before_block_number(self, before_block_number: Optional[int]) -> int:
@@ -435,7 +435,7 @@ class BlockchainBase:
 
         return copy.deepcopy(account_root_file)
 
-    def make_account_root_file(self):
+    def snapshot_blockchain_state(self):
         last_block = self.get_last_block()
         if last_block is None:
             logger.warning('Blocks are not found: making account root file does not make sense')
@@ -451,7 +451,7 @@ class BlockchainBase:
                 return None
 
         account_root_file = self.generate_account_root_file()
-        self.add_account_root_file(account_root_file)
+        self.add_blockchain_state(account_root_file)
 
     def generate_account_root_file(self, last_block_number: Optional[int] = None) -> BlockchainState:
         last_account_root_file = self.get_closest_account_root_file(last_block_number)

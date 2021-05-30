@@ -8,16 +8,16 @@ from dataclasses_json import dataclass_json
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
 from thenewboston_node.business_logic.network.base import NetworkBase
-from thenewboston_node.business_logic.node import get_signing_key
+from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
-from .base import REQUEST_TO_BLOCK_TYPE_MAP
+from .base import get_request_to_block_type_map
 from .block_message import BlockMessage
 from .mixins.compactable import MessagpackCompactableMixin
 from .mixins.signable import SignableMixin
-from .signed_change_request import CoinTransferSignedChangeRequest
+from .signed_change_request import CoinTransferSignedChangeRequest, SignedChangeRequest
 
 T = TypeVar('T', bound='Block')
 
@@ -47,7 +47,7 @@ class Block(SignableMixin, MessagpackCompactableMixin):
     def override_from_dict(cls, kvs, infer_missing=False):
         instance = super().from_dict(kvs, infer_missing=infer_missing)
         instance_block_type = instance.message.block_type
-        for signed_change_request_class, block_type in REQUEST_TO_BLOCK_TYPE_MAP.items():
+        for signed_change_request_class, (block_type, _) in get_request_to_block_type_map().items():
             if block_type == instance_block_type:
                 instance.message.signed_change_request = signed_change_request_class.from_dict(
                     (kvs.get('message') or {}).get('signed_change_request') or {}
@@ -60,10 +60,8 @@ class Block(SignableMixin, MessagpackCompactableMixin):
 
     @classmethod
     @timeit_method(level=logging.INFO, is_class_method=True)
-    def from_signed_change_request(
-        cls: Type[T], blockchain, signed_change_request: CoinTransferSignedChangeRequest
-    ) -> T:
-        signing_key = get_signing_key()
+    def create_from_signed_change_request(cls: Type[T], blockchain, signed_change_request: SignedChangeRequest) -> T:
+        signing_key = get_node_signing_key()
         block = cls(
             signer=derive_verify_key(signing_key),
             message=BlockMessage.from_signed_change_request(blockchain, signed_change_request)
@@ -82,6 +80,9 @@ class Block(SignableMixin, MessagpackCompactableMixin):
         primary_validator: Optional[PrimaryValidator] = None,
         node: Optional[RegularNode] = None
     ) -> T:
+        # TODO(dmu) HIGH: This method is only used in tests (mostly for test data creation). Business rules
+        #                 do not suggest creation from main transaction. There this method must be removed
+        #                 from Block interface
         if primary_validator is None or node is None:
             warnings.warn('Skipping primary_validator and node is deprecated', DeprecationWarning)
             network = NetworkBase.get_instance()
@@ -96,7 +97,7 @@ class Block(SignableMixin, MessagpackCompactableMixin):
             primary_validator=primary_validator,
             node=node,
         )
-        return cls.from_signed_change_request(blockchain, signed_change_request)
+        return cls.create_from_signed_change_request(blockchain, signed_change_request)
 
     def override_to_dict(self):  # this one turns into to_dict()
         dict_ = self.super_to_dict()

@@ -55,18 +55,19 @@ class AccountStateFactory(Factory):
 
 
 @factory(BlockMessage)
-class BlockMessageFactory(Factory):
+class CoinTransferBlockMessageFactory(Factory):
     signed_change_request = CoinTransferSignedChangeRequestFactory()
     timestamp = datetime(2021, 1, 1)
+    block_type = 'ct'
     block_number = 0
     block_identifier = 'd606af9d1d769192813d71051148ef1896e3d85062c31ad3e62331e25d9c96bc'
     updated_account_states = {DEFAULT_ACCOUNT: AccountStateFactory()}
 
 
 @factory(Block)
-class BlockFactory(Factory):
+class CoinTransferBlockFactory(Factory):
     signer = DEFAULT_ACCOUNT
-    message = BlockMessageFactory()
+    message = CoinTransferBlockMessageFactory()
     message_hash = None
     signature = None
 

@@ -16,9 +16,10 @@ from thenewboston_node.core.utils.cryptography import normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from . import AccountState
+from .base import REQUEST_TO_BLOCK_TYPE_MAP  # noqa: I101
 from .mixins.message import MessageMixin
 from .mixins.misc import HumanizedClassNameMixin
-from .signed_change_request import CoinTransferSignedChangeRequest
+from .signed_change_request import CoinTransferSignedChangeRequest, SignedChangeRequest
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +66,9 @@ class BlockMessage(MessageMixin, HumanizedClassNameMixin):
     """
     Contains requested changes in the network like transfer of coins, etc...
     """
-    signed_change_request: CoinTransferSignedChangeRequest
+    block_type: str
+
+    signed_change_request: SignedChangeRequest
     """Signed change request"""
 
     # We need timestamp, block_number and block_identifier to be signed and hashed therefore
@@ -96,11 +99,20 @@ class BlockMessage(MessageMixin, HumanizedClassNameMixin):
         return dict_
 
     @classmethod
-    def from_coin_transfer_signed_request(
-        cls, blockchain, coin_transfer_signed_request: CoinTransferSignedChangeRequest
-    ):
-        if not coin_transfer_signed_request.signer:
+    def from_signed_change_request(cls, blockchain, signed_change_request: SignedChangeRequest):
+        if not signed_change_request.signer:
             raise ValueError('Sender must be set')
+
+        for signed_change_request_class, block_type in REQUEST_TO_BLOCK_TYPE_MAP.items():  # noqa: B007
+            if isinstance(signed_change_request, signed_change_request_class):
+                updated_account_states = calculate_updated_balances(
+                    blockchain.get_account_balance, signed_change_request
+                )
+                break
+        else:
+            raise NotImplementedError(f'signed_change_request type {type(signed_change_request)} is not supported')
+
+        assert block_type
 
         # TODO(dmu) HIGH: Move source of time to Blockchain?
         timestamp = datetime.utcnow()
@@ -109,13 +121,12 @@ class BlockMessage(MessageMixin, HumanizedClassNameMixin):
         block_identifier = blockchain.get_next_block_identifier()
 
         return BlockMessage(
-            signed_change_request=copy.deepcopy(coin_transfer_signed_request),
+            block_type=block_type,
+            signed_change_request=copy.deepcopy(signed_change_request),
             timestamp=timestamp,
             block_number=block_number,
             block_identifier=block_identifier,
-            updated_account_states=calculate_updated_balances(
-                blockchain.get_account_balance, coin_transfer_signed_request
-            ),
+            updated_account_states=updated_account_states
         )
 
     def get_normalized(self) -> bytes:

@@ -15,8 +15,8 @@ initial_arf = factories.InitialAccountRootFileFactory(
     account_states={USER_ACCOUNT_1: factories.AccountStateFactory(balance=100, balance_lock=USER_ACCOUNT_1)},
 )
 
-block_0 = factories.BlockFactory(
-    message=factories.BlockMessageFactory(
+block_0 = factories.CoinTransferBlockFactory(
+    message=factories.CoinTransferBlockMessageFactory(
         block_number=0,
         block_identifier=BLOCK_IDENTIFIER,
         signed_change_request=factories.CoinTransferSignedChangeRequestFactory(

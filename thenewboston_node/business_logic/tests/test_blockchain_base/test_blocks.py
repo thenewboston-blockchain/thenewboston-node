@@ -5,12 +5,12 @@ import pytest
 from thenewboston_node.business_logic.tests import factories
 from thenewboston_node.business_logic.utils.iter import get_generator
 
-block_0 = factories.BlockFactory(message=factories.BlockMessageFactory(block_number=0))
+block_0 = factories.CoinTransferBlockFactory(message=factories.CoinTransferBlockMessageFactory(block_number=0))
 
-block_1 = factories.BlockFactory(message=factories.BlockMessageFactory(block_number=1))
+block_1 = factories.CoinTransferBlockFactory(message=factories.CoinTransferBlockMessageFactory(block_number=1))
 
-block_2 = factories.BlockFactory(
-    message=factories.BlockMessageFactory(block_number=2),
+block_2 = factories.CoinTransferBlockFactory(
+    message=factories.CoinTransferBlockMessageFactory(block_number=2),
     message_hash='fake-message-hash',
 )
 

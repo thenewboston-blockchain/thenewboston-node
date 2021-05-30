@@ -17,7 +17,7 @@ def test_can_make_root_account_file_on_last_block(
 
     assert blockchain.get_closest_account_root_file() == initial_account_root_file
     assert blockchain.get_closest_account_root_file(-1) == initial_account_root_file
-    assert initial_account_root_file.accounts[treasury_account].balance_lock == treasury_account
+    assert initial_account_root_file.account_states[treasury_account].balance_lock == treasury_account
     assert blockchain.get_account_root_file_count() == 1
 
     blockchain.make_account_root_file()
@@ -37,21 +37,21 @@ def test_can_make_root_account_file_on_last_block(
     assert account_root_file.last_block_identifier == block0.message.block_identifier
     assert account_root_file.next_block_identifier == block0.message_hash
 
-    assert len(account_root_file.accounts) == 4
-    assert account_root_file.accounts.keys() == {
+    assert len(account_root_file.account_states) == 4
+    assert account_root_file.account_states.keys() == {
         user_account, treasury_account, primary_validator.identifier, preferred_node.identifier
     }
-    assert account_root_file.accounts[user_account].balance == 30
-    assert account_root_file.accounts[user_account].balance_lock == user_account
+    assert account_root_file.account_states[user_account].balance == 30
+    assert account_root_file.account_states[user_account].balance_lock == user_account
 
-    assert account_root_file.accounts[treasury_account].balance == treasury_initial_balance - 30 - 4 - 1
-    assert account_root_file.accounts[treasury_account].balance_lock != treasury_account
+    assert account_root_file.account_states[treasury_account].balance == treasury_initial_balance - 30 - 4 - 1
+    assert account_root_file.account_states[treasury_account].balance_lock != treasury_account
 
-    assert account_root_file.accounts[primary_validator.identifier].balance == 4
-    assert account_root_file.accounts[primary_validator.identifier].balance_lock == primary_validator.identifier
+    assert account_root_file.account_states[primary_validator.identifier].balance == 4
+    assert account_root_file.account_states[primary_validator.identifier].balance_lock == primary_validator.identifier
 
-    assert account_root_file.accounts[preferred_node.identifier].balance == 1
-    assert account_root_file.accounts[preferred_node.identifier].balance_lock == preferred_node.identifier
+    assert account_root_file.account_states[preferred_node.identifier].balance == 1
+    assert account_root_file.account_states[preferred_node.identifier].balance_lock == preferred_node.identifier
 
     block1 = Block.from_main_transaction(blockchain, treasury_account, 20, signing_key=user_account_key_pair.private)
     blockchain.add_block(block1)
@@ -69,19 +69,19 @@ def test_can_make_root_account_file_on_last_block(
     assert account_root_file.last_block_identifier == block2.message.block_identifier
     assert account_root_file.next_block_identifier == block2.message_hash
 
-    assert len(account_root_file.accounts) == 4
-    assert account_root_file.accounts.keys() == {
+    assert len(account_root_file.account_states) == 4
+    assert account_root_file.account_states.keys() == {
         user_account, treasury_account, primary_validator.identifier, preferred_node.identifier
     }
-    assert account_root_file.accounts[user_account].balance == 5
-    assert account_root_file.accounts[user_account].balance_lock != user_account
+    assert account_root_file.account_states[user_account].balance == 5
+    assert account_root_file.account_states[user_account].balance_lock != user_account
 
-    assert account_root_file.accounts[treasury_account
-                                      ].balance == treasury_initial_balance - 30 - 4 - 1 + 20 - 2 - 4 - 1
-    assert account_root_file.accounts[treasury_account].balance_lock != treasury_account
+    assert account_root_file.account_states[treasury_account
+                                            ].balance == treasury_initial_balance - 30 - 4 - 1 + 20 - 2 - 4 - 1
+    assert account_root_file.account_states[treasury_account].balance_lock != treasury_account
 
-    assert account_root_file.accounts[primary_validator.identifier].balance == 4 + 4 + 4 + 2
-    assert account_root_file.accounts[primary_validator.identifier].balance_lock == primary_validator.identifier
+    assert account_root_file.account_states[primary_validator.identifier].balance == 4 + 4 + 4 + 2
+    assert account_root_file.account_states[primary_validator.identifier].balance_lock == primary_validator.identifier
 
-    assert account_root_file.accounts[preferred_node.identifier].balance == 1 + 1 + 1
-    assert account_root_file.accounts[preferred_node.identifier].balance_lock == preferred_node.identifier
+    assert account_root_file.account_states[preferred_node.identifier].balance == 1 + 1 + 1
+    assert account_root_file.account_states[preferred_node.identifier].balance_lock == preferred_node.identifier

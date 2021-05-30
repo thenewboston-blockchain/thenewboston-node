@@ -6,7 +6,7 @@ from thenewboston_node.business_logic.tests.factories import add_blocks_to_block
 def test_can_get_account_states(forced_memory_blockchain: MemoryBlockchain, api_client):
     blockchain = forced_memory_blockchain
     assert blockchain.account_root_files
-    account_number = next(iter(blockchain.account_root_files[0].accounts.keys()))
+    account_number = next(iter(blockchain.account_root_files[0].account_states.keys()))
     balance = blockchain.get_account_balance(account_number)
     lock = blockchain.get_account_balance_lock(account_number)
 

@@ -8,7 +8,7 @@ USER_ACCOUNT_1 = 'a1e9104e964be38c592326792486cb70e6cde42081f4b38c0a4355a79aba25
 USER_ACCOUNT_2 = 'a5aa1b3dadbef7b31a6bd2ff11139fc4e4b4a691a5ae9dfe69f6ba6bd01dde28'
 
 initial_arf = factories.InitialAccountRootFileFactory(
-    accounts={USER_ACCOUNT_1: factories.AccountStateFactory(
+    account_states={USER_ACCOUNT_1: factories.AccountStateFactory(
         balance=1000,
         balance_lock=USER_ACCOUNT_1,
     )}
@@ -54,7 +54,7 @@ def test_generate_root_account_file(blockchain_base):
         generated_arf = blockchain_base.generate_account_root_file()
 
     assert generated_arf == factories.AccountRootFileFactory(
-        accounts={
+        account_states={
             USER_ACCOUNT_1: factories.AccountStateFactory(
                 balance=901,
                 balance_lock='user-account-1-lock',

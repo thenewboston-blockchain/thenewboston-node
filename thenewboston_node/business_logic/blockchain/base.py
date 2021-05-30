@@ -172,7 +172,7 @@ class BlockchainBase:
                 yield new_account
 
         last_account_root_file = self.get_first_account_root_file()
-        account_root_file_accounts = last_account_root_file.accounts.keys()
+        account_root_file_accounts = last_account_root_file.account_states.keys()
         new_accounts = account_root_file_accounts - known_accounts
         known_accounts |= new_accounts
         for new_account in new_accounts:
@@ -460,7 +460,7 @@ class BlockchainBase:
         )
 
         account_root_file = copy.deepcopy(last_account_root_file)
-        account_root_file_accounts = account_root_file.accounts
+        account_root_file_accounts = account_root_file.account_states
 
         block = None
         for block in self.iter_blocks_from(account_root_file.get_next_block_number()):
@@ -565,16 +565,16 @@ class BlockchainBase:
     def validate_account_root_file_balances(self, *, account_root_file):
         generated_account_root_file = self.generate_account_root_file(account_root_file.last_block_number)
         with validates('number of account root file balances'):
-            expected_accounts_count = len(generated_account_root_file.accounts)
-            actual_accounts_count = len(account_root_file.accounts)
+            expected_accounts_count = len(generated_account_root_file.account_states)
+            actual_accounts_count = len(account_root_file.account_states)
             if expected_accounts_count != actual_accounts_count:
                 raise ValidationError(
                     f'Expected {expected_accounts_count} accounts, '
                     f'but got {actual_accounts_count} in the account root file'
                 )
 
-        actual_accounts = account_root_file.accounts
-        for account_number, account_state in generated_account_root_file.accounts.items():
+        actual_accounts = account_root_file.account_states
+        for account_number, account_state in generated_account_root_file.account_states.items():
             with validates(f'account {account_number} existence'):
                 actual_account_state = actual_accounts.get(account_number)
                 if actual_account_state is None:

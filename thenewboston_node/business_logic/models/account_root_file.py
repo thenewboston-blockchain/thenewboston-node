@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 class AccountRootFile(MessagpackCompactableMixin):
     """Historical snapshot of all account balances at any point in time"""
 
-    accounts: dict[str, AccountState]
+    account_states: dict[str, AccountState]
     """Map like {"account_number": `AccountState`_, ...}"""
 
     last_block_number: Optional[int] = None
@@ -59,7 +59,7 @@ class AccountRootFile(MessagpackCompactableMixin):
         return dict_
 
     def get_balance(self, account: str) -> Optional[AccountState]:
-        return self.accounts.get(account)
+        return self.account_states.get(account)
 
     def get_account_balance(self, account: str) -> Optional[int]:
         balance = self.get_balance(account)
@@ -167,7 +167,7 @@ class AccountRootFile(MessagpackCompactableMixin):
 
     @validates('account root file accounts', is_plural_target=True)
     def validate_accounts(self):
-        for account, balance in self.accounts.items():
+        for account, balance in self.account_states.items():
             with validates(f'account root file account {account}'):
                 if not isinstance(account, str):
                     raise ValidationError('Account root file account number must be a string')

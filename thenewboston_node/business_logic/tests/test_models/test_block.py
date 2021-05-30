@@ -5,7 +5,7 @@ import pytest
 
 from thenewboston_node.business_logic.blockchain.mock_blockchain import MockBlockchain
 from thenewboston_node.business_logic.models import (
-    CoinTransferSignedRequest, CoinTransferSignedRequestMessage, CoinTransferTransaction
+    CoinTransferSignedChangeRequest, CoinTransferSignedChangeRequestMessage, CoinTransferTransaction
 )
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.node import get_signing_key
@@ -14,7 +14,7 @@ from thenewboston_node.core.utils.cryptography import KeyPair, derive_verify_key
 
 @pytest.mark.usefixtures('get_next_block_identifier_mock', 'get_next_block_number_mock')
 def test_can_create_block_from_transfer_request(
-    forced_mock_blockchain, sample_transfer_request: CoinTransferSignedRequest
+    forced_mock_blockchain, sample_transfer_request: CoinTransferSignedChangeRequest
 ):
 
     sender = sample_transfer_request.signer
@@ -200,14 +200,14 @@ def test_can_duplicate_recipients(
 
     sender = treasury_account_key_pair.public
     recipient = user_account_key_pair.public
-    message = CoinTransferSignedRequestMessage(
+    message = CoinTransferSignedChangeRequestMessage(
         balance_lock=forced_mock_blockchain.get_account_balance_lock(sender),
         txs=[
             CoinTransferTransaction(recipient=recipient, amount=3),
             CoinTransferTransaction(recipient=recipient, amount=5),
         ]
     )
-    request = CoinTransferSignedRequest.from_signed_request_message(message, treasury_account_key_pair.private)
+    request = CoinTransferSignedChangeRequest.from_signed_request_message(message, treasury_account_key_pair.private)
 
     with patch.object(MockBlockchain, 'get_account_balance', new=get_account_state):
         block = Block.from_transfer_request(forced_mock_blockchain, request)

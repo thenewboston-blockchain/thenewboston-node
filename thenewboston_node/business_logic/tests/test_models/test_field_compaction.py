@@ -89,8 +89,8 @@ def test_coin_transfer_signed_request_message_fields_are_compacted(long_name, sh
 )
 def test_transaction_fields_are_compacted(long_name, short_name):
     transaction = factories.CoinTransferTransactionFactory(fee=True, memo='Memo')
-    transfer_request_msg = factories.CoinTransferSignedRequestMessageFactory(txs=[transaction])
-    transfer_request = factories.CoinTransferSignedRequestFactory(message=transfer_request_msg)
+    transfer_request_msg = factories.CoinTransferSignedChangeRequestMessageFactory(txs=[transaction])
+    transfer_request = factories.CoinTransferSignedChangeRequestFactory(message=transfer_request_msg)
     message = factories.BlockMessageFactory(transfer_request=transfer_request)
     block = factories.BlockFactory(message=message)
 
@@ -162,7 +162,7 @@ def test_block_message_fields_are_stored_in_bytes(field_name, value):
     ]
 )
 def test_transfer_request_fields_are_stored_in_bytes(field_name, value):
-    transfer_request = factories.CoinTransferSignedRequestFactory(**{field_name: value})
+    transfer_request = factories.CoinTransferSignedChangeRequestFactory(**{field_name: value})
     block_msg = factories.BlockMessageFactory(transfer_request=transfer_request)
     block = factories.BlockFactory(message=block_msg)
 
@@ -175,8 +175,8 @@ def test_transfer_request_fields_are_stored_in_bytes(field_name, value):
     'field_name,value', [('balance_lock', 'cb0467e380e032881e3f5c26878da3584f1dc1f2262ef77ba5e1fa7ef4b2821c')]
 )
 def test_coin_transfer_signed_request_message_fields_are_stored_in_bytes(field_name, value):
-    transfer_request_msg = factories.CoinTransferSignedRequestMessageFactory(**{field_name: value})
-    transfer_request = factories.CoinTransferSignedRequestFactory(message=transfer_request_msg)
+    transfer_request_msg = factories.CoinTransferSignedChangeRequestMessageFactory(**{field_name: value})
+    transfer_request = factories.CoinTransferSignedChangeRequestFactory(message=transfer_request_msg)
     block_msg = factories.BlockMessageFactory(transfer_request=transfer_request)
     block = factories.BlockFactory(message=block_msg)
 
@@ -190,8 +190,8 @@ def test_coin_transfer_signed_request_message_fields_are_stored_in_bytes(field_n
 )
 def test_transaction_fields_are_stored_in_bytes(field_name, value):
     tx = factories.CoinTransferTransactionFactory(**{field_name: value})
-    transfer_request_msg = factories.CoinTransferSignedRequestMessageFactory(txs=[tx])
-    transfer_request = factories.CoinTransferSignedRequestFactory(message=transfer_request_msg)
+    transfer_request_msg = factories.CoinTransferSignedChangeRequestMessageFactory(txs=[tx])
+    transfer_request = factories.CoinTransferSignedChangeRequestFactory(message=transfer_request_msg)
     block_msg = factories.BlockMessageFactory(transfer_request=transfer_request)
     block = factories.BlockFactory(message=block_msg)
 

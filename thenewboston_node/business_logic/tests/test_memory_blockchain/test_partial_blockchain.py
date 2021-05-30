@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
-from thenewboston_node.business_logic.models import CoinTransferSignedRequest
+from thenewboston_node.business_logic.models import CoinTransferSignedChangeRequest
 from thenewboston_node.business_logic.models.account_state import AccountState
 from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
 from thenewboston_node.core.utils.cryptography import generate_key_pair
@@ -37,7 +37,7 @@ def test_partial_blockchain(primary_validator, preferred_node):
     assert blockchain.get_account_balance(new_account_key_pair.public) is None
     blockchain.validate()
 
-    transfer_request1 = CoinTransferSignedRequest.from_main_transaction(
+    transfer_request1 = CoinTransferSignedChangeRequest.from_main_transaction(
         blockchain=blockchain,
         recipient=account2_key_pair.public,
         amount=10,
@@ -55,7 +55,7 @@ def test_partial_blockchain(primary_validator, preferred_node):
     assert blockchain.get_account_balance(account3_key_pair.public) == 3000
     assert blockchain.get_account_balance(new_account_key_pair.public) is None
 
-    transfer_request2 = CoinTransferSignedRequest.from_main_transaction(
+    transfer_request2 = CoinTransferSignedChangeRequest.from_main_transaction(
         blockchain=blockchain,
         recipient=new_account_key_pair.public,
         amount=20,
@@ -81,7 +81,7 @@ def test_partial_blockchain(primary_validator, preferred_node):
     assert blockchain.get_account_balance(account3_key_pair.public) == 3000
     assert blockchain.get_account_balance(new_account_key_pair.public) == 20
 
-    transfer_request3 = CoinTransferSignedRequest.from_main_transaction(
+    transfer_request3 = CoinTransferSignedChangeRequest.from_main_transaction(
         blockchain=blockchain,
         recipient=account2_key_pair.public,
         amount=30,

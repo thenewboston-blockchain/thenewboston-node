@@ -10,9 +10,9 @@ from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from ..mixins.signable import SignableMixin
-from ..signed_request_message import SignedRequestMessage
+from ..signed_change_request_message import SignedChangeRequestMessage
 
-T = TypeVar('T', bound='SignedRequest')
+T = TypeVar('T', bound='SignedChangeRequest')
 
 logger = logging.getLogger(__name__)
 
@@ -20,12 +20,12 @@ logger = logging.getLogger(__name__)
 @fake_super_methods
 @dataclass_json
 @dataclass
-class SignedRequest(SignableMixin):
-    message: SignedRequestMessage
+class SignedChangeRequest(SignableMixin):
+    message: SignedChangeRequestMessage
     """Request payload"""
 
     @classmethod
-    def from_signed_request_message(cls: Type[T], message: SignedRequestMessage, signing_key: str) -> T:
+    def from_signed_request_message(cls: Type[T], message: SignedChangeRequestMessage, signing_key: str) -> T:
         request = cls(signer=derive_verify_key(signing_key), message=copy.deepcopy(message))
         request.sign(signing_key)
         return request

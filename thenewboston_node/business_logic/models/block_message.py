@@ -18,7 +18,7 @@ from thenewboston_node.core.utils.dataclass import fake_super_methods
 from . import AccountState
 from .mixins.message import MessageMixin
 from .mixins.misc import HumanizedClassNameMixin
-from .signed_request import CoinTransferSignedRequest
+from .signed_change_request import CoinTransferSignedChangeRequest
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ def make_balance_lock(transfer_request):
 
 
 def calculate_updated_balances(
-    get_account_balance: Callable[[str], Optional[int]], transfer_request: CoinTransferSignedRequest
+    get_account_balance: Callable[[str], Optional[int]], transfer_request: CoinTransferSignedChangeRequest
 ) -> dict[str, AccountState]:
     updated_account_states: dict[str, AccountState] = {}
     sent_amount = 0
@@ -65,7 +65,7 @@ class BlockMessage(MessageMixin, HumanizedClassNameMixin):
     """
     Contains requested changes in the network like transfer of coins, etc...
     """
-    transfer_request: CoinTransferSignedRequest
+    transfer_request: CoinTransferSignedChangeRequest
     """Requested changes"""
 
     # We need timestamp, block_number and block_identifier to be signed and hashed therefore
@@ -96,7 +96,9 @@ class BlockMessage(MessageMixin, HumanizedClassNameMixin):
         return dict_
 
     @classmethod
-    def from_coin_transfer_signed_request(cls, blockchain, coin_transfer_signed_request: CoinTransferSignedRequest):
+    def from_coin_transfer_signed_request(
+        cls, blockchain, coin_transfer_signed_request: CoinTransferSignedChangeRequest
+    ):
         if not coin_transfer_signed_request.signer:
             raise ValueError('Sender must be set')
 

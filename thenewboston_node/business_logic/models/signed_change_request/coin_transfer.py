@@ -11,10 +11,10 @@ from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from ..mixins.misc import HumanizedClassNameMixin
-from ..signed_request_message import CoinTransferSignedRequestMessage
-from .base import SignedRequest
+from ..signed_change_request_message import CoinTransferSignedChangeRequestMessage
+from .base import SignedChangeRequest
 
-T = TypeVar('T', bound='CoinTransferSignedRequest')
+T = TypeVar('T', bound='CoinTransferSignedChangeRequest')
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 @fake_super_methods
 @dataclass_json
 @dataclass
-class CoinTransferSignedRequest(SignedRequest, HumanizedClassNameMixin):
-    message: CoinTransferSignedRequestMessage
+class CoinTransferSignedChangeRequest(SignedChangeRequest, HumanizedClassNameMixin):
+    message: CoinTransferSignedChangeRequestMessage
     """Transfer request payload"""
 
     @classmethod
@@ -32,7 +32,7 @@ class CoinTransferSignedRequest(SignedRequest, HumanizedClassNameMixin):
         cls: Type[T], *, blockchain, recipient: str, amount: int, signing_key: str,
         primary_validator: PrimaryValidator, node: RegularNode
     ) -> T:
-        message = CoinTransferSignedRequestMessage.from_main_transaction(
+        message = CoinTransferSignedChangeRequestMessage.from_main_transaction(
             blockchain=blockchain,
             coin_sender=derive_verify_key(signing_key),
             recipient=recipient,

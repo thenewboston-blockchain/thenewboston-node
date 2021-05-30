@@ -1,6 +1,6 @@
 import pytest
 
-from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
+from thenewboston_node.business_logic.models.account_root_file import BlockchainState
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.tests import factories
 
@@ -113,7 +113,7 @@ def test_can_load_account_root_file_from_compacted_dict():
     account_root_file = factories.AccountRootFileFactory()
 
     compacted = account_root_file.to_compact_dict()
-    loaded_account_root_file = AccountRootFile.from_compact_dict(compacted)
+    loaded_account_root_file = BlockchainState.from_compact_dict(compacted)
 
     assert loaded_account_root_file == account_root_file
 

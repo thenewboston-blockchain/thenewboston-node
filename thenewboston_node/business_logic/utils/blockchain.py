@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.models import CoinTransferSignedRequest
-from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
+from thenewboston_node.business_logic.models.account_root_file import BlockchainState
 from thenewboston_node.business_logic.models.account_state import AccountState
 from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
 from thenewboston_node.business_logic.node import get_node_identifier
@@ -52,7 +52,7 @@ def generate_blockchain(
     logger.info('Using treasury account: %s', treasury_account_key_pair)
 
     if add_initial_account_root_file and blockchain.get_account_root_file_count() == 0:
-        initial_account_root_file = AccountRootFile(
+        initial_account_root_file = BlockchainState(
             account_states={treasury_account: AccountState(balance=281474976710656, balance_lock=treasury_account)}
         )
         blockchain.add_account_root_file(initial_account_root_file)

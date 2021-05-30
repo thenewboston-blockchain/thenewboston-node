@@ -2,7 +2,7 @@ import copy
 import logging
 from typing import Generator, Optional
 
-from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
+from thenewboston_node.business_logic.models.account_root_file import BlockchainState
 from thenewboston_node.business_logic.models.block import Block
 
 from .base import BlockchainBase
@@ -18,29 +18,29 @@ class MemoryBlockchain(BlockchainBase):
     def __init__(
         self,
         *,
-        account_root_files: list[AccountRootFile] = None,
+        account_root_files: list[BlockchainState] = None,
         blocks: Optional[list[Block]] = None,
         drop_intermediate_account_root_files=True,
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self.account_root_files: list[AccountRootFile] = (
+        self.account_root_files: list[BlockchainState] = (
             copy.deepcopy(account_root_files) if account_root_files else []
         )
         self.blocks: list[Block] = copy.deepcopy(blocks) if blocks else []
         self.drop_intermediate_account_root_files = drop_intermediate_account_root_files
 
     # Account root files related implemented methods
-    def persist_account_root_file(self, account_root_file: AccountRootFile):
+    def persist_account_root_file(self, account_root_file: BlockchainState):
         self.account_root_files.append(account_root_file)
 
     def get_account_root_file_count(self) -> int:
         return len(self.account_root_files)
 
-    def iter_account_root_files(self) -> Generator[AccountRootFile, None, None]:
+    def iter_account_root_files(self) -> Generator[BlockchainState, None, None]:
         yield from self.account_root_files
 
-    def iter_account_root_files_reversed(self) -> Generator[AccountRootFile, None, None]:
+    def iter_account_root_files_reversed(self) -> Generator[BlockchainState, None, None]:
         yield from reversed(self.account_root_files)
 
     def make_account_root_file(self):

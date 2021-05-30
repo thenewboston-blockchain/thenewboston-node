@@ -7,7 +7,7 @@ import msgpack
 from cachetools import LRUCache
 from more_itertools import always_reversible, ilen
 
-from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
+from thenewboston_node.business_logic.models.account_root_file import BlockchainState
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.storages.path_optimized_file_system import PathOptimizedFileSystemStorage
 from thenewboston_node.core.logging import timeit
@@ -100,7 +100,7 @@ class FileBlockchain(BlockchainBase):
         )
 
     # Account root files methods
-    def persist_account_root_file(self, account_root_file: AccountRootFile):
+    def persist_account_root_file(self, account_root_file: BlockchainState):
         storage = self.account_root_files_storage
         last_block_number = account_root_file.last_block_number
 
@@ -113,22 +113,22 @@ class FileBlockchain(BlockchainBase):
         if account_root_file is None:
             storage = self.account_root_files_storage
             assert storage.is_finalized(file_path)
-            account_root_file = AccountRootFile.from_messagepack(storage.load(file_path))
+            account_root_file = BlockchainState.from_messagepack(storage.load(file_path))
             cache[file_path] = account_root_file
 
         return account_root_file
 
-    def _iter_account_root_files(self, direction) -> Generator[AccountRootFile, None, None]:
+    def _iter_account_root_files(self, direction) -> Generator[BlockchainState, None, None]:
         assert direction in (1, -1)
 
         storage = self.account_root_files_storage
         for file_path in storage.list_directory(sort_direction=direction):
             yield self._load_account_root_file(file_path)
 
-    def iter_account_root_files(self) -> Generator[AccountRootFile, None, None]:
+    def iter_account_root_files(self) -> Generator[BlockchainState, None, None]:
         yield from self._iter_account_root_files(1)
 
-    def iter_account_root_files_reversed(self) -> Generator[AccountRootFile, None, None]:
+    def iter_account_root_files_reversed(self) -> Generator[BlockchainState, None, None]:
         yield from self._iter_account_root_files(-1)
 
     def get_account_root_file_count(self) -> int:

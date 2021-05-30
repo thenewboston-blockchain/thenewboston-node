@@ -10,7 +10,7 @@ from more_itertools import always_reversible, ilen
 
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models import CoinTransferSignedRequest
-from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
+from thenewboston_node.business_logic.models.account_root_file import BlockchainState
 from thenewboston_node.business_logic.models.account_state import AccountState
 from thenewboston_node.core.logging import timeit, timeit_method, validates
 from thenewboston_node.core.utils.importing import import_from_string
@@ -46,10 +46,10 @@ class BlockchainBase:
 
     # * Abstract methods
     # ** Account root files related abstract methods
-    def persist_account_root_file(self, account_root_file: AccountRootFile):
+    def persist_account_root_file(self, account_root_file: BlockchainState):
         raise NotImplementedError('Must be implemented in a child class')
 
-    def iter_account_root_files(self) -> Generator[AccountRootFile, None, None]:
+    def iter_account_root_files(self) -> Generator[BlockchainState, None, None]:
         raise NotImplementedError('Must be implemented in a child class')
 
     # ** Blocks related abstract methods
@@ -67,7 +67,7 @@ class BlockchainBase:
         warnings.warn('Using low performance implementation of get_account_root_file_count() method (override it)')
         return ilen(self.iter_account_root_files())
 
-    def iter_account_root_files_reversed(self) -> Generator[AccountRootFile, None, None]:
+    def iter_account_root_files_reversed(self) -> Generator[BlockchainState, None, None]:
         # Highly recommended to override this method in the particular implementation of the blockchain for
         # performance reasons
         warnings.warn(
@@ -111,18 +111,18 @@ class BlockchainBase:
 
     # * Base methods
     # ** Account root files related base methods
-    def add_account_root_file(self, account_root_file: AccountRootFile):
+    def add_account_root_file(self, account_root_file: BlockchainState):
         account_root_file.validate(is_initial=account_root_file.is_initial())
         self.persist_account_root_file(account_root_file)
 
-    def get_first_account_root_file(self) -> Optional[AccountRootFile]:
+    def get_first_account_root_file(self) -> Optional[BlockchainState]:
         # Override this method if a particular blockchain implementation can provide a high performance
         try:
             return next(self.iter_account_root_files())
         except StopIteration:
             return None
 
-    def get_last_account_root_file(self) -> Optional[AccountRootFile]:
+    def get_last_account_root_file(self) -> Optional[BlockchainState]:
         # Override this method if a particular blockchain implementation can provide a high performance
         try:
             return next(self.iter_account_root_files_reversed())
@@ -381,7 +381,7 @@ class BlockchainBase:
         assert account_root_file
         return account_root_file.get_next_block_number()
 
-    def get_closest_account_root_file(self, excludes_block_number: Optional[int] = None) -> Optional[AccountRootFile]:
+    def get_closest_account_root_file(self, excludes_block_number: Optional[int] = None) -> Optional[BlockchainState]:
         """
         Return the latest account root file that does not include `excludes_block_number` (
         head block by default thus the latest account root file, use -1 for getting initial account root file).
@@ -451,7 +451,7 @@ class BlockchainBase:
         account_root_file = self.generate_account_root_file()
         self.add_account_root_file(account_root_file)
 
-    def generate_account_root_file(self, last_block_number: Optional[int] = None) -> AccountRootFile:
+    def generate_account_root_file(self, last_block_number: Optional[int] = None) -> BlockchainState:
         last_account_root_file = self.get_closest_account_root_file(last_block_number)
         assert last_account_root_file is not None
         logger.debug(

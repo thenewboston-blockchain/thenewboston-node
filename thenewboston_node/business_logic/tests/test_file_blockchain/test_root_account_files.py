@@ -8,7 +8,7 @@ from thenewboston_node.core.utils.cryptography import KeyPair
 
 
 @pytest.mark.usefixtures('forced_mock_network', 'get_primary_validator_mock', 'get_preferred_node_mock')
-def test_root_account_file_is_created_every_x_block(
+def test_blockchain_state_is_created_every_x_block(
     blockchain_path,
     initial_account_root_file,
     treasury_account_key_pair: KeyPair,

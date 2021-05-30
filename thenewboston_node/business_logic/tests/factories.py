@@ -3,7 +3,7 @@ from datetime import datetime
 from thenewboston_node.business_logic.models import (
     CoinTransferSignedRequest, CoinTransferSignedRequestMessage, CoinTransferTransaction
 )
-from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
+from thenewboston_node.business_logic.models.account_root_file import BlockchainState
 from thenewboston_node.business_logic.models.account_state import AccountState
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.models.block_message import BlockMessage
@@ -71,7 +71,7 @@ class BlockFactory(Factory):
     signature = None
 
 
-@factory(AccountRootFile)
+@factory(BlockchainState)
 class InitialAccountRootFileFactory(Factory):
     account_states = {DEFAULT_ACCOUNT: AccountStateFactory()}
     last_block_number = None
@@ -80,7 +80,7 @@ class InitialAccountRootFileFactory(Factory):
     next_block_identifier = None
 
 
-@factory(AccountRootFile)
+@factory(BlockchainState)
 class AccountRootFileFactory(Factory):
     account_states = {DEFAULT_ACCOUNT: AccountStateFactory()}
     last_block_number = 0

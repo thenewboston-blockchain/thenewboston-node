@@ -2,7 +2,7 @@ from datetime import datetime
 
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
 from thenewboston_node.business_logic.models import CoinTransferSignedRequest
-from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
+from thenewboston_node.business_logic.models.account_root_file import BlockchainState
 from thenewboston_node.business_logic.models.account_state import AccountState
 from thenewboston_node.core.utils.cryptography import generate_key_pair
 
@@ -17,7 +17,7 @@ def test_partial_blockchain(primary_validator, preferred_node):
     fake_lock2, _ = generate_key_pair()
     fake_lock3, _ = generate_key_pair()
 
-    base_account_root_file = AccountRootFile(
+    base_account_root_file = BlockchainState(
         account_states={
             account1_key_pair.public: AccountState(balance=1000, balance_lock=fake_lock1),
             account2_key_pair.public: AccountState(balance=2000, balance_lock=fake_lock2),

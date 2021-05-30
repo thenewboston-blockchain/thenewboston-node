@@ -5,7 +5,7 @@ from thenewboston_node.business_logic.models.block import Block
 
 
 @pytest.mark.usefixtures('forced_mock_network', 'get_primary_validator_mock', 'get_preferred_node_mock')
-def test_can_make_root_account_file_on_last_block(
+def test_can_make_blockchain_state_on_last_block(
     forced_memory_blockchain: BlockchainBase, initial_account_root_file, treasury_account_key_pair,
     user_account_key_pair, primary_validator, preferred_node
 ):

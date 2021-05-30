@@ -19,11 +19,11 @@ def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_sign
 def test_account_root_file_is_rotated(file_blockchain_w_memory_storage):
     blockchain = file_blockchain_w_memory_storage
     initial_arf_filename = '000000000.-arf.msgpack'
-    new_root_account_file = '0000000001-arf.msgpack'
+    new_blockchain_state = '0000000001-arf.msgpack'
 
     assert blockchain.get_account_root_file_count() == 2
-    assert blockchain.account_root_files_storage.files.keys() == {initial_arf_filename, new_root_account_file}
-    assert blockchain.account_root_files_storage.finalized == {initial_arf_filename, new_root_account_file}
+    assert blockchain.account_root_files_storage.files.keys() == {initial_arf_filename, new_blockchain_state}
+    assert blockchain.account_root_files_storage.finalized == {initial_arf_filename, new_blockchain_state}
 
 
 def test_iter_account_root_files_is_sorted(file_blockchain_w_memory_storage):
@@ -41,13 +41,13 @@ def test_iter_account_root_files_reversed_is_sorted_backwards(file_blockchain_w_
     assert second_arf.is_initial()
 
 
-def test_can_get_first_root_account_file(file_blockchain_w_memory_storage):
+def test_can_get_first_blockchain_state(file_blockchain_w_memory_storage):
     first_arf = file_blockchain_w_memory_storage.get_first_account_root_file()
 
     assert first_arf.is_initial()
 
 
-def test_can_get_last_root_account_file(file_blockchain_w_memory_storage):
+def test_can_get_last_blockchain_state(file_blockchain_w_memory_storage):
     last_arf = file_blockchain_w_memory_storage.get_last_account_root_file()
 
     assert not last_arf.is_initial()

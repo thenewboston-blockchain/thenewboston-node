@@ -2,8 +2,8 @@ import copy
 import logging
 from typing import Generator, Optional
 
-from thenewboston_node.business_logic.models.account_root_file import BlockchainState
 from thenewboston_node.business_logic.models.block import Block
+from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
 
 from .base import BlockchainBase
 

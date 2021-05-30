@@ -7,8 +7,8 @@ import msgpack
 from cachetools import LRUCache
 from more_itertools import always_reversible, ilen
 
-from thenewboston_node.business_logic.models.account_root_file import BlockchainState
 from thenewboston_node.business_logic.models.block import Block
+from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
 from thenewboston_node.business_logic.storages.path_optimized_file_system import PathOptimizedFileSystemStorage
 from thenewboston_node.core.logging import timeit
 

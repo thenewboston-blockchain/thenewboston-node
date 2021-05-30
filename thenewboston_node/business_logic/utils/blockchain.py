@@ -86,7 +86,7 @@ def generate_blockchain(
             accounts.append(recipient)
             account_private_keys[recipient] = recipient_private_key
 
-        transfer_request = CoinTransferSignedChangeRequest.from_main_transaction(
+        signed_change_request = CoinTransferSignedChangeRequest.from_main_transaction(
             blockchain=blockchain,
             recipient=recipient,
             amount=amount,
@@ -105,4 +105,4 @@ def generate_blockchain(
         if recipient_new_balance >= min_sender_amount:
             sender_candidates.add(recipient)
 
-        blockchain.add_block_from_transfer_request(transfer_request, validate=validate)
+        blockchain.add_block_from_signed_change_request(signed_change_request, validate=validate)

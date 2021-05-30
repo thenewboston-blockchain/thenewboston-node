@@ -4,7 +4,7 @@ from thenewboston_node.business_logic.models import CoinTransferSignedChangeRequ
 
 
 @pytest.fixture
-def sample_transfer_request_dict():
+def sample_signed_change_request_dict():
     return {
         'signer':
             '4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732',
@@ -32,5 +32,5 @@ def sample_transfer_request_dict():
 
 
 @pytest.fixture
-def sample_transfer_request(sample_transfer_request_dict):
-    return CoinTransferSignedChangeRequest.from_dict(sample_transfer_request_dict)
+def sample_signed_change_request(sample_signed_change_request_dict):
+    return CoinTransferSignedChangeRequest.from_dict(sample_signed_change_request_dict)

@@ -13,12 +13,12 @@ def test_transaction_optional_keys_are_not_serialized(key, value):
     transaction = factories.CoinTransferTransactionFactory(**{key: value})
     trm = factories.CoinTransferSignedChangeRequestMessageFactory(txs=[transaction])
     tr = factories.CoinTransferSignedChangeRequestFactory(message=trm)
-    block_message = factories.BlockMessageFactory(transfer_request=tr)
+    block_message = factories.BlockMessageFactory(signed_change_request=tr)
     block = factories.BlockFactory(message=block_message)
 
     compact_dict = block.to_compact_dict(compact_values=False, compact_keys=False)
 
-    transaction_dict = compact_dict['message']['transfer_request']['message']['txs'][0]
+    transaction_dict = compact_dict['message']['signed_change_request']['message']['txs'][0]
     assert key not in transaction_dict
 
 
@@ -28,7 +28,7 @@ def test_non_ascii_memo_is_serialized_correctly():
     transaction = factories.CoinTransferTransactionFactory(memo=memo)
     trm = factories.CoinTransferSignedChangeRequestMessageFactory(txs=[transaction])
     tr = factories.CoinTransferSignedChangeRequestFactory(message=trm)
-    block_message = factories.BlockMessageFactory(transfer_request=tr)
+    block_message = factories.BlockMessageFactory(signed_change_request=tr)
     block = factories.BlockFactory(message=block_message)
 
     msg_pack = block.to_messagepack()

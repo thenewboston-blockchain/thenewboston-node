@@ -18,7 +18,7 @@ COMPACT_KEY_MAP = {
     'message': 'm',
     'message_hash': 'mh',
     # block message
-    'transfer_request': 'tr',
+    'signed_change_request': 'tr',
     'timestamp': 't',
     'block_number': 'bn',
     'block_identifier': 'bi',

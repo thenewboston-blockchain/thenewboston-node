@@ -6,7 +6,7 @@ from thenewboston_node.core.utils.collections import map_values, replace_keys
 
 COMPACT_KEY_MAP = {
     # account root file
-    'accounts': 'a',
+    'account_states': 'a',
     'last_block_number': 'ln',
     'last_block_identifier': 'li',
     'last_block_timestamp': 'lt',
@@ -68,12 +68,12 @@ UNCOMPACT_VALUE_MAP = {
 
 COMPACT_SUBKEY_MAP = {
     'updated_account_states': hex_to_bytes,
-    'accounts': hex_to_bytes,
+    'account_states': hex_to_bytes,
 }
 
 UNCOMPACT_SUBKEY_MAP = {
     'updated_account_states': bytes_to_hex,
-    'accounts': bytes_to_hex,
+    'account_states': bytes_to_hex,
 }
 
 # Assert that bidirectional mapping is defined correctly

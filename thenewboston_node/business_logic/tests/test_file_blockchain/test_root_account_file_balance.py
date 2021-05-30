@@ -32,7 +32,7 @@ def test_balances_are_correct(
     treasury_initial_balance
 ):
     account_root_file = file_blockchain_w_memory_storage.get_last_account_root_file()
-    accounts = account_root_file.accounts
+    accounts = account_root_file.account_states
 
     assert len(accounts) == 4
     assert accounts[treasury_account].balance == treasury_initial_balance - primary_validator_fee - node_fee - 100

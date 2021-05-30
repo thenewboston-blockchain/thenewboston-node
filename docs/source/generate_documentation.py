@@ -87,7 +87,7 @@ BLOCK_SAMPLE = models.Block(
 )
 
 ROOT_ACCOUNT_FILE_SAMPLE = models.AccountRootFile(
-    accounts={
+    account_states={
         '1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a':
             models.AccountState(
                 balance=1,

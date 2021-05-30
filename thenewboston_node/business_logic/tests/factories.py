@@ -73,7 +73,7 @@ class BlockFactory(Factory):
 
 @factory(AccountRootFile)
 class InitialAccountRootFileFactory(Factory):
-    accounts = {DEFAULT_ACCOUNT: AccountStateFactory()}
+    account_states = {DEFAULT_ACCOUNT: AccountStateFactory()}
     last_block_number = None
     last_block_identifier = None
     last_block_timestamp = None
@@ -82,7 +82,7 @@ class InitialAccountRootFileFactory(Factory):
 
 @factory(AccountRootFile)
 class AccountRootFileFactory(Factory):
-    accounts = {DEFAULT_ACCOUNT: AccountStateFactory()}
+    account_states = {DEFAULT_ACCOUNT: AccountStateFactory()}
     last_block_number = 0
     last_block_identifier = 'd606af9d1d769192813d71051148ef1896e3d85062c31ad3e62331e25d9c96bc'
     last_block_timestamp = datetime(2021, 1, 1)

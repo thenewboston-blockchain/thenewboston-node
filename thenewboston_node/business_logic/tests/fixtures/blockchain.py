@@ -97,7 +97,7 @@ def forced_mock_blockchain(initial_account_root_file):
 def large_blockchain(treasury_account_key_pair):
     blockchain = BlockchainBase.get_instance()
 
-    accounts = blockchain.get_first_account_root_file().accounts
+    accounts = blockchain.get_first_account_root_file().account_states
     assert len(accounts) == 1
     treasury_account, account_state = list(accounts.items())[0]
     assert treasury_account_key_pair.public == treasury_account

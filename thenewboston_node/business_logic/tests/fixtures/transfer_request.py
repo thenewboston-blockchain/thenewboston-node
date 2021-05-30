@@ -1,6 +1,6 @@
 import pytest
 
-from thenewboston_node.business_logic.models import CoinTransferSignedRequest
+from thenewboston_node.business_logic.models import CoinTransferSignedChangeRequest
 
 
 @pytest.fixture
@@ -33,4 +33,4 @@ def sample_transfer_request_dict():
 
 @pytest.fixture
 def sample_transfer_request(sample_transfer_request_dict):
-    return CoinTransferSignedRequest.from_dict(sample_transfer_request_dict)
+    return CoinTransferSignedChangeRequest.from_dict(sample_transfer_request_dict)

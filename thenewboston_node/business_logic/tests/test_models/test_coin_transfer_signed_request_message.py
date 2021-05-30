@@ -1,7 +1,7 @@
 import pytest
 
 from thenewboston_node.business_logic.exceptions import ValidationError
-from thenewboston_node.business_logic.models import CoinTransferSignedRequestMessage, CoinTransferTransaction
+from thenewboston_node.business_logic.models import CoinTransferSignedChangeRequestMessage, CoinTransferTransaction
 
 
 def test_get_normalized(sample_transfer_request):
@@ -15,7 +15,7 @@ def test_get_normalized(sample_transfer_request):
 
 
 def test_get_normalized_sorts_transactions():
-    message = CoinTransferSignedRequestMessage(
+    message = CoinTransferSignedChangeRequestMessage(
         balance_lock='',
         txs=[
             CoinTransferTransaction(amount=10, recipient='c'),
@@ -44,27 +44,27 @@ def test_validate(sample_coin_transfer_signed_request_message):
 
 def test_validate_balance_lock(sample_coin_transfer_signed_request_message):
     sample_coin_transfer_signed_request_message.balance_lock = ''
-    with pytest.raises(ValidationError, match='Coin transfer signed request message balance lock must be set'):
+    with pytest.raises(ValidationError, match='Coin transfer signed change request message balance lock must be set'):
         sample_coin_transfer_signed_request_message.validate()
 
     sample_coin_transfer_signed_request_message.balance_lock = None
-    with pytest.raises(ValidationError, match='Coin transfer signed request message balance lock must be set'):
+    with pytest.raises(ValidationError, match='Coin transfer signed change request message balance lock must be set'):
         sample_coin_transfer_signed_request_message.validate()
 
 
-def test_validate_transactions(sample_coin_transfer_signed_request_message: CoinTransferSignedRequestMessage):
+def test_validate_transactions(sample_coin_transfer_signed_request_message: CoinTransferSignedChangeRequestMessage):
     sample_coin_transfer_signed_request_message.txs[0].amount = -1
     with pytest.raises(ValidationError, match='Coin transfer transaction amount must be greater or equal to 1'):
         sample_coin_transfer_signed_request_message.validate()
 
     sample_coin_transfer_signed_request_message.txs[0] = 'dummy'  # type: ignore
     with pytest.raises(
-        ValidationError, match='Coin transfer signed request message txs must contain only Transactions types'
+        ValidationError, match='Coin transfer signed change request message txs must contain only Transactions types'
     ):
         sample_coin_transfer_signed_request_message.validate()
 
     sample_coin_transfer_signed_request_message.txs = 'dummy'  # type: ignore
-    with pytest.raises(ValidationError, match='Coin transfer signed request message txs must be a list'):
+    with pytest.raises(ValidationError, match='Coin transfer signed change request message txs must be a list'):
         sample_coin_transfer_signed_request_message.validate()
 
     sample_coin_transfer_signed_request_message.txs = []

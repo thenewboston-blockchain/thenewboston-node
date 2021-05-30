@@ -10,16 +10,16 @@ from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
-from .base import SignedRequestMessage
+from .base import SignedChangeRequestMessage
 from .coin_transfer_transaction import CoinTransferTransaction
 
-T = TypeVar('T', bound='CoinTransferSignedRequestMessage')
+T = TypeVar('T', bound='CoinTransferSignedChangeRequestMessage')
 
 
 @fake_super_methods
 @dataclass_json
 @dataclass
-class CoinTransferSignedRequestMessage(SignedRequestMessage):
+class CoinTransferSignedChangeRequestMessage(SignedChangeRequestMessage):
     """Coin transfer request message"""
 
     balance_lock: str

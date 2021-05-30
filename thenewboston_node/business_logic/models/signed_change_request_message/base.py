@@ -11,5 +11,5 @@ from ..mixins.misc import HumanizedClassNameMixin
 @fake_super_methods
 @dataclass_json
 @dataclass
-class SignedRequestMessage(MessageMixin, HumanizedClassNameMixin):
+class SignedChangeRequestMessage(MessageMixin, HumanizedClassNameMixin):
     pass

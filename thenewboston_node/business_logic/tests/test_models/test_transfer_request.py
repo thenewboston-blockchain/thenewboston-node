@@ -6,12 +6,12 @@ import pytest
 from thenewboston_node.business_logic.blockchain.mock_blockchain import MockBlockchain
 from thenewboston_node.business_logic.exceptions import InvalidMessageSignatureError, ValidationError
 from thenewboston_node.business_logic.models import (
-    CoinTransferSignedRequest, CoinTransferSignedRequestMessage, CoinTransferTransaction
+    CoinTransferSignedChangeRequest, CoinTransferSignedChangeRequestMessage, CoinTransferTransaction
 )
 
 
 def test_can_create_transfer_request_from_dict(sample_transfer_request_dict):
-    transfer_request = CoinTransferSignedRequest.from_dict(sample_transfer_request_dict)
+    transfer_request = CoinTransferSignedChangeRequest.from_dict(sample_transfer_request_dict)
     assert transfer_request.signer == sample_transfer_request_dict['signer']
     assert transfer_request.message.balance_lock == sample_transfer_request_dict['message']['balance_lock']
 
@@ -133,7 +133,7 @@ def test_invalid_transfer_request_for_balance_lock(forced_mock_blockchain, sampl
 
 
 def test_can_create_from_coin_transfer_signed_request_message(user_account_key_pair):
-    message = CoinTransferSignedRequestMessage(
+    message = CoinTransferSignedChangeRequestMessage(
         balance_lock='1cdd4ba04456ca169baca3d66eace869520c62fe84421329086e03d91a68acdb',
         txs=[
             CoinTransferTransaction(
@@ -141,7 +141,7 @@ def test_can_create_from_coin_transfer_signed_request_message(user_account_key_p
             )
         ]
     )
-    request = CoinTransferSignedRequest.from_signed_request_message(message, user_account_key_pair.private)
+    request = CoinTransferSignedChangeRequest.from_signed_request_message(message, user_account_key_pair.private)
     assert request.signer == user_account_key_pair.public
     assert request.message == message
     assert request.message is not message

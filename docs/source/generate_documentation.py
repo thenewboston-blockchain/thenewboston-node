@@ -26,8 +26,8 @@ TEMPLATE_PATH = 'index.rst'
 BLOCK_MODELS = (
     models.Block,
     models.BlockMessage,
-    models.CoinTransferSignedRequest,
-    models.CoinTransferSignedRequestMessage,
+    models.CoinTransferSignedChangeRequest,
+    models.CoinTransferSignedChangeRequestMessage,
     models.CoinTransferTransaction,
 )
 
@@ -53,8 +53,8 @@ BLOCK_SAMPLE = models.Block(
         block_identifier='d606af9d1d769192813d71051148ef1896e3d85062c31ad3e62331e25d9c96bc',
         block_number=0,
         timestamp=datetime.datetime(2021, 1, 1),
-        transfer_request=models.CoinTransferSignedRequest(
-            message=models.CoinTransferSignedRequestMessage(
+        transfer_request=models.CoinTransferSignedChangeRequest(
+            message=models.CoinTransferSignedChangeRequestMessage(
                 balance_lock='cb0467e380e032881e3f5c26878da3584f1dc1f2262ef77ba5e1fa7ef4b2821c',
                 txs=[
                     models.CoinTransferTransaction(

@@ -4,7 +4,7 @@ import random
 from tqdm import tqdm
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
-from thenewboston_node.business_logic.models import CoinTransferSignedRequest
+from thenewboston_node.business_logic.models import CoinTransferSignedChangeRequest
 from thenewboston_node.business_logic.models.account_state import AccountState
 from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
 from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
@@ -86,7 +86,7 @@ def generate_blockchain(
             accounts.append(recipient)
             account_private_keys[recipient] = recipient_private_key
 
-        transfer_request = CoinTransferSignedRequest.from_main_transaction(
+        transfer_request = CoinTransferSignedChangeRequest.from_main_transaction(
             blockchain=blockchain,
             recipient=recipient,
             amount=amount,

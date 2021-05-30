@@ -10,8 +10,8 @@ from more_itertools import always_reversible, ilen
 
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models import CoinTransferSignedRequest
-from thenewboston_node.business_logic.models.account_root_file import BlockchainState
 from thenewboston_node.business_logic.models.account_state import AccountState
+from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
 from thenewboston_node.core.logging import timeit, timeit_method, validates
 from thenewboston_node.core.utils.importing import import_from_string
 

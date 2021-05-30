@@ -5,8 +5,8 @@ from tqdm import tqdm
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.models import CoinTransferSignedRequest
-from thenewboston_node.business_logic.models.account_root_file import BlockchainState
 from thenewboston_node.business_logic.models.account_state import AccountState
+from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
 from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
 from thenewboston_node.business_logic.node import get_node_identifier
 from thenewboston_node.core.utils.cryptography import generate_key_pair

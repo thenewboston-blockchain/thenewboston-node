@@ -1,8 +1,8 @@
 import pytest
 
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
-from thenewboston_node.business_logic.models.account_root_file import BlockchainState
 from thenewboston_node.business_logic.models.block import Block
+from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
 from thenewboston_node.core.utils.cryptography import KeyPair
 
 

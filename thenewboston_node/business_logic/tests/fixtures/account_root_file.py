@@ -1,7 +1,7 @@
 import pytest
 
-from thenewboston_node.business_logic.models.account_root_file import BlockchainState
 from thenewboston_node.business_logic.models.account_state import AccountState
+from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
 
 
 @pytest.fixture

@@ -21,7 +21,7 @@ def test_validate_updated_account_states(memory_blockchain, block_message):
         block_message_copy.validate_updated_account_states(memory_blockchain)
 
     block_message_copy = copy.deepcopy(block_message)
-    signer = block_message_copy.transfer_request.signer
+    signer = block_message_copy.signed_change_request.signer
     del block_message_copy.updated_account_states[signer]
     with pytest.raises(ValidationError, match=f'Block message updated_account_states.{signer} must be not empty'):
         block_message_copy.validate_updated_account_states(memory_blockchain)

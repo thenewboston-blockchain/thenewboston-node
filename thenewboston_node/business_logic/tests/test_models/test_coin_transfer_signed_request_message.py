@@ -4,8 +4,8 @@ from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models import CoinTransferSignedChangeRequestMessage, CoinTransferTransaction
 
 
-def test_get_normalized(sample_transfer_request):
-    assert sample_transfer_request.message.get_normalized() == (
+def test_get_normalized(sample_signed_change_request):
+    assert sample_signed_change_request.message.get_normalized() == (
         b'{"balance_lock":"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732",'
         b'"txs":[{"amount":425,"recipient":"484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc"},'
         b'{"amount":1,"fee":true,"recipient":"5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8"},'

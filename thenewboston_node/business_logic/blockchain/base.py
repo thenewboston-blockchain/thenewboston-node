@@ -179,8 +179,10 @@ class BlockchainBase:
             yield new_account
 
     @timeit_method(level=logging.INFO)
-    def add_block_from_transfer_request(self, transfer_request: CoinTransferSignedChangeRequest, validate=True):
-        block = Block.from_transfer_request(self, transfer_request)
+    def add_block_from_signed_change_request(
+        self, signed_change_request: CoinTransferSignedChangeRequest, validate=True
+    ):
+        block = Block.from_signed_change_request(self, signed_change_request)
         self.add_block(block, validate=validate)
 
     def validate_before_block_number(self, before_block_number: Optional[int]) -> int:

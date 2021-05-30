@@ -44,11 +44,13 @@ class Block(SignableMixin, MessagpackCompactableMixin):
 
     @classmethod
     @timeit_method(level=logging.INFO, is_class_method=True)
-    def from_transfer_request(cls: Type[T], blockchain, transfer_request: CoinTransferSignedChangeRequest) -> T:
+    def from_signed_change_request(
+        cls: Type[T], blockchain, signed_change_request: CoinTransferSignedChangeRequest
+    ) -> T:
         signing_key = get_signing_key()
         block = cls(
             signer=derive_verify_key(signing_key),
-            message=BlockMessage.from_coin_transfer_signed_request(blockchain, transfer_request)
+            message=BlockMessage.from_coin_transfer_signed_request(blockchain, signed_change_request)
         )
         block.sign(signing_key)
         block.hash_message()
@@ -70,7 +72,7 @@ class Block(SignableMixin, MessagpackCompactableMixin):
             primary_validator = primary_validator or network.get_primary_validator()
             node = node or network.get_preferred_node()
 
-        transfer_request = CoinTransferSignedChangeRequest.from_main_transaction(
+        signed_change_request = CoinTransferSignedChangeRequest.from_main_transaction(
             blockchain=blockchain,
             recipient=recipient,
             amount=amount,
@@ -78,7 +80,7 @@ class Block(SignableMixin, MessagpackCompactableMixin):
             primary_validator=primary_validator,
             node=node,
         )
-        return cls.from_transfer_request(blockchain, transfer_request)
+        return cls.from_signed_change_request(blockchain, signed_change_request)
 
     def override_to_dict(self):  # this one turns into to_dict()
         dict_ = self.super_to_dict()

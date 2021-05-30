@@ -24,7 +24,7 @@ def test_block_fields_are_compacted(long_name, short_name):
 
 @pytest.mark.parametrize(
     'long_name,short_name', (
-        ('transfer_request', 'tr'),
+        ('signed_change_request', 'tr'),
         ('timestamp', 't'),
         ('block_number', 'bn'),
         ('block_identifier', 'bi'),
@@ -60,23 +60,23 @@ def test_updated_balances_fields_are_compacted(long_name, short_name):
     ('message', 'm'),
     ('signature', 'si'),
 ))
-def test_transfer_request_fields_are_compacted(long_name, short_name):
+def test_signed_change_request_fields_are_compacted(long_name, short_name):
     block = factories.BlockFactory()
 
-    transfer_request_dict = block.to_compact_dict()['m']['tr']
+    signed_change_request_dict = block.to_compact_dict()['m']['tr']
 
-    assert short_name in transfer_request_dict
-    assert long_name not in transfer_request_dict
+    assert short_name in signed_change_request_dict
+    assert long_name not in signed_change_request_dict
 
 
 @pytest.mark.parametrize('long_name,short_name', (('balance_lock', 'bl'),))
 def test_coin_transfer_signed_request_message_fields_are_compacted(long_name, short_name):
     block = factories.BlockFactory()
 
-    transfer_request_msg_dict = block.to_compact_dict()['m']['tr']['m']
+    signed_change_request_msg_dict = block.to_compact_dict()['m']['tr']['m']
 
-    assert short_name in transfer_request_msg_dict
-    assert long_name not in transfer_request_msg_dict
+    assert short_name in signed_change_request_msg_dict
+    assert long_name not in signed_change_request_msg_dict
 
 
 @pytest.mark.parametrize(
@@ -89,9 +89,9 @@ def test_coin_transfer_signed_request_message_fields_are_compacted(long_name, sh
 )
 def test_transaction_fields_are_compacted(long_name, short_name):
     transaction = factories.CoinTransferTransactionFactory(fee=True, memo='Memo')
-    transfer_request_msg = factories.CoinTransferSignedChangeRequestMessageFactory(txs=[transaction])
-    transfer_request = factories.CoinTransferSignedChangeRequestFactory(message=transfer_request_msg)
-    message = factories.BlockMessageFactory(transfer_request=transfer_request)
+    signed_change_request_msg = factories.CoinTransferSignedChangeRequestMessageFactory(txs=[transaction])
+    signed_change_request = factories.CoinTransferSignedChangeRequestFactory(message=signed_change_request_msg)
+    message = factories.BlockMessageFactory(signed_change_request=signed_change_request)
     block = factories.BlockFactory(message=message)
 
     transaction_dict = block.to_compact_dict()['m']['tr']['m']['txs'][0]
@@ -161,12 +161,12 @@ def test_block_message_fields_are_stored_in_bytes(field_name, value):
         ('signer', 'cb0467e380e032881e3f5c26878da3584f1dc1f2262ef77ba5e1fa7ef4b2821c'),
     ]
 )
-def test_transfer_request_fields_are_stored_in_bytes(field_name, value):
-    transfer_request = factories.CoinTransferSignedChangeRequestFactory(**{field_name: value})
-    block_msg = factories.BlockMessageFactory(transfer_request=transfer_request)
+def test_signed_change_request_fields_are_stored_in_bytes(field_name, value):
+    signed_change_request = factories.CoinTransferSignedChangeRequestFactory(**{field_name: value})
+    block_msg = factories.BlockMessageFactory(signed_change_request=signed_change_request)
     block = factories.BlockFactory(message=block_msg)
 
-    compact_dict = block.to_compact_dict(compact_keys=False)['message']['transfer_request']
+    compact_dict = block.to_compact_dict(compact_keys=False)['message']['signed_change_request']
 
     assert compact_dict[field_name] == bytes.fromhex(value)
 
@@ -175,12 +175,12 @@ def test_transfer_request_fields_are_stored_in_bytes(field_name, value):
     'field_name,value', [('balance_lock', 'cb0467e380e032881e3f5c26878da3584f1dc1f2262ef77ba5e1fa7ef4b2821c')]
 )
 def test_coin_transfer_signed_request_message_fields_are_stored_in_bytes(field_name, value):
-    transfer_request_msg = factories.CoinTransferSignedChangeRequestMessageFactory(**{field_name: value})
-    transfer_request = factories.CoinTransferSignedChangeRequestFactory(message=transfer_request_msg)
-    block_msg = factories.BlockMessageFactory(transfer_request=transfer_request)
+    signed_change_request_msg = factories.CoinTransferSignedChangeRequestMessageFactory(**{field_name: value})
+    signed_change_request = factories.CoinTransferSignedChangeRequestFactory(message=signed_change_request_msg)
+    block_msg = factories.BlockMessageFactory(signed_change_request=signed_change_request)
     block = factories.BlockFactory(message=block_msg)
 
-    compact_dict = block.to_compact_dict(compact_keys=False)['message']['transfer_request']['message']
+    compact_dict = block.to_compact_dict(compact_keys=False)['message']['signed_change_request']['message']
 
     assert compact_dict[field_name] == bytes.fromhex(value)
 
@@ -190,12 +190,12 @@ def test_coin_transfer_signed_request_message_fields_are_stored_in_bytes(field_n
 )
 def test_transaction_fields_are_stored_in_bytes(field_name, value):
     tx = factories.CoinTransferTransactionFactory(**{field_name: value})
-    transfer_request_msg = factories.CoinTransferSignedChangeRequestMessageFactory(txs=[tx])
-    transfer_request = factories.CoinTransferSignedChangeRequestFactory(message=transfer_request_msg)
-    block_msg = factories.BlockMessageFactory(transfer_request=transfer_request)
+    signed_change_request_msg = factories.CoinTransferSignedChangeRequestMessageFactory(txs=[tx])
+    signed_change_request = factories.CoinTransferSignedChangeRequestFactory(message=signed_change_request_msg)
+    block_msg = factories.BlockMessageFactory(signed_change_request=signed_change_request)
     block = factories.BlockFactory(message=block_msg)
 
-    compact_dict = block.to_compact_dict(compact_keys=False)['message']['transfer_request']['message']['txs'][0]
+    compact_dict = block.to_compact_dict(compact_keys=False)['message']['signed_change_request']['message']['txs'][0]
 
     assert compact_dict[field_name] == bytes.fromhex(value)
 

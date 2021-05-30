@@ -23,17 +23,17 @@ from .signed_change_request import CoinTransferSignedChangeRequest
 logger = logging.getLogger(__name__)
 
 
-def make_balance_lock(transfer_request):
-    assert transfer_request.message
-    return transfer_request.message.get_hash()
+def make_balance_lock(signed_change_request):
+    assert signed_change_request.message
+    return signed_change_request.message.get_hash()
 
 
 def calculate_updated_balances(
-    get_account_balance: Callable[[str], Optional[int]], transfer_request: CoinTransferSignedChangeRequest
+    get_account_balance: Callable[[str], Optional[int]], signed_change_request: CoinTransferSignedChangeRequest
 ) -> dict[str, AccountState]:
     updated_account_states: dict[str, AccountState] = {}
     sent_amount = 0
-    for transaction in transfer_request.message.txs:
+    for transaction in signed_change_request.message.txs:
         recipient = transaction.recipient
         amount = transaction.amount
 
@@ -46,13 +46,13 @@ def calculate_updated_balances(
         account_state.balance += amount
         sent_amount += amount
 
-    coin_sender = transfer_request.signer
+    coin_sender = signed_change_request.signer
     sender_balance = get_account_balance(coin_sender)
     assert sender_balance is not None
     assert sender_balance >= sent_amount
 
     updated_account_states[coin_sender] = AccountState(
-        balance=sender_balance - sent_amount, balance_lock=make_balance_lock(transfer_request)
+        balance=sender_balance - sent_amount, balance_lock=make_balance_lock(signed_change_request)
     )
 
     return updated_account_states
@@ -65,11 +65,11 @@ class BlockMessage(MessageMixin, HumanizedClassNameMixin):
     """
     Contains requested changes in the network like transfer of coins, etc...
     """
-    transfer_request: CoinTransferSignedChangeRequest
-    """Requested changes"""
+    signed_change_request: CoinTransferSignedChangeRequest
+    """Signed change request"""
 
     # We need timestamp, block_number and block_identifier to be signed and hashed therefore
-    # they are include in BlockMessage, not in Block
+    # they are included in BlockMessage, not in Block model
     timestamp: datetime = field(  # naive datetime in UTC
         metadata=config(
             encoder=datetime.isoformat,
@@ -91,7 +91,7 @@ class BlockMessage(MessageMixin, HumanizedClassNameMixin):
     def override_to_dict(self):  # this one turns into to_dict()
         dict_ = self.super_to_dict()
         # TODO(dmu) LOW: Implement a better way of removing optional fields or allow them in normalized message
-        dict_['transfer_request'] = self.transfer_request.to_dict()
+        dict_['signed_change_request'] = self.signed_change_request.to_dict()
         dict_['updated_account_states'] = {key: value.to_dict() for key, value in self.updated_account_states.items()}
         return dict_
 
@@ -109,7 +109,7 @@ class BlockMessage(MessageMixin, HumanizedClassNameMixin):
         block_identifier = blockchain.get_next_block_identifier()
 
         return BlockMessage(
-            transfer_request=copy.deepcopy(coin_transfer_signed_request),
+            signed_change_request=copy.deepcopy(coin_transfer_signed_request),
             timestamp=timestamp,
             block_number=block_number,
             block_identifier=block_identifier,
@@ -125,16 +125,16 @@ class BlockMessage(MessageMixin, HumanizedClassNameMixin):
         return (self.updated_account_states or {}).get(account)
 
     def get_sent_amount(self):
-        assert self.transfer_request
-        return self.transfer_request.get_sent_amount()
+        assert self.signed_change_request
+        return self.signed_change_request.get_sent_amount()
 
     def get_recipient_amount(self, recipient):
-        assert self.transfer_request
-        return self.transfer_request.get_recipient_amount(recipient)
+        assert self.signed_change_request
+        return self.signed_change_request.get_recipient_amount(recipient)
 
     @validates('block message')
     def validate(self, blockchain):
-        self.validate_transfer_request(blockchain)
+        self.validate_signed_change_request(blockchain)
         self.validate_block_number()
 
         assert self.block_number is not None
@@ -144,12 +144,12 @@ class BlockMessage(MessageMixin, HumanizedClassNameMixin):
         self.validate_updated_account_states(blockchain)
 
     @validates('transfer request on block message level')
-    def validate_transfer_request(self, blockchain):
-        transfer_request = self.transfer_request
-        if transfer_request is None:
+    def validate_signed_change_request(self, blockchain):
+        signed_change_request = self.signed_change_request
+        if signed_change_request is None:
             raise ValidationError('Block message transfer request must present')
 
-        transfer_request.validate(blockchain, self.block_number)
+        signed_change_request.validate(blockchain, self.block_number)
 
     @validates('block message timestamp')
     def validate_timestamp(self, blockchain):
@@ -224,7 +224,7 @@ class BlockMessage(MessageMixin, HumanizedClassNameMixin):
         validate_not_empty(f'{humanized_class_name} updated_account_states', updated_account_states)
         validate_min_item_count(f'{humanized_class_name} updated_account_states', updated_account_states, 2)
 
-        signer = self.transfer_request.signer
+        signer = self.signed_change_request.signer
         sender_account_state = self.updated_account_states.get(signer)
         validate_not_empty(f'{humanized_class_name} updated_account_states.{signer}', sender_account_state)
 
@@ -257,7 +257,7 @@ class BlockMessage(MessageMixin, HumanizedClassNameMixin):
         if is_sender:
             validate_not_empty(subject, balance_lock)
             validate_type(subject, balance_lock, str)
-            validate_exact_value(subject, balance_lock, make_balance_lock(self.transfer_request))
+            validate_exact_value(subject, balance_lock, make_balance_lock(self.signed_change_request))
         else:
             validate_empty(subject, balance_lock)
 

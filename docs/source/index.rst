@@ -139,7 +139,7 @@ NOTE: Initial root account file filename is ``{{ file_blockchain.get_account_roo
 Account root file format
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-{% for model_doc in models.root_account_file.docs %}
+{% for model_doc in models.blockchain_state.docs %}
 {{ model_doc.model }}
 {{ "'" * model_doc.model.__len__() }}
 
@@ -166,14 +166,14 @@ Account root file example
 
 .. code-block:: JSON
 
-    {{ models.root_account_file.sample.to_dict() | tojson(indent=4) | indent }}
+    {{ models.blockchain_state.sample.to_dict() | tojson(indent=4) | indent }}
 
 Compacted account root file example
 '''''''''''''''''''''''''''''''''''
 
 .. code-block:: JSON
 
-    {{ models.root_account_file.sample.to_compact_dict(compact_keys=True, compact_values=False) |
+    {{ models.blockchain_state.sample.to_compact_dict(compact_keys=True, compact_values=False) |
        tojson(indent=4) | indent }}
 
 Block chunk files

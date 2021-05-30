@@ -1,14 +1,14 @@
 import pytest
 
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
-from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
+from thenewboston_node.business_logic.models.account_root_file import BlockchainState
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.core.utils.cryptography import KeyPair
 
 
 def test_get_account_state_from_initial_account_root_file(
     forced_memory_blockchain: MemoryBlockchain, treasury_account_key_pair: KeyPair,
-    initial_account_root_file: AccountRootFile
+    initial_account_root_file: BlockchainState
 ):
     account = treasury_account_key_pair.public
     assert forced_memory_blockchain.get_account_balance(account) == 281474976710656

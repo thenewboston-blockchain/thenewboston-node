@@ -26,14 +26,13 @@ TEMPLATE_PATH = 'index.rst'
 BLOCK_MODELS = (
     models.Block,
     models.BlockMessage,
-    models.AccountState,
     models.CoinTransferSignedRequest,
     models.CoinTransferSignedRequestMessage,
     models.CoinTransferTransaction,
 )
 
-ROOT_ACCOUNT_FILE_MODELS = (
-    models.AccountRootFile,
+BLOCKCHAIN_STATE_MODELS = (
+    models.BlockchainState,
     models.AccountState,
 )
 
@@ -86,7 +85,7 @@ BLOCK_SAMPLE = models.Block(
     ),
 )
 
-ROOT_ACCOUNT_FILE_SAMPLE = models.AccountRootFile(
+BLOCKCHAIN_STATE_SAMPLE = models.BlockchainState(
     account_states={
         '1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a':
             models.AccountState(
@@ -176,9 +175,9 @@ def get_context():
                 'sample': BLOCK_SAMPLE,
                 'docs': get_model_docs(model_classes=BLOCK_MODELS),
             },
-            'root_account_file': {
-                'sample': ROOT_ACCOUNT_FILE_SAMPLE,
-                'docs': get_model_docs(model_classes=ROOT_ACCOUNT_FILE_MODELS),
+            'blockchain_state': {
+                'sample': BLOCKCHAIN_STATE_SAMPLE,
+                'docs': get_model_docs(model_classes=BLOCKCHAIN_STATE_MODELS),
             }
         },
         'file_blockchain': {

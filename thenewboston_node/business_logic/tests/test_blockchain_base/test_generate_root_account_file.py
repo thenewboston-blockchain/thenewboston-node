@@ -46,7 +46,7 @@ block_0 = factories.BlockFactory(
 )
 
 
-def test_generate_root_account_file(blockchain_base):
+def test_generate_blockchain_state(blockchain_base):
     arf_patch = patch.object(blockchain_base, 'iter_account_root_files', get_generator([initial_arf]))
     block_patch = patch.object(blockchain_base, 'iter_blocks', get_generator([block_0]))
 

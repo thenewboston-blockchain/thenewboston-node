@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 @fake_super_methods
 @dataclass_json
 @dataclass
-class AccountRootFile(MessagpackCompactableMixin):
+class BlockchainState(MessagpackCompactableMixin):
     """Historical snapshot of all account balances at any point in time"""
 
     account_states: dict[str, AccountState]

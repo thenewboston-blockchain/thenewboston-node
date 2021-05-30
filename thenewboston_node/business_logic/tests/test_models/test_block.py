@@ -125,6 +125,7 @@ def test_can_create_block_from_main_transaction(
 
     # Assert block_message.signed_change_request.message
     coin_transfer_signed_request_message = signed_change_request.message
+    assert isinstance(coin_transfer_signed_request_message, CoinTransferSignedChangeRequestMessage)
     assert coin_transfer_signed_request_message.balance_lock
     assert len(coin_transfer_signed_request_message.txs) == 3
     txs_dict = {tx.recipient: tx for tx in coin_transfer_signed_request_message.txs}
@@ -148,6 +149,7 @@ def test_normalized_block_message(forced_mock_blockchain, sample_signed_change_r
         '{'
         '"block_identifier":"next-block-identifier",'
         '"block_number":0,'
+        '"block_type":"ct",'
         '"signed_change_request":'
         '{"message":{"balance_lock":'
         '"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732",'

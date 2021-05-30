@@ -37,7 +37,7 @@ def test_blockchain_must_start_with_initial_account_root_file(blockchain_base):
 
 def test_validate_account_root_file_points_to_non_existing_block(blockchain_base):
     initial_arf = factories.InitialAccountRootFileFactory()
-    block_0 = factories.BlockFactory(message=factories.BlockMessageFactory(block_number=0))
+    block_0 = factories.CoinTransferBlockFactory(message=factories.CoinTransferBlockMessageFactory(block_number=0))
     arf_5 = factories.AccountRootFileFactory(last_block_number=5)
 
     arf_patch = patch.object(blockchain_base, 'iter_account_root_files', get_generator([initial_arf, arf_5]))
@@ -51,8 +51,8 @@ def test_validate_account_root_file_last_block_identifier_mismatch(blockchain_ba
     next_block_identifier = '0' * 64
     block_number = 0
     initial_arf = factories.InitialAccountRootFileFactory()
-    block_0 = factories.BlockFactory(
-        message=factories.BlockMessageFactory(block_number=block_number, block_identifier='e' * 64),
+    block_0 = factories.CoinTransferBlockFactory(
+        message=factories.CoinTransferBlockMessageFactory(block_number=block_number, block_identifier='e' * 64),
         message_hash=next_block_identifier,
     )
     arf_0 = factories.AccountRootFileFactory(
@@ -75,8 +75,10 @@ def test_validate_account_root_file_next_block_identifier_mismatch(blockchain_ba
     last_block_identifier = '0' * 64
     block_number = 0
     initial_arf = factories.InitialAccountRootFileFactory()
-    block_0 = factories.BlockFactory(
-        message=factories.BlockMessageFactory(block_number=block_number, block_identifier=last_block_identifier),
+    block_0 = factories.CoinTransferBlockFactory(
+        message=factories.CoinTransferBlockMessageFactory(
+            block_number=block_number, block_identifier=last_block_identifier
+        ),
         message_hash='e' * 64,
     )
     arf_1 = factories.AccountRootFileFactory(

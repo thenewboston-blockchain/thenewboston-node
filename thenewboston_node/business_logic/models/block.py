@@ -13,6 +13,7 @@ from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
+from .base import REQUEST_TO_BLOCK_TYPE_MAP
 from .block_message import BlockMessage
 from .mixins.compactable import MessagpackCompactableMixin
 from .mixins.signable import SignableMixin
@@ -43,6 +44,21 @@ class Block(SignableMixin, MessagpackCompactableMixin):
     """Hash value of message field"""
 
     @classmethod
+    def override_from_dict(cls, kvs, infer_missing=False):
+        instance = super().from_dict(kvs, infer_missing=infer_missing)
+        instance_block_type = instance.message.block_type
+        for signed_change_request_class, block_type in REQUEST_TO_BLOCK_TYPE_MAP.items():
+            if block_type == instance_block_type:
+                instance.message.signed_change_request = signed_change_request_class.from_dict(
+                    (kvs.get('message') or {}).get('signed_change_request') or {}
+                )
+                break
+        else:
+            raise NotImplementedError(f'message.block_type "{instance_block_type}" is not supported')
+
+        return instance
+
+    @classmethod
     @timeit_method(level=logging.INFO, is_class_method=True)
     def from_signed_change_request(
         cls: Type[T], blockchain, signed_change_request: CoinTransferSignedChangeRequest
@@ -50,7 +66,7 @@ class Block(SignableMixin, MessagpackCompactableMixin):
         signing_key = get_signing_key()
         block = cls(
             signer=derive_verify_key(signing_key),
-            message=BlockMessage.from_coin_transfer_signed_request(blockchain, signed_change_request)
+            message=BlockMessage.from_signed_change_request(blockchain, signed_change_request)
         )
         block.sign(signing_key)
         block.hash_message()

@@ -14,7 +14,7 @@ from thenewboston_node.business_logic.tests import factories
     )
 )
 def test_block_fields_are_compacted(long_name, short_name):
-    block = factories.BlockFactory()
+    block = factories.CoinTransferBlockFactory()
 
     block_dict = block.to_compact_dict()
 
@@ -32,7 +32,7 @@ def test_block_fields_are_compacted(long_name, short_name):
     )
 )
 def test_block_message_fields_are_compacted(long_name, short_name):
-    block = factories.BlockFactory()
+    block = factories.CoinTransferBlockFactory()
 
     block_message_dict = block.to_compact_dict()['m']
 
@@ -46,8 +46,8 @@ def test_block_message_fields_are_compacted(long_name, short_name):
 ))
 def test_updated_balances_fields_are_compacted(long_name, short_name):
     balance = factories.AccountStateFactory(balance=1000)
-    block_message = factories.BlockMessageFactory(updated_account_states={'key': balance})
-    block = factories.BlockFactory(message=block_message)
+    block_message = factories.CoinTransferBlockMessageFactory(updated_account_states={'key': balance})
+    block = factories.CoinTransferBlockFactory(message=block_message)
 
     block_balance_dict = block.to_compact_dict(compact_values=False)['m']['u']['key']
 
@@ -61,7 +61,7 @@ def test_updated_balances_fields_are_compacted(long_name, short_name):
     ('signature', 'si'),
 ))
 def test_signed_change_request_fields_are_compacted(long_name, short_name):
-    block = factories.BlockFactory()
+    block = factories.CoinTransferBlockFactory()
 
     signed_change_request_dict = block.to_compact_dict()['m']['tr']
 
@@ -71,7 +71,7 @@ def test_signed_change_request_fields_are_compacted(long_name, short_name):
 
 @pytest.mark.parametrize('long_name,short_name', (('balance_lock', 'bl'),))
 def test_coin_transfer_signed_request_message_fields_are_compacted(long_name, short_name):
-    block = factories.BlockFactory()
+    block = factories.CoinTransferBlockFactory()
 
     signed_change_request_msg_dict = block.to_compact_dict()['m']['tr']['m']
 
@@ -91,8 +91,8 @@ def test_transaction_fields_are_compacted(long_name, short_name):
     transaction = factories.CoinTransferTransactionFactory(fee=True, memo='Memo')
     signed_change_request_msg = factories.CoinTransferSignedChangeRequestMessageFactory(txs=[transaction])
     signed_change_request = factories.CoinTransferSignedChangeRequestFactory(message=signed_change_request_msg)
-    message = factories.BlockMessageFactory(signed_change_request=signed_change_request)
-    block = factories.BlockFactory(message=message)
+    message = factories.CoinTransferBlockMessageFactory(signed_change_request=signed_change_request)
+    block = factories.CoinTransferBlockFactory(message=message)
 
     transaction_dict = block.to_compact_dict()['m']['tr']['m']['txs'][0]
 
@@ -101,7 +101,7 @@ def test_transaction_fields_are_compacted(long_name, short_name):
 
 
 def test_can_load_block_from_compacted_dict():
-    block = factories.BlockFactory()
+    block = factories.CoinTransferBlockFactory()
 
     compacted = block.to_compact_dict()
     loaded_block = Block.from_compact_dict(compacted)
@@ -131,7 +131,7 @@ def test_can_load_account_root_file_from_compacted_dict():
     ]
 )
 def test_block_fields_are_stored_in_bytes(field_name, value):
-    block = factories.BlockFactory(**{field_name: value})
+    block = factories.CoinTransferBlockFactory(**{field_name: value})
 
     compact_dict = block.to_compact_dict(compact_keys=False)
 
@@ -142,8 +142,8 @@ def test_block_fields_are_stored_in_bytes(field_name, value):
     'field_name,value', [('block_identifier', 'd606af9d1d769192813d71051148ef1896e3d85062c31ad3e62331e25d9c96bc')]
 )
 def test_block_message_fields_are_stored_in_bytes(field_name, value):
-    block_msg = factories.BlockMessageFactory(**{field_name: value})
-    block = factories.BlockFactory(message=block_msg)
+    block_msg = factories.CoinTransferBlockMessageFactory(**{field_name: value})
+    block = factories.CoinTransferBlockFactory(message=block_msg)
 
     compact_dict = block.to_compact_dict(compact_keys=False)['message']
 
@@ -163,8 +163,8 @@ def test_block_message_fields_are_stored_in_bytes(field_name, value):
 )
 def test_signed_change_request_fields_are_stored_in_bytes(field_name, value):
     signed_change_request = factories.CoinTransferSignedChangeRequestFactory(**{field_name: value})
-    block_msg = factories.BlockMessageFactory(signed_change_request=signed_change_request)
-    block = factories.BlockFactory(message=block_msg)
+    block_msg = factories.CoinTransferBlockMessageFactory(signed_change_request=signed_change_request)
+    block = factories.CoinTransferBlockFactory(message=block_msg)
 
     compact_dict = block.to_compact_dict(compact_keys=False)['message']['signed_change_request']
 
@@ -177,8 +177,8 @@ def test_signed_change_request_fields_are_stored_in_bytes(field_name, value):
 def test_coin_transfer_signed_request_message_fields_are_stored_in_bytes(field_name, value):
     signed_change_request_msg = factories.CoinTransferSignedChangeRequestMessageFactory(**{field_name: value})
     signed_change_request = factories.CoinTransferSignedChangeRequestFactory(message=signed_change_request_msg)
-    block_msg = factories.BlockMessageFactory(signed_change_request=signed_change_request)
-    block = factories.BlockFactory(message=block_msg)
+    block_msg = factories.CoinTransferBlockMessageFactory(signed_change_request=signed_change_request)
+    block = factories.CoinTransferBlockFactory(message=block_msg)
 
     compact_dict = block.to_compact_dict(compact_keys=False)['message']['signed_change_request']['message']
 
@@ -192,8 +192,8 @@ def test_transaction_fields_are_stored_in_bytes(field_name, value):
     tx = factories.CoinTransferTransactionFactory(**{field_name: value})
     signed_change_request_msg = factories.CoinTransferSignedChangeRequestMessageFactory(txs=[tx])
     signed_change_request = factories.CoinTransferSignedChangeRequestFactory(message=signed_change_request_msg)
-    block_msg = factories.BlockMessageFactory(signed_change_request=signed_change_request)
-    block = factories.BlockFactory(message=block_msg)
+    block_msg = factories.CoinTransferBlockMessageFactory(signed_change_request=signed_change_request)
+    block = factories.CoinTransferBlockFactory(message=block_msg)
 
     compact_dict = block.to_compact_dict(compact_keys=False)['message']['signed_change_request']['message']['txs'][0]
 
@@ -209,8 +209,8 @@ def test_updated_balances_fields_are_stored_in_bytes(field_name, value):
     updated_account_states = {
         account: block_account_balance,
     }
-    block_msg = factories.BlockMessageFactory(updated_account_states=updated_account_states)
-    block = factories.BlockFactory(message=block_msg)
+    block_msg = factories.CoinTransferBlockMessageFactory(updated_account_states=updated_account_states)
+    block = factories.CoinTransferBlockFactory(message=block_msg)
 
     account_bytes = bytes.fromhex(account)
     compact_dict = block.to_compact_dict(compact_keys=False)['message']['updated_account_states'][account_bytes]
@@ -224,8 +224,8 @@ def test_updated_balances_keys_are_stored_in_bytes():
     updated_account_states = {
         account: block_account_balance,
     }
-    block_msg = factories.BlockMessageFactory(updated_account_states=updated_account_states)
-    block = factories.BlockFactory(message=block_msg)
+    block_msg = factories.CoinTransferBlockMessageFactory(updated_account_states=updated_account_states)
+    block = factories.CoinTransferBlockFactory(message=block_msg)
 
     updated_balances_dict = block.to_compact_dict(compact_keys=False)['message']['updated_account_states']
 
@@ -238,7 +238,7 @@ def test_block_messagepack_with_compact_values_is_smaller():
         '7affe587942203e08be1dc1e14c6dd5a8abd8640f328e45f667a91a7c06a06'
     )
     message_hash = '9677f4cbd7aaf32ba9615416f7bd0991b7de1434a7fa2c31add25c3355ef3959'
-    block = factories.BlockFactory(signature=signature, message_hash=message_hash)
+    block = factories.CoinTransferBlockFactory(signature=signature, message_hash=message_hash)
 
     non_compact_size = len(block.to_messagepack(compact_keys=False, compact_values=False))
     compact_size = len(block.to_messagepack(compact_keys=False, compact_values=True))

@@ -1,13 +1,14 @@
 import copy
 
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
-from thenewboston_node.business_logic.tests.factories import BlockFactory, BlockMessageFactory
+from thenewboston_node.business_logic.tests.factories import CoinTransferBlockFactory, CoinTransferBlockMessageFactory
 
 
 def test_get_blocks_until_account_root_file(forced_memory_blockchain: MemoryBlockchain, initial_account_root_file):
 
     forced_memory_blockchain.blocks = [
-        BlockFactory(message=BlockMessageFactory(block_number=x, block_identifier=str(x)))  # type: ignore
+        CoinTransferBlockFactory(message=CoinTransferBlockMessageFactory(block_number=x,
+                                                                         block_identifier=str(x)))  # type: ignore
         for x in range(9)
     ]
     account_root_files = forced_memory_blockchain.account_root_files

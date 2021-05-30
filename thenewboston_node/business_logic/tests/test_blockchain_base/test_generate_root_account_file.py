@@ -14,8 +14,8 @@ initial_arf = factories.InitialAccountRootFileFactory(
     )}
 )
 
-block_0 = factories.BlockFactory(
-    message=factories.BlockMessageFactory(
+block_0 = factories.CoinTransferBlockFactory(
+    message=factories.CoinTransferBlockMessageFactory(
         block_number=0,
         block_identifier='fake-block-identifier-0',
         timestamp=datetime(2021, 1, 1),

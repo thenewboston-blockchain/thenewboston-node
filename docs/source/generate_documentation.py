@@ -15,6 +15,7 @@ import jinja2
 
 from thenewboston_node.business_logic import models
 from thenewboston_node.business_logic.blockchain import file_blockchain
+from thenewboston_node.business_logic.models.base import BlockType
 from thenewboston_node.business_logic.models.mixins.compactable import COMPACT_KEY_MAP
 from thenewboston_node.business_logic.storages import file_system, path_optimized_file_system
 
@@ -50,6 +51,7 @@ BLOCK_SAMPLE = models.Block(
     signature='d1c49087103b631a58228bdf8fb70d4789259cf22d815e207660cfe8d478ad'
     'ad9c7affe587942203e08be1dc1e14c6dd5a8abd8640f328e45f667a91a7c06a06',
     message=models.BlockMessage(
+        block_type=BlockType.COIN_TRANSFER.value,
         block_identifier='d606af9d1d769192813d71051148ef1896e3d85062c31ad3e62331e25d9c96bc',
         block_number=0,
         timestamp=datetime.datetime(2021, 1, 1),

@@ -3,7 +3,8 @@ import logging
 from itertools import chain
 from time import time
 
-from .utils.misc import Default, upper_first
+from ..business_logic.exceptions import ValidationError
+from .utils.misc import Default, humanize_camel_case, upper_first
 
 module_logger = logging.getLogger(__name__)
 validation_logger = logging.getLogger(__name__ + '.validation')
@@ -89,7 +90,7 @@ class validates:
 
     def __init__(
         self,
-        target_template,
+        target_template=None,
         logger=validation_logger,
         level=logging.DEBUG,
         is_plural_target=False,
@@ -108,11 +109,14 @@ class validates:
         self.logger.log(self.level, '%s %s valid', upper_first(target), 'are' if self.is_plural_target else 'is')
 
     def log_validation_failed(self, target, exception):
+        exc_str = str(exception) if isinstance(exception, ValidationError) else repr(exception)
         self.logger.log(
-            self.level, '%s %s invalid: %s', upper_first(target), 'are' if self.is_plural_target else 'is', exception
+            logging.WARNING, '%s %s invalid: %s', upper_first(target), 'are' if self.is_plural_target else 'is',
+            exc_str
         )
 
     def __enter__(self):  # type: ignore
+        self.target_template = self.target_template or 'code block'
         self.log_validation_started(self.target_template)
         return self
 
@@ -126,10 +130,19 @@ class validates:
 
         @functools.wraps(callable_)
         def wrapper(*args, **kwargs):
+
+            target_template = self.target_template
+            if target_template is None:
+                parent_name = humanize_camel_case(args[0].__class__.__name__, apply_upper_first=False)
+                name = callable_.__name__.removeprefix('validate_')
+                name = '' if name == 'validate' else name
+                target_template = f'{parent_name} {name}'.strip()
+
             if self.use_format_map:
-                target = self.target_template.format_map(Default(**kwargs))
+                target = target_template.format_map(Default(**kwargs))
             else:
-                target = self.target_template.format(*args, **kwargs)
+                target = target_template.format(*args, **kwargs)
+
             self.log_validation_started(target)
             try:
                 rv = callable_(*args, **kwargs)

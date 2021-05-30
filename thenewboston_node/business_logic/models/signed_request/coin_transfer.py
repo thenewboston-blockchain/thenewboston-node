@@ -10,6 +10,7 @@ from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
+from ..mixins.misc import HumanizedClassNameMixin
 from ..signed_request_message import CoinTransferSignedRequestMessage
 from .base import SignedRequest
 
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 @fake_super_methods
 @dataclass_json
 @dataclass
-class CoinTransferSignedRequest(SignedRequest):
+class CoinTransferSignedRequest(SignedRequest, HumanizedClassNameMixin):
     message: CoinTransferSignedRequestMessage
     """Transfer request payload"""
 

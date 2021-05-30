@@ -6,7 +6,8 @@ from thenewboston_node.business_logic.models.block import Block
 
 
 @pytest.fixture(autouse=True)
-def set_up(file_blockchain_w_memory_storage, user_account, signing_key):
+def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_signing_key):
+    signing_key = treasury_account_signing_key
     with patch.object(file_blockchain_w_memory_storage, 'arf_creation_period_in_blocks', 2):
         block0 = Block.from_main_transaction(file_blockchain_w_memory_storage, user_account, 10, signing_key)
         file_blockchain_w_memory_storage.add_block(block0)

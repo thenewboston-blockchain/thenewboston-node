@@ -45,7 +45,7 @@ def test_block_message_fields_are_compacted(long_name, short_name):
     ('balance_lock', 'bl'),
 ))
 def test_updated_balances_fields_are_compacted(long_name, short_name):
-    balance = factories.AccountStateUpdateFactory(balance=1000)
+    balance = factories.AccountStateFactory(balance=1000)
     block_message = factories.BlockMessageFactory(updated_account_states={'key': balance})
     block = factories.BlockFactory(message=block_message)
 
@@ -205,7 +205,7 @@ def test_transaction_fields_are_stored_in_bytes(field_name, value):
 )
 def test_updated_balances_fields_are_stored_in_bytes(field_name, value):
     account = '1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a'
-    block_account_balance = factories.AccountStateUpdateFactory(**{field_name: value})
+    block_account_balance = factories.AccountStateFactory(**{field_name: value})
     updated_account_states = {
         account: block_account_balance,
     }
@@ -220,7 +220,7 @@ def test_updated_balances_fields_are_stored_in_bytes(field_name, value):
 
 def test_updated_balances_keys_are_stored_in_bytes():
     account = '1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a'
-    block_account_balance = factories.AccountStateUpdateFactory()
+    block_account_balance = factories.AccountStateFactory()
     updated_account_states = {
         account: block_account_balance,
     }

@@ -8,12 +8,16 @@ from dataclasses_json import config, dataclass_json
 from marshmallow import fields
 
 from thenewboston_node.business_logic.exceptions import ValidationError
+from thenewboston_node.business_logic.validators import (
+    validate_empty, validate_exact_value, validate_min_item_count, validate_not_empty, validate_type
+)
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import normalize_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
-from . import AccountStateUpdate
+from . import AccountState
 from .mixins.message import MessageMixin
+from .mixins.misc import HumanizedClassNameMixin
 from .signed_request import CoinTransferSignedRequest
 
 logger = logging.getLogger(__name__)
@@ -26,19 +30,20 @@ def make_balance_lock(transfer_request):
 
 def calculate_updated_balances(
     get_account_balance: Callable[[str], Optional[int]], transfer_request: CoinTransferSignedRequest
-) -> dict[str, AccountStateUpdate]:
-    updated_account_states: dict[str, AccountStateUpdate] = {}
+) -> dict[str, AccountState]:
+    updated_account_states: dict[str, AccountState] = {}
     sent_amount = 0
     for transaction in transfer_request.message.txs:
         recipient = transaction.recipient
         amount = transaction.amount
 
-        balance = updated_account_states.get(recipient)
-        if balance is None:
-            balance = AccountStateUpdate(balance=get_account_balance(recipient) or 0)
-            updated_account_states[recipient] = balance
+        account_state = updated_account_states.get(recipient)
+        if account_state is None:
+            account_state = AccountState(balance=get_account_balance(recipient) or 0)
+            updated_account_states[recipient] = account_state
 
-        balance.balance += amount
+        assert account_state.balance is not None
+        account_state.balance += amount
         sent_amount += amount
 
     coin_sender = transfer_request.signer
@@ -46,7 +51,7 @@ def calculate_updated_balances(
     assert sender_balance is not None
     assert sender_balance >= sent_amount
 
-    updated_account_states[coin_sender] = AccountStateUpdate(
+    updated_account_states[coin_sender] = AccountState(
         balance=sender_balance - sent_amount, balance_lock=make_balance_lock(transfer_request)
     )
 
@@ -56,7 +61,7 @@ def calculate_updated_balances(
 @fake_super_methods
 @dataclass_json
 @dataclass
-class BlockMessage(MessageMixin):
+class BlockMessage(MessageMixin, HumanizedClassNameMixin):
     """
     Contains requested changes in the network like transfer of coins, etc...
     """
@@ -80,8 +85,8 @@ class BlockMessage(MessageMixin):
     block_identifier: str
     """Unique block identifier"""
 
-    updated_account_states: dict[str, AccountStateUpdate]
-    """Account state updates: {"account_number": `AccountStateUpdate`_, ...}"""
+    updated_account_states: dict[str, AccountState]
+    """Updated account states: {"account_number": `AccountState`_, ...}"""
 
     def override_to_dict(self):  # this one turns into to_dict()
         dict_ = self.super_to_dict()
@@ -91,8 +96,8 @@ class BlockMessage(MessageMixin):
         return dict_
 
     @classmethod
-    def from_transfer_request(cls, blockchain, transfer_request: CoinTransferSignedRequest):
-        if not transfer_request.signer:
+    def from_coin_transfer_signed_request(cls, blockchain, coin_transfer_signed_request: CoinTransferSignedRequest):
+        if not coin_transfer_signed_request.signer:
             raise ValueError('Sender must be set')
 
         # TODO(dmu) HIGH: Move source of time to Blockchain?
@@ -102,17 +107,19 @@ class BlockMessage(MessageMixin):
         block_identifier = blockchain.get_next_block_identifier()
 
         return BlockMessage(
-            transfer_request=copy.deepcopy(transfer_request),
+            transfer_request=copy.deepcopy(coin_transfer_signed_request),
             timestamp=timestamp,
             block_number=block_number,
             block_identifier=block_identifier,
-            updated_account_states=calculate_updated_balances(blockchain.get_account_balance, transfer_request),
+            updated_account_states=calculate_updated_balances(
+                blockchain.get_account_balance, coin_transfer_signed_request
+            ),
         )
 
     def get_normalized(self) -> bytes:
         return normalize_dict(self.to_dict())  # type: ignore
 
-    def get_balance(self, account: str) -> Optional[AccountStateUpdate]:
+    def get_balance(self, account: str) -> Optional[AccountState]:
         return (self.updated_account_states or {}).get(account)
 
     def get_sent_amount(self):
@@ -132,7 +139,7 @@ class BlockMessage(MessageMixin):
         self.validate_timestamp(blockchain)
         self.validate_block_identifier(blockchain)
 
-        self.validate_updated_balances(blockchain)
+        self.validate_updated_account_states(blockchain)
 
     @validates('transfer request on block message level')
     def validate_transfer_request(self, blockchain):
@@ -207,75 +214,63 @@ class BlockMessage(MessageMixin):
         if block_identifier != blockchain.get_expected_block_identifier(block_number):
             raise ValidationError('Invalid block identifier')
 
-    @validates('block message updated balances')
-    def validate_updated_balances(self, blockchain):
-
+    @validates()
+    def validate_updated_account_states(self, blockchain):
         updated_account_states = self.updated_account_states
 
-        with validates('block message updated balances content'):
-            if updated_account_states is None:
-                raise ValidationError('Block message must contain updated balances')
+        humanized_class_name = self.humanized_class_name_lowered
+        validate_not_empty(f'{humanized_class_name} updated_account_states', updated_account_states)
+        validate_min_item_count(f'{humanized_class_name} updated_account_states', updated_account_states, 2)
 
-            if len(updated_account_states) < 2:
-                raise ValidationError('block message updated balances must contain at least 2 balances')
+        signer = self.transfer_request.signer
+        sender_account_state = self.updated_account_states.get(signer)
+        validate_not_empty(f'{humanized_class_name} updated_account_states.{signer}', sender_account_state)
 
-        sender = self.transfer_request.signer
-        with validates('block message updated balances signer account balance'):
-            sender_account_balance = updated_account_states.get(sender)
-            if sender_account_balance is None:
-                raise ValidationError('block message updated balances must contain signer account balance')
+        for account_number, account_state in updated_account_states.items():
+            with validates(f'{humanized_class_name} account {account_number} updated state'):
+                account_subject = f'{humanized_class_name} updated_account_states key (account number)'
+                validate_not_empty(account_subject, account_number)
+                validate_type(account_subject, account_number, str)
 
-        with validates('all account balances', is_plural_target=True):
-            for account, account_balance in updated_account_states.items():
-                account_balance.validate()
-                with validates(f'account {account} updated balance on block message level'):
-                    if not isinstance(account, str):
-                        raise ValidationError('Block message updated balance account must be a string')
+                account_state.validate()
+                is_sender = account_number == signer
+                self.validate_updated_account_balance_lock(
+                    account_number=account_number, account_state=account_state, is_sender=is_sender
+                )
+                self.validate_updated_account_balance(
+                    account_number=account_number,
+                    account_state=account_state,
+                    blockchain=blockchain,
+                    is_sender=is_sender
+                )
 
-                    is_sender = account == sender
-                    self.validate_updated_balance_lock(
-                        account=account, account_balance=account_balance, is_sender=is_sender
-                    )
-                    self.validate_updated_balance_value(
-                        account=account, account_state=account_balance, blockchain=blockchain, is_sender=is_sender
-                    )
+    @validates('account {account_number} balance lock')
+    def validate_updated_account_balance_lock(self, *, account_number, account_state, is_sender=False):
+        subject = (
+            f'{self.humanized_class_name_lowered} {"sender" if is_sender else "recipient"} account '
+            f'{account_number} balance_lock'
+        )
+        balance_lock = account_state.balance_lock
 
-    @validates('account {account} balance lock')
-    def validate_updated_balance_lock(self, *, account, account_balance, is_sender=False):
         if is_sender:
-            if not account_balance.balance_lock:
-                raise ValidationError('Block message updated balances must contain signer account lock')
-
-            expected_balance_lock = make_balance_lock(self.transfer_request)
-            if account_balance.balance_lock != expected_balance_lock:
-                raise ValidationError(
-                    f'Expected {expected_balance_lock} balance lock, but got {account_balance.balance_lock} '
-                    f'for account {account}'
-                )
+            validate_not_empty(subject, balance_lock)
+            validate_type(subject, balance_lock, str)
+            validate_exact_value(subject, balance_lock, make_balance_lock(self.transfer_request))
         else:
-            if account_balance.balance_lock:
-                raise ValidationError(
-                    'block message updated balances must not contain balance lock for '
-                    'recipient accounts'
-                )
+            validate_empty(subject, balance_lock)
 
-    @validates('account {account} balance value')
-    def validate_updated_balance_value(self, *, account, account_state, blockchain, is_sender=False):
-        initial_balance = blockchain.get_account_balance(account, self.block_number)
+    @validates('account {account_number} balance value')
+    def validate_updated_account_balance(self, *, account_number, account_state, blockchain, is_sender=False):
+        subject = (
+            f'{self.humanized_class_name_lowered} {"sender" if is_sender else "recipient"} account '
+            f'{account_number}'
+        )
+
+        current_balance = blockchain.get_account_balance(account_number, self.block_number)
         if is_sender:
-            if initial_balance is None:
-                raise ValidationError(
-                    f'Sender account {account} does not have balance '
-                    f'on block {self.block_number}'
-                )
-
-            expected_balance = initial_balance - self.get_sent_amount()
+            validate_not_empty(f'sender account {account_number} current balance', current_balance)
+            expected_balance = current_balance - self.get_sent_amount()
         else:
-            initial_balance = initial_balance or 0
-            expected_balance = initial_balance + self.get_recipient_amount(account)
+            expected_balance = (current_balance or 0) + self.get_recipient_amount(account_number)
 
-        if account_state.balance != expected_balance:
-            raise ValidationError(
-                f'Expected {expected_balance} balance value, but got {account_state.value} '
-                f'for account {account}'
-            )
+        validate_exact_value(f'{subject} balance', account_state.balance, expected_balance)

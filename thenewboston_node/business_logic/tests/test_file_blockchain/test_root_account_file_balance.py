@@ -8,7 +8,11 @@ node_fee = 3
 
 
 @pytest.fixture(autouse=True)
-def set_up(file_blockchain_w_memory_storage, user_account, signing_key, primary_validator_identifier, node_identifier):
+def set_up(
+    file_blockchain_w_memory_storage, user_account, treasury_account_signing_key, primary_validator_identifier,
+    node_identifier
+):
+    signing_key = treasury_account_signing_key
     pv = PrimaryValidator(identifier=primary_validator_identifier, fee_amount=primary_validator_fee)
     node = RegularNode(identifier=node_identifier, fee_amount=node_fee)
 

@@ -71,7 +71,7 @@ class AccountRootFile(MessagpackCompactableMixin):
     def get_account_balance_lock(self, account: str) -> str:
         balance = self.get_balance(account)
         if balance is not None:
-            return balance.balance_lock
+            return balance.balance_lock or account
 
         return account
 

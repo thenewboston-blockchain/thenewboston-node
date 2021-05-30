@@ -48,7 +48,7 @@ class Block(SignableMixin, MessagpackCompactableMixin):
         signing_key = get_signing_key()
         block = cls(
             signer=derive_verify_key(signing_key),
-            message=BlockMessage.from_transfer_request(blockchain, transfer_request)
+            message=BlockMessage.from_coin_transfer_signed_request(blockchain, transfer_request)
         )
         block.sign(signing_key)
         block.hash_message()

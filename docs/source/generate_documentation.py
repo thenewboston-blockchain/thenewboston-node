@@ -13,7 +13,6 @@ import django
 import class_doc
 import jinja2
 
-import thenewboston_node.business_logic.models.account_state_update
 from thenewboston_node.business_logic import models
 from thenewboston_node.business_logic.blockchain import file_blockchain
 from thenewboston_node.business_logic.models.mixins.compactable import COMPACT_KEY_MAP
@@ -27,7 +26,7 @@ TEMPLATE_PATH = 'index.rst'
 BLOCK_MODELS = (
     models.Block,
     models.BlockMessage,
-    thenewboston_node.business_logic.models.account_state_update.AccountStateUpdate,
+    models.AccountState,
     models.CoinTransferSignedRequest,
     models.CoinTransferSignedRequestMessage,
     models.CoinTransferTransaction,
@@ -80,12 +79,9 @@ BLOCK_SAMPLE = models.Block(
             signer='cb0467e380e032881e3f5c26878da3584f1dc1f2262ef77ba5e1fa7ef4b2821c',
         ),
         updated_account_states={
-            '1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a':
-                thenewboston_node.business_logic.models.account_state_update.AccountStateUpdate(balance=1),
-            '4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732':
-                thenewboston_node.business_logic.models.account_state_update.AccountStateUpdate(balance=4),
-            '8d3bf5323afa7a8c6bc9418288e96491a0434a98925bf392835bfdb5a4f817ff':
-                thenewboston_node.business_logic.models.account_state_update.AccountStateUpdate(balance=54),
+            '1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a': models.AccountState(balance=1),
+            '4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732': models.AccountState(balance=4),
+            '8d3bf5323afa7a8c6bc9418288e96491a0434a98925bf392835bfdb5a4f817ff': models.AccountState(balance=54),
         },
     ),
 )

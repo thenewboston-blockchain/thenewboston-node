@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from thenewboston_node.business_logic.models import (
-    AccountStateUpdate, CoinTransferSignedRequest, CoinTransferSignedRequestMessage, CoinTransferTransaction
+    CoinTransferSignedRequest, CoinTransferSignedRequestMessage, CoinTransferTransaction
 )
 from thenewboston_node.business_logic.models.account_root_file import AccountRootFile
 from thenewboston_node.business_logic.models.account_state import AccountState
@@ -54,19 +54,13 @@ class AccountStateFactory(Factory):
     balance_lock = DEFAULT_ACCOUNT
 
 
-@factory(AccountStateUpdate)
-class AccountStateUpdateFactory(Factory):
-    balance = 1000
-    balance_lock = DEFAULT_ACCOUNT
-
-
 @factory(BlockMessage)
 class BlockMessageFactory(Factory):
     transfer_request = CoinTransferSignedRequestFactory()
     timestamp = datetime(2021, 1, 1)
     block_number = 0
     block_identifier = 'd606af9d1d769192813d71051148ef1896e3d85062c31ad3e62331e25d9c96bc'
-    updated_account_states = {DEFAULT_ACCOUNT: AccountStateUpdateFactory()}
+    updated_account_states = {DEFAULT_ACCOUNT: AccountStateFactory()}
 
 
 @factory(Block)

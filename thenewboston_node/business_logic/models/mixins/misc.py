@@ -9,3 +9,7 @@ class HumanizedClassNameMixin:
     @property
     def humanized_class_name(self):
         return self.get_humanized_class_name()
+
+    @property
+    def humanized_class_name_lowered(self):
+        return self.get_humanized_class_name(apply_upper_first=False)

@@ -6,6 +6,7 @@ from django.test import override_settings
 import pytest
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
+from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
 from thenewboston_node.business_logic.blockchain.mock_blockchain import MockBlockchain
 from thenewboston_node.business_logic.tests.factories import add_blocks_to_blockchain
 from thenewboston_node.business_logic.tests.mocks.storage_mock import StorageMock
@@ -61,10 +62,18 @@ def yield_forced_blockchain(class_, class_kwargs=None):
 
 
 def yield_and_init_forced_blockchain(class_, initial_account_root_file, class_kwargs=None):
-    for blockchain in yield_forced_blockchain(class_, class_kwargs):
-        blockchain.add_account_root_file(initial_account_root_file)
-        blockchain.validate()
-        yield blockchain
+    blockchain = next(yield_forced_blockchain(class_, class_kwargs))
+    blockchain.add_account_root_file(initial_account_root_file)
+    blockchain.validate()
+    yield blockchain
+
+
+@pytest.fixture
+def memory_blockchain(initial_account_root_file):
+    blockchain = MemoryBlockchain()
+    blockchain.add_account_root_file(initial_account_root_file)
+    blockchain.validate()
+    yield blockchain
 
 
 @pytest.fixture

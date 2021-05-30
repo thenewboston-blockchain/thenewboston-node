@@ -4,7 +4,8 @@ from thenewboston_node.business_logic.models.block import Block
 
 
 @pytest.fixture(autouse=True)
-def set_up(file_blockchain_w_memory_storage, user_account, signing_key):
+def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_signing_key):
+    signing_key = treasury_account_signing_key
     block = Block.from_main_transaction(
         file_blockchain_w_memory_storage,
         recipient=user_account,

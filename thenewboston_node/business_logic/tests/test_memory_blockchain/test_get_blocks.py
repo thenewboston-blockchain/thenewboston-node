@@ -4,7 +4,7 @@ from thenewboston_node.business_logic.blockchain.memory_blockchain import Memory
 from thenewboston_node.business_logic.tests.factories import CoinTransferBlockFactory, CoinTransferBlockMessageFactory
 
 
-def test_get_blocks_until_account_root_file(forced_memory_blockchain: MemoryBlockchain, blockchain_genesis_state):
+def test_yield_blocks_till_snapshot(forced_memory_blockchain: MemoryBlockchain, blockchain_genesis_state):
 
     forced_memory_blockchain.blocks = [
         CoinTransferBlockFactory(message=CoinTransferBlockMessageFactory(block_number=x,
@@ -15,14 +15,12 @@ def test_get_blocks_until_account_root_file(forced_memory_blockchain: MemoryBloc
     assert len(account_root_files) == 1
     assert forced_memory_blockchain.get_closest_account_root_file() == blockchain_genesis_state
     assert forced_memory_blockchain.get_closest_account_root_file(-1) == blockchain_genesis_state
-    assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file()
+    assert [block.message.block_number for block in forced_memory_blockchain.yield_blocks_till_snapshot()
             ] == [8, 7, 6, 5, 4, 3, 2, 1, 0]
-    assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file(5)
+    assert [block.message.block_number for block in forced_memory_blockchain.yield_blocks_till_snapshot(5)
             ] == [5, 4, 3, 2, 1, 0]
-    assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file(1)
-            ] == [1, 0]
-    assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file(0)
-            ] == [0]
+    assert [block.message.block_number for block in forced_memory_blockchain.yield_blocks_till_snapshot(1)] == [1, 0]
+    assert [block.message.block_number for block in forced_memory_blockchain.yield_blocks_till_snapshot(0)] == [0]
 
     account_root_file1 = copy.deepcopy(blockchain_genesis_state)
     account_root_file1.last_block_number = 3
@@ -37,18 +35,14 @@ def test_get_blocks_until_account_root_file(forced_memory_blockchain: MemoryBloc
     assert forced_memory_blockchain.get_closest_account_root_file(3) == blockchain_genesis_state
     assert forced_memory_blockchain.get_closest_account_root_file(4) == account_root_file1
 
-    assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file()
+    assert [block.message.block_number for block in forced_memory_blockchain.yield_blocks_till_snapshot()
             ] == [8, 7, 6, 5, 4]
-    assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file(5)
-            ] == [5, 4]
-    assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file(3)
-            ] == []
-    assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file(2)
+    assert [block.message.block_number for block in forced_memory_blockchain.yield_blocks_till_snapshot(5)] == [5, 4]
+    assert [block.message.block_number for block in forced_memory_blockchain.yield_blocks_till_snapshot(3)] == []
+    assert [block.message.block_number for block in forced_memory_blockchain.yield_blocks_till_snapshot(2)
             ] == [2, 1, 0]
-    assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file(1)
-            ] == [1, 0]
-    assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file(0)
-            ] == [0]
+    assert [block.message.block_number for block in forced_memory_blockchain.yield_blocks_till_snapshot(1)] == [1, 0]
+    assert [block.message.block_number for block in forced_memory_blockchain.yield_blocks_till_snapshot(0)] == [0]
 
     account_root_file2 = copy.deepcopy(blockchain_genesis_state)
     account_root_file2.last_block_number = 5
@@ -65,23 +59,15 @@ def test_get_blocks_until_account_root_file(forced_memory_blockchain: MemoryBloc
     assert forced_memory_blockchain.get_closest_account_root_file(5) == account_root_file1
     assert forced_memory_blockchain.get_closest_account_root_file(6) == account_root_file2
 
-    assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file()
+    assert [block.message.block_number for block in forced_memory_blockchain.yield_blocks_till_snapshot()] == [8, 7, 6]
+    assert [block.message.block_number for block in forced_memory_blockchain.yield_blocks_till_snapshot(8)
             ] == [8, 7, 6]
-    assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file(8)
-            ] == [8, 7, 6]
-    assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file(7)
-            ] == [7, 6]
-    assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file(6)
-            ] == [6]
-    assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file(5)
-            ] == []
-    assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file(4)
-            ] == [4]
-    assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file(3)
-            ] == []
-    assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file(2)
+    assert [block.message.block_number for block in forced_memory_blockchain.yield_blocks_till_snapshot(7)] == [7, 6]
+    assert [block.message.block_number for block in forced_memory_blockchain.yield_blocks_till_snapshot(6)] == [6]
+    assert [block.message.block_number for block in forced_memory_blockchain.yield_blocks_till_snapshot(5)] == []
+    assert [block.message.block_number for block in forced_memory_blockchain.yield_blocks_till_snapshot(4)] == [4]
+    assert [block.message.block_number for block in forced_memory_blockchain.yield_blocks_till_snapshot(3)] == []
+    assert [block.message.block_number for block in forced_memory_blockchain.yield_blocks_till_snapshot(2)
             ] == [2, 1, 0]
-    assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file(1)
-            ] == [1, 0]
-    assert [block.message.block_number for block in forced_memory_blockchain.get_blocks_until_account_root_file(0)
-            ] == [0]
+    assert [block.message.block_number for block in forced_memory_blockchain.yield_blocks_till_snapshot(1)] == [1, 0]
+    assert [block.message.block_number for block in forced_memory_blockchain.yield_blocks_till_snapshot(0)] == [0]

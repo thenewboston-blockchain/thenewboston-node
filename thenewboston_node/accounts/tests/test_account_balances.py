@@ -24,7 +24,7 @@ def test_can_get_account_states_on_file_blockchain(
     assert treasury_account_balance > 100000000
     add_blocks_to_blockchain(blockchain, 5, treasury_account_key_pair.private)
 
-    for account_number in blockchain.iter_known_accounts():
+    for account_number in blockchain.yield_known_accounts():
         balance = blockchain.get_account_balance(account_number)
         lock = blockchain.get_account_balance_lock(account_number)
 

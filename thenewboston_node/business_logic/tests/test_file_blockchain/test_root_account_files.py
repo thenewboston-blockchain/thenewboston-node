@@ -17,7 +17,7 @@ def test_blockchain_state_is_created_every_x_block(
     assert not os.path.isfile(str(blockchain_path / 'account-root-files/0/0/0/0/0/0/0/0/000000000.-arf.msgpack'))
     blockchain = FileBlockchain(
         base_directory=str(blockchain_path),
-        arf_creation_period_in_blocks=5,
+        snapshot_period_in_blocks=5,
         account_root_files_subdir='account-root-files',
         account_root_files_storage_kwargs={'compressors': ()}
     )

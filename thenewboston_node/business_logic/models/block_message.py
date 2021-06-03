@@ -91,7 +91,7 @@ class BlockMessage(MessageMixin, HumanizedClassNameMixin):
             updated_account_states=updated_account_states
         )
 
-    def get_balance(self, account: str) -> Optional[AccountState]:
+    def get_account_state(self, account: str) -> Optional[AccountState]:
         return (self.updated_account_states or {}).get(account)
 
     def get_sent_amount(self):

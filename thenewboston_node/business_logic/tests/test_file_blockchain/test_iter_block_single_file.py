@@ -85,12 +85,12 @@ def test_can_get_last_block(file_blockchain_w_memory_storage):
     assert block.message.block_number == 3
 
 
-def test_can_get_blocks_until_account_root_file(file_blockchain_w_memory_storage):
-    blocks = list(file_blockchain_w_memory_storage.get_blocks_until_account_root_file())
+def test_can_yield_blocks_till_snapshot(file_blockchain_w_memory_storage):
+    blocks = list(file_blockchain_w_memory_storage.yield_blocks_till_snapshot())
     assert get_block_numbers(blocks) == [3, 2, 1, 0]
 
 
-def test_can_get_blocks_until_account_root_file_from_block_number(file_blockchain_w_memory_storage):
-    blocks = file_blockchain_w_memory_storage.get_blocks_until_account_root_file(from_block_number=1)
+def test_can_yield_blocks_till_snapshot_from_block_number(file_blockchain_w_memory_storage):
+    blocks = file_blockchain_w_memory_storage.yield_blocks_till_snapshot(from_block_number=1)
 
     assert get_block_numbers(blocks) == [1, 0]

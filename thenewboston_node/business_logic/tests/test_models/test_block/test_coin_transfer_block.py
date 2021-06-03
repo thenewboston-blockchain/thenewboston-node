@@ -223,14 +223,14 @@ def test_can_duplicate_recipients(
     updated_account_states = block.message.updated_account_states
     assert len(updated_account_states) == 2
 
-    sender_balance = block.message.get_balance(treasury_account_key_pair.public)
-    assert sender_balance
-    assert sender_balance.balance == 430 - 3 - 5
-    assert sender_balance.balance_lock
+    sender_account_state = block.message.get_account_state(treasury_account_key_pair.public)
+    assert sender_account_state
+    assert sender_account_state.balance == 430 - 3 - 5
+    assert sender_account_state.balance_lock
 
-    recipient_balance = block.message.get_balance(user_account_key_pair.public)
-    assert recipient_balance
-    assert recipient_balance.balance == 10 + 3 + 5
+    recipient_account_state = block.message.get_account_state(user_account_key_pair.public)
+    assert recipient_account_state
+    assert recipient_account_state.balance == 10 + 3 + 5
 
 
 @pytest.mark.skip('Not implemented yet')

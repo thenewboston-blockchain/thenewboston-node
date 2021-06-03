@@ -95,12 +95,12 @@ def test_can_get_last_block(blockchain_base):
     )
 )
 def test_can_get_blocks_until_account_root_file(
-    blockchain_base, initial_account_root_file, account_root_file_block_number, from_block_number, expected_blocks
+    blockchain_base, blockchain_genesis_state, account_root_file_block_number, from_block_number, expected_blocks
 ):
     iter_arf_patch = patch.object(
         blockchain_base, 'iter_account_root_files',
         get_generator([
-            initial_account_root_file,
+            blockchain_genesis_state,
             factories.AccountRootFileFactory(last_block_number=account_root_file_block_number),
         ])
     )
@@ -126,21 +126,21 @@ def test_get_expected_block_identifier_validation_of_block_number(blockchain_bas
         blockchain_base.get_expected_block_identifier(block_number=-1)
 
 
-def test_get_expected_block_identifier_without_initial_account_root_file(blockchain_base):
+def test_get_expected_block_identifier_without_blockchain_genesis_state(blockchain_base):
     with patch.object(blockchain_base, 'iter_account_root_files', get_generator([])):
         block_identifier = blockchain_base.get_expected_block_identifier(block_number=0)
 
     assert block_identifier is None
 
 
-def test_get_expected_block_identifier_with_initial_account_root_file(blockchain_base, initial_account_root_file):
-    with patch.object(blockchain_base, 'iter_account_root_files', get_generator([initial_account_root_file])):
+def test_get_expected_block_identifier_with_blockchain_genesis_state(blockchain_base, blockchain_genesis_state):
+    with patch.object(blockchain_base, 'iter_account_root_files', get_generator([blockchain_genesis_state])):
         block_identifier = blockchain_base.get_expected_block_identifier(block_number=0)
 
-    assert block_identifier == initial_account_root_file.get_hash()
+    assert block_identifier == blockchain_genesis_state.get_hash()
 
 
-def test_get_expected_block_identifier_from_last_block(blockchain_base, initial_account_root_file):
+def test_get_expected_block_identifier_from_last_block(blockchain_base, blockchain_genesis_state):
     with patch.object(blockchain_base, 'iter_blocks', get_generator([block_0, block_1, block_2])):
         block_identifier = blockchain_base.get_expected_block_identifier(block_number=3)
 

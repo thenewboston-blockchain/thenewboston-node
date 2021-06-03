@@ -10,11 +10,11 @@ def treasury_initial_balance():
 
 
 @pytest.fixture
-def initial_account_root_file(treasury_account, treasury_initial_balance) -> BlockchainState:
+def blockchain_genesis_state(treasury_account, treasury_initial_balance) -> BlockchainState:
     accounts = {treasury_account: AccountState(balance=treasury_initial_balance, balance_lock=treasury_account)}
     return BlockchainState(account_states=accounts)
 
 
 @pytest.fixture
-def initial_account_root_file_dict(initial_account_root_file: BlockchainState) -> dict:
-    return initial_account_root_file.to_dict()  # type: ignore
+def blockchain_genesis_state_dict(blockchain_genesis_state: BlockchainState) -> dict:
+    return blockchain_genesis_state.to_dict()  # type: ignore

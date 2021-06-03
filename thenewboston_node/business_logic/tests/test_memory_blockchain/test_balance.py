@@ -6,14 +6,14 @@ from thenewboston_node.business_logic.models.blockchain_state import BlockchainS
 from thenewboston_node.core.utils.cryptography import KeyPair
 
 
-def test_get_account_state_from_initial_account_root_file(
+def test_get_account_state_from_blockchain_genesis_state(
     forced_memory_blockchain: MemoryBlockchain, treasury_account_key_pair: KeyPair,
-    initial_account_root_file: BlockchainState
+    blockchain_genesis_state: BlockchainState
 ):
     account = treasury_account_key_pair.public
     assert forced_memory_blockchain.get_account_balance(account) == 281474976710656
     assert forced_memory_blockchain.get_account_balance(account
-                                                        ) == initial_account_root_file.get_account_balance(account)
+                                                        ) == blockchain_genesis_state.get_account_balance(account)
 
 
 @pytest.mark.usefixtures('forced_mock_network', 'get_primary_validator_mock', 'get_preferred_node_mock')

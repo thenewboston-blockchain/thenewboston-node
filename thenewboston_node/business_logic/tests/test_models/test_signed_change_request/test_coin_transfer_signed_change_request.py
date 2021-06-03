@@ -142,7 +142,9 @@ def test_can_create_from_coin_transfer_signed_request_message(user_account_key_p
             )
         ]
     )
-    request = CoinTransferSignedChangeRequest.from_signed_request_message(message, user_account_key_pair.private)
+    request = CoinTransferSignedChangeRequest.create_from_signed_change_request_message(
+        message, user_account_key_pair.private
+    )
     assert request.signer == user_account_key_pair.public
     assert request.message == message
     assert request.message is not message

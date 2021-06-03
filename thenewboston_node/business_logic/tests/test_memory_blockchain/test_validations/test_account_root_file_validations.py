@@ -8,13 +8,13 @@ from thenewboston_node.business_logic.exceptions import ValidationError
 def test_validate_account_root_files_raises(forced_memory_blockchain: MemoryBlockchain,):
     blockchain = forced_memory_blockchain
 
-    assert blockchain.account_root_files
-    for balance in blockchain.account_root_files[0].account_states.values():
+    assert blockchain.blockchain_states
+    for balance in blockchain.blockchain_states[0].account_states.values():
         balance.balance_lock = ''
     with pytest.raises(ValidationError, match='Account state balance_lock must be not empty'):
         blockchain.validate_account_root_files()
 
-    blockchain.account_root_files = []
+    blockchain.blockchain_states = []
     with pytest.raises(ValidationError, match='Blockchain must contain at least one account root file'):
         blockchain.validate_account_root_files()
 

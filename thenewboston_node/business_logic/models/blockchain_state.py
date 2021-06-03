@@ -56,6 +56,12 @@ class BlockchainState(MessagpackCompactableMixin):
             if value is None:
                 del dict_[attr]
 
+        account_states = {}
+        for account_number, account_state in self.account_states.items():
+            account_states[account_number] = account_state.to_dict()
+
+        dict_['account_states'] = account_states
+
         return dict_
 
     def get_balance(self, account: str) -> Optional[AccountState]:

@@ -73,7 +73,7 @@ def test_partial_blockchain(primary_validator, preferred_node):
     assert blockchain.get_account_balance(account3_key_pair.public) == 3000
     assert blockchain.get_account_balance(new_account_key_pair.public) == 20
 
-    blockchain.make_account_root_file()
+    blockchain.snapshot_blockchain_state()
     blockchain.validate()
 
     assert blockchain.get_account_balance(account1_key_pair.public) == 1000 - 10 - 4 - 1

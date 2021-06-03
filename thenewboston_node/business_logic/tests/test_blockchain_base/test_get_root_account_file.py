@@ -56,19 +56,19 @@ def test_get_closest_account_root_file_validates_excludes_block_number(blockchai
         blockchain_base.get_closest_account_root_file(excludes_block_number=-2)
 
 
-def test_initial_account_root_file_not_found(blockchain_base):
+def test_blockchain_genesis_state_not_found(blockchain_base):
     with mock.patch.object(blockchain_base, 'iter_account_root_files', new=get_generator([])):
         initial_arf = blockchain_base.get_closest_account_root_file(excludes_block_number=-1)
 
     assert initial_arf is None
 
 
-def test_can_get_initial_account_root_file(blockchain_base, initial_account_root_file):
-    arf_generator = get_generator([initial_account_root_file, arf_1])
+def test_can_get_blockchain_genesis_state(blockchain_base, blockchain_genesis_state):
+    arf_generator = get_generator([blockchain_genesis_state, arf_1])
     with mock.patch.object(blockchain_base, 'iter_account_root_files', new=arf_generator):
         retrieved_arf = blockchain_base.get_closest_account_root_file(excludes_block_number=-1)
 
-    assert retrieved_arf == initial_account_root_file
+    assert retrieved_arf == blockchain_genesis_state
 
 
 @pytest.mark.parametrize('excludes_block_number', (11, 15, 20))

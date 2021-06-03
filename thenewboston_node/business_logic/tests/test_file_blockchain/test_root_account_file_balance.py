@@ -18,7 +18,7 @@ def set_up(
 
     block = Block.from_main_transaction(file_blockchain_w_memory_storage, user_account, 100, signing_key, pv, node)
     file_blockchain_w_memory_storage.add_block(block)
-    file_blockchain_w_memory_storage.make_account_root_file()
+    file_blockchain_w_memory_storage.snapshot_blockchain_state()
 
 
 def test_last_block_data_is_correct(file_blockchain_w_memory_storage):

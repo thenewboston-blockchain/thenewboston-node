@@ -21,7 +21,7 @@ def add_blocks_to_blockchain(blockchain, block_count, treasury_account_private_k
     generate_blockchain(
         blockchain,
         block_count,
-        add_initial_account_root_file=False,
+        add_blockchain_genesis_state=False,
         validate=False,
         treasury_account_key_pair=treasury_account_key_pair
     )

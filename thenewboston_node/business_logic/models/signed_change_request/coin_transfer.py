@@ -10,7 +10,6 @@ from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
-from ..mixins.misc import HumanizedClassNameMixin
 from ..signed_change_request_message import CoinTransferSignedChangeRequestMessage
 from .base import SignedChangeRequest
 
@@ -22,9 +21,9 @@ logger = logging.getLogger(__name__)
 @fake_super_methods
 @dataclass_json
 @dataclass
-class CoinTransferSignedChangeRequest(SignedChangeRequest, HumanizedClassNameMixin):
+class CoinTransferSignedChangeRequest(SignedChangeRequest):
     message: CoinTransferSignedChangeRequestMessage
-    """Transfer request payload"""
+    """Coin transfer request payload"""
 
     @classmethod
     @timeit_method(level=logging.INFO)
@@ -40,7 +39,7 @@ class CoinTransferSignedChangeRequest(SignedChangeRequest, HumanizedClassNameMix
             primary_validator=primary_validator,
             node=node,
         )
-        return cls.from_signed_request_message(message, signing_key)
+        return cls.create_from_signed_change_request_message(message, signing_key)
 
     def override_to_dict(self):
         # we can and should call base method the normal way because it is defined in the base class

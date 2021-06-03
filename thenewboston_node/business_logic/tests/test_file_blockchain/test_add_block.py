@@ -58,14 +58,14 @@ def test_cannot_add_block_twice(file_blockchain_w_memory_storage, user_account, 
 @pytest.mark.usefixtures('forced_mock_network', 'get_primary_validator_mock', 'get_preferred_node_mock')
 def test_can_add_block(
     blockchain_directory,
-    initial_account_root_file,
+    blockchain_genesis_state,
     treasury_account_key_pair: KeyPair,
     user_account_key_pair: KeyPair,
     primary_validator_key_pair: KeyPair,
     node_key_pair: KeyPair,
 ):
     blockchain = FileBlockchain(base_directory=blockchain_directory)
-    blockchain.add_account_root_file(initial_account_root_file)
+    blockchain.add_blockchain_state(blockchain_genesis_state)
     blockchain.validate()
 
     treasury_account = treasury_account_key_pair.public

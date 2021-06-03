@@ -8,7 +8,7 @@ from thenewboston_node.business_logic.models import (
     CoinTransferSignedChangeRequest, CoinTransferSignedChangeRequestMessage, CoinTransferTransaction
 )
 from thenewboston_node.business_logic.models.block import Block
-from thenewboston_node.business_logic.node import get_signing_key
+from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.core.utils.cryptography import KeyPair, derive_verify_key
 
 
@@ -24,14 +24,14 @@ def test_can_create_block_from_signed_change_request(
         return 450 if account == sender else 0
 
     with patch.object(MockBlockchain, 'get_account_balance', new=get_account_state):
-        block = Block.from_signed_change_request(forced_mock_blockchain, sample_signed_change_request)
+        block = Block.create_from_signed_change_request(forced_mock_blockchain, sample_signed_change_request)
 
     assert block.message
     assert block.message_hash
     assert block.signature
     block.validate_signature()
     assert block.signer
-    assert block.signer == derive_verify_key(get_signing_key())
+    assert block.signer == derive_verify_key(get_node_signing_key())
 
     block_message = block.message
 
@@ -90,7 +90,7 @@ def test_can_create_block_from_main_transaction(
 
     block.validate_signature()
     assert block.signer
-    assert block.signer == derive_verify_key(get_signing_key())
+    assert block.signer == derive_verify_key(get_node_signing_key())
 
     # Assert block.message
     block_message = block.message
@@ -179,7 +179,7 @@ def test_normalized_block_message(forced_mock_blockchain, sample_signed_change_r
         return 450 if account == sample_signed_change_request.signer else 0
 
     with patch.object(MockBlockchain, 'get_account_balance', new=get_account_state):
-        block = Block.from_signed_change_request(forced_mock_blockchain, sample_signed_change_request)
+        block = Block.create_from_signed_change_request(forced_mock_blockchain, sample_signed_change_request)
 
     expected_message = expected_message_template.replace(
         '<replace-with-timestamp>', block.message.timestamp.isoformat()
@@ -189,7 +189,7 @@ def test_normalized_block_message(forced_mock_blockchain, sample_signed_change_r
 
 @pytest.mark.usefixtures('get_next_block_identifier_mock', 'get_next_block_number_mock', 'get_account_state_mock')
 def test_can_serialize_deserialize(forced_mock_blockchain, sample_signed_change_request):
-    block = Block.from_signed_change_request(forced_mock_blockchain, sample_signed_change_request)
+    block = Block.create_from_signed_change_request(forced_mock_blockchain, sample_signed_change_request)
     serialized_dict = block.to_dict()
     deserialized_block = Block.from_dict(serialized_dict)
     assert deserialized_block == block
@@ -213,10 +213,12 @@ def test_can_duplicate_recipients(
             CoinTransferTransaction(recipient=recipient, amount=5),
         ]
     )
-    request = CoinTransferSignedChangeRequest.from_signed_request_message(message, treasury_account_key_pair.private)
+    request = CoinTransferSignedChangeRequest.create_from_signed_change_request_message(
+        message, treasury_account_key_pair.private
+    )
 
     with patch.object(MockBlockchain, 'get_account_balance', new=get_account_state):
-        block = Block.from_signed_change_request(forced_mock_blockchain, request)
+        block = Block.create_from_signed_change_request(forced_mock_blockchain, request)
 
     updated_account_states = block.message.updated_account_states
     assert len(updated_account_states) == 2

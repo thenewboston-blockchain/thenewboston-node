@@ -61,36 +61,36 @@ def yield_forced_blockchain(class_, class_kwargs=None):
     BlockchainBase.clear_instance_cache()
 
 
-def yield_and_init_forced_blockchain(class_, initial_account_root_file, class_kwargs=None):
+def yield_and_init_forced_blockchain(class_, blockchain_genesis_state, class_kwargs=None):
     blockchain = next(yield_forced_blockchain(class_, class_kwargs))
-    blockchain.add_account_root_file(initial_account_root_file)
+    blockchain.add_blockchain_state(blockchain_genesis_state)
     blockchain.validate()
     yield blockchain
 
 
 @pytest.fixture
-def memory_blockchain(initial_account_root_file):
+def memory_blockchain(blockchain_genesis_state):
     blockchain = MemoryBlockchain()
-    blockchain.add_account_root_file(initial_account_root_file)
+    blockchain.add_blockchain_state(blockchain_genesis_state)
     blockchain.validate()
     yield blockchain
 
 
 @pytest.fixture
-def forced_memory_blockchain(initial_account_root_file):
-    yield from yield_and_init_forced_blockchain(MEMORY_BLOCKCHAIN_CLASS, initial_account_root_file)
+def forced_memory_blockchain(blockchain_genesis_state):
+    yield from yield_and_init_forced_blockchain(MEMORY_BLOCKCHAIN_CLASS, blockchain_genesis_state)
 
 
 @pytest.fixture
-def forced_file_blockchain(initial_account_root_file, blockchain_directory):
+def forced_file_blockchain(blockchain_genesis_state, blockchain_directory):
     yield from yield_and_init_forced_blockchain(
-        FILE_BLOCKCHAIN_CLASS, initial_account_root_file, class_kwargs={'base_directory': blockchain_directory}
+        FILE_BLOCKCHAIN_CLASS, blockchain_genesis_state, class_kwargs={'base_directory': blockchain_directory}
     )
 
 
 @pytest.fixture(autouse=True)  # Autouse for safety reasons
-def forced_mock_blockchain(initial_account_root_file):
-    yield from yield_and_init_forced_blockchain(MOCK_BLOCKCHAIN_CLASS, initial_account_root_file)
+def forced_mock_blockchain(blockchain_genesis_state):
+    yield from yield_and_init_forced_blockchain(MOCK_BLOCKCHAIN_CLASS, blockchain_genesis_state)
 
 
 @pytest.fixture
@@ -109,20 +109,20 @@ def large_blockchain(treasury_account_key_pair):
 
 @pytest.fixture
 def file_blockchain_w_memory_storage(
-    forced_file_blockchain, initial_account_root_file, forced_mock_network, get_primary_validator_mock,
+    forced_file_blockchain, blockchain_genesis_state, forced_mock_network, get_primary_validator_mock,
     get_preferred_node_mock
 ):
     block_storage_mock = patch.object(forced_file_blockchain, 'block_storage', StorageMock())
     arf_storage_mock = patch.object(forced_file_blockchain, 'account_root_files_storage', StorageMock())
 
     with block_storage_mock, arf_storage_mock:
-        forced_file_blockchain.add_account_root_file(initial_account_root_file)
+        forced_file_blockchain.add_blockchain_state(blockchain_genesis_state)
         forced_file_blockchain.validate()
         yield forced_file_blockchain
 
 
 @pytest.fixture
-def blockchain_base(initial_account_root_file):
+def blockchain_base(blockchain_genesis_state):
     blockchain = BlockchainBase()
-    with patch.object(blockchain, 'iter_account_root_files', get_generator([initial_account_root_file])):
+    with patch.object(blockchain, 'iter_account_root_files', get_generator([blockchain_genesis_state])):
         yield blockchain

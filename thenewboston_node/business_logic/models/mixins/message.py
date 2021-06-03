@@ -1,7 +1,9 @@
 import logging
 
 from thenewboston_node.business_logic.exceptions import InvalidMessageSignatureError
-from thenewboston_node.core.utils.cryptography import generate_signature, hash_normalized_dict, is_signature_valid
+from thenewboston_node.core.utils.cryptography import (
+    generate_signature, hash_normalized_dict, is_signature_valid, normalize_dict
+)
 
 logger = logging.getLogger(__name__)
 
@@ -22,4 +24,4 @@ class MessageMixin:
             raise InvalidMessageSignatureError()
 
     def get_normalized(self) -> bytes:
-        raise NotImplementedError('Must be implemented in a child class')
+        return normalize_dict(self.to_dict())  # type: ignore

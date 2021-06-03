@@ -3,14 +3,17 @@ import os.path
 import re
 from typing import Generator, Optional
 
+import filelock
 import msgpack
 from cachetools import LRUCache
 from more_itertools import always_reversible, ilen
 
+from thenewboston_node.business_logic.exceptions import BlockchainLockedError, BlockchainUnlockedError
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
 from thenewboston_node.business_logic.storages.path_optimized_file_system import PathOptimizedFileSystemStorage
 from thenewboston_node.core.logging import timeit
+from thenewboston_node.core.utils.file_lock import ensure_locked, lock_method
 
 from .base import BlockchainBase
 
@@ -30,6 +33,9 @@ DEFAULT_ACCOUNT_ROOT_FILE_SUBDIR = 'account-root-files'
 DEFAULT_BLOCKS_SUBDIR = 'blocks'
 
 DEFAULT_BLOCK_CHUNK_SIZE = 100
+
+LOCKED_EXCEPTION = BlockchainLockedError('Blockchain locked. Probably it is being modified by another process')
+EXPECTED_LOCK_EXCEPTION = BlockchainUnlockedError('Blockchain was expected to be locked')
 
 
 def get_start_end(file_path):
@@ -74,6 +80,7 @@ class FileBlockchain(BlockchainBase):
         block_chunk_size=DEFAULT_BLOCK_CHUNK_SIZE,
         blocks_cache_size=None,
         blocks_storage_kwargs=None,
+        lock_filename='file.lock',
         **kwargs
     ):
         if not os.path.isabs(base_directory):
@@ -99,7 +106,15 @@ class FileBlockchain(BlockchainBase):
             arf_creation_period_in_blocks * 2 if blocks_cache_size is None else blocks_cache_size
         )
 
+        lock_file_path = os.path.join(base_directory, lock_filename)
+        self.file_lock = filelock.FileLock(lock_file_path, timeout=0)
+
     # Account root files methods
+    @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
+    def add_account_root_file(self, account_root_file: BlockchainState):
+        return super().add_account_root_file(account_root_file)
+
+    @ensure_locked(lock_attr='file_lock', exception=EXPECTED_LOCK_EXCEPTION)
     def persist_account_root_file(self, account_root_file: BlockchainState):
         storage = self.account_root_files_storage
         last_block_number = account_root_file.last_block_number
@@ -136,6 +151,11 @@ class FileBlockchain(BlockchainBase):
         return ilen(storage.list_directory())
 
     # Blocks methods
+    @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
+    def add_block(self, block: Block, validate=True):
+        return super().add_block(block, validate)
+
+    @ensure_locked(lock_attr='file_lock', exception=EXPECTED_LOCK_EXCEPTION)
     def persist_block(self, block: Block):
         storage = self.block_storage
         block_chunk_size = self.block_chunk_size

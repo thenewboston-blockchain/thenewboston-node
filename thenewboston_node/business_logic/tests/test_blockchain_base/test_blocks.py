@@ -94,7 +94,7 @@ def test_can_get_last_block(blockchain_base):
         (2, None, []),
     )
 )
-def test_can_get_blocks_until_account_root_file(
+def test_can_yield_blocks_till_snapshot(
     blockchain_base, blockchain_genesis_state, account_root_file_block_number, from_block_number, expected_blocks
 ):
     iter_arf_patch = patch.object(
@@ -107,16 +107,16 @@ def test_can_get_blocks_until_account_root_file(
     iter_blocks_patch = patch.object(blockchain_base, 'iter_blocks', get_generator([block_0, block_1, block_2]))
 
     with iter_blocks_patch, iter_arf_patch:
-        blocks = list(blockchain_base.get_blocks_until_account_root_file(from_block_number=from_block_number))
+        blocks = list(blockchain_base.yield_blocks_till_snapshot(from_block_number=from_block_number))
 
     assert blocks == expected_blocks
 
 
-def test_get_blocks_until_account_root_file_with_no_account_root_file(blockchain_base):
+def test_yield_blocks_till_snapshot_with_no_account_root_file(blockchain_base):
     iter_arf_patch = patch.object(blockchain_base, 'iter_account_root_files', get_generator([]))
     iter_blocks_patch = patch.object(blockchain_base, 'iter_blocks', get_generator([block_0, block_1, block_2]))
     with iter_blocks_patch, iter_arf_patch:
-        blocks = list(blockchain_base.get_blocks_until_account_root_file())
+        blocks = list(blockchain_base.yield_blocks_till_snapshot())
 
     assert blocks == []
 

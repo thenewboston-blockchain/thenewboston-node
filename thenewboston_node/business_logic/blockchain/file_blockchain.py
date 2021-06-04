@@ -86,7 +86,7 @@ class FileBlockchain(BlockchainBase):
         if not os.path.isabs(base_directory):
             raise ValueError('base_directory must be an absolute path')
 
-        arf_creation_period_in_blocks = kwargs.setdefault('arf_creation_period_in_blocks', block_chunk_size)
+        snapshot_period_in_blocks = kwargs.setdefault('snapshot_period_in_blocks', block_chunk_size)
         super().__init__(**kwargs)
 
         self.block_chunk_size = block_chunk_size
@@ -101,9 +101,9 @@ class FileBlockchain(BlockchainBase):
 
         self.account_root_files_cache = LRUCache(account_root_files_cache_size)
         self.blocks_cache = LRUCache(
-            # We do not really need to cache more than `arf_creation_period_in_blocks` blocks since
+            # We do not really need to cache more than `snapshot_period_in_blocks` blocks since
             # we use use account root file as a base
-            arf_creation_period_in_blocks * 2 if blocks_cache_size is None else blocks_cache_size
+            snapshot_period_in_blocks * 2 if blocks_cache_size is None else blocks_cache_size
         )
 
         lock_file_path = os.path.join(base_directory, lock_filename)

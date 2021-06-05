@@ -44,21 +44,24 @@ def test_validate_signature_raises(sample_signed_change_request):
 
 def test_validate_amount(forced_mock_blockchain, sample_signed_change_request):
     with patch.object(MockBlockchain, 'get_account_balance', return_value=425 + 1 + 4):
-        sample_signed_change_request.validate_amount(forced_mock_blockchain)
+        sample_signed_change_request.validate_amount(forced_mock_blockchain, 0)
 
 
 def test_validate_amount_raises(forced_mock_blockchain, sample_signed_change_request):
     sample_signed_change_request_copy = copy.deepcopy(sample_signed_change_request)
-    with patch.object(MockBlockchain, 'get_account_balance', return_value=None):
-        with pytest.raises(ValidationError, match='Transfer request signer account balance is not found'):
-            sample_signed_change_request_copy.validate_amount(forced_mock_blockchain)
+    with patch.object(MockBlockchain, 'get_account_balance', return_value=0):
+        with pytest.raises(
+            ValidationError, match='Coin transfer signed change request singer balance must be greater than zero'
+        ):
+            sample_signed_change_request_copy.validate_amount(forced_mock_blockchain, 0)
 
     sample_signed_change_request_copy = copy.deepcopy(sample_signed_change_request)
     with patch.object(MockBlockchain, 'get_account_balance', return_value=425 + 1 + 4 - 1):
         with pytest.raises(
-            ValidationError, match='Transfer request transactions total amount is greater than signer account balance'
+            ValidationError,
+            match='Coin transfer signed change request total amount is greater than signer account balance'
         ):
-            sample_signed_change_request_copy.validate_amount(forced_mock_blockchain)
+            sample_signed_change_request_copy.validate_amount(forced_mock_blockchain, -100)
 
 
 def test_validate_balance_lock(forced_mock_blockchain, sample_signed_change_request):
@@ -67,7 +70,7 @@ def test_validate_balance_lock(forced_mock_blockchain, sample_signed_change_requ
         'get_account_balance_lock',
         return_value='4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732'
     ):
-        sample_signed_change_request.validate_balance_lock(forced_mock_blockchain)
+        sample_signed_change_request.validate_balance_lock(forced_mock_blockchain, -100)
 
 
 def test_validate_balance_lock_raises(forced_mock_blockchain, sample_signed_change_request):
@@ -79,7 +82,7 @@ def test_validate_balance_lock_raises(forced_mock_blockchain, sample_signed_chan
         with pytest.raises(
             ValidationError, match='Transfer request balance lock does not match expected balance lock'
         ):
-            sample_signed_change_request.validate_balance_lock(forced_mock_blockchain)
+            sample_signed_change_request.validate_balance_lock(forced_mock_blockchain, -100)
 
 
 def test_validate(forced_mock_blockchain, sample_signed_change_request):
@@ -89,36 +92,37 @@ def test_validate(forced_mock_blockchain, sample_signed_change_request):
             'get_account_balance_lock',
             return_value='4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732'
         ):
-            sample_signed_change_request.validate(forced_mock_blockchain)
+            sample_signed_change_request.validate(forced_mock_blockchain, -100)
 
 
 def test_invalid_sender(forced_mock_blockchain, sample_signed_change_request):
     sample_signed_change_request.signer = ''
     with pytest.raises(ValidationError, match='Signer must be set'):
-        sample_signed_change_request.validate(forced_mock_blockchain)
+        sample_signed_change_request.validate(forced_mock_blockchain, -100)
 
     sample_signed_change_request.signer = None
     with pytest.raises(ValidationError, match='Signer must be set'):
-        sample_signed_change_request.validate(forced_mock_blockchain)
+        sample_signed_change_request.validate(forced_mock_blockchain, -100)
 
     sample_signed_change_request.signer = 12
     with pytest.raises(ValidationError, match='Signer must be a string'):
-        sample_signed_change_request.validate(forced_mock_blockchain)
+        sample_signed_change_request.validate(forced_mock_blockchain, -100)
 
 
 def test_invalid_signed_change_request_for_signature(forced_mock_blockchain, sample_signed_change_request):
     sample_signed_change_request_copy = copy.deepcopy(sample_signed_change_request)
     sample_signed_change_request_copy.signature = 'aaaaa' + sample_signed_change_request_copy.signature[5:]
     with pytest.raises(InvalidMessageSignatureError):
-        sample_signed_change_request_copy.validate(forced_mock_blockchain)
+        sample_signed_change_request_copy.validate(forced_mock_blockchain, -100)
 
 
 def test_invalid_signed_change_request_for_amount(forced_mock_blockchain, sample_signed_change_request):
     with patch.object(MockBlockchain, 'get_account_balance', return_value=425 + 1 + 4 - 1):
         with pytest.raises(
-            ValidationError, match='Transfer request transactions total amount is greater than signer account balance'
+            ValidationError,
+            match='Coin transfer signed change request total amount is greater than signer account balance'
         ):
-            sample_signed_change_request.validate(forced_mock_blockchain)
+            sample_signed_change_request.validate(forced_mock_blockchain, -100)
 
 
 def test_invalid_signed_change_request_for_balance_lock(forced_mock_blockchain, sample_signed_change_request):
@@ -130,7 +134,7 @@ def test_invalid_signed_change_request_for_balance_lock(forced_mock_blockchain, 
         with pytest.raises(
             ValidationError, match='Transfer request balance lock does not match expected balance lock'
         ):
-            sample_signed_change_request.validate_balance_lock(forced_mock_blockchain)
+            sample_signed_change_request.validate_balance_lock(forced_mock_blockchain, -100)
 
 
 def test_can_create_from_coin_transfer_signed_request_message(user_account_key_pair):

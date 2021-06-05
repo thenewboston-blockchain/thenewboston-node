@@ -108,6 +108,9 @@ class BlocksMixin:
         assert account_root_file
         return account_root_file.get_next_block_number()
 
+    def get_current_block_number(self):
+        return self.get_next_block_number() - 1
+
     @timeit(is_method=True, verbose_args=True)
     def yield_blocks_till_snapshot(self, from_block_number: Optional[int] = None):
         """

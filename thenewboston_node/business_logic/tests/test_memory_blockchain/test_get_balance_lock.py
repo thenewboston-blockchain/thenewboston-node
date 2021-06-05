@@ -17,8 +17,8 @@ def test_get_account_lock(
     user_account = user_account_key_pair.public
 
     assert blockchain.get_next_block_number() == 0
-    assert blockchain.get_account_balance_lock(treasury_account) == treasury_account
-    assert blockchain.get_account_balance_lock(treasury_account, 0) == treasury_account
+    assert blockchain.get_account_current_balance_lock(treasury_account) == treasury_account
+    assert blockchain.get_account_balance_lock(treasury_account, -1) == treasury_account
 
     block0 = Block.from_main_transaction(blockchain, user_account, 30, signing_key=treasury_account_key_pair.private)
     blockchain.add_block(block0)
@@ -26,8 +26,10 @@ def test_get_account_lock(
 
     block0_treasury_account_balance = block0.message.updated_account_states.get(treasury_account)
     assert block0_treasury_account_balance
-    assert blockchain.get_account_balance_lock(treasury_account) == block0_treasury_account_balance.balance_lock
-    assert blockchain.get_account_balance_lock(treasury_account, 0) == treasury_account
+    assert blockchain.get_account_current_balance_lock(
+        treasury_account
+    ) == block0_treasury_account_balance.balance_lock
+    assert blockchain.get_account_balance_lock(treasury_account, -1) == treasury_account
 
     block1 = Block.from_main_transaction(blockchain, user_account, 10, signing_key=treasury_account_key_pair.private)
     blockchain.add_block(block1)
@@ -36,6 +38,8 @@ def test_get_account_lock(
     block1_treasury_account_balance = block1.message.updated_account_states.get(treasury_account)
     assert block1_treasury_account_balance
 
-    assert blockchain.get_account_balance_lock(treasury_account) == block1_treasury_account_balance.balance_lock
-    assert blockchain.get_account_balance_lock(treasury_account, 1) == block0_treasury_account_balance.balance_lock
-    assert blockchain.get_account_balance_lock(treasury_account, 0) == treasury_account
+    assert blockchain.get_account_current_balance_lock(
+        treasury_account
+    ) == block1_treasury_account_balance.balance_lock
+    assert blockchain.get_account_balance_lock(treasury_account, 0) == block0_treasury_account_balance.balance_lock
+    assert blockchain.get_account_balance_lock(treasury_account, -1) == treasury_account

@@ -31,10 +31,10 @@ def test_partial_blockchain(primary_validator, preferred_node):
 
     blockchain = MemoryBlockchain(account_root_files=[base_account_root_file])
     assert blockchain.get_block_count() == 0
-    assert blockchain.get_account_balance(account1_key_pair.public) == 1000
-    assert blockchain.get_account_balance(account2_key_pair.public) == 2000
-    assert blockchain.get_account_balance(account3_key_pair.public) == 3000
-    assert blockchain.get_account_balance(new_account_key_pair.public) is None
+    assert blockchain.get_account_current_balance(account1_key_pair.public) == 1000
+    assert blockchain.get_account_current_balance(account2_key_pair.public) == 2000
+    assert blockchain.get_account_current_balance(account3_key_pair.public) == 3000
+    assert blockchain.get_account_current_balance(new_account_key_pair.public) == 0
     blockchain.validate()
 
     signed_change_request1 = CoinTransferSignedChangeRequest.from_main_transaction(
@@ -45,15 +45,15 @@ def test_partial_blockchain(primary_validator, preferred_node):
         primary_validator=primary_validator,
         node=preferred_node
     )
-    signed_change_request1.validate(blockchain)
+    signed_change_request1.validate(blockchain, blockchain.get_next_block_number())
     blockchain.add_block_from_signed_change_request(signed_change_request1)
     blockchain.validate()
 
     assert blockchain.get_block_count() == 1
-    assert blockchain.get_account_balance(account1_key_pair.public) == 1000 - 10 - 4 - 1
-    assert blockchain.get_account_balance(account2_key_pair.public) == 2000 + 10
-    assert blockchain.get_account_balance(account3_key_pair.public) == 3000
-    assert blockchain.get_account_balance(new_account_key_pair.public) is None
+    assert blockchain.get_account_current_balance(account1_key_pair.public) == 1000 - 10 - 4 - 1
+    assert blockchain.get_account_current_balance(account2_key_pair.public) == 2000 + 10
+    assert blockchain.get_account_current_balance(account3_key_pair.public) == 3000
+    assert blockchain.get_account_current_balance(new_account_key_pair.public) == 0
 
     signed_change_request2 = CoinTransferSignedChangeRequest.from_main_transaction(
         blockchain=blockchain,
@@ -63,23 +63,23 @@ def test_partial_blockchain(primary_validator, preferred_node):
         primary_validator=primary_validator,
         node=preferred_node
     )
-    signed_change_request2.validate(blockchain)
+    signed_change_request2.validate(blockchain, blockchain.get_next_block_number())
     blockchain.add_block_from_signed_change_request(signed_change_request2)
     blockchain.validate()
 
     assert blockchain.get_block_count() == 2
-    assert blockchain.get_account_balance(account1_key_pair.public) == 1000 - 10 - 4 - 1
-    assert blockchain.get_account_balance(account2_key_pair.public) == 2000 + 10 - 20 - 4 - 1
-    assert blockchain.get_account_balance(account3_key_pair.public) == 3000
-    assert blockchain.get_account_balance(new_account_key_pair.public) == 20
+    assert blockchain.get_account_current_balance(account1_key_pair.public) == 1000 - 10 - 4 - 1
+    assert blockchain.get_account_current_balance(account2_key_pair.public) == 2000 + 10 - 20 - 4 - 1
+    assert blockchain.get_account_current_balance(account3_key_pair.public) == 3000
+    assert blockchain.get_account_current_balance(new_account_key_pair.public) == 20
 
     blockchain.snapshot_blockchain_state()
     blockchain.validate()
 
-    assert blockchain.get_account_balance(account1_key_pair.public) == 1000 - 10 - 4 - 1
-    assert blockchain.get_account_balance(account2_key_pair.public) == 2000 + 10 - 20 - 4 - 1
-    assert blockchain.get_account_balance(account3_key_pair.public) == 3000
-    assert blockchain.get_account_balance(new_account_key_pair.public) == 20
+    assert blockchain.get_account_current_balance(account1_key_pair.public) == 1000 - 10 - 4 - 1
+    assert blockchain.get_account_current_balance(account2_key_pair.public) == 2000 + 10 - 20 - 4 - 1
+    assert blockchain.get_account_current_balance(account3_key_pair.public) == 3000
+    assert blockchain.get_account_current_balance(new_account_key_pair.public) == 20
 
     signed_change_request3 = CoinTransferSignedChangeRequest.from_main_transaction(
         blockchain=blockchain,
@@ -89,11 +89,11 @@ def test_partial_blockchain(primary_validator, preferred_node):
         primary_validator=primary_validator,
         node=preferred_node
     )
-    signed_change_request3.validate(blockchain)
+    signed_change_request3.validate(blockchain, blockchain.get_next_block_number())
     blockchain.add_block_from_signed_change_request(signed_change_request3)
     blockchain.validate()
 
-    assert blockchain.get_account_balance(account1_key_pair.public) == 1000 - 10 - 4 - 1
-    assert blockchain.get_account_balance(account2_key_pair.public) == 2000 + 10 - 20 - 4 - 1 + 30
-    assert blockchain.get_account_balance(account3_key_pair.public) == 3000 - 30 - 4 - 1
-    assert blockchain.get_account_balance(new_account_key_pair.public) == 20
+    assert blockchain.get_account_current_balance(account1_key_pair.public) == 1000 - 10 - 4 - 1
+    assert blockchain.get_account_current_balance(account2_key_pair.public) == 2000 + 10 - 20 - 4 - 1 + 30
+    assert blockchain.get_account_current_balance(account3_key_pair.public) == 3000 - 30 - 4 - 1
+    assert blockchain.get_account_current_balance(new_account_key_pair.public) == 20

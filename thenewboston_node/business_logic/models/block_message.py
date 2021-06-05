@@ -9,7 +9,8 @@ from marshmallow import fields
 
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.validators import (
-    validate_empty, validate_exact_value, validate_min_item_count, validate_not_empty, validate_type
+    validate_empty, validate_exact_value, validate_greater_than_zero, validate_min_item_count, validate_not_empty,
+    validate_type
 )
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.dataclass import fake_super_methods
@@ -242,11 +243,11 @@ class BlockMessage(MessageMixin, HumanizedClassNameMixin):
             f'{account_number}'
         )
 
-        current_balance = blockchain.get_account_balance(account_number, self.block_number)
+        balance = blockchain.get_account_balance(account_number, self.block_number - 1)
         if is_sender:
-            validate_not_empty(f'sender account {account_number} current balance', current_balance)
-            expected_balance = current_balance - self.get_sent_amount()
+            validate_greater_than_zero(f'sender account {account_number} current balance', balance)
+            expected_balance = balance - self.get_sent_amount()
         else:
-            expected_balance = (current_balance or 0) + self.get_recipient_amount(account_number)
+            expected_balance = balance + self.get_recipient_amount(account_number)
 
         validate_exact_value(f'{subject} balance', account_state.balance, expected_balance)

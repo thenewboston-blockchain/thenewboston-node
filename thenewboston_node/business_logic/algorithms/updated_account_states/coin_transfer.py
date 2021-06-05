@@ -18,16 +18,17 @@ def get_updated_account_states_for_coin_transfer(
 
         account_state = updated_account_states.get(recipient)
         if account_state is None:
-            account_state = AccountState(balance=blockchain.get_account_balance(recipient) or 0)
+            account_state = AccountState(balance=blockchain.get_account_current_balance(recipient))
             updated_account_states[recipient] = account_state
 
         assert account_state.balance is not None
         account_state.balance += amount
         sent_amount += amount
+    assert sent_amount > 0
 
     coin_sender = signed_change_request.signer
-    sender_balance = blockchain.get_account_balance(coin_sender)
-    assert sender_balance is not None
+    sender_balance = blockchain.get_account_current_balance(coin_sender)
+    assert sender_balance > 0
     assert sender_balance >= sent_amount
 
     updated_account_states[coin_sender] = AccountState(

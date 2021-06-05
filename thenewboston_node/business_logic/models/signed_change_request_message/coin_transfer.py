@@ -31,7 +31,7 @@ class CoinTransferSignedChangeRequestMessage(SignedChangeRequestMessage):
     @classmethod
     def from_transactions(cls: Type[T], blockchain, coin_sender: str, txs: list[CoinTransferTransaction]) -> T:
         return cls(
-            balance_lock=blockchain.get_account_balance_lock(coin_sender),
+            balance_lock=blockchain.get_account_current_balance_lock(coin_sender),
             txs=copy.deepcopy(txs),
         )
 

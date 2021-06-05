@@ -27,36 +27,28 @@ class AccountStateMixin:
         for new_account in new_accounts:
             yield new_account
 
-    def validate_before_block_number(self, before_block_number: Optional[int]) -> int:
-        next_block_number = self.get_next_block_number()  # type: ignore
-        if before_block_number is None:
-            return next_block_number
-        elif before_block_number < 0:
-            raise ValueError('block_number must be greater or equal to 0')
-        elif before_block_number > next_block_number:
-            raise ValueError('block_number must be less or equal to next block number')
+    def validate_block_number(self, block_number: int) -> int:
+        if block_number < -1:
+            raise ValueError('block_number must be greater or equal to -1')
+        elif block_number > self.get_current_block_number():  # type: ignore
+            raise ValueError('block_number must be less than current block number')
 
-        return before_block_number
+        return block_number
 
-    def get_account_balance(self, account: str, before_block_number: Optional[int] = None) -> Optional[int]:
-        """
-        Return balance value before `before_block_number` is applied. If `before_block_number` is not specified it
-        defaults to the next block number.
-        """
-        block_number = self.validate_before_block_number(before_block_number) - 1
+    def get_account_balance(self, account: str, on_block_number: int) -> int:
+        block_number = self.validate_block_number(on_block_number)
         balance = self._get_account_balance_from_block(account, block_number)
         if balance is None:
             balance = self._get_account_balance_from_account_root_file(account, block_number)
 
-        return balance
+        return 0 if balance is None else balance
+
+    def get_account_current_balance(self, account: str) -> int:
+        return self.get_account_balance(account, self.get_current_block_number())  # type: ignore
 
     @timeit_method()
-    def get_account_balance_lock(self, account: str, before_block_number: Optional[int] = None) -> str:
-        """
-        Return balance lock before `before_block_number` is applied. If `before_block_number` is not specified it
-        defaults to the next block number.
-        """
-        block_number = self.validate_before_block_number(before_block_number) - 1
+    def get_account_balance_lock(self, account: str, on_block_number: int) -> str:
+        block_number = self.validate_block_number(on_block_number)
         lock = self._get_account_lock_from_block(account, block_number)
         if lock:
             return lock
@@ -64,9 +56,14 @@ class AccountStateMixin:
         lock = self._get_account_lock_from_account_root_file(account, block_number)
         return account if lock is None else lock
 
+    def get_account_current_balance_lock(self, account: str) -> str:
+        return self.get_account_balance_lock(account, self.get_current_block_number())  # type: ignore
+
     def get_account_state(self, account: str) -> AccountState:
+        block_number = self.get_current_block_number()  # type: ignore
         return AccountState(
-            balance=self.get_account_balance(account) or 0, balance_lock=self.get_account_balance_lock(account)
+            balance=self.get_account_balance(account, block_number),
+            balance_lock=self.get_account_balance_lock(account, block_number)
         )
 
     @timeit_method()

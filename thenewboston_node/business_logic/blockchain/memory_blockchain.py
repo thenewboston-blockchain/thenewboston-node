@@ -37,10 +37,10 @@ class MemoryBlockchain(BlockchainBase):
     def get_account_root_file_count(self) -> int:
         return len(self.blockchain_states)
 
-    def iter_account_root_files(self) -> Generator[BlockchainState, None, None]:
+    def yield_blockchain_states(self) -> Generator[BlockchainState, None, None]:
         yield from self.blockchain_states
 
-    def iter_account_root_files_reversed(self) -> Generator[BlockchainState, None, None]:
+    def yield_blockchain_states_reversed(self) -> Generator[BlockchainState, None, None]:
         yield from reversed(self.blockchain_states)
 
     def snapshot_blockchain_state(self):
@@ -75,13 +75,13 @@ class MemoryBlockchain(BlockchainBase):
     def get_block_count(self) -> int:
         return len(self.blocks)
 
-    def iter_blocks(self) -> Generator[Block, None, None]:
+    def yield_blocks(self) -> Generator[Block, None, None]:
         yield from self.blocks
 
-    def iter_blocks_reversed(self) -> Generator[Block, None, None]:
+    def yield_blocks_reversed(self) -> Generator[Block, None, None]:
         yield from reversed(self.blocks)
 
-    def iter_blocks_from(self, block_number: int) -> Generator[Block, None, None]:
+    def yield_blocks_from(self, block_number: int) -> Generator[Block, None, None]:
         # TODO(dmu) MEDIUM: This is questionable if this implementation is faster than base implementation
         #                   (because of extra memory use)
         blocks = self.blocks

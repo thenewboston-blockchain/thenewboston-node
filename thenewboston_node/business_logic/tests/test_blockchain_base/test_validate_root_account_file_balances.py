@@ -42,8 +42,8 @@ def test_validate_number_of_accounts_mismatch(blockchain_base):
     arf_0 = factories.BlockchainStateFactory(
         account_states={USER_ACCOUNT_1: factories.AccountStateFactory(balance=89, balance_lock=MESSAGE_HASH)}
     )
-    arf_patch = patch.object(blockchain_base, 'iter_account_root_files', get_generator([initial_arf, arf_0]))
-    block_patch = patch.object(blockchain_base, 'iter_blocks', get_generator([block_0]))
+    arf_patch = patch.object(blockchain_base, 'yield_blockchain_states', get_generator([initial_arf, arf_0]))
+    block_patch = patch.object(blockchain_base, 'yield_blocks', get_generator([block_0]))
     with arf_patch, block_patch:
         with pytest.raises(ValidationError, match='Expected 2 accounts, but got 1 in the account root file'):
             blockchain_base.validate_account_root_files()
@@ -57,8 +57,8 @@ def test_validate_non_existent_account(blockchain_base):
             non_existent_account: factories.AccountStateFactory(balance=11, balance_lock=non_existent_account),
         }
     )
-    arf_patch = patch.object(blockchain_base, 'iter_account_root_files', get_generator([initial_arf, arf_0]))
-    block_patch = patch.object(blockchain_base, 'iter_blocks', get_generator([block_0]))
+    arf_patch = patch.object(blockchain_base, 'yield_blockchain_states', get_generator([initial_arf, arf_0]))
+    block_patch = patch.object(blockchain_base, 'yield_blocks', get_generator([block_0]))
     with arf_patch, block_patch:
         with pytest.raises(ValidationError, match=f'Could not find {USER_ACCOUNT_2} account in the account root file'):
             blockchain_base.validate_account_root_files()
@@ -72,8 +72,8 @@ def test_validate_balance_value(blockchain_base):
             USER_ACCOUNT_2: factories.AccountStateFactory(balance=11, balance_lock=USER_ACCOUNT_2),
         }
     )
-    arf_patch = patch.object(blockchain_base, 'iter_account_root_files', get_generator([initial_arf, arf_0]))
-    block_patch = patch.object(blockchain_base, 'iter_blocks', get_generator([block_0]))
+    arf_patch = patch.object(blockchain_base, 'yield_blockchain_states', get_generator([initial_arf, arf_0]))
+    block_patch = patch.object(blockchain_base, 'yield_blocks', get_generator([block_0]))
     with arf_patch, block_patch:
         with pytest.raises(
             ValidationError,
@@ -91,8 +91,8 @@ def test_validate_balance_lock(blockchain_base):
             USER_ACCOUNT_2: factories.AccountStateFactory(balance=11, balance_lock=USER_ACCOUNT_2),
         }
     )
-    arf_patch = patch.object(blockchain_base, 'iter_account_root_files', get_generator([initial_arf, arf_0]))
-    block_patch = patch.object(blockchain_base, 'iter_blocks', get_generator([block_0]))
+    arf_patch = patch.object(blockchain_base, 'yield_blockchain_states', get_generator([initial_arf, arf_0]))
+    block_patch = patch.object(blockchain_base, 'yield_blocks', get_generator([block_0]))
     with arf_patch, block_patch:
         with pytest.raises(
             ValidationError,

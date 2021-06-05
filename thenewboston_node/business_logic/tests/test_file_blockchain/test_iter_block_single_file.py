@@ -26,21 +26,21 @@ def get_block_numbers(blocks):
     return list(map(lambda b: b.message.block_number, blocks))
 
 
-def test_can_iter_blocks(file_blockchain_w_memory_storage):
-    blocks = list(file_blockchain_w_memory_storage.iter_blocks())
+def test_can_yield_blocks(file_blockchain_w_memory_storage):
+    blocks = list(file_blockchain_w_memory_storage.yield_blocks())
 
     assert get_block_numbers(blocks) == [0, 1, 2, 3]
 
 
-def test_can_iter_blocks_reversed(file_blockchain_w_memory_storage):
-    blocks = list(file_blockchain_w_memory_storage.iter_blocks_reversed())
+def test_can_yield_blocks_reversed(file_blockchain_w_memory_storage):
+    blocks = list(file_blockchain_w_memory_storage.yield_blocks_reversed())
 
     assert get_block_numbers(blocks) == [3, 2, 1, 0]
 
 
-def test_iter_blocks_from_file_cache(file_blockchain_w_memory_storage):
+def test_yield_blocks_from_file_cache(file_blockchain_w_memory_storage):
     filename = '0000-0003-block-chunk.msgpack'
-    blocks = file_blockchain_w_memory_storage._iter_blocks_from_file_cached(filename, -1, start=1)
+    blocks = file_blockchain_w_memory_storage._yield_blocks_from_file_cached(filename, -1, start=1)
 
     assert get_block_numbers(blocks) == [1, 0]
 
@@ -53,8 +53,8 @@ def test_iter_blocks_from_file_cache(file_blockchain_w_memory_storage):
         (3, [3]),
     )
 )
-def test_can_iter_blocks_from(file_blockchain_w_memory_storage, block_number, expected_block_numbers):
-    blocks = file_blockchain_w_memory_storage.iter_blocks_from(block_number=block_number)
+def test_can_yield_blocks_from(file_blockchain_w_memory_storage, block_number, expected_block_numbers):
+    blocks = file_blockchain_w_memory_storage.yield_blocks_from(block_number=block_number)
 
     assert get_block_numbers(blocks) == expected_block_numbers
 

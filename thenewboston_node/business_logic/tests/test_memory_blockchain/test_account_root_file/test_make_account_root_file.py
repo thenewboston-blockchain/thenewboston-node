@@ -31,7 +31,7 @@ def test_can_make_blockchain_state_on_last_block(
     blockchain.snapshot_blockchain_state()
     assert blockchain.get_account_root_file_count() == 2
 
-    account_root_file = blockchain.get_last_account_root_file()
+    account_root_file = blockchain.get_last_blockchain_state()
     assert account_root_file is not None
     assert account_root_file.last_block_number == 0
     assert account_root_file.last_block_identifier == block0.message.block_identifier
@@ -69,7 +69,7 @@ def test_can_make_blockchain_state_on_last_block(
     blockchain.add_block(block2)
 
     blockchain.snapshot_blockchain_state()
-    account_root_file = blockchain.get_last_account_root_file()
+    account_root_file = blockchain.get_last_blockchain_state()
 
     assert account_root_file is not None
     assert account_root_file.last_block_number == 2

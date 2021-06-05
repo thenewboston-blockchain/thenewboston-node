@@ -19,34 +19,34 @@ class BlocksMixin:
     def persist_block(self, block: Block):
         raise NotImplementedError('Must be implemented in a child class')
 
-    def iter_blocks(self) -> Generator[Block, None, None]:
+    def yield_blocks(self) -> Generator[Block, None, None]:
         raise NotImplementedError('Must be implemented in a child class')
 
     def get_block_count(self) -> int:
         # Highly recommended to override this method in the particular implementation of the blockchain for
         # performance reasons
         warnings.warn('Using low performance implementation of get_block_count() method (override it)')
-        return ilen(self.iter_blocks())
+        return ilen(self.yield_blocks())
 
-    def iter_blocks_from(self, block_number: int) -> Generator[Block, None, None]:
-        # TODO(dmu) HIGH: Implement higher performance iter_blocks_from() in child classes
+    def yield_blocks_from(self, block_number: int) -> Generator[Block, None, None]:
+        # TODO(dmu) HIGH: Implement higher performance yield_blocks_from() in child classes
         warnings.warn(
-            'Low performance iter_blocks_from() implementation is being used (override with better '
+            'Low performance yield_blocks_from() implementation is being used (override with better '
             'performance implementation)'
         )
-        yield from dropwhile(lambda _block: _block.message.block_number < block_number, self.iter_blocks())
+        yield from dropwhile(lambda _block: _block.message.block_number < block_number, self.yield_blocks())
 
-    def iter_blocks_reversed(self) -> Generator[Block, None, None]:
+    def yield_blocks_reversed(self) -> Generator[Block, None, None]:
         # Highly recommended to override this method in the particular implementation of the blockchain for
         # performance reasons
-        warnings.warn('Using low performance implementation of iter_blocks_reversed() method (override it)')
-        yield from always_reversible(self.iter_blocks())
+        warnings.warn('Using low performance implementation of yield_blocks_reversed() method (override it)')
+        yield from always_reversible(self.yield_blocks())
 
     def get_block_by_number(self, block_number: int) -> Optional[Block]:
         # Highly recommended to override this method in the particular implementation of the blockchain for
         # performance reasons
         warnings.warn('Using low performance implementation of get_block_by_number() method (override it)')
-        for block in self.iter_blocks():
+        for block in self.yield_blocks():
             current_block_number = block.message.block_number
             if current_block_number == block_number:
                 return block
@@ -76,14 +76,14 @@ class BlocksMixin:
     def get_first_block(self) -> Optional[Block]:
         # Override this method if a particular blockchain implementation can provide a high performance
         try:
-            return next(self.iter_blocks())
+            return next(self.yield_blocks())
         except StopIteration:
             return None
 
     def get_last_block(self) -> Optional[Block]:
         # Override this method if a particular blockchain implementation can provide a high performance
         try:
-            return next(self.iter_blocks_reversed())
+            return next(self.yield_blocks_reversed())
         except StopIteration:
             return None
 
@@ -161,9 +161,9 @@ class BlocksMixin:
         logger.debug(
             'Returning blocks head offset from %s to %s (%s block(s) to return)', -start, -stop, blocks_to_return
         )
-        # TODO(dmu) HIGH: Consider performance optimizations for islice(self.iter_blocks_reversed(), start, stop, 1)
+        # TODO(dmu) HIGH: Consider performance optimizations for islice(self.yield_blocks_reversed(), start, stop, 1)
         block = None
-        for block in islice(self.iter_blocks_reversed(), start, stop, 1):  # type: ignore
+        for block in islice(self.yield_blocks_reversed(), start, stop, 1):  # type: ignore
             block_number = block.message.block_number
             assert account_root_file_block_number is None or account_root_file_block_number < block_number
             logger.debug('Returning block number: %s', block_number)

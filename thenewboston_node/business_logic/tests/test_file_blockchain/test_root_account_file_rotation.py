@@ -26,29 +26,29 @@ def test_account_root_file_is_rotated(file_blockchain_w_memory_storage):
     assert blockchain.account_root_files_storage.finalized == {initial_arf_filename, new_blockchain_state}
 
 
-def test_iter_account_root_files_is_sorted(file_blockchain_w_memory_storage):
+def test_yield_blockchain_states_is_sorted(file_blockchain_w_memory_storage):
     blockchain = file_blockchain_w_memory_storage
-    first_arf, second_arf = list(blockchain.iter_account_root_files())
+    first_arf, second_arf = list(blockchain.yield_blockchain_states())
 
     assert first_arf.is_initial()
     assert not second_arf.is_initial()
 
 
-def test_iter_account_root_files_reversed_is_sorted_backwards(file_blockchain_w_memory_storage):
-    first_arf, second_arf = list(file_blockchain_w_memory_storage.iter_account_root_files_reversed())
+def test_yield_blockchain_states_reversed_is_sorted_backwards(file_blockchain_w_memory_storage):
+    first_arf, second_arf = list(file_blockchain_w_memory_storage.yield_blockchain_states_reversed())
 
     assert not first_arf.is_initial()
     assert second_arf.is_initial()
 
 
 def test_can_get_first_blockchain_state(file_blockchain_w_memory_storage):
-    first_arf = file_blockchain_w_memory_storage.get_first_account_root_file()
+    first_arf = file_blockchain_w_memory_storage.get_first_blockchain_state()
 
     assert first_arf.is_initial()
 
 
 def test_can_get_last_blockchain_state(file_blockchain_w_memory_storage):
-    last_arf = file_blockchain_w_memory_storage.get_last_account_root_file()
+    last_arf = file_blockchain_w_memory_storage.get_last_blockchain_state()
 
     assert not last_arf.is_initial()
 

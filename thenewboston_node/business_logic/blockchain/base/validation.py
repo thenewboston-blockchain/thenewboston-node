@@ -19,7 +19,7 @@ class ValidationMixin:
 
     @validates('account root files', is_plural_target=True)
     def validate_account_root_files(self, is_partial_allowed: bool = True):
-        account_root_files_iter = self.iter_account_root_files()  # type: ignore
+        account_root_files_iter = self.yield_blockchain_states()  # type: ignore
         with validates('number of account root files (at least one)'):
             try:
                 first_account_root_file = next(account_root_files_iter)
@@ -129,7 +129,7 @@ class ValidationMixin:
         """
         assert offset >= 0
 
-        blocks_iter = cast(Iterable[Block], self.iter_blocks())  # type: ignore
+        blocks_iter = cast(Iterable[Block], self.yield_blocks())  # type: ignore
         if offset > 0 or limit is not None:
             # TODO(dmu) HIGH: Consider performance improvements when slicing
             if limit is None:
@@ -142,7 +142,7 @@ class ValidationMixin:
         except StopIteration:
             return
 
-        first_account_root_file = self.get_first_account_root_file()  # type: ignore
+        first_account_root_file = self.get_first_blockchain_state()  # type: ignore
         if first_account_root_file is None:
             raise ValidationError('Account root file prior to first block is not found')
 

@@ -22,6 +22,7 @@ COMPACT_KEY_MAP = {
     'timestamp': 't',
     'block_number': 'bn',
     'block_identifier': 'bi',
+    'block_type': 'bt',
     'updated_account_states': 'u',
     'network_addresses': 'na',
     # transaction
@@ -32,6 +33,11 @@ COMPACT_KEY_MAP = {
     # common
     'signer': 's',
     'signature': 'si',
+    # misc
+    'node': 'n',
+    'identifier': 'i',
+    'fee_amount': 'fa',
+    'fee_account': 'fac'
 }
 
 UNCOMPACT_KEY_MAP = {value: key for key, value in COMPACT_KEY_MAP.items()}

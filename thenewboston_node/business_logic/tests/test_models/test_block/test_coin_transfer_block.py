@@ -20,10 +20,10 @@ def test_can_create_block_from_signed_change_request(
     sender = sample_signed_change_request.signer
     assert sender
 
-    def get_account_state(self, account):
+    def get_account_balance(self, account, on_block_number):
         return 450 if account == sender else 0
 
-    with patch.object(MockBlockchain, 'get_account_balance', new=get_account_state):
+    with patch.object(MockBlockchain, 'get_account_balance', new=get_account_balance):
         block = Block.create_from_signed_change_request(forced_mock_blockchain, sample_signed_change_request)
 
     assert block.message
@@ -75,10 +75,10 @@ def test_can_create_block_from_main_transaction(
     primary_validator_key_pair: KeyPair, node_key_pair: KeyPair
 ):
 
-    def get_account_state(self, account):
+    def get_account_balance(self, account, on_block_number):
         return 430 if account == treasury_account_key_pair.public else 0
 
-    with patch.object(MockBlockchain, 'get_account_balance', new=get_account_state):
+    with patch.object(MockBlockchain, 'get_account_balance', new=get_account_balance):
         block = Block.from_main_transaction(
             forced_mock_blockchain, user_account_key_pair.public, 20, signing_key=treasury_account_key_pair.private
         )
@@ -175,10 +175,10 @@ def test_normalized_block_message(forced_mock_blockchain, sample_signed_change_r
         '}'
     )
 
-    def get_account_state(self, account):
+    def get_account_balance(self, account, on_block_number):
         return 450 if account == sample_signed_change_request.signer else 0
 
-    with patch.object(MockBlockchain, 'get_account_balance', new=get_account_state):
+    with patch.object(MockBlockchain, 'get_account_balance', new=get_account_balance):
         block = Block.create_from_signed_change_request(forced_mock_blockchain, sample_signed_change_request)
 
     expected_message = expected_message_template.replace(
@@ -201,7 +201,7 @@ def test_can_duplicate_recipients(
     forced_mock_blockchain: MockBlockchain, treasury_account_key_pair: KeyPair, user_account_key_pair: KeyPair
 ):
 
-    def get_account_state(self, account):
+    def get_account_balance(self, account, on_block_number):
         return 430 if account == treasury_account_key_pair.public else 10
 
     sender = treasury_account_key_pair.public
@@ -217,7 +217,7 @@ def test_can_duplicate_recipients(
         message, treasury_account_key_pair.private
     )
 
-    with patch.object(MockBlockchain, 'get_account_balance', new=get_account_state):
+    with patch.object(MockBlockchain, 'get_account_balance', new=get_account_balance):
         block = Block.create_from_signed_change_request(forced_mock_blockchain, request)
 
     updated_account_states = block.message.updated_account_states

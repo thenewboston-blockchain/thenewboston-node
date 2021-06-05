@@ -39,6 +39,12 @@ def validate_min_value(subject, value, min_):
             raise ValidationError(upper_first(f'{subject} must be greater or equal to {min_}'))
 
 
+def validate_greater_than_zero(subject, value):
+    with validates(f'{subject} value'):
+        if value <= 0:
+            raise ValidationError(upper_first(f'{subject} must be greater than zero'))
+
+
 def validate_exact_value(subject, value, expected_value):
     with validates(f'{subject} value'):
         if value != expected_value:

@@ -1,11 +1,12 @@
 import logging
 from dataclasses import dataclass
-from typing import Optional, Type, TypeVar
+from typing import Type, TypeVar
 
 from dataclasses_json import dataclass_json
 
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
+from thenewboston_node.business_logic.validators import validate_greater_than_zero
 from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.dataclass import fake_super_methods
@@ -54,21 +55,20 @@ class CoinTransferSignedChangeRequest(SignedChangeRequest):
         return self.message.get_amount(recipient)
 
     @validates('coin transfer signed request')
-    def validate(self, blockchain, block_number: Optional[int] = None):
+    def validate(self, blockchain, in_block_number: int):
         super().validate()
-        self.validate_amount(blockchain, block_number)
-        self.validate_balance_lock(blockchain, block_number)
+        self.validate_amount(blockchain, in_block_number)
+        self.validate_balance_lock(blockchain, in_block_number)
 
     @validates('amount on transfer request level')
-    def validate_amount(self, blockchain, on_block_number: Optional[int] = None):
-        balance = blockchain.get_account_balance(self.signer, on_block_number)
-        if balance is None:
-            raise ValidationError('Transfer request signer account balance is not found')
+    def validate_amount(self, blockchain, in_block_number: int):
+        balance = blockchain.get_account_balance(self.signer, in_block_number - 1)
+        validate_greater_than_zero(f'{self.humanized_class_name_lowered} singer balance', balance)
 
         if self.message.get_total_amount() > balance:
-            raise ValidationError('Transfer request transactions total amount is greater than signer account balance')
+            raise ValidationError(f'{self.humanized_class_name} total amount is greater than signer account balance')
 
     @validates('transfer request balance lock on transfer request level')
-    def validate_balance_lock(self, blockchain, block_number: Optional[int] = None):
-        if self.message.balance_lock != blockchain.get_account_balance_lock(self.signer, block_number):
+    def validate_balance_lock(self, blockchain, in_block_number: int):
+        if self.message.balance_lock != blockchain.get_account_balance_lock(self.signer, in_block_number - 1):
             raise ValidationError('Transfer request balance lock does not match expected balance lock')

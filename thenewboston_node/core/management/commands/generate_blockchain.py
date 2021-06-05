@@ -1,7 +1,7 @@
 import os
 import os.path
 
-from django.core.management import BaseCommand
+from django.core.management import BaseCommand, CommandError
 
 from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
@@ -24,8 +24,7 @@ class Command(BaseCommand):
             os.makedirs(path, exist_ok=True)
 
             if os.listdir(path):
-                print(f'Path {path} contains files')
-                return
+                raise CommandError(f'Path {path} contains files')
 
             blockchain = FileBlockchain(base_directory=os.path.abspath(path))
         else:

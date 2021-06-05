@@ -35,8 +35,7 @@ def pick_recipient(candidates, exclude=(), pick_existing_probability=0.5):
 
 def get_initial_balances(blockchain):
     return {
-        account: balance.balance
-        for account, balance in blockchain.get_first_account_root_file().account_states.items()
+        account: balance.balance for account, balance in blockchain.get_first_blockchain_state().account_states.items()
     }
 
 

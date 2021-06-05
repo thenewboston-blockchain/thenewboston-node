@@ -111,8 +111,8 @@ class FileBlockchain(BlockchainBase):
 
     # Account root files methods
     @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
-    def add_blockchain_state(self, state: BlockchainState):
-        return super().add_blockchain_state(state)
+    def add_blockchain_state(self, blockchain_state: BlockchainState):
+        return super().add_blockchain_state(blockchain_state)
 
     @ensure_locked(lock_attr='file_lock', exception=EXPECTED_LOCK_EXCEPTION)
     def persist_blockchain_state(self, account_root_file: BlockchainState):
@@ -133,18 +133,18 @@ class FileBlockchain(BlockchainBase):
 
         return account_root_file
 
-    def _iter_account_root_files(self, direction) -> Generator[BlockchainState, None, None]:
+    def _yield_blockchain_states(self, direction) -> Generator[BlockchainState, None, None]:
         assert direction in (1, -1)
 
         storage = self.account_root_files_storage
         for file_path in storage.list_directory(sort_direction=direction):
             yield self._load_account_root_file(file_path)
 
-    def iter_account_root_files(self) -> Generator[BlockchainState, None, None]:
-        yield from self._iter_account_root_files(1)
+    def yield_blockchain_states(self) -> Generator[BlockchainState, None, None]:
+        yield from self._yield_blockchain_states(1)
 
-    def iter_account_root_files_reversed(self) -> Generator[BlockchainState, None, None]:
-        yield from self._iter_account_root_files(-1)
+    def yield_blockchain_states_reversed(self) -> Generator[BlockchainState, None, None]:
+        yield from self._yield_blockchain_states(-1)
 
     def get_account_root_file_count(self) -> int:
         storage = self.account_root_files_storage
@@ -182,20 +182,20 @@ class FileBlockchain(BlockchainBase):
         if offset == block_chunk_size - 1:
             storage.finalize(filename)
 
-    def iter_blocks(self) -> Generator[Block, None, None]:
-        yield from self._iter_blocks(1)
+    def yield_blocks(self) -> Generator[Block, None, None]:
+        yield from self._yield_blocks(1)
 
     @timeit(verbose_args=True, is_method=True)
-    def iter_blocks_reversed(self) -> Generator[Block, None, None]:
-        yield from self._iter_blocks(-1)
+    def yield_blocks_reversed(self) -> Generator[Block, None, None]:
+        yield from self._yield_blocks(-1)
 
-    def iter_blocks_from(self, block_number: int) -> Generator[Block, None, None]:
+    def yield_blocks_from(self, block_number: int) -> Generator[Block, None, None]:
         for file_path in self._list_block_directory():
             start, end = get_start_end(file_path)
             if end < block_number:
                 continue
 
-            yield from self._iter_blocks_from_file_cached(file_path, direction=1, start=max(start, block_number))
+            yield from self._yield_blocks_from_file_cached(file_path, direction=1, start=max(start, block_number))
 
     def get_block_by_number(self, block_number: int) -> Optional[Block]:
         block = self.blocks_cache.get(block_number)
@@ -203,7 +203,7 @@ class FileBlockchain(BlockchainBase):
             return block
 
         try:
-            return next(self.iter_blocks_from(block_number))
+            return next(self.yield_blocks_from(block_number))
         except StopIteration:
             return None
 
@@ -219,13 +219,13 @@ class FileBlockchain(BlockchainBase):
         return count
 
     @timeit(verbose_args=True, is_method=True)
-    def _iter_blocks(self, direction) -> Generator[Block, None, None]:
+    def _yield_blocks(self, direction) -> Generator[Block, None, None]:
         assert direction in (1, -1)
 
         for file_path in self._list_block_directory(direction):
-            yield from self._iter_blocks_from_file_cached(file_path, direction)
+            yield from self._yield_blocks_from_file_cached(file_path, direction)
 
-    def _iter_blocks_from_file_cached(self, file_path, direction, start=None):
+    def _yield_blocks_from_file_cached(self, file_path, direction, start=None):
         assert direction in (1, -1)
 
         file_start, file_end = get_start_end(file_path)
@@ -236,15 +236,15 @@ class FileBlockchain(BlockchainBase):
             cache_start = file_start
             next_block_number = cache_end = file_end if start is None else start
 
-        for block in self._iter_blocks_from_cache(cache_start, cache_end, direction):
+        for block in self._yield_blocks_from_cache(cache_start, cache_end, direction):
             assert next_block_number == block.message.block_number
             next_block_number += direction
             yield block
 
         if file_start <= next_block_number <= file_end:
-            yield from self._iter_blocks_from_file(file_path, direction, start=next_block_number)
+            yield from self._yield_blocks_from_file(file_path, direction, start=next_block_number)
 
-    def _iter_blocks_from_file(self, file_path, direction, start=None):
+    def _yield_blocks_from_file(self, file_path, direction, start=None):
         assert direction in (1, -1)
         storage = self.block_storage
 
@@ -266,7 +266,7 @@ class FileBlockchain(BlockchainBase):
             self.blocks_cache[block_number] = block
             yield block
 
-    def _iter_blocks_from_cache(self, start_block_number, end_block_number, direction):
+    def _yield_blocks_from_cache(self, start_block_number, end_block_number, direction):
         assert direction in (1, -1)
 
         iter_ = range(start_block_number, end_block_number + 1)

@@ -20,7 +20,7 @@ class AccountStateMixin:
             for new_account in new_accounts:
                 yield new_account
 
-        last_account_root_file = self.get_first_account_root_file()  # type: ignore
+        last_account_root_file = self.get_first_blockchain_state()  # type: ignore
         account_root_file_accounts = last_account_root_file.account_states.keys()
         new_accounts = account_root_file_accounts - known_accounts
         known_accounts |= new_accounts
@@ -54,15 +54,19 @@ class AccountStateMixin:
     def get_account_current_balance_lock(self, account: str) -> str:
         return self.get_account_balance_lock(account, self.get_current_block_number())  # type: ignore
 
+    def get_node(self, account: str, on_block_number: int):
+        return self.get_account_state_attribute_value(account, 'node', on_block_number)  # type: ignore
+
+    def get_current_node(self, account: str):
+        return self.get_node(account, self.get_current_block_number())  # type: ignore
+
     def get_account_state(self, account: str) -> AccountState:
         block_number = self.get_current_block_number()  # type: ignore
         return AccountState(
             balance=self.get_account_balance(account, block_number),
-            balance_lock=self.get_account_balance_lock(account, block_number)
+            balance_lock=self.get_account_balance_lock(account, block_number),
+            node=self.get_node(account, block_number),
         )
-
-    def get_current_node(self, account: str):
-        return self.get_account_state_attribute_value(account, 'node', self.get_current_block_number())  # type: ignore
 
     @timeit_method()
     def _get_account_state_from_block(
@@ -121,10 +125,10 @@ class AccountStateMixin:
 
         if excludes_block_number is None:
             logger.debug('excludes_block_number is None: returning the last account root file')
-            account_root_file = self.get_last_account_root_file()  # type: ignore
+            account_root_file = self.get_last_blockchain_state()  # type: ignore
         elif excludes_block_number == -1:
             logger.debug('excludes_block_number == -1: initial account root file is requested (not just first)')
-            first_account_root_file = self.get_first_account_root_file()  # type: ignore
+            first_account_root_file = self.get_first_blockchain_state()  # type: ignore
             if first_account_root_file and first_account_root_file.is_initial():
                 logger.debug('Returning first account root file (which is also an initial account root file)')
                 account_root_file = first_account_root_file
@@ -135,7 +139,7 @@ class AccountStateMixin:
             logger.debug(
                 'excludes_block_number == %s: intermediate account root file is requested', excludes_block_number
             )
-            for account_root_file in self.iter_account_root_files_reversed():  # type: ignore
+            for account_root_file in self.yield_blockchain_states_reversed():  # type: ignore
                 logger.debug(
                     'Traversing account root file with last_block_number=%s', account_root_file.last_block_number
                 )
@@ -167,7 +171,7 @@ class AccountStateMixin:
             logger.warning('Blocks are not found: making account root file does not make sense')
             return None
 
-        last_account_root_file = self.get_last_account_root_file()  # type: ignore
+        last_account_root_file = self.get_last_blockchain_state()  # type: ignore
         assert last_account_root_file is not None
 
         if not last_account_root_file.is_initial():
@@ -191,7 +195,7 @@ class AccountStateMixin:
         account_states = blockchain_state.account_states
 
         block = None
-        for block in self.iter_blocks_from(blockchain_state.get_next_block_number()):  # type: ignore
+        for block in self.yield_blocks_from(blockchain_state.get_next_block_number()):  # type: ignore
             if last_block_number is not None and block.message.block_number > last_block_number:
                 logger.debug('Traversed all blocks of interest')
                 break

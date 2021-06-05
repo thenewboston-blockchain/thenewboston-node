@@ -47,8 +47,8 @@ block_0 = factories.CoinTransferBlockFactory(
 
 
 def test_generate_blockchain_state(blockchain_base):
-    arf_patch = patch.object(blockchain_base, 'iter_account_root_files', get_generator([blockchain_genesis_state]))
-    block_patch = patch.object(blockchain_base, 'iter_blocks', get_generator([block_0]))
+    arf_patch = patch.object(blockchain_base, 'yield_blockchain_states', get_generator([blockchain_genesis_state]))
+    block_patch = patch.object(blockchain_base, 'yield_blocks', get_generator([block_0]))
 
     with arf_patch, block_patch:
         blockchain_state = blockchain_base.generate_blockchain_state()

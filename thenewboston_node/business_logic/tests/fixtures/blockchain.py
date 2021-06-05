@@ -97,7 +97,7 @@ def forced_mock_blockchain(blockchain_genesis_state):
 def large_blockchain(treasury_account_key_pair):
     blockchain = BlockchainBase.get_instance()
 
-    accounts = blockchain.get_first_account_root_file().account_states
+    accounts = blockchain.get_first_blockchain_state().account_states
     assert len(accounts) == 1
     treasury_account, account_state = list(accounts.items())[0]
     assert treasury_account_key_pair.public == treasury_account
@@ -124,5 +124,5 @@ def file_blockchain_w_memory_storage(
 @pytest.fixture
 def blockchain_base(blockchain_genesis_state):
     blockchain = BlockchainBase()
-    with patch.object(blockchain, 'iter_account_root_files', get_generator([blockchain_genesis_state])):
+    with patch.object(blockchain, 'yield_blockchain_states', get_generator([blockchain_genesis_state])):
         yield blockchain

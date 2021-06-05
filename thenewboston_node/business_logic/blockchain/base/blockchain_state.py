@@ -14,39 +14,37 @@ class BlockchainStateMixin:
     def persist_blockchain_state(self, account_root_file: BlockchainState):
         raise NotImplementedError('Must be implemented in a child class')
 
-    def iter_account_root_files(self) -> Generator[BlockchainState, None, None]:
+    def yield_blockchain_states(self) -> Generator[BlockchainState, None, None]:
         raise NotImplementedError('Must be implemented in a child class')
 
     def get_account_root_file_count(self) -> int:
         # Highly recommended to override this method in the particular implementation of the blockchain for
         # performance reasons
         warnings.warn('Using low performance implementation of get_account_root_file_count() method (override it)')
-        return ilen(self.iter_account_root_files())
+        return ilen(self.yield_blockchain_states())
 
-    def iter_account_root_files_reversed(self) -> Generator[BlockchainState, None, None]:
+    def yield_blockchain_states_reversed(self) -> Generator[BlockchainState, None, None]:
         # Highly recommended to override this method in the particular implementation of the blockchain for
         # performance reasons
         warnings.warn(
-            'Using low performance implementation of iter_account_root_files_reversed() method (override it)'
+            'Using low performance implementation of yield_blockchain_states_reversed() method (override it)'
         )
-        yield from always_reversible(self.iter_account_root_files())
+        yield from always_reversible(self.yield_blockchain_states())
 
-    # * Base methods
-    # ** Account root files related base methods
-    def add_blockchain_state(self, state: BlockchainState):
-        state.validate(is_initial=state.is_initial())
-        self.persist_blockchain_state(state)
+    def add_blockchain_state(self, blockchain_state: BlockchainState):
+        blockchain_state.validate(is_initial=blockchain_state.is_initial())
+        self.persist_blockchain_state(blockchain_state)
 
-    def get_first_account_root_file(self) -> Optional[BlockchainState]:
+    def get_first_blockchain_state(self) -> Optional[BlockchainState]:
         # Override this method if a particular blockchain implementation can provide a high performance
         try:
-            return next(self.iter_account_root_files())
+            return next(self.yield_blockchain_states())
         except StopIteration:
             return None
 
-    def get_last_account_root_file(self) -> Optional[BlockchainState]:
+    def get_last_blockchain_state(self) -> Optional[BlockchainState]:
         # Override this method if a particular blockchain implementation can provide a high performance
         try:
-            return next(self.iter_account_root_files_reversed())
+            return next(self.yield_blockchain_states_reversed())
         except StopIteration:
             return None

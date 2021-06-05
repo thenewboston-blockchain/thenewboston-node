@@ -24,7 +24,7 @@ def set_up(
 
 
 def test_last_block_data_is_correct(file_blockchain_w_memory_storage):
-    account_root_file = file_blockchain_w_memory_storage.get_last_account_root_file()
+    account_root_file = file_blockchain_w_memory_storage.get_last_blockchain_state()
 
     assert account_root_file.last_block_number == 0
 
@@ -33,7 +33,7 @@ def test_balances_are_correct(
     file_blockchain_w_memory_storage, treasury_account, user_account, primary_validator_identifier, node_identifier,
     treasury_initial_balance
 ):
-    account_root_file = file_blockchain_w_memory_storage.get_last_account_root_file()
+    account_root_file = file_blockchain_w_memory_storage.get_last_blockchain_state()
     accounts = account_root_file.account_states
 
     assert len(accounts) == 4

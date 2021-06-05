@@ -5,8 +5,8 @@ import pytest
 from thenewboston_node.business_logic.tests import factories
 from thenewboston_node.business_logic.utils.iter import get_generator
 
-arf_1 = factories.AccountRootFileFactory(last_block_number=10)  # type: ignore
-arf_2 = factories.AccountRootFileFactory(last_block_number=20)  # type: ignore
+arf_1 = factories.BlockchainStateFactory(last_block_number=10)  # type: ignore
+arf_2 = factories.BlockchainStateFactory(last_block_number=20)  # type: ignore
 
 
 def test_can_get_account_root_file_count(blockchain_base):

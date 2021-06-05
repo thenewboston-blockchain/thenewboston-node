@@ -12,11 +12,11 @@ class Node:
     identifier: str
     """Identifier"""
 
+    network_addresses: list[str]
+    """Network addresses"""
+
     fee_amount: int
     """Fee amount"""
-
-    node_type: str
-    """Node type"""
 
     fee_account: Optional[str] = None
     """Fee account"""

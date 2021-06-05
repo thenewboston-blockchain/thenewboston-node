@@ -22,8 +22,19 @@ class NodeDeclarationSignedChangeRequest(SignedChangeRequest):
     """Network address registration request payload"""
 
     @classmethod
-    def create(cls: Type[T], network_addresses: list[str], signing_key: str) -> T:
-        message = NodeDeclarationSignedChangeRequestMessage.create(network_addresses)
+    def create(
+        cls: Type[T],
+        *,
+        network_addresses: list[str],
+        fee_amount: int,
+        signing_key: str,
+        fee_account: Optional[str] = None
+    ) -> T:
+        message = NodeDeclarationSignedChangeRequestMessage.create(
+            network_addresses=network_addresses,
+            fee_amount=fee_amount,
+            fee_account=fee_account,
+        )
         return cls.create_from_signed_change_request_message(message, signing_key)
 
     def validate(self, blockchain, block_number: Optional[int] = None):

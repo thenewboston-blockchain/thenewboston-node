@@ -33,20 +33,14 @@ class AccountStateMixin:
         elif on_block_number > self.get_current_block_number():  # type: ignore
             raise ValueError('block_number must be less than current block number')
 
-        account_state = self._get_account_state_from_block(account, on_block_number, expected_attribute=attribute)
+        account_state = self._get_account_state_from_block(account, on_block_number, attribute)
         if account_state:
-            return getattr(account_state, attribute)
+            return account_state.get_attribute_value(attribute, account)
 
-        account_state = self._get_account_state_from_blockchain_state(account, on_block_number)
-        if account_state:
-            return getattr(account_state, attribute)
+        blockchain_state = self.get_closest_blockchain_state_snapshot(on_block_number + 1)
+        assert blockchain_state
 
-        if attribute == 'balance':
-            return 0
-        elif attribute == 'balance_lock':
-            return account
-
-        return None
+        return blockchain_state.get_account_state_attribute_value(account, attribute)
 
     def get_account_balance(self, account: str, on_block_number: int) -> int:
         return self.get_account_state_attribute_value(account, 'balance', on_block_number)
@@ -67,32 +61,24 @@ class AccountStateMixin:
             balance_lock=self.get_account_balance_lock(account, block_number)
         )
 
+    def get_current_node(self, account: str):
+        return self.get_account_state_attribute_value(account, 'node', self.get_current_block_number())  # type: ignore
+
     @timeit_method()
     def _get_account_state_from_block(
         self,
         account: str,
-        block_number: Optional[int] = None,
-        expected_attribute: Optional[str] = None,
+        block_number: int,
+        expected_attribute: str,
     ) -> Optional[AccountState]:
         for block in self.yield_blocks_till_snapshot(block_number):  # type: ignore
             account_state = block.message.get_account_state(account)
             if account_state is not None:
-                if expected_attribute is None:
+                value = getattr(account_state, expected_attribute, None)
+                if value is not None:
                     return account_state
-                else:
-                    value = getattr(account_state, expected_attribute, None)
-                    if value is not None:
-                        return account_state
 
         return None
-
-    def _get_account_state_from_blockchain_state(self,
-                                                 account: str,
-                                                 block_number: Optional[int] = None) -> Optional[AccountState]:
-        excludes_block_number = None if block_number is None else block_number + 1
-        account_root_file = self.get_closest_account_root_file(excludes_block_number)
-        assert account_root_file
-        return account_root_file.get_account_state(account)
 
     def get_expected_block_identifier(self, block_number: int) -> Optional[str]:
         """
@@ -104,7 +90,7 @@ class AccountStateMixin:
         if block_number < 0:
             raise ValueError('block_number must be greater or equal to 0')
 
-        account_root_file = self.get_closest_account_root_file(block_number)
+        account_root_file = self.get_closest_blockchain_state_snapshot(block_number)
         if account_root_file is None:
             logger.warning('Block number %s is beyond known account root files', block_number)
             return None
@@ -121,7 +107,9 @@ class AccountStateMixin:
         assert block is not None
         return block.message_hash
 
-    def get_closest_account_root_file(self, excludes_block_number: Optional[int] = None) -> Optional[BlockchainState]:
+    def get_closest_blockchain_state_snapshot(self,
+                                              excludes_block_number: Optional[int] = None
+                                              ) -> Optional[BlockchainState]:
         """
         Return the latest account root file that does not include `excludes_block_number` (
         head block by default thus the latest account root file, use -1 for getting initial account root file).
@@ -188,11 +176,11 @@ class AccountStateMixin:
                 logger.debug('The last block is already included in the last account root file')
                 return None
 
-        account_root_file = self.generate_account_root_file()
+        account_root_file = self.generate_blockchain_state()
         self.add_blockchain_state(account_root_file)
 
-    def generate_account_root_file(self, last_block_number: Optional[int] = None) -> BlockchainState:
-        last_account_root_file = self.get_closest_account_root_file(last_block_number)
+    def generate_blockchain_state(self, last_block_number: Optional[int] = None) -> BlockchainState:
+        last_account_root_file = self.get_closest_blockchain_state_snapshot(last_block_number)
         assert last_account_root_file is not None
         logger.debug(
             'Generating account root file based on account root file with last_block_number=%s',

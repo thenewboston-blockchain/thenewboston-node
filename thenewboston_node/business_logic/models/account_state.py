@@ -10,6 +10,7 @@ from thenewboston_node.core.utils.constants import SENTINEL
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from .mixins.misc import HumanizedClassNameMixin
+from .node import Node
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ class AccountState(HumanizedClassNameMixin):
     balance_lock: Optional[str] = None  # type: ignore
     """Balance lock"""
 
-    network_addresses: Optional[list[str]] = None  # type: ignore
+    node: Optional[Node] = None  # type: ignore
     """Network addresses"""
 
     def override_to_dict(self):  # this one turns into to_dict()
@@ -39,6 +40,14 @@ class AccountState(HumanizedClassNameMixin):
                 del dict_[name]
 
         return dict_
+
+    def get_attribute_value(self, attribute: str, account: str):
+        value = getattr(self, attribute)
+        if value is None:
+            from thenewboston_node.business_logic.utils.blockchain import get_attribute_default_value
+            return get_attribute_default_value(attribute, account)
+
+        return value
 
     @validates()
     def validate(self):

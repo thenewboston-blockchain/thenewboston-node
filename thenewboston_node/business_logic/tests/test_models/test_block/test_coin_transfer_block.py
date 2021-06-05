@@ -207,7 +207,7 @@ def test_can_duplicate_recipients(
     sender = treasury_account_key_pair.public
     recipient = user_account_key_pair.public
     message = CoinTransferSignedChangeRequestMessage(
-        balance_lock=forced_mock_blockchain.get_account_balance_lock(sender),
+        balance_lock=forced_mock_blockchain.get_account_current_balance_lock(sender),
         txs=[
             CoinTransferTransaction(recipient=recipient, amount=3),
             CoinTransferTransaction(recipient=recipient, amount=5),

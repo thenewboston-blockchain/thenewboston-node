@@ -10,7 +10,7 @@ from thenewboston_node.business_logic.network.mock_network import MockNetwork
 
 @pytest.fixture
 def primary_validator(primary_validator_key_pair):
-    return PrimaryValidator(identifier=primary_validator_key_pair.public, fee_amount=4)
+    return PrimaryValidator(identifier=primary_validator_key_pair.public, network_addresses=[], fee_amount=4)
 
 
 @pytest.fixture
@@ -21,7 +21,7 @@ def get_primary_validator_mock(primary_validator):
 
 @pytest.fixture
 def preferred_node(node_key_pair):
-    return RegularNode(identifier=node_key_pair.public, fee_amount=1)
+    return RegularNode(identifier=node_key_pair.public, network_addresses=[], fee_amount=1)
 
 
 @pytest.fixture

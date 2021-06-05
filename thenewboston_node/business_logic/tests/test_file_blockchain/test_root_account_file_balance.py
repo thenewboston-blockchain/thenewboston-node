@@ -13,8 +13,10 @@ def set_up(
     node_identifier
 ):
     signing_key = treasury_account_signing_key
-    pv = PrimaryValidator(identifier=primary_validator_identifier, fee_amount=primary_validator_fee)
-    node = RegularNode(identifier=node_identifier, fee_amount=node_fee)
+    pv = PrimaryValidator(
+        identifier=primary_validator_identifier, fee_amount=primary_validator_fee, network_addresses=[]
+    )
+    node = RegularNode(identifier=node_identifier, fee_amount=node_fee, network_addresses=[])
 
     block = Block.from_main_transaction(file_blockchain_w_memory_storage, user_account, 100, signing_key, pv, node)
     file_blockchain_w_memory_storage.add_block(block)

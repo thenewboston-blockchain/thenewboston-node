@@ -104,7 +104,7 @@ class BlocksMixin:
         if last_block:
             return last_block.message.block_number + 1
 
-        account_root_file = self.get_closest_account_root_file()  # type: ignore
+        account_root_file = self.get_closest_blockchain_state_snapshot()  # type: ignore
         assert account_root_file
         return account_root_file.get_next_block_number()
 
@@ -129,7 +129,7 @@ class BlocksMixin:
             return
 
         excludes_block_number = None if from_block_number is None else (from_block_number + 1)
-        account_root_file = self.get_closest_account_root_file(excludes_block_number)  # type: ignore
+        account_root_file = self.get_closest_blockchain_state_snapshot(excludes_block_number)  # type: ignore
         if account_root_file is None:
             logger.warning('Could not find account root file excluding from_block_number: %s', from_block_number)
             return

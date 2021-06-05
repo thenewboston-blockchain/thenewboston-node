@@ -57,27 +57,29 @@ def test_can_add_coin_transfer_block(
 
 @pytest.mark.skip('Not implemented yet')
 @pytest.mark.usefixtures('forced_mock_network', 'get_primary_validator_mock', 'get_preferred_node_mock')
-def test_can_add_network_address_registration_block(
+def test_can_add_node_declaration_block(
     forced_memory_blockchain: MemoryBlockchain,
     user_account_key_pair: KeyPair,
 ):
     blockchain = forced_memory_blockchain
-    # user_account = user_account_key_pair.public
+    user_account = user_account_key_pair.public
 
-    request0 = NodeDeclarationSignedChangeRequest.create(['127.0.0.1'], user_account_key_pair.private)
+    request0 = NodeDeclarationSignedChangeRequest.create(
+        network_addresses=['127.0.0.1'], fee_amount=3, signing_key=user_account_key_pair.private
+    )
     block0 = Block.create_from_signed_change_request(blockchain, request0)
 
     blockchain.add_block(block0)
-    # blockchain.get_node(user_account) == ['127.0.0.1']
+    assert blockchain.get_current_node(user_account) == request0.message.node
     blockchain.snapshot_blockchain_state()
-    # blockchain.blockchain_states[-1].get_account_network_addresses() == ['127.0.0.1']
+    assert blockchain.blockchain_states[-1].get_node(user_account) == request0.message.node
 
-    request1 = NodeDeclarationSignedChangeRequest.create(['127.0.0.2', '192.168.0.34'], user_account_key_pair.private)
-    block1 = Block.create_from_signed_change_request(blockchain, request1)
+    # request1 = NodeDeclarationSignedChangeRequest.create(['127.0.0.2', '192.168.0.34'], user_account_key_pair.private)
+    # block1 = Block.create_from_signed_change_request(blockchain, request1)
 
-    blockchain.add_block(block1)
-    # blockchain.get_account_network_addressess(user_account) == ['127.0.0.2', '192.168.0.34']
+    # blockchain.add_block(block1)
+    # assert blockchain.get_account_network_addressess(user_account) == ['127.0.0.2', '192.168.0.34']
     blockchain.snapshot_blockchain_state()
-    # blockchain.blockchain_states[-1].get_account_network_addresses() == ['127.0.0.2', '192.168.0.34']
+    # assert blockchain.blockchain_states[-1].get_account_network_addresses() == ['127.0.0.2', '192.168.0.34']
 
     raise NotImplementedError

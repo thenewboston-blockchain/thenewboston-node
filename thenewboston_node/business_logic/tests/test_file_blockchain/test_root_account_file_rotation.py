@@ -55,7 +55,7 @@ def test_can_get_last_blockchain_state(file_blockchain_w_memory_storage):
 
 @pytest.mark.parametrize('excludes_block_number', (-1, 0))
 def test_can_get_initial_arf_with_get_closest_arf(file_blockchain_w_memory_storage, excludes_block_number):
-    closest_arf = file_blockchain_w_memory_storage.get_closest_account_root_file(
+    closest_arf = file_blockchain_w_memory_storage.get_closest_blockchain_state_snapshot(
         excludes_block_number=excludes_block_number
     )
 
@@ -64,7 +64,7 @@ def test_can_get_initial_arf_with_get_closest_arf(file_blockchain_w_memory_stora
 
 @pytest.mark.parametrize('excludes_block_number', (None, 999))
 def test_closest_arf_is_last_arf(file_blockchain_w_memory_storage, excludes_block_number):
-    closest_arf = file_blockchain_w_memory_storage.get_closest_account_root_file(
+    closest_arf = file_blockchain_w_memory_storage.get_closest_blockchain_state_snapshot(
         excludes_block_number=excludes_block_number
     )
 

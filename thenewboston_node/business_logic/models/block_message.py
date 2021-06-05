@@ -142,7 +142,7 @@ class BlockMessage(MessageMixin, HumanizedClassNameMixin):
             prev_block = blockchain.get_block_by_number(prev_block_number)
             if prev_block is None:
                 logger.debug('Partial blockchain detected')
-                account_root_file = blockchain.get_closest_account_root_file(block_number)
+                account_root_file = blockchain.get_closest_blockchain_state_snapshot(block_number)
                 if account_root_file is None:
                     raise ValidationError('Unexpected could not find base account root file')
 

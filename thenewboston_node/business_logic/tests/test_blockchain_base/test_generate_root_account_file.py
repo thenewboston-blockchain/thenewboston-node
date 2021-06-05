@@ -51,7 +51,7 @@ def test_generate_blockchain_state(blockchain_base):
     block_patch = patch.object(blockchain_base, 'iter_blocks', get_generator([block_0]))
 
     with arf_patch, block_patch:
-        generated_arf = blockchain_base.generate_account_root_file()
+        generated_arf = blockchain_base.generate_blockchain_state()
 
     assert generated_arf == factories.AccountRootFileFactory(
         account_states={

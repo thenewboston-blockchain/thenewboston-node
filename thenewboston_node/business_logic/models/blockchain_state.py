@@ -67,19 +67,22 @@ class BlockchainState(MessagpackCompactableMixin):
     def get_account_state(self, account: str) -> Optional[AccountState]:
         return self.account_states.get(account)
 
-    def get_account_balance(self, account: str) -> Optional[int]:
-        balance = self.get_account_state(account)
-        if balance is not None:
-            return balance.balance
+    def get_account_state_attribute_value(self, account: str, attribute: str):
+        account_state = self.get_account_state(account)
+        if account_state is None:
+            from thenewboston_node.business_logic.utils.blockchain import get_attribute_default_value
+            return get_attribute_default_value(attribute, account)
 
-        return None
+        return account_state.get_attribute_value(attribute, account)
+
+    def get_account_balance(self, account: str) -> int:
+        return self.get_account_state_attribute_value(account, 'balance')
 
     def get_account_balance_lock(self, account: str) -> str:
-        balance = self.get_account_state(account)
-        if balance is not None:
-            return balance.balance_lock or account
+        return self.get_account_state_attribute_value(account, 'balance_lock')
 
-        return account
+    def get_node(self, account: str):
+        return self.get_account_state_attribute_value(account, 'node')
 
     def get_next_block_number(self) -> int:
         last_block_number = self.last_block_number

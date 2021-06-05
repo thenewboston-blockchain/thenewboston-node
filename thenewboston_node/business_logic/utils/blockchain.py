@@ -57,10 +57,10 @@ def generate_blockchain(
         )
         blockchain.add_blockchain_state(blockchain_genesis_state)
 
-    primary_validator = PrimaryValidator(identifier=get_node_identifier(), fee_amount=4)
+    primary_validator = PrimaryValidator(identifier=get_node_identifier(), fee_amount=4, network_addresses=[])
     pv_fee = primary_validator.fee_amount
 
-    preferred_node = RegularNode(identifier=generate_key_pair().public, fee_amount=1)
+    preferred_node = RegularNode(identifier=generate_key_pair().public, fee_amount=1, network_addresses=[])
     node_fee = preferred_node.fee_amount
 
     balances = get_initial_balances(blockchain)
@@ -106,3 +106,12 @@ def generate_blockchain(
             sender_candidates.add(recipient)
 
         blockchain.add_block_from_signed_change_request(signed_change_request, validate=validate)
+
+
+def get_attribute_default_value(attribute, account):
+    if attribute == 'balance':
+        return 0
+    elif attribute == 'balance_lock':
+        return account
+
+    return None

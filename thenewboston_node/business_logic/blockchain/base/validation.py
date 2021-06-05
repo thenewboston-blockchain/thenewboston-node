@@ -83,7 +83,7 @@ class ValidationMixin:
         'account root file balances (last_block_number={account_root_file.last_block_number})', is_plural_target=True
     )
     def validate_account_root_file_balances(self, *, account_root_file):
-        generated_account_root_file = self.generate_account_root_file(
+        generated_account_root_file = self.generate_blockchain_state(
             account_root_file.last_block_number
         )  # type: ignore
         with validates('number of account root file balances'):

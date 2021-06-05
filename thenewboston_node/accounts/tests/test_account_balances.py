@@ -10,9 +10,9 @@ def test_can_get_account_states(forced_memory_blockchain: MemoryBlockchain, api_
     balance = blockchain.get_account_current_balance(account_number)
     lock = blockchain.get_account_current_balance_lock(account_number)
 
-    response = api_client.get(f'/api/v1/account-balances/{account_number}/')
+    response = api_client.get(f'/api/v1/account-states/{account_number}/')
     assert response.status_code == 200
-    assert response.json() == {'balance': balance, 'balance_lock': lock, 'network_addresses': None}
+    assert response.json() == {'balance': balance, 'balance_lock': lock, 'node': None}
 
 
 def test_can_get_account_states_on_file_blockchain(
@@ -28,6 +28,6 @@ def test_can_get_account_states_on_file_blockchain(
         balance = blockchain.get_account_current_balance(account_number)
         lock = blockchain.get_account_current_balance_lock(account_number)
 
-        response = api_client.get(f'/api/v1/account-balances/{account_number}/')
+        response = api_client.get(f'/api/v1/account-states/{account_number}/')
         assert response.status_code == 200
-        assert response.json() == {'balance': balance, 'balance_lock': lock, 'network_addresses': None}
+        assert response.json() == {'balance': balance, 'balance_lock': lock, 'node': None}

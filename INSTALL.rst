@@ -88,7 +88,7 @@ to get the latest version for development.
 
     # Generate account numbers will be logged on INFO level
     mkdir -p local/blockchain
-    ./thenewboston_node/manage.py generate_blockchain --path local/blockchain --do-not-validate 200
+    python -m thenewboston_node.manage generate_blockchain --path local/blockchain --do-not-validate 200
 
 Update
 ++++++

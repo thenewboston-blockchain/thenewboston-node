@@ -49,6 +49,9 @@ class AccountState(HumanizedClassNameMixin):
 
         return value
 
+    def get_balance_lock(self, account):
+        return self.get_attribute_value('balance_lock', account)
+
     @validates()
     def validate(self):
         for name in self.__dataclass_fields__.keys():
@@ -67,12 +70,8 @@ class AccountState(HumanizedClassNameMixin):
         validate_type(f'{self.humanized_class_name_lowered} balance_lock', self.balance_lock, str)
 
     @validates()
-    def validate_network_addresses(self):
-        # It is totally fine to have value of empty list [], this means deregistration of all previously registered
-        # addresses
-        validate_type(f'{self.humanized_class_name_lowered} network_addresses', self.network_addresses, list)
-        for index, network_address in enumerate(self.network_addresses):
-            validate_type(f'{self.humanized_class_name_lowered} network_addresses[{index}]', network_address, str)
+    def validate_node(self):
+        return
 
 
 # TODO(dmu) CRITICAL: Assert all attributes are optional

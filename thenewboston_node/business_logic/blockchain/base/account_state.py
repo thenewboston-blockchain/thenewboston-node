@@ -1,5 +1,5 @@
-import copy
 import logging
+from copy import deepcopy
 from typing import Optional
 
 from thenewboston_node.business_logic.models.account_state import AccountState
@@ -159,7 +159,7 @@ class AccountStateMixin:
             logger.warning('Could not find account root file that excludes block number %s', excludes_block_number)
             return None
 
-        return copy.deepcopy(account_root_file)
+        return deepcopy(account_root_file)
 
     def snapshot_blockchain_state(self):
         last_block = self.get_last_block()  # type: ignore
@@ -180,41 +180,41 @@ class AccountStateMixin:
         self.add_blockchain_state(account_root_file)
 
     def generate_blockchain_state(self, last_block_number: Optional[int] = None) -> BlockchainState:
-        last_account_root_file = self.get_closest_blockchain_state_snapshot(last_block_number)
-        assert last_account_root_file is not None
+        last_blockchain_state_snapshot = self.get_closest_blockchain_state_snapshot(last_block_number)
+        assert last_blockchain_state_snapshot is not None
         logger.debug(
-            'Generating account root file based on account root file with last_block_number=%s',
-            last_account_root_file.last_block_number
+            'Generating blockchain state snapshot based on blockchain state with last_block_number=%s',
+            last_blockchain_state_snapshot.last_block_number
         )
 
-        account_root_file = copy.deepcopy(last_account_root_file)
-        account_root_file_accounts = account_root_file.account_states
+        blockchain_state = deepcopy(last_blockchain_state_snapshot)
+        account_states = blockchain_state.account_states
 
         block = None
-        for block in self.iter_blocks_from(account_root_file.get_next_block_number()):  # type: ignore
+        for block in self.iter_blocks_from(blockchain_state.get_next_block_number()):  # type: ignore
             if last_block_number is not None and block.message.block_number > last_block_number:
                 logger.debug('Traversed all blocks of interest')
                 break
 
             logger.debug('Traversing block number %s', block.message.block_number)
-            for account_number, account_balance in block.message.updated_account_states.items():
-                logger.debug('Found %s account balance: %s', account_number, account_balance)
-                arf_balance = account_root_file_accounts.get(account_number)
-                if arf_balance is None:
+            for account_number, block_account_state in block.message.updated_account_states.items():
+                logger.debug('Found %s account state: %s', account_number, block_account_state)
+                blockchain_state_account_state = account_states.get(account_number)
+                if blockchain_state_account_state is None:
                     logger.debug('Account %s is met for the first time (empty lock is expected)', account_number)
-                    assert account_balance.balance_lock is None
-                    arf_balance = AccountState(balance=account_balance.balance, balance_lock=account_number)
-                    account_root_file_accounts[account_number] = arf_balance
-                else:
-                    arf_balance.balance = account_balance.balance
-                    lock = account_balance.balance_lock
-                    if lock:
-                        arf_balance.balance_lock = lock
+                    assert block_account_state.balance_lock is None
+                    blockchain_state_account_state = AccountState()
+                    account_states[account_number] = blockchain_state_account_state
+
+                for attribute in AccountState.__dataclass_fields__.keys():  # type: ignore
+                    value = getattr(block_account_state, attribute)
+                    if value is not None:
+                        setattr(blockchain_state_account_state, attribute, deepcopy(value))
 
         if block is not None:
-            account_root_file.last_block_number = block.message.block_number
-            account_root_file.last_block_identifier = block.message.block_identifier
-            account_root_file.last_block_timestamp = block.message.timestamp
-            account_root_file.next_block_identifier = block.message_hash
+            blockchain_state.last_block_number = block.message.block_number
+            blockchain_state.last_block_identifier = block.message.block_identifier
+            blockchain_state.last_block_timestamp = block.message.timestamp
+            blockchain_state.next_block_identifier = block.message_hash
 
-        return account_root_file
+        return blockchain_state

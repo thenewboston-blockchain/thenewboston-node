@@ -15,7 +15,7 @@ def test_blockchain_blockchain_genesis_state_is_validated(blockchain_base):
 
 
 def test_blockchain_without_blockchain_genesis_state_is_validated(blockchain_base):
-    non_initial_arf = factories.AccountRootFileFactory()
+    non_initial_arf = factories.BlockchainStateFactory()
 
     with patch.object(blockchain_base, 'iter_account_root_files', get_generator([non_initial_arf])):
         blockchain_base.validate_account_root_files(is_partial_allowed=True)
@@ -28,7 +28,7 @@ def test_blockchain_must_have_at_least_blockchain_genesis_state(blockchain_base)
 
 
 def test_blockchain_must_start_with_blockchain_genesis_state(blockchain_base):
-    non_initial_arf = factories.AccountRootFileFactory()
+    non_initial_arf = factories.BlockchainStateFactory()
 
     with patch.object(blockchain_base, 'iter_account_root_files', get_generator([non_initial_arf])):
         with pytest.raises(ValidationError, match='Blockchain must start with initial account root file'):
@@ -38,7 +38,7 @@ def test_blockchain_must_start_with_blockchain_genesis_state(blockchain_base):
 def test_validate_account_root_file_points_to_non_existing_block(blockchain_base):
     initial_arf = factories.InitialAccountRootFileFactory()
     block_0 = factories.CoinTransferBlockFactory(message=factories.CoinTransferBlockMessageFactory(block_number=0))
-    arf_5 = factories.AccountRootFileFactory(last_block_number=5)
+    arf_5 = factories.BlockchainStateFactory(last_block_number=5)
 
     arf_patch = patch.object(blockchain_base, 'iter_account_root_files', get_generator([initial_arf, arf_5]))
     block_patch = patch.object(blockchain_base, 'iter_blocks', get_generator([block_0]))
@@ -55,7 +55,7 @@ def test_validate_account_root_file_last_block_identifier_mismatch(blockchain_ba
         message=factories.CoinTransferBlockMessageFactory(block_number=block_number, block_identifier='e' * 64),
         message_hash=next_block_identifier,
     )
-    arf_0 = factories.AccountRootFileFactory(
+    arf_0 = factories.BlockchainStateFactory(
         last_block_number=block_number,
         last_block_identifier='f' * 64,
         next_block_identifier=next_block_identifier,
@@ -81,7 +81,7 @@ def test_validate_account_root_file_next_block_identifier_mismatch(blockchain_ba
         ),
         message_hash='e' * 64,
     )
-    arf_1 = factories.AccountRootFileFactory(
+    arf_1 = factories.BlockchainStateFactory(
         last_block_number=block_number,
         last_block_identifier=last_block_identifier,
         next_block_identifier='f' * 64,

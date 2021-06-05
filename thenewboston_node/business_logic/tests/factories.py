@@ -82,7 +82,7 @@ class InitialAccountRootFileFactory(Factory):
 
 
 @factory(BlockchainState)
-class AccountRootFileFactory(Factory):
+class BlockchainStateFactory(Factory):
     account_states = {DEFAULT_ACCOUNT: AccountStateFactory()}
     last_block_number = 0
     last_block_identifier = 'd606af9d1d769192813d71051148ef1896e3d85062c31ad3e62331e25d9c96bc'

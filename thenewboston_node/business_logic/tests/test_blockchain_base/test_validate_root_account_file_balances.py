@@ -39,7 +39,7 @@ block_0 = factories.CoinTransferBlockFactory(
 
 
 def test_validate_number_of_accounts_mismatch(blockchain_base):
-    arf_0 = factories.AccountRootFileFactory(
+    arf_0 = factories.BlockchainStateFactory(
         account_states={USER_ACCOUNT_1: factories.AccountStateFactory(balance=89, balance_lock=MESSAGE_HASH)}
     )
     arf_patch = patch.object(blockchain_base, 'iter_account_root_files', get_generator([initial_arf, arf_0]))
@@ -51,7 +51,7 @@ def test_validate_number_of_accounts_mismatch(blockchain_base):
 
 def test_validate_non_existent_account(blockchain_base):
     non_existent_account = 'f' * 64
-    arf_0 = factories.AccountRootFileFactory(
+    arf_0 = factories.BlockchainStateFactory(
         account_states={
             USER_ACCOUNT_1: factories.AccountStateFactory(balance=89, balance_lock=MESSAGE_HASH),
             non_existent_account: factories.AccountStateFactory(balance=11, balance_lock=non_existent_account),
@@ -66,7 +66,7 @@ def test_validate_non_existent_account(blockchain_base):
 
 def test_validate_balance_value(blockchain_base):
     wrong_balance = 0
-    arf_0 = factories.AccountRootFileFactory(
+    arf_0 = factories.BlockchainStateFactory(
         account_states={
             USER_ACCOUNT_1: factories.AccountStateFactory(balance=wrong_balance, balance_lock=MESSAGE_HASH),
             USER_ACCOUNT_2: factories.AccountStateFactory(balance=11, balance_lock=USER_ACCOUNT_2),
@@ -85,7 +85,7 @@ def test_validate_balance_value(blockchain_base):
 
 def test_validate_balance_lock(blockchain_base):
     wrong_lock = 'e' * 64
-    arf_0 = factories.AccountRootFileFactory(
+    arf_0 = factories.BlockchainStateFactory(
         account_states={
             USER_ACCOUNT_1: factories.AccountStateFactory(balance=89, balance_lock=wrong_lock),
             USER_ACCOUNT_2: factories.AccountStateFactory(balance=11, balance_lock=USER_ACCOUNT_2),

@@ -101,7 +101,7 @@ def test_can_yield_blocks_till_snapshot(
         blockchain_base, 'iter_account_root_files',
         get_generator([
             blockchain_genesis_state,
-            factories.AccountRootFileFactory(last_block_number=account_root_file_block_number),
+            factories.BlockchainStateFactory(last_block_number=account_root_file_block_number),
         ])
     )
     iter_blocks_patch = patch.object(blockchain_base, 'iter_blocks', get_generator([block_0, block_1, block_2]))

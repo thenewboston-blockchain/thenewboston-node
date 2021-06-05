@@ -27,34 +27,35 @@ class AccountStateMixin:
         for new_account in new_accounts:
             yield new_account
 
-    def validate_block_number(self, block_number: int) -> int:
-        if block_number < -1:
+    def get_account_state_attribute_value(self, account: str, attribute: str, on_block_number: int):
+        if on_block_number < -1:
             raise ValueError('block_number must be greater or equal to -1')
-        elif block_number > self.get_current_block_number():  # type: ignore
+        elif on_block_number > self.get_current_block_number():  # type: ignore
             raise ValueError('block_number must be less than current block number')
 
-        return block_number
+        account_state = self._get_account_state_from_block(account, on_block_number, expected_attribute=attribute)
+        if account_state:
+            return getattr(account_state, attribute)
+
+        account_state = self._get_account_state_from_blockchain_state(account, on_block_number)
+        if account_state:
+            return getattr(account_state, attribute)
+
+        if attribute == 'balance':
+            return 0
+        elif attribute == 'balance_lock':
+            return account
+
+        return None
 
     def get_account_balance(self, account: str, on_block_number: int) -> int:
-        block_number = self.validate_block_number(on_block_number)
-        balance = self._get_account_balance_from_block(account, block_number)
-        if balance is None:
-            balance = self._get_account_balance_from_account_root_file(account, block_number)
-
-        return 0 if balance is None else balance
+        return self.get_account_state_attribute_value(account, 'balance', on_block_number)
 
     def get_account_current_balance(self, account: str) -> int:
         return self.get_account_balance(account, self.get_current_block_number())  # type: ignore
 
-    @timeit_method()
     def get_account_balance_lock(self, account: str, on_block_number: int) -> str:
-        block_number = self.validate_block_number(on_block_number)
-        lock = self._get_account_lock_from_block(account, block_number)
-        if lock:
-            return lock
-
-        lock = self._get_account_lock_from_account_root_file(account, block_number)
-        return account if lock is None else lock
+        return self.get_account_state_attribute_value(account, 'balance_lock', on_block_number)
 
     def get_account_current_balance_lock(self, account: str) -> str:
         return self.get_account_balance_lock(account, self.get_current_block_number())  # type: ignore
@@ -65,21 +66,6 @@ class AccountStateMixin:
             balance=self.get_account_balance(account, block_number),
             balance_lock=self.get_account_balance_lock(account, block_number)
         )
-
-    @timeit_method()
-    def _get_account_lock_from_block(self, account: str, block_number: Optional[int] = None) -> Optional[str]:
-        balance = self._get_account_state_from_block(account, block_number, expected_attribute='balance_lock')
-        return None if balance is None else balance.balance_lock
-
-    def _get_account_lock_from_account_root_file(self,
-                                                 account: str,
-                                                 block_number: Optional[int] = None) -> Optional[str]:
-        balance = self._get_balance_from_account_root_file(account, block_number)
-        return None if balance is None else balance.balance_lock
-
-    def _get_account_balance_from_block(self, account: str, block_number: Optional[int] = None) -> Optional[int]:
-        account_state = self._get_account_state_from_block(account, block_number, expected_attribute='balance')
-        return None if account_state is None else account_state.balance
 
     @timeit_method()
     def _get_account_state_from_block(
@@ -100,15 +86,9 @@ class AccountStateMixin:
 
         return None
 
-    def _get_account_balance_from_account_root_file(self,
-                                                    account: str,
-                                                    block_number: Optional[int] = None) -> Optional[int]:
-        balance = self._get_balance_from_account_root_file(account, block_number)
-        return None if balance is None else balance.balance
-
-    def _get_balance_from_account_root_file(self,
-                                            account: str,
-                                            block_number: Optional[int] = None) -> Optional[AccountState]:
+    def _get_account_state_from_blockchain_state(self,
+                                                 account: str,
+                                                 block_number: Optional[int] = None) -> Optional[AccountState]:
         excludes_block_number = None if block_number is None else block_number + 1
         account_root_file = self.get_closest_account_root_file(excludes_block_number)
         assert account_root_file

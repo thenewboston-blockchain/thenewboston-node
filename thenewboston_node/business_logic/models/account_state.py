@@ -6,14 +6,13 @@ from thenewboston_node.business_logic.validators import validate_min_value, vali
 from thenewboston_node.core.logging import validates
 
 from .base import BaseDataclass
-from .mixins.misc import HumanizedClassNameMixin
 from .node import Node
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
-class AccountState(HumanizedClassNameMixin, BaseDataclass):
+class AccountState(BaseDataclass):
     """Account state"""
 
     balance: Optional[int] = None  # type: ignore

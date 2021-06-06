@@ -1,18 +1,18 @@
 from dataclasses import dataclass
 from typing import Optional
 
+from django.conf import settings
+
 from thenewboston_node.business_logic.exceptions import ValidationError
-from thenewboston_node.business_logic.models import constants
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.constants import SENTINEL
 from thenewboston_node.core.utils.misc import humanize_camel_case
 
 from ..base import BaseDataclass
-from ..mixins.misc import HumanizedClassNameMixin
 
 
 @dataclass
-class CoinTransferTransaction(HumanizedClassNameMixin, BaseDataclass):
+class CoinTransferTransaction(BaseDataclass):
     """Coin transfer between accounts"""
 
     recipient: str
@@ -74,6 +74,6 @@ class CoinTransferTransaction(HumanizedClassNameMixin, BaseDataclass):
                 raise ValidationError(f'{self.humanized_class_name} fee value is invalid')
 
         with validates('memo'):
-            max_len = constants.MEMO_MAX_LENGTH
+            max_len = settings.MEMO_MAX_LENGTH
             if self.memo and len(self.memo) > max_len:
                 raise ValidationError(f'{self.humanized_class_name} memo must be less than {max_len} characters')

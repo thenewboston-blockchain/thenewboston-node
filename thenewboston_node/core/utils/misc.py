@@ -3,6 +3,8 @@ from datetime import datetime
 
 import yaml
 
+from .types import hexstr
+
 ZERO_TZ_OFFSET = '+00:00'
 UTC_SHORT_SUFFIX = 'Z'
 
@@ -13,12 +15,12 @@ class Default(dict):
         return '<default>'
 
 
-def hex_to_bytes(hex_string: str) -> bytes:
+def hex_to_bytes(hex_string: hexstr) -> bytes:
     return bytes.fromhex(hex_string)
 
 
-def bytes_to_hex(bytes_: bytes) -> str:
-    return bytes(bytes_).hex()
+def bytes_to_hex(bytes_: bytes) -> hexstr:
+    return hexstr(bytes(bytes_).hex())
 
 
 def upper_first(value):

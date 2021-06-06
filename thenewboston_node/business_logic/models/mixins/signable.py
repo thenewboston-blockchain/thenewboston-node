@@ -6,6 +6,7 @@ from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.mixins.message import MessageMixin
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
+from thenewboston_node.core.utils.types import hexstr
 
 logger = logging.getLogger(__name__)
 
@@ -13,13 +14,14 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SignableMixin:
 
-    signer: str
+    signer: hexstr
     """Signer's account number"""
 
     message: MessageMixin
     """Payload"""
 
-    signature: Optional[str] = None
+    # We need signature to be optional to be able to create dataclass instance first and then sign it
+    signature: Optional[hexstr] = None
     """Signature of the message"""
 
     def sign(self, signing_key):

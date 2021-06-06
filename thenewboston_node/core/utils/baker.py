@@ -6,6 +6,8 @@ from typing import Any, Dict, List, Literal, Optional, Union
 from dataclass_bakery.generators import defaults, random_data_class_generator
 from dataclass_bakery.generators.random_generator import RandomGenerator
 
+from .types import hexstr
+
 
 class RandomDatetimeGenerator(RandomGenerator):
 
@@ -29,7 +31,7 @@ class RandomHexGenerator(RandomGenerator):
 
 TYPING_GENERATORS = defaults.TYPING_GENERATORS.copy()
 TYPING_GENERATORS[datetime] = RandomDatetimeGenerator
-TYPING_GENERATORS[str] = RandomHexGenerator
+TYPING_GENERATORS[hexstr] = RandomHexGenerator
 defaults.TYPING_GENERATORS = TYPING_GENERATORS
 
 

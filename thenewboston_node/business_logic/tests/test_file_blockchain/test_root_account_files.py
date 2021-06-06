@@ -28,7 +28,7 @@ def test_blockchain_state_is_created_every_x_block(
     user_account = user_account_key_pair.public
 
     for _ in range(4):
-        block = Block.from_main_transaction(
+        block = Block.create_from_main_transaction(
             blockchain, user_account, 30, signing_key=treasury_account_key_pair.private
         )
         assert not os.path.isfile(
@@ -39,14 +39,16 @@ def test_blockchain_state_is_created_every_x_block(
         )
         blockchain.add_block(block)
 
-    block = Block.from_main_transaction(blockchain, user_account, 30, signing_key=treasury_account_key_pair.private)
+    block = Block.create_from_main_transaction(
+        blockchain, user_account, 30, signing_key=treasury_account_key_pair.private
+    )
     blockchain.add_block(block)
     assert os.path.isfile(
         str(blockchain_path / f'account-root-files/0/0/0/0/0/0/0/0/000000000{block.message.block_number}-arf.msgpack')
     )
 
     for _ in range(4):
-        block = Block.from_main_transaction(
+        block = Block.create_from_main_transaction(
             blockchain, user_account, 30, signing_key=treasury_account_key_pair.private
         )
         assert not os.path.isfile(
@@ -57,7 +59,9 @@ def test_blockchain_state_is_created_every_x_block(
         )
         blockchain.add_block(block)
 
-    block = Block.from_main_transaction(blockchain, user_account, 30, signing_key=treasury_account_key_pair.private)
+    block = Block.create_from_main_transaction(
+        blockchain, user_account, 30, signing_key=treasury_account_key_pair.private
+    )
     blockchain.add_block(block)
     assert os.path.isfile(
         str(blockchain_path / f'account-root-files/0/0/0/0/0/0/0/0/000000000{block.message.block_number}-arf.msgpack')

@@ -7,6 +7,7 @@ from thenewboston_node.business_logic.models.node import PrimaryValidator, Regul
 from thenewboston_node.business_logic.validators import validate_greater_than_zero
 from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
+from thenewboston_node.core.utils.types import hexstr
 
 from ..signed_change_request_message import CoinTransferSignedChangeRequestMessage
 from .base import SignedChangeRequest
@@ -24,7 +25,7 @@ class CoinTransferSignedChangeRequest(SignedChangeRequest):
     @classmethod
     @timeit_method(level=logging.INFO)
     def from_main_transaction(
-        cls: Type[T], *, blockchain, recipient: str, amount: int, signing_key: str,
+        cls: Type[T], *, blockchain, recipient: hexstr, amount: int, signing_key: hexstr,
         primary_validator: PrimaryValidator, node: RegularNode
     ) -> T:
         message = CoinTransferSignedChangeRequestMessage.from_main_transaction(

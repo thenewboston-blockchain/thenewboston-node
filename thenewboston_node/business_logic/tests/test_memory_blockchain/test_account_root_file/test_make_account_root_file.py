@@ -23,7 +23,9 @@ def test_can_make_blockchain_state_on_last_block(
     blockchain.snapshot_blockchain_state()
     assert blockchain.get_account_root_file_count() == 1
 
-    block0 = Block.from_main_transaction(blockchain, user_account, 30, signing_key=treasury_account_key_pair.private)
+    block0 = Block.create_from_main_transaction(
+        blockchain, user_account, 30, signing_key=treasury_account_key_pair.private
+    )
     blockchain.add_block(block0)
 
     blockchain.snapshot_blockchain_state()
@@ -60,10 +62,12 @@ def test_can_make_blockchain_state_on_last_block(
         preferred_node.identifier
     ) == preferred_node.identifier
 
-    block1 = Block.from_main_transaction(blockchain, treasury_account, 20, signing_key=user_account_key_pair.private)
+    block1 = Block.create_from_main_transaction(
+        blockchain, treasury_account, 20, signing_key=user_account_key_pair.private
+    )
     blockchain.add_block(block1)
 
-    block2 = Block.from_main_transaction(
+    block2 = Block.create_from_main_transaction(
         blockchain, primary_validator.identifier, 2, signing_key=treasury_account_key_pair.private
     )
     blockchain.add_block(block2)

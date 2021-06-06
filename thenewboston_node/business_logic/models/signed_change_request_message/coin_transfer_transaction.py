@@ -7,6 +7,7 @@ from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.constants import SENTINEL
 from thenewboston_node.core.utils.misc import humanize_camel_case
+from thenewboston_node.core.utils.types import hexstr
 
 from ..base import BaseDataclass
 
@@ -15,7 +16,7 @@ from ..base import BaseDataclass
 class CoinTransferTransaction(BaseDataclass):
     """Coin transfer between accounts"""
 
-    recipient: str
+    recipient: hexstr
     """Recipient's account number"""
 
     amount: int

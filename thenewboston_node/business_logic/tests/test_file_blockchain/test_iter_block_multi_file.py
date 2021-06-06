@@ -9,17 +9,17 @@ def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_sign
     blockchain = file_blockchain_w_memory_storage
     filename1 = '0000-0001-block-chunk.msgpack'
 
-    block0 = Block.from_main_transaction(blockchain, user_account, 10, signing_key=signing_key)
+    block0 = Block.create_from_main_transaction(blockchain, user_account, 10, signing_key=signing_key)
     blockchain.block_storage.append(filename1, block0.to_messagepack())
 
-    block1 = Block.from_main_transaction(blockchain, user_account, 20, signing_key=signing_key)
+    block1 = Block.create_from_main_transaction(blockchain, user_account, 20, signing_key=signing_key)
     blockchain.block_storage.append(filename1, block1.to_messagepack())
 
     filename2 = '0002-0003-block-chunk.msgpack'
-    block2 = Block.from_main_transaction(blockchain, user_account, 50, signing_key=signing_key)
+    block2 = Block.create_from_main_transaction(blockchain, user_account, 50, signing_key=signing_key)
     blockchain.block_storage.append(filename2, block2.to_messagepack())
 
-    block3 = Block.from_main_transaction(blockchain, user_account, 70, signing_key=signing_key)
+    block3 = Block.create_from_main_transaction(blockchain, user_account, 70, signing_key=signing_key)
     blockchain.block_storage.append(filename2, block3.to_messagepack())
 
 

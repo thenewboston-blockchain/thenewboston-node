@@ -1,0 +1,2 @@
+class hexstr(str):
+    pass

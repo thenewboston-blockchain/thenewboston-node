@@ -9,6 +9,7 @@ from thenewboston_node.business_logic.network.base import NetworkBase
 from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
+from thenewboston_node.core.utils.types import hexstr
 
 from .base import BaseDataclass, get_request_to_block_type_map
 from .block_message import BlockMessage
@@ -35,7 +36,7 @@ class Block(SignableMixin, MessagpackCompactableMixin, BaseDataclass):
     message: BlockMessage
     """Block payload"""
 
-    message_hash: Optional[str] = None
+    message_hash: Optional[hexstr] = None
     """Hash value of message field"""
 
     @classmethod
@@ -84,7 +85,7 @@ class Block(SignableMixin, MessagpackCompactableMixin, BaseDataclass):
         return block
 
     @classmethod
-    def from_main_transaction(
+    def create_from_main_transaction(
         cls: Type[T],
         blockchain,
         recipient: str,
@@ -111,12 +112,6 @@ class Block(SignableMixin, MessagpackCompactableMixin, BaseDataclass):
             node=node,
         )
         return cls.create_from_signed_change_request(blockchain, signed_change_request)
-
-    def override_to_dict(self):  # this one turns into to_dict()
-        dict_ = self.super_to_dict()
-        # TODO(dmu) LOW: Implement a better way of removing optional fields or allow them in normalized message
-        dict_['message'] = self.message.to_dict()
-        return dict_
 
     def hash_message(self) -> None:
         message_hash = self.message.get_hash()

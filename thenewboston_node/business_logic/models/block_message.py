@@ -10,6 +10,7 @@ from thenewboston_node.business_logic.validators import (
     validate_type
 )
 from thenewboston_node.core.logging import validates
+from thenewboston_node.core.utils.types import hexstr
 
 from . import AccountState
 from .base import BaseDataclass, get_request_to_block_type_map  # noqa: I101
@@ -37,10 +38,10 @@ class BlockMessage(MessageMixin, BaseDataclass):
     block_number: int
     """Sequential block number"""
 
-    block_identifier: str
+    block_identifier: hexstr
     """Unique block identifier"""
 
-    updated_account_states: dict[str, AccountState]
+    updated_account_states: dict[hexstr, AccountState]
     """Updated account states: {"account_number": `AccountState`_, ...}"""
 
     @classmethod
@@ -102,7 +103,7 @@ class BlockMessage(MessageMixin, BaseDataclass):
             updated_account_states=updated_account_states
         )
 
-    def get_account_state(self, account: str) -> Optional[AccountState]:
+    def get_account_state(self, account: hexstr) -> Optional[AccountState]:
         return (self.updated_account_states or {}).get(account)
 
     def get_sent_amount(self):

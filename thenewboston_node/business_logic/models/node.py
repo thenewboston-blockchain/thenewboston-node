@@ -2,13 +2,14 @@ from dataclasses import dataclass
 from typing import Optional
 
 from thenewboston_node.business_logic.enums import NodeType
+from thenewboston_node.core.utils.types import hexstr
 
 from .base import BaseDataclass
 
 
 @dataclass
 class Node(BaseDataclass):
-    identifier: str
+    identifier: hexstr
     """Identifier"""
 
     network_addresses: list[str]
@@ -17,7 +18,7 @@ class Node(BaseDataclass):
     fee_amount: int
     """Fee amount"""
 
-    fee_account: Optional[str] = None
+    fee_account: Optional[hexstr] = None
     """Fee account"""
 
     def serialize_to_dict(self, skip_none_values=True, coerce_to_json_types=True, exclude=('identifier',)):

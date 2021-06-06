@@ -2,106 +2,11 @@ import pytest
 
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
-from thenewboston_node.business_logic.tests import factories
-
-
-@pytest.mark.parametrize(
-    'long_name,short_name', (
-        ('signer', 's'),
-        ('message', 'm'),
-        ('message_hash', 'mh'),
-        ('signature', 'si'),
-    )
-)
-def test_block_fields_are_compacted(long_name, short_name):
-    block = factories.CoinTransferBlockFactory()
-
-    block_dict = block.to_compact_dict()
-
-    assert short_name in block_dict
-    assert long_name not in block_dict
-
-
-@pytest.mark.parametrize(
-    'long_name,short_name', (
-        ('signed_change_request', 'tr'),
-        ('timestamp', 't'),
-        ('block_number', 'bn'),
-        ('block_identifier', 'bi'),
-        ('updated_account_states', 'u'),
-    )
-)
-def test_block_message_fields_are_compacted(long_name, short_name):
-    block = factories.CoinTransferBlockFactory()
-
-    block_message_dict = block.to_compact_dict()['m']
-
-    assert short_name in block_message_dict
-    assert long_name not in block_message_dict
-
-
-@pytest.mark.parametrize('long_name,short_name', (
-    ('balance', 'b'),
-    ('balance_lock', 'bl'),
-))
-def test_updated_balances_fields_are_compacted(long_name, short_name):
-    balance = factories.AccountStateFactory(balance=1000)
-    block_message = factories.CoinTransferBlockMessageFactory(updated_account_states={'key': balance})
-    block = factories.CoinTransferBlockFactory(message=block_message)
-
-    block_balance_dict = block.to_compact_dict(compact_values=False)['m']['u']['key']
-
-    assert short_name in block_balance_dict
-    assert long_name not in block_balance_dict
-
-
-@pytest.mark.parametrize('long_name,short_name', (
-    ('signer', 's'),
-    ('message', 'm'),
-    ('signature', 'si'),
-))
-def test_signed_change_request_fields_are_compacted(long_name, short_name):
-    block = factories.CoinTransferBlockFactory()
-
-    signed_change_request_dict = block.to_compact_dict()['m']['tr']
-
-    assert short_name in signed_change_request_dict
-    assert long_name not in signed_change_request_dict
-
-
-@pytest.mark.parametrize('long_name,short_name', (('balance_lock', 'bl'),))
-def test_coin_transfer_signed_request_message_fields_are_compacted(long_name, short_name):
-    block = factories.CoinTransferBlockFactory()
-
-    signed_change_request_msg_dict = block.to_compact_dict()['m']['tr']['m']
-
-    assert short_name in signed_change_request_msg_dict
-    assert long_name not in signed_change_request_msg_dict
-
-
-@pytest.mark.parametrize(
-    'long_name,short_name', (
-        ('recipient', 'r'),
-        ('amount', 'at'),
-        ('fee', 'f'),
-        ('memo', 'mm'),
-    )
-)
-def test_transaction_fields_are_compacted(long_name, short_name):
-    transaction = factories.CoinTransferTransactionFactory(fee=True, memo='Memo')
-    signed_change_request_msg = factories.CoinTransferSignedChangeRequestMessageFactory(txs=[transaction])
-    signed_change_request = factories.CoinTransferSignedChangeRequestFactory(message=signed_change_request_msg)
-    message = factories.CoinTransferBlockMessageFactory(signed_change_request=signed_change_request)
-    block = factories.CoinTransferBlockFactory(message=message)
-
-    transaction_dict = block.to_compact_dict()['m']['tr']['m']['txs'][0]
-
-    assert short_name in transaction_dict
-    assert long_name not in transaction_dict
+from thenewboston_node.business_logic.tests import baker_factories, factories
 
 
 def test_can_load_block_from_compacted_dict():
-    block = factories.CoinTransferBlockFactory()
+    block = baker_factories.make_coin_transfer_block()
 
     compacted = block.to_compact_dict()
     loaded_block = Block.from_compact_dict(compacted)

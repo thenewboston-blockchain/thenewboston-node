@@ -20,7 +20,7 @@ def test_can_create_signed_change_request_from_dict(sample_signed_change_request
         tx_dict = txs_dict[index]
         assert tx.amount == tx_dict['amount']
         assert tx.recipient == tx_dict['recipient']
-        assert tx.fee == tx_dict.get('fee')
+        assert tx.fee == tx_dict.get('fee', False)
 
     assert signed_change_request.signature == sample_signed_change_request_dict['signature']
 

@@ -101,6 +101,7 @@ def make(
     _data_class: Any,
     _quantity: int = 1,
     _attr_defaults: Optional[Dict] = None,
+    **kwargs,
 ) -> Union[List, Any]:
     """
     Implemetation is based on
@@ -110,6 +111,9 @@ def make(
     """
 
     _attr_defaults = _attr_defaults or {}
+    for key, value in kwargs.items():
+        _attr_defaults[key] = {'_fixed_value_': value}
+
     random_data_class_generator = RandomDataClassGenerator()
 
     data_class_objects = []

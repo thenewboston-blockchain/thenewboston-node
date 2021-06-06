@@ -1,11 +1,8 @@
 import copy
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
-
-from dataclasses_json import config, dataclass_json
-from marshmallow import fields
 
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.validators import (
@@ -13,10 +10,9 @@ from thenewboston_node.business_logic.validators import (
     validate_type
 )
 from thenewboston_node.core.logging import validates
-from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from . import AccountState
-from .base import get_request_to_block_type_map  # noqa: I101
+from .base import BaseDataclass, get_request_to_block_type_map  # noqa: I101
 from .mixins.message import MessageMixin
 from .mixins.misc import HumanizedClassNameMixin
 from .signed_change_request import SignedChangeRequest
@@ -24,10 +20,8 @@ from .signed_change_request import SignedChangeRequest
 logger = logging.getLogger(__name__)
 
 
-@fake_super_methods
-@dataclass_json
 @dataclass
-class BlockMessage(MessageMixin, HumanizedClassNameMixin):
+class BlockMessage(MessageMixin, HumanizedClassNameMixin, BaseDataclass):
     """
     Contains requested changes in the network like transfer of coins, etc...
     """
@@ -38,13 +32,7 @@ class BlockMessage(MessageMixin, HumanizedClassNameMixin):
 
     # We need timestamp, block_number and block_identifier to be signed and hashed therefore
     # they are included in BlockMessage, not in Block model
-    timestamp: datetime = field(  # naive datetime in UTC
-        metadata=config(
-            encoder=datetime.isoformat,
-            decoder=datetime.fromisoformat,
-            mm_field=fields.DateTime(format='iso')
-        )
-    )
+    timestamp: datetime
     """Block timestamp in UTC"""
 
     block_number: int
@@ -56,12 +44,35 @@ class BlockMessage(MessageMixin, HumanizedClassNameMixin):
     updated_account_states: dict[str, AccountState]
     """Updated account states: {"account_number": `AccountState`_, ...}"""
 
-    def override_to_dict(self):  # this one turns into to_dict()
-        dict_ = self.super_to_dict()
-        # TODO(dmu) LOW: Implement a better way of removing optional fields or allow them in normalized message
-        dict_['signed_change_request'] = self.signed_change_request.to_dict()
-        dict_['updated_account_states'] = {key: value.to_dict() for key, value in self.updated_account_states.items()}
-        return dict_
+    @classmethod
+    def deserialize_from_dict(cls, dict_, complain_excessive_keys=True, override=None):
+        override = override or {}
+        if 'updated_account_states' in dict_ and 'updated_account_states' not in override:
+            logger.debug(
+                'updated_account_states = %s is not overridden (will override)', dict['updated_account_states']
+            )
+            dict_ = dict_.copy()
+            updated_account_states_dict = dict_.pop('updated_account_states')
+            item_values_override = {
+                key: {
+                    'node': {
+                        'identifier': key
+                    }
+                } for key, value in updated_account_states_dict.items()
+            }
+            logger.debug('item_values_override = %s', item_values_override)
+
+            updated_account_states_obj = cls.deserialize_from_inner_dict(
+                cls.get_field_type('updated_account_states'),
+                updated_account_states_dict,
+                complain_excessive_keys=complain_excessive_keys,
+                item_values_override=item_values_override
+            )
+
+            logger.debug('updated_account_states_obj = %s', updated_account_states_obj)
+            override['updated_account_states'] = updated_account_states_obj
+
+        return super().deserialize_from_dict(dict_, complain_excessive_keys=complain_excessive_keys, override=override)
 
     @classmethod
     def from_signed_change_request(cls, blockchain, signed_change_request: SignedChangeRequest):

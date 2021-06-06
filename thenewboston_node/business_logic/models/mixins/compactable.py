@@ -4,6 +4,8 @@ import msgpack
 
 from thenewboston_node.core.utils.collections import map_values, replace_keys
 
+from .serializable import SerializableMixin
+
 COMPACT_KEY_MAP = {
     # account root file
     'account_states': 'a',
@@ -35,7 +37,6 @@ COMPACT_KEY_MAP = {
     'signature': 'si',
     # misc
     'node': 'n',
-    'identifier': 'i',
     'fee_amount': 'fa',
     'fee_account': 'fac'
 }
@@ -93,25 +94,35 @@ assert set(COMPACT_SUBKEY_MAP.keys()) == set(UNCOMPACT_SUBKEY_MAP.keys())
 logger = logging.getLogger(__name__)
 
 
-class CompactableMixin:
+def compact_key(key):
+    return COMPACT_KEY_MAP.get(key, key)
+
+
+class CompactableMixin(SerializableMixin):
 
     @classmethod
     def from_compact_dict(cls, compact_dict, compact_keys=True, compact_values=True):
         dict_ = compact_dict
+
         if compact_keys:
             dict_ = replace_keys(dict_, UNCOMPACT_KEY_MAP)
+
         if compact_values:
             dict_ = map_values(dict_, UNCOMPACT_VALUE_MAP)
             dict_ = map_values(dict_, UNCOMPACT_SUBKEY_MAP, subkeys=True)
-        return cls.from_dict(dict_)
+
+        return cls.deserialize_from_dict(dict_)
 
     def to_compact_dict(self, compact_keys=True, compact_values=True):
-        dict_ = self.to_dict()
+        dict_ = self.serialize_to_dict()
+
         if compact_values:
             dict_ = map_values(dict_, COMPACT_VALUE_MAP)
             dict_ = map_values(dict_, COMPACT_SUBKEY_MAP, subkeys=True)
+
         if compact_keys:
             dict_ = replace_keys(dict_, COMPACT_KEY_MAP)
+
         return dict_
 
 

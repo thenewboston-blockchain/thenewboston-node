@@ -1,14 +1,14 @@
 import logging
 
 from thenewboston_node.business_logic.exceptions import InvalidMessageSignatureError
-from thenewboston_node.core.utils.cryptography import (
-    generate_signature, hash_normalized_dict, is_signature_valid, normalize_dict
-)
+from thenewboston_node.core.utils.cryptography import generate_signature, hash_normalized_dict, is_signature_valid
+
+from .normalizable import NormalizableMixin
 
 logger = logging.getLogger(__name__)
 
 
-class MessageMixin:
+class MessageMixin(NormalizableMixin):
 
     def get_hash(self):
         normalized_message = self.get_normalized()
@@ -22,6 +22,3 @@ class MessageMixin:
     def validate_signature(self, verify_key: str, signature: str):
         if not is_signature_valid(verify_key, self.get_normalized(), signature):
             raise InvalidMessageSignatureError()
-
-    def get_normalized(self) -> bytes:
-        return normalize_dict(self.to_dict())  # type: ignore

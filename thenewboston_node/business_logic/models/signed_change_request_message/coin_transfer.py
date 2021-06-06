@@ -2,13 +2,10 @@ import copy
 from dataclasses import dataclass
 from typing import Type, TypeVar
 
-from dataclasses_json import dataclass_json
-
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import normalize_dict
-from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from .base import SignedChangeRequestMessage
 from .coin_transfer_transaction import CoinTransferTransaction
@@ -16,8 +13,6 @@ from .coin_transfer_transaction import CoinTransferTransaction
 T = TypeVar('T', bound='CoinTransferSignedChangeRequestMessage')
 
 
-@fake_super_methods
-@dataclass_json
 @dataclass
 class CoinTransferSignedChangeRequestMessage(SignedChangeRequestMessage):
     """Coin transfer request message"""
@@ -55,14 +50,8 @@ class CoinTransferSignedChangeRequestMessage(SignedChangeRequestMessage):
     def get_amount(self, recipient):
         return sum(tx.amount for tx in self.txs if tx.recipient == recipient)
 
-    def override_to_dict(self):  # this one turns into to_dict()
-        dict_ = self.super_to_dict()
-        # TODO(dmu) LOW: Implement a better way of removing optional fields or allow them in normalized message
-        dict_['txs'] = [tx.to_dict() for tx in self.txs]
-        return dict_
-
     def get_normalized(self) -> bytes:
-        message_dict = self.to_dict()  # type: ignore
+        message_dict = self.serialize_to_dict()  # type: ignore
 
         for tx in message_dict['txs']:
             # This should fire when we add new fields to CoinTransferTransaction and forget to amend the sorting key

@@ -1,4 +1,5 @@
 import inspect
+import typing
 
 OVERRIDING_METHOD_PREFIX = 'override_'
 OVERRIDING_METHOD_PREFIX_LEN = len('override_')
@@ -33,3 +34,7 @@ def fake_super_methods(cls):
         delattr(cls, method_name)  # remove original method (with prefix)
 
     return cls
+
+
+def is_optional(type_):
+    return typing.get_origin(type_) is typing.Union and type(None) in typing.get_args(type_)

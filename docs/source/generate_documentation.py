@@ -18,6 +18,7 @@ from thenewboston_node.business_logic.blockchain import file_blockchain
 from thenewboston_node.business_logic.models.base import BlockType
 from thenewboston_node.business_logic.models.mixins.compactable import COMPACT_KEY_MAP
 from thenewboston_node.business_logic.storages import file_system, path_optimized_file_system
+from thenewboston_node.core.utils.dataclass import is_optional
 
 BASE_PATH = os.path.abspath(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.abspath('../..')
@@ -162,12 +163,6 @@ def get_type_representation(type_):
     except AttributeError:
         return ''
     return TYPE_NAME_MAP.get(type_str, type_str)
-
-
-def is_optional(type_):
-    origin = typing.get_origin(type_)
-    args = typing.get_args(type_)
-    return origin is typing.Union and type(None) in args
 
 
 def get_context():

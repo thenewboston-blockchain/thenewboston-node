@@ -1,13 +1,10 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from dataclasses_json import dataclass_json
-
 from ..node import Node
 from .base import SignedChangeRequestMessage
 
 
-@dataclass_json
 @dataclass
 class NodeDeclarationSignedChangeRequestMessage(SignedChangeRequestMessage):
     """Network address registration signed change request message"""

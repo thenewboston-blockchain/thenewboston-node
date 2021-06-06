@@ -13,6 +13,8 @@ from thenewboston_node.core.utils.factory import Factory, factory
 
 DEFAULT_ACCOUNT = 'd5356888dc9303e44ce52b1e06c3165a7759b9df1e6a6dfbd33ee1c3df1ab4d1'
 
+# TODO(dmu) HIGH: Replace these factories with `baker`-based factories
+
 
 def add_blocks_to_blockchain(blockchain, block_count, treasury_account_private_key):
     treasury_account_key_pair = KeyPair(

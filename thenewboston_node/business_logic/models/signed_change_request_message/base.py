@@ -1,15 +1,11 @@
 from dataclasses import dataclass
 
-from dataclasses_json import dataclass_json
-
-from thenewboston_node.core.utils.dataclass import fake_super_methods
+from thenewboston_node.business_logic.models.base import BaseDataclass
 
 from ..mixins.message import MessageMixin
 from ..mixins.misc import HumanizedClassNameMixin
 
 
-@fake_super_methods
-@dataclass_json
 @dataclass
-class SignedChangeRequestMessage(MessageMixin, HumanizedClassNameMixin):
+class SignedChangeRequestMessage(MessageMixin, HumanizedClassNameMixin, BaseDataclass):
     pass

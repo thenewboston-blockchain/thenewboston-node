@@ -2,8 +2,6 @@ import logging
 from dataclasses import dataclass
 from typing import Optional
 
-from dataclasses_json import dataclass_json
-
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.mixins.message import MessageMixin
 from thenewboston_node.core.logging import validates
@@ -12,7 +10,6 @@ from thenewboston_node.core.utils.cryptography import derive_verify_key
 logger = logging.getLogger(__name__)
 
 
-@dataclass_json
 @dataclass
 class SignableMixin:
 

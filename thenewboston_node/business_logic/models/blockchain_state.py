@@ -1,16 +1,11 @@
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 
-from dataclasses_json import config, dataclass_json
-from marshmallow import fields
-
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.core.logging import validates
-from thenewboston_node.core.utils.constants import SENTINEL
 from thenewboston_node.core.utils.cryptography import hash_normalized_dict
-from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from .account_state import AccountState
 from .base import BaseDataclass
@@ -20,8 +15,6 @@ from .mixins.normalizable import NormalizableMixin
 logger = logging.getLogger(__name__)
 
 
-@fake_super_methods
-@dataclass_json
 @dataclass
 class BlockchainState(MessagpackCompactableMixin, NormalizableMixin, BaseDataclass):
     """Historical snapshot of all account balances at any point in time"""
@@ -36,35 +29,11 @@ class BlockchainState(MessagpackCompactableMixin, NormalizableMixin, BaseDatacla
     last_block_identifier: Optional[str] = None
     """Block identifier at which snapshot was taken"""
 
-    last_block_timestamp: Optional[datetime] = field(
-        metadata=config(
-            encoder=lambda x: None if x is None else x.isoformat(),
-            decoder=lambda x: None if x is None else datetime.fromisoformat(x),
-            mm_field=fields.DateTime(format='iso')
-        ),
-        default=None,
-    )
+    last_block_timestamp: Optional[datetime] = None
     """Naive datetime in UTC"""
 
     next_block_identifier: Optional[str] = None
     """Next block identifier"""
-
-    def override_to_dict(self):  # this one turns into to_dict()
-        dict_ = self.super_to_dict()
-
-        # TODO(dmu) LOW: Implement a better way of removing optional fields or allow them in normalized message
-        for attr in ('last_block_number', 'last_block_identifier', 'next_block_identifier', 'last_block_timestamp'):
-            value = dict_.get(attr, SENTINEL)
-            if value is None:
-                del dict_[attr]
-
-        account_states = {}
-        for account_number, account_state in self.account_states.items():
-            account_states[account_number] = account_state.to_dict()
-
-        dict_['account_states'] = account_states
-
-        return dict_
 
     def get_account_state(self, account: str) -> Optional[AccountState]:
         return self.account_states.get(account)

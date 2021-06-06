@@ -33,4 +33,4 @@ def sample_signed_change_request_dict():
 
 @pytest.fixture
 def sample_signed_change_request(sample_signed_change_request_dict):
-    return CoinTransferSignedChangeRequest.from_dict(sample_signed_change_request_dict)
+    return CoinTransferSignedChangeRequest.deserialize_from_dict(sample_signed_change_request_dict)

@@ -11,7 +11,7 @@ from thenewboston_node.business_logic.models import (
 
 
 def test_can_create_signed_change_request_from_dict(sample_signed_change_request_dict):
-    signed_change_request = CoinTransferSignedChangeRequest.from_dict(sample_signed_change_request_dict)
+    signed_change_request = CoinTransferSignedChangeRequest.deserialize_from_dict(sample_signed_change_request_dict)
     assert signed_change_request.signer == sample_signed_change_request_dict['signer']
     assert signed_change_request.message.balance_lock == sample_signed_change_request_dict['message']['balance_lock']
 

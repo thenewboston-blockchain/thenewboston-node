@@ -5,11 +5,73 @@ import pytest
 
 from thenewboston_node.business_logic.blockchain.mock_blockchain import MockBlockchain
 from thenewboston_node.business_logic.models import (
-    CoinTransferSignedChangeRequest, CoinTransferSignedChangeRequestMessage, CoinTransferTransaction
+    Block, BlockMessage, CoinTransferSignedChangeRequest, CoinTransferSignedChangeRequestMessage,
+    CoinTransferTransaction
 )
-from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.node import get_node_signing_key
+from thenewboston_node.core.utils import baker
 from thenewboston_node.core.utils.cryptography import KeyPair, derive_verify_key
+
+
+def test_can_serialize_coin_transfer_block():
+    signed_change_request = baker.make(CoinTransferSignedChangeRequest)
+    block_message = baker.make(BlockMessage, block_type='ct', signed_change_request=signed_change_request)
+    block = baker.make(Block, message=block_message)
+    block_dict = block.serialize_to_dict()
+    assert isinstance(block_dict, dict)
+    assert block_dict.keys() == {'signer', 'message', 'message_hash', 'signature'}
+    assert isinstance(block_dict['signer'], str)
+    assert isinstance(block_dict['message'], dict)
+    assert isinstance(block_dict['message_hash'], str)
+    assert isinstance(block_dict['signature'], str)
+
+    block_message = block_dict['message']
+    assert block_message.keys() == {
+        'block_type', 'signed_change_request', 'timestamp', 'block_number', 'block_identifier',
+        'updated_account_states'
+    }
+    assert block_message['block_type'] == 'ct'
+    assert isinstance(block_message['signed_change_request'], dict)
+    assert isinstance(block_message['timestamp'], str)
+    assert isinstance(block_message['block_number'], int)
+    assert isinstance(block_message['block_identifier'], str)
+    assert isinstance(block_message['updated_account_states'], dict)
+
+    signed_change_request = block_message['signed_change_request']
+    assert signed_change_request.keys() == {'signer', 'message', 'signature'}
+    assert isinstance(signed_change_request['signer'], str)
+    assert isinstance(signed_change_request['message'], dict)
+    assert isinstance(signed_change_request['signature'], str)
+
+    signed_change_request_message = signed_change_request['message']
+    assert signed_change_request_message.keys() == {'balance_lock', 'txs'}
+    assert isinstance(signed_change_request_message['balance_lock'], str)
+    assert isinstance(signed_change_request_message['txs'], list)
+    for transaction in signed_change_request_message['txs']:
+        assert isinstance(transaction, dict)
+        if 'fee' in transaction:
+            assert transaction.keys() == {'recipient', 'amount', 'fee', 'memo'}
+            assert isinstance(transaction['fee'], bool)
+        else:
+            assert transaction.keys() == {'recipient', 'amount', 'memo'}
+
+        assert isinstance(transaction['recipient'], str)
+        assert isinstance(transaction['amount'], int)
+        assert isinstance(transaction['memo'], str)
+
+    updated_account_states = block_message['updated_account_states']
+    for key, value in updated_account_states.items():
+        assert isinstance(key, str)
+        assert isinstance(value, dict)
+        assert value.keys() == {'balance', 'balance_lock', 'node'}
+        assert isinstance(value['balance'], int)
+        assert isinstance(value['balance_lock'], str)
+        assert isinstance(value['node'], dict)
+        node = value['node']
+        assert 'identifier' not in node
+        assert isinstance(node['network_addresses'], list)
+        assert isinstance(node['fee_amount'], int)
+        assert isinstance(node['fee_account'], str)
 
 
 @pytest.mark.usefixtures('get_next_block_identifier_mock', 'get_next_block_number_mock')
@@ -132,7 +194,7 @@ def test_can_create_block_from_main_transaction(
     assert len(txs_dict) == 3
 
     assert txs_dict[user_account_key_pair.public].amount == 20
-    assert txs_dict[user_account_key_pair.public].fee is None
+    assert txs_dict[user_account_key_pair.public].fee is False
 
     assert txs_dict[primary_validator_key_pair.public].amount == 4
     assert txs_dict[primary_validator_key_pair.public].fee
@@ -187,11 +249,19 @@ def test_normalized_block_message(forced_mock_blockchain, sample_signed_change_r
     assert block.message.get_normalized() == expected_message
 
 
+def test_can_serialize_deserialize_coin_transfer_signed_change_request_message():
+    message = baker.make(CoinTransferSignedChangeRequestMessage)
+    serialized = message.serialize_to_dict()
+    deserialized = CoinTransferSignedChangeRequestMessage.deserialize_from_dict(serialized)
+    assert deserialized == message
+    assert deserialized is not message
+
+
 @pytest.mark.usefixtures('get_next_block_identifier_mock', 'get_next_block_number_mock', 'get_account_state_mock')
 def test_can_serialize_deserialize(forced_mock_blockchain, sample_signed_change_request):
     block = Block.create_from_signed_change_request(forced_mock_blockchain, sample_signed_change_request)
-    serialized_dict = block.to_dict()
-    deserialized_block = Block.from_dict(serialized_dict)
+    serialized_dict = block.serialize_to_dict()
+    deserialized_block = Block.deserialize_from_dict(serialized_dict)
     assert deserialized_block == block
     assert deserialized_block is not block
 

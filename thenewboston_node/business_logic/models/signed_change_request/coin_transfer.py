@@ -2,14 +2,11 @@ import logging
 from dataclasses import dataclass
 from typing import Type, TypeVar
 
-from dataclasses_json import dataclass_json
-
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
 from thenewboston_node.business_logic.validators import validate_greater_than_zero
 from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
-from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from ..signed_change_request_message import CoinTransferSignedChangeRequestMessage
 from .base import SignedChangeRequest
@@ -19,8 +16,6 @@ T = TypeVar('T', bound='CoinTransferSignedChangeRequest')
 logger = logging.getLogger(__name__)
 
 
-@fake_super_methods
-@dataclass_json
 @dataclass
 class CoinTransferSignedChangeRequest(SignedChangeRequest):
     message: CoinTransferSignedChangeRequestMessage
@@ -41,10 +36,6 @@ class CoinTransferSignedChangeRequest(SignedChangeRequest):
             node=node,
         )
         return cls.create_from_signed_change_request_message(message, signing_key)
-
-    def override_to_dict(self):
-        # we can and should call base method the normal way because it is defined in the base class
-        return super().to_dict()
 
     def get_sent_amount(self):
         assert self.message

@@ -2,23 +2,18 @@ import logging
 from dataclasses import dataclass
 from typing import Optional
 
-from dataclasses_json import dataclass_json
-
 from thenewboston_node.business_logic.validators import validate_min_value, validate_not_empty, validate_type
 from thenewboston_node.core.logging import validates
-from thenewboston_node.core.utils.constants import SENTINEL
-from thenewboston_node.core.utils.dataclass import fake_super_methods
 
+from .base import BaseDataclass
 from .mixins.misc import HumanizedClassNameMixin
 from .node import Node
 
 logger = logging.getLogger(__name__)
 
 
-@fake_super_methods
-@dataclass_json
 @dataclass
-class AccountState(HumanizedClassNameMixin):
+class AccountState(HumanizedClassNameMixin, BaseDataclass):
     """Account state"""
 
     balance: Optional[int] = None  # type: ignore
@@ -30,16 +25,20 @@ class AccountState(HumanizedClassNameMixin):
     node: Optional[Node] = None  # type: ignore
     """Network addresses"""
 
-    def override_to_dict(self):  # this one turns into to_dict()
-        dict_ = self.super_to_dict()
+    @classmethod
+    def deserialize_from_dict(cls, dict_, complain_excessive_keys=True, override=None):
+        override = override or {}
+        node_override = override.pop('node', None)
+        if 'node' in dict_ and node_override:
+            dict_ = dict_.copy()
+            node_dict = dict_.pop('node')
+            node_obj = Node.deserialize_from_dict(
+                node_dict, complain_excessive_keys=complain_excessive_keys, override=node_override
+            )
+            override = override or {}
+            override['node'] = node_obj
 
-        # TODO(dmu) LOW: Implement a better way of removing optional fields or allow them in normalized message
-        for name in self.__dataclass_fields__.keys():
-            value = dict_.get(name, SENTINEL)
-            if value is None:
-                del dict_[name]
-
-        return dict_
+        return super().deserialize_from_dict(dict_, complain_excessive_keys=complain_excessive_keys, override=override)
 
     def get_attribute_value(self, attribute: str, account: str):
         value = getattr(self, attribute)

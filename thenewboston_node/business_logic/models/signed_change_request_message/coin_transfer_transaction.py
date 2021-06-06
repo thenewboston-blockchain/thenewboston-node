@@ -1,29 +1,18 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from dataclasses_json import dataclass_json
-
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models import constants
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.constants import SENTINEL
-from thenewboston_node.core.utils.dataclass import fake_super_methods
 from thenewboston_node.core.utils.misc import humanize_camel_case
 
+from ..base import BaseDataclass
 from ..mixins.misc import HumanizedClassNameMixin
 
 
-# TODO(dmu) LOW: Implement a better way of removing optional fields or allow them in normalized message
-def remove_key_if_optional(dict_, key, optional_values=(None,)):
-    value = dict_.get(key, SENTINEL)
-    if value in optional_values:
-        del dict_[key]
-
-
-@fake_super_methods
-@dataclass_json
 @dataclass
-class CoinTransferTransaction(HumanizedClassNameMixin):
+class CoinTransferTransaction(HumanizedClassNameMixin, BaseDataclass):
     """Coin transfer between accounts"""
 
     recipient: str
@@ -32,19 +21,35 @@ class CoinTransferTransaction(HumanizedClassNameMixin):
     amount: int
     """Coins being sent to the recipient"""
 
-    fee: Optional[bool] = None  # None value won't be serialized
+    # TODO(dmu) HIGH: Rename to `is_fee`
+    fee: Optional[bool] = False  # None value won't be serialized
     """Set if transaction is fee"""
 
     memo: Optional[str] = None
     """Optional memo"""
 
-    def override_to_dict(self):  # this one turns into to_dict()
-        dict_ = self.super_to_dict()
+    @classmethod
+    def deserialize_from_dict(cls, dict_, complain_excessive_keys=True, override=None):
+        deserialized = super().deserialize_from_dict(
+            dict_, complain_excessive_keys=complain_excessive_keys, override=override
+        )
 
-        remove_key_if_optional(dict_, key='fee', optional_values=(None, False))
-        remove_key_if_optional(dict_, key='memo', optional_values=(None,))
+        # TODO(dmu) CRITICAL: Fix fee workaround
+        if deserialized.fee is None:
+            deserialized.fee = False
 
-        return dict_
+        return deserialized
+
+    def serialize_to_dict(self, skip_none_values=True, coerce_to_json_types=True, exclude=()):
+        serialized = super().serialize_to_dict(
+            skip_none_values=skip_none_values,
+            coerce_to_json_types=coerce_to_json_types,
+            exclude=exclude,
+        )
+        if serialized.get('fee', SENTINEL) in (None, False):
+            del serialized['fee']
+
+        return serialized
 
     @property
     def humanized_class_name(self):

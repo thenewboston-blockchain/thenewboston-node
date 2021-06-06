@@ -1,12 +1,13 @@
+from dataclasses import dataclass
 from enum import Enum, unique
 
-from .signed_change_request import CoinTransferSignedChangeRequest, NodeDeclarationSignedChangeRequest
+from .mixins.compactable import CompactableMixin
 
 
 @unique
 class BlockType(Enum):
     COIN_TRANSFER = 'ct'
-    NETWORK_ADDRESS_REGISTRATION = 'ar'
+    NODE_DECLARATION = 'nd'
 
 
 def get_request_to_block_type_map():
@@ -14,8 +15,14 @@ def get_request_to_block_type_map():
         get_updated_account_states_for_coin_transfer, get_updated_account_states_for_node_declaration
     )
 
+    from .signed_change_request import CoinTransferSignedChangeRequest, NodeDeclarationSignedChangeRequest
     return {
         CoinTransferSignedChangeRequest: (BlockType.COIN_TRANSFER.value, get_updated_account_states_for_coin_transfer),
         NodeDeclarationSignedChangeRequest:
-            (BlockType.NETWORK_ADDRESS_REGISTRATION.value, get_updated_account_states_for_node_declaration),
+            (BlockType.NODE_DECLARATION.value, get_updated_account_states_for_node_declaration),
     }
+
+
+@dataclass
+class BaseDataclass(CompactableMixin):
+    pass

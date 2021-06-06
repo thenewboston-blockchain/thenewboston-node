@@ -9,11 +9,13 @@ from marshmallow import fields
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.constants import SENTINEL
-from thenewboston_node.core.utils.cryptography import hash_normalized_dict, normalize_dict
+from thenewboston_node.core.utils.cryptography import hash_normalized_dict
 from thenewboston_node.core.utils.dataclass import fake_super_methods
 
 from .account_state import AccountState
+from .base import BaseDataclass
 from .mixins.compactable import MessagpackCompactableMixin
+from .mixins.normalizable import NormalizableMixin
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +23,7 @@ logger = logging.getLogger(__name__)
 @fake_super_methods
 @dataclass_json
 @dataclass
-class BlockchainState(MessagpackCompactableMixin):
+class BlockchainState(MessagpackCompactableMixin, NormalizableMixin, BaseDataclass):
     """Historical snapshot of all account balances at any point in time"""
 
     account_states: dict[str, AccountState]
@@ -94,9 +96,6 @@ class BlockchainState(MessagpackCompactableMixin):
             return next_block_identifier
 
         return self.get_hash()  # initial account root file case
-
-    def get_normalized(self) -> bytes:
-        return normalize_dict(self.to_dict())  # type: ignore
 
     def get_hash(self):
         return hash_normalized_dict(self.get_normalized())

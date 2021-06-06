@@ -26,6 +26,7 @@ def test_non_ascii_memo_is_serialized_correctly():
     # TODO(dmu) HIGH: This test must test transaction without using outer structures
     memo = 'Тестовое сообщение'  # Test message in Russian
     transaction = factories.CoinTransferTransactionFactory(memo=memo)
+    transaction.fee = False
     trm = factories.CoinTransferSignedChangeRequestMessageFactory(txs=[transaction])
     tr = factories.CoinTransferSignedChangeRequestFactory(message=trm)
     block_message = factories.CoinTransferBlockMessageFactory(signed_change_request=tr)

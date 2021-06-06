@@ -2,10 +2,6 @@ import logging
 from dataclasses import dataclass
 from typing import Optional, Type, TypeVar
 
-from dataclasses_json import dataclass_json
-
-from thenewboston_node.core.utils.dataclass import fake_super_methods
-
 from ..signed_change_request_message import NodeDeclarationSignedChangeRequestMessage
 from .base import SignedChangeRequest
 
@@ -14,8 +10,6 @@ logger = logging.getLogger(__name__)
 T = TypeVar('T', bound='NodeDeclarationSignedChangeRequest')
 
 
-@fake_super_methods
-@dataclass_json
 @dataclass
 class NodeDeclarationSignedChangeRequest(SignedChangeRequest):
     message: NodeDeclarationSignedChangeRequestMessage

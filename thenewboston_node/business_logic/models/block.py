@@ -3,17 +3,14 @@ import warnings
 from dataclasses import dataclass
 from typing import Optional, Type, TypeVar
 
-from dataclasses_json import dataclass_json
-
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
 from thenewboston_node.business_logic.network.base import NetworkBase
 from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
-from thenewboston_node.core.utils.dataclass import fake_super_methods
 
-from .base import get_request_to_block_type_map
+from .base import BaseDataclass, get_request_to_block_type_map
 from .block_message import BlockMessage
 from .mixins.compactable import MessagpackCompactableMixin
 from .mixins.signable import SignableMixin
@@ -24,10 +21,8 @@ T = TypeVar('T', bound='Block')
 logger = logging.getLogger(__name__)
 
 
-@fake_super_methods
-@dataclass_json
 @dataclass
-class Block(SignableMixin, MessagpackCompactableMixin):
+class Block(SignableMixin, MessagpackCompactableMixin, BaseDataclass):
     """
     Blocks represent a description of change to the network.
     These originate from signed requests and may include:
@@ -44,19 +39,37 @@ class Block(SignableMixin, MessagpackCompactableMixin):
     """Hash value of message field"""
 
     @classmethod
-    def override_from_dict(cls, kvs, infer_missing=False):
-        instance = super().from_dict(kvs, infer_missing=infer_missing)
-        instance_block_type = instance.message.block_type
+    def deserialize_from_dict(cls, dict_, complain_excessive_keys=True, exclude=()):
+        dict_ = dict_.copy()
+        message_dict = dict_.pop('message', None)
+        if message_dict is None:
+            raise ValidationError('Missing keys: message')
+        elif not isinstance(message_dict, dict):
+            raise ValidationError('message must be a dict')
+
+        instance_block_type = message_dict.get('block_type')
         for signed_change_request_class, (block_type, _) in get_request_to_block_type_map().items():
             if block_type == instance_block_type:
-                instance.message.signed_change_request = signed_change_request_class.from_dict(
-                    (kvs.get('message') or {}).get('signed_change_request') or {}
+                signed_change_request_dict = message_dict.get('signed_change_request')
+                if signed_change_request_dict is None:
+                    raise ValidationError('Missing keys: signed_change_request')
+                elif not isinstance(signed_change_request_dict, dict):
+                    raise ValidationError('signed_change_request must be a dict')
+
+                signed_change_request_obj = signed_change_request_class.deserialize_from_dict(
+                    signed_change_request_dict
                 )
                 break
         else:
             raise NotImplementedError(f'message.block_type "{instance_block_type}" is not supported')
 
-        return instance
+        message_obj = BlockMessage.deserialize_from_dict(
+            message_dict, override={'signed_change_request': signed_change_request_obj}
+        )
+
+        return super().deserialize_from_dict(
+            dict_, complain_excessive_keys=complain_excessive_keys, override={'message': message_obj}
+        )
 
     @classmethod
     @timeit_method(level=logging.INFO, is_class_method=True)

@@ -5,10 +5,11 @@ from dataclasses_json import dataclass_json
 
 from thenewboston_node.business_logic.enums import NodeType
 
+from .base import BaseDataclass
 
-@dataclass_json
+
 @dataclass
-class Node:
+class Node(BaseDataclass):
     identifier: str
     """Identifier"""
 
@@ -20,6 +21,13 @@ class Node:
 
     fee_account: Optional[str] = None
     """Fee account"""
+
+    def serialize_to_dict(self, skip_none_values=True, coerce_to_json_types=True, exclude=('identifier',)):
+        return super(Node, self).serialize_to_dict(
+            skip_none_values=skip_none_values,
+            coerce_to_json_types=coerce_to_json_types,
+            exclude=exclude,
+        )
 
 
 @dataclass_json

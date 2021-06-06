@@ -7,7 +7,6 @@ from thenewboston_node.business_logic.models.base import BaseDataclass
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
 
-from ..mixins.misc import HumanizedClassNameMixin
 from ..mixins.signable import SignableMixin
 from ..signed_change_request_message import SignedChangeRequestMessage
 
@@ -17,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class SignedChangeRequest(SignableMixin, HumanizedClassNameMixin, BaseDataclass):
+class SignedChangeRequest(SignableMixin, BaseDataclass):
     message: SignedChangeRequestMessage
     """Request payload"""
 

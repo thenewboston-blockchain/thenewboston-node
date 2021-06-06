@@ -8,3 +8,5 @@ NETWORK = {
     'class': 'thenewboston_node.business_logic.network.tcp_network.TCPNetwork',
     'kwargs': {},
 }
+
+MEMO_MAX_LENGTH = 64

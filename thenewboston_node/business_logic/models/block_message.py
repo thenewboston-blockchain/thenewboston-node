@@ -14,14 +14,13 @@ from thenewboston_node.core.logging import validates
 from . import AccountState
 from .base import BaseDataclass, get_request_to_block_type_map  # noqa: I101
 from .mixins.message import MessageMixin
-from .mixins.misc import HumanizedClassNameMixin
 from .signed_change_request import SignedChangeRequest
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
-class BlockMessage(MessageMixin, HumanizedClassNameMixin, BaseDataclass):
+class BlockMessage(MessageMixin, BaseDataclass):
     """
     Contains requested changes in the network like transfer of coins, etc...
     """

@@ -15,16 +15,16 @@ def test_block_chunk_is_rotated(file_blockchain_w_memory_storage, user_account, 
     file2 = '00000000000000000002-00000000000000000003-block-chunk.msgpack'
 
     with patch.object(blockchain, 'block_chunk_size', 2):
-        block0 = Block.from_main_transaction(blockchain, user_account, 10, signing_key)
+        block0 = Block.create_from_main_transaction(blockchain, user_account, 10, signing_key)
         blockchain.add_block(block0)
 
-        block1 = Block.from_main_transaction(blockchain, user_account, 10, signing_key)
+        block1 = Block.create_from_main_transaction(blockchain, user_account, 10, signing_key)
         blockchain.add_block(block1)
 
-        block2 = Block.from_main_transaction(blockchain, user_account, 30, signing_key)
+        block2 = Block.create_from_main_transaction(blockchain, user_account, 30, signing_key)
         blockchain.add_block(block2)
 
-        block3 = Block.from_main_transaction(blockchain, user_account, 50, signing_key)
+        block3 = Block.create_from_main_transaction(blockchain, user_account, 50, signing_key)
         blockchain.add_block(block3)
 
     assert blockchain.block_storage.files.keys() == {file1, file2}
@@ -36,9 +36,9 @@ def test_block_is_appended(file_blockchain_w_memory_storage, user_account, treas
     blockchain = file_blockchain_w_memory_storage
     filename = '00000000000000000000-00000000000000000001-block-chunk.msgpack'
 
-    block1 = Block.from_main_transaction(blockchain, user_account, 10, signing_key)
+    block1 = Block.create_from_main_transaction(blockchain, user_account, 10, signing_key)
     blockchain.add_block(block1)
-    block2 = Block.from_main_transaction(blockchain, user_account, 30, signing_key)
+    block2 = Block.create_from_main_transaction(blockchain, user_account, 30, signing_key)
     blockchain.add_block(block2)
 
     assert blockchain.block_storage.files.keys() == {filename}
@@ -48,7 +48,7 @@ def test_block_is_appended(file_blockchain_w_memory_storage, user_account, treas
 def test_cannot_add_block_twice(file_blockchain_w_memory_storage, user_account, treasury_account_signing_key):
     signing_key = treasury_account_signing_key
     blockchain = file_blockchain_w_memory_storage
-    block = Block.from_main_transaction(blockchain, user_account, 10, signing_key)
+    block = Block.create_from_main_transaction(blockchain, user_account, 10, signing_key)
     blockchain.add_block(block)
 
     with pytest.raises(ValidationError, match='Block number must be equal to next block number.*'):
@@ -78,7 +78,9 @@ def test_can_add_block(
 
     total_fees = 1 + 4
 
-    block0 = Block.from_main_transaction(blockchain, user_account, 30, signing_key=treasury_account_key_pair.private)
+    block0 = Block.create_from_main_transaction(
+        blockchain, user_account, 30, signing_key=treasury_account_key_pair.private
+    )
     blockchain.add_block(block0)
     assert blockchain.get_account_current_balance(user_account) == 30
     assert blockchain.get_account_current_balance(treasury_account) == treasury_initial_balance - 30 - total_fees
@@ -88,7 +90,9 @@ def test_can_add_block(
     with pytest.raises(ValidationError, match='Block number must be equal to next block number.*'):
         blockchain.add_block(block0)
 
-    block1 = Block.from_main_transaction(blockchain, user_account, 10, signing_key=treasury_account_key_pair.private)
+    block1 = Block.create_from_main_transaction(
+        blockchain, user_account, 10, signing_key=treasury_account_key_pair.private
+    )
     blockchain.add_block(block1)
     assert blockchain.get_account_current_balance(user_account) == 40
     assert blockchain.get_account_current_balance(treasury_account
@@ -96,7 +100,9 @@ def test_can_add_block(
     assert blockchain.get_account_current_balance(node_account) == 1 * 2
     assert blockchain.get_account_current_balance(pv_account) == 4 * 2
 
-    block2 = Block.from_main_transaction(blockchain, treasury_account, 5, signing_key=user_account_key_pair.private)
+    block2 = Block.create_from_main_transaction(
+        blockchain, treasury_account, 5, signing_key=user_account_key_pair.private
+    )
     blockchain.add_block(block2)
     assert blockchain.get_account_current_balance(user_account) == 40 - 5 - total_fees
     assert blockchain.get_account_current_balance(treasury_account

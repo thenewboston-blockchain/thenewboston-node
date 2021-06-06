@@ -141,7 +141,7 @@ def test_can_create_block_from_main_transaction(
         return 430 if account == treasury_account_key_pair.public else 0
 
     with patch.object(MockBlockchain, 'get_account_balance', new=get_account_balance):
-        block = Block.from_main_transaction(
+        block = Block.create_from_main_transaction(
             forced_mock_blockchain, user_account_key_pair.public, 20, signing_key=treasury_account_key_pair.private
         )
 

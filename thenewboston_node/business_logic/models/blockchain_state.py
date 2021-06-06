@@ -6,6 +6,7 @@ from typing import Optional
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import hash_normalized_dict
+from thenewboston_node.core.utils.types import hexstr
 
 from .account_state import AccountState
 from .base import BaseDataclass
@@ -19,26 +20,26 @@ logger = logging.getLogger(__name__)
 class BlockchainState(MessagpackCompactableMixin, NormalizableMixin, BaseDataclass):
     """Historical snapshot of all account balances at any point in time"""
 
-    account_states: dict[str, AccountState]
+    account_states: dict[hexstr, AccountState]
     """Map like {"account_number": `AccountState`_, ...}"""
 
     last_block_number: Optional[int] = None
     """Block number at which snapshot was taken"""
 
     # TODO(dmu) MEDIUM: Do we really need last_block_identifier?
-    last_block_identifier: Optional[str] = None
+    last_block_identifier: Optional[hexstr] = None
     """Block identifier at which snapshot was taken"""
 
     last_block_timestamp: Optional[datetime] = None
     """Naive datetime in UTC"""
 
-    next_block_identifier: Optional[str] = None
+    next_block_identifier: Optional[hexstr] = None
     """Next block identifier"""
 
-    def get_account_state(self, account: str) -> Optional[AccountState]:
+    def get_account_state(self, account: hexstr) -> Optional[AccountState]:
         return self.account_states.get(account)
 
-    def get_account_state_attribute_value(self, account: str, attribute: str):
+    def get_account_state_attribute_value(self, account: hexstr, attribute: str):
         account_state = self.get_account_state(account)
         if account_state is None:
             from thenewboston_node.business_logic.utils.blockchain import get_attribute_default_value
@@ -46,20 +47,20 @@ class BlockchainState(MessagpackCompactableMixin, NormalizableMixin, BaseDatacla
 
         return account_state.get_attribute_value(attribute, account)
 
-    def get_account_balance(self, account: str) -> int:
+    def get_account_balance(self, account: hexstr) -> int:
         return self.get_account_state_attribute_value(account, 'balance')
 
-    def get_account_balance_lock(self, account: str) -> str:
+    def get_account_balance_lock(self, account: hexstr) -> str:
         return self.get_account_state_attribute_value(account, 'balance_lock')
 
-    def get_node(self, account: str):
+    def get_node(self, account: hexstr):
         return self.get_account_state_attribute_value(account, 'node')
 
     def get_next_block_number(self) -> int:
         last_block_number = self.last_block_number
         return 0 if last_block_number is None else last_block_number + 1
 
-    def get_next_block_identifier(self) -> str:
+    def get_next_block_identifier(self) -> hexstr:
         next_block_identifier = self.next_block_identifier
         if next_block_identifier:
             return next_block_identifier

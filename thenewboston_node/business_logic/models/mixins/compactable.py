@@ -21,7 +21,7 @@ COMPACT_KEY_MAP = {
     'message_hash': 'mh',
     # block message
     'signed_change_request': 'tr',
-    'timestamp': 't',
+    'timestamp': 'ts',
     'block_number': 'bn',
     'block_identifier': 'bi',
     'block_type': 'bt',
@@ -38,7 +38,8 @@ COMPACT_KEY_MAP = {
     # misc
     'node': 'n',
     'fee_amount': 'fa',
-    'fee_account': 'fac'
+    'fee_account': 'fac',
+    'txs': 't',
 }
 
 UNCOMPACT_KEY_MAP = {value: key for key, value in COMPACT_KEY_MAP.items()}
@@ -63,6 +64,7 @@ COMPACT_VALUE_MAP = {
     'block_identifier': hex_to_bytes,
     'balance_lock': hex_to_bytes,
     'recipient': hex_to_bytes,
+    'fee_account': hex_to_bytes,
 }
 
 UNCOMPACT_VALUE_MAP = {
@@ -72,6 +74,7 @@ UNCOMPACT_VALUE_MAP = {
     'block_identifier': bytes_to_hex,
     'balance_lock': bytes_to_hex,
     'recipient': bytes_to_hex,
+    'fee_account': bytes_to_hex,
 }
 
 COMPACT_SUBKEY_MAP = {

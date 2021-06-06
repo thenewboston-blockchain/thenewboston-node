@@ -4,6 +4,7 @@ from typing import Optional
 
 from thenewboston_node.business_logic.validators import validate_min_value, validate_not_empty, validate_type
 from thenewboston_node.core.logging import validates
+from thenewboston_node.core.utils.types import hexstr
 
 from .base import BaseDataclass
 from .node import Node
@@ -18,7 +19,7 @@ class AccountState(BaseDataclass):
     balance: Optional[int] = None  # type: ignore
     """Balance"""
 
-    balance_lock: Optional[str] = None  # type: ignore
+    balance_lock: Optional[hexstr] = None  # type: ignore
     """Balance lock"""
 
     node: Optional[Node] = None  # type: ignore

@@ -9,10 +9,10 @@ from thenewboston_node.business_logic.models.block import Block
 def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_signing_key):
     signing_key = treasury_account_signing_key
     with patch.object(file_blockchain_w_memory_storage, 'snapshot_period_in_blocks', 2):
-        block0 = Block.from_main_transaction(file_blockchain_w_memory_storage, user_account, 10, signing_key)
+        block0 = Block.create_from_main_transaction(file_blockchain_w_memory_storage, user_account, 10, signing_key)
         file_blockchain_w_memory_storage.add_block(block0)
 
-        block1 = Block.from_main_transaction(file_blockchain_w_memory_storage, user_account, 20, signing_key)
+        block1 = Block.create_from_main_transaction(file_blockchain_w_memory_storage, user_account, 20, signing_key)
         file_blockchain_w_memory_storage.add_block(block1)
 
 

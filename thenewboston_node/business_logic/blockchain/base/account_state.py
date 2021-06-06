@@ -5,6 +5,7 @@ from typing import Optional
 from thenewboston_node.business_logic.models.account_state import AccountState
 from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
 from thenewboston_node.core.logging import timeit_method
+from thenewboston_node.core.utils.types import hexstr
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,7 @@ class AccountStateMixin:
         for new_account in new_accounts:
             yield new_account
 
-    def get_account_state_attribute_value(self, account: str, attribute: str, on_block_number: int):
+    def get_account_state_attribute_value(self, account: hexstr, attribute: str, on_block_number: int):
         if on_block_number < -1:
             raise ValueError('block_number must be greater or equal to -1')
         elif on_block_number > self.get_current_block_number():  # type: ignore
@@ -42,25 +43,25 @@ class AccountStateMixin:
 
         return blockchain_state.get_account_state_attribute_value(account, attribute)
 
-    def get_account_balance(self, account: str, on_block_number: int) -> int:
+    def get_account_balance(self, account: hexstr, on_block_number: int) -> int:
         return self.get_account_state_attribute_value(account, 'balance', on_block_number)
 
     def get_account_current_balance(self, account: str) -> int:
         return self.get_account_balance(account, self.get_current_block_number())  # type: ignore
 
-    def get_account_balance_lock(self, account: str, on_block_number: int) -> str:
+    def get_account_balance_lock(self, account: hexstr, on_block_number: int) -> hexstr:
         return self.get_account_state_attribute_value(account, 'balance_lock', on_block_number)
 
-    def get_account_current_balance_lock(self, account: str) -> str:
+    def get_account_current_balance_lock(self, account: hexstr) -> hexstr:
         return self.get_account_balance_lock(account, self.get_current_block_number())  # type: ignore
 
-    def get_node(self, account: str, on_block_number: int):
+    def get_node(self, account: hexstr, on_block_number: int):
         return self.get_account_state_attribute_value(account, 'node', on_block_number)  # type: ignore
 
-    def get_current_node(self, account: str):
+    def get_current_node(self, account: hexstr):
         return self.get_node(account, self.get_current_block_number())  # type: ignore
 
-    def get_account_state(self, account: str) -> AccountState:
+    def get_account_state(self, account: hexstr) -> AccountState:
         block_number = self.get_current_block_number()  # type: ignore
         return AccountState(
             balance=self.get_account_balance(account, block_number),

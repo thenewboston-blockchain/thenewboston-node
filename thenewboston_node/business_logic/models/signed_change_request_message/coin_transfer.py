@@ -6,6 +6,7 @@ from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import normalize_dict
+from thenewboston_node.core.utils.types import hexstr
 
 from .base import SignedChangeRequestMessage
 from .coin_transfer_transaction import CoinTransferTransaction
@@ -17,7 +18,7 @@ T = TypeVar('T', bound='CoinTransferSignedChangeRequestMessage')
 class CoinTransferSignedChangeRequestMessage(SignedChangeRequestMessage):
     """Coin transfer request message"""
 
-    balance_lock: str
+    balance_lock: hexstr
     """Current sender's balance lock"""
 
     txs: list[CoinTransferTransaction]
@@ -32,7 +33,7 @@ class CoinTransferSignedChangeRequestMessage(SignedChangeRequestMessage):
 
     @classmethod
     def from_main_transaction(
-        cls: Type[T], *, blockchain, coin_sender: str, recipient: str, amount: int,
+        cls: Type[T], *, blockchain, coin_sender: hexstr, recipient: hexstr, amount: int,
         primary_validator: PrimaryValidator, node: RegularNode
     ) -> T:
         txs = [

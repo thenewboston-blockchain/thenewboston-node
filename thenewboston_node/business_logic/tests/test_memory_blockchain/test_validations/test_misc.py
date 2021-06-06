@@ -17,17 +17,23 @@ def test_can_validate_blockchain(
     blockchain = forced_memory_blockchain
     blockchain.validate(is_partial_allowed=False)
 
-    block0 = Block.from_main_transaction(blockchain, user_account, 30, signing_key=treasury_account_key_pair.private)
+    block0 = Block.create_from_main_transaction(
+        blockchain, user_account, 30, signing_key=treasury_account_key_pair.private
+    )
     blockchain.add_block(block0)
     blockchain.snapshot_blockchain_state()
     blockchain.validate(is_partial_allowed=False)
 
-    block1 = Block.from_main_transaction(blockchain, user_account, 10, signing_key=treasury_account_key_pair.private)
+    block1 = Block.create_from_main_transaction(
+        blockchain, user_account, 10, signing_key=treasury_account_key_pair.private
+    )
     blockchain.add_block(block1)
     blockchain.snapshot_blockchain_state()
     blockchain.validate(is_partial_allowed=False)
 
-    block2 = Block.from_main_transaction(blockchain, treasury_account, 5, signing_key=user_account_key_pair.private)
+    block2 = Block.create_from_main_transaction(
+        blockchain, treasury_account, 5, signing_key=user_account_key_pair.private
+    )
     blockchain.add_block(block2)
     blockchain.snapshot_blockchain_state()
     blockchain.validate(is_partial_allowed=False)

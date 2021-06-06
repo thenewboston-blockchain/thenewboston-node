@@ -18,7 +18,9 @@ def set_up(
     )
     node = RegularNode(identifier=node_identifier, fee_amount=node_fee, network_addresses=[])
 
-    block = Block.from_main_transaction(file_blockchain_w_memory_storage, user_account, 100, signing_key, pv, node)
+    block = Block.create_from_main_transaction(
+        file_blockchain_w_memory_storage, user_account, 100, signing_key, pv, node
+    )
     file_blockchain_w_memory_storage.add_block(block)
     file_blockchain_w_memory_storage.snapshot_blockchain_state()
 

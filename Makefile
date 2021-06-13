@@ -51,8 +51,7 @@ lint:
 .PHONY: lint-and-test
 lint-and-test: lint test ;
 
-docs-rst:
-	./docs/source/generate_documentation.py > docs/build/index.rst
-
-docs-html: docs-rst
-	rst2html.py docs/build/index.rst docs/build/index.html
+.PHONY: docs
+docs:
+	mkdir -p docs
+	poetry run python -m thenewboston_node.manage generate_documentation | rst2html.py > docs/blockchain-structure-documentation.html

@@ -1,18 +1,16 @@
-#!/usr/bin/env python3
 import builtins
 import datetime
-import os
-import sys
 import textwrap
 import typing
 from inspect import getdoc
 from typing import get_type_hints
 
-import django
+from django.core.management import BaseCommand
 
 import class_doc
 import jinja2
 
+import thenewboston_node.business_logic.docs
 from thenewboston_node.business_logic import models
 from thenewboston_node.business_logic.blockchain import file_blockchain
 from thenewboston_node.business_logic.models.base import BlockType
@@ -20,11 +18,6 @@ from thenewboston_node.business_logic.models.mixins.compactable import COMPACT_K
 from thenewboston_node.business_logic.storages import file_system, path_optimized_file_system
 from thenewboston_node.core.utils.dataclass import is_optional
 from thenewboston_node.core.utils.types import hexstr
-
-BASE_PATH = os.path.abspath(os.path.dirname(__file__))
-PROJECT_ROOT = os.path.abspath('../..')
-
-TEMPLATE_PATH = 'index.rst'
 
 BLOCK_MODELS = (
     models.Block,
@@ -205,22 +198,18 @@ def get_context():
 
 
 def render(context):
-    env = jinja2.Environment(loader=jinja2.FileSystemLoader(BASE_PATH))
-    template = env.get_template(TEMPLATE_PATH)
+    env = jinja2.Environment(loader=jinja2.PackageLoader(thenewboston_node.business_logic.docs.__name__, 'templates'))
+    template = env.get_template('blockchain_structure.rst')
     return template.render(context)
 
 
-def setup():
-    sys.path.insert(0, PROJECT_ROOT)
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'thenewboston_node.project.settings')
-    django.setup()
-
-
 def main():
-    setup()
     rendered = render(get_context())
     print(rendered)
 
 
-if __name__ == '__main__':
-    main()
+class Command(BaseCommand):
+    help = 'Generate blockchain structure documentation'  # noqa: A003
+
+    def handle(self, *args, **options):
+        main()

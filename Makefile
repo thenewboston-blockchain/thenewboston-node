@@ -51,7 +51,13 @@ lint:
 .PHONY: lint-and-test
 lint-and-test: lint test ;
 
-.PHONY: docs
 docs:
 	mkdir -p docs
+
+.PHONY: docs-rst
+docs-rst: docs
+	poetry run python -m thenewboston_node.manage generate_documentation > docs/blockchain-structure-documentation.rst
+
+.PHONY: docs-html
+docs-html: docs
 	poetry run python -m thenewboston_node.manage generate_documentation | rst2html.py > docs/blockchain-structure-documentation.html

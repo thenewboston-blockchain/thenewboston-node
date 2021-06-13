@@ -139,12 +139,13 @@ NOTE: Initial root account file filename is ``{{ file_blockchain.get_account_roo
 Account root file format
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-{% for model_doc in models.blockchain_state.docs %}
-{{ model_doc.model }}
-{{ "'" * model_doc.model.__len__() }}
+{% for model in blockchain_models %}
+{{ model.__name__ }}
+{{ "'" * model.__name__.__len__() }}
 
-{{ model_doc.docstring }}
+{{ model.get_docstring() }}
 
+{% if model.get_field_names() -%}
 .. list-table::
    :header-rows: 1
 
@@ -152,14 +153,17 @@ Account root file format
      - Type
      - Description
      - Is mandatory
+{% for field_name in model.get_field_names() -%}
+{%- set field_type = model.get_field_type(field_name) %}
+{%- set field_type_name = field_type.__name__ %}
+   * - {{ field_name }}
+     - {% if f.is_model(field_type) %}`{{ field_type_name }}`_{% else %}{{ f.get_mapped_type_name(field_type_name) }}{% endif %}
+     - {{ model.get_field_docstring(field_name) }}
+     - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
+{%- endfor %}
+{% endif %}
+{% endfor %}
 
-{% for attr in model_doc.attrs %}
-   * - {{ attr.name }}
-     - {% if attr.type in ('string', 'integer', 'datetime', 'object', 'bool', 'array') %}{{ attr.type }}{% else %}`{{ attr.type }}`_{% endif %}
-     - {{ attr.docstring }}
-     - {% if attr.is_optional %}No{% else %}Yes{% endif %}
-{% endfor %}
-{% endfor %}
 
 Account root file example
 '''''''''''''''''''''''''
@@ -209,12 +213,13 @@ of blocks).
 Block structure
 ^^^^^^^^^^^^^^^
 
-{% for model_doc in models.block.docs %}
-{{ model_doc.model }}
-{{ "'" * model_doc.model.__len__() }}
+{% for model in block_models %}
+{{ model.__name__ }}
+{{ "'" * model.__name__.__len__() }}
 
-{{ model_doc.docstring }}
+{{ model.get_docstring() }}
 
+{% if model.get_field_names() -%}
 .. list-table::
    :header-rows: 1
 
@@ -222,13 +227,15 @@ Block structure
      - Type
      - Description
      - Is mandatory
-
-{% for attr in model_doc.attrs %}
-   * - {{ attr.name }}
-     - {% if attr.type in ('string', 'integer', 'datetime', 'object', 'bool', 'array') %}{{ attr.type }}{% else %}`{{ attr.type }}`_{% endif %}
-     - {{ attr.docstring }}
-     - {% if attr.is_optional %}No{% else %}Yes{% endif %}
-{% endfor %}
+{% for field_name in model.get_field_names() -%}
+{%- set field_type = model.get_field_type(field_name) %}
+{%- set field_type_name = field_type.__name__ %}
+   * - {{ field_name }}
+     - {% if f.is_model(field_type) %}`{{ field_type_name }}`_{% else %}{{ f.get_mapped_type_name(field_type_name) }}{% endif %}
+     - {{ model.get_field_docstring(field_name) }}
+     - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
+{%- endfor %}
+{% endif %}
 {% endfor %}
 
 Block example
@@ -250,3 +257,32 @@ Byte arrays are shown as hexadecimals for representation purposes:
 
 .. Links targets
 .. _MessagePack: https://msgpack.org/
+
+
+Common models structure
+=======================
+
+{% for model in common_models %}
+{{ model.__name__ }}
+{{ "-" * model.__name__.__len__() }}
+
+{{ model.get_docstring() }}
+
+{% if model.get_field_names() -%}
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Is mandatory
+{% for field_name in model.get_field_names() -%}
+{%- set field_type = model.get_field_type(field_name) %}
+{%- set field_type_name = field_type.__name__ %}
+   * - {{ field_name }}
+     - {% if f.is_model(field_type) %}`{{ field_type_name }}`_{% else %}{{ f.get_mapped_type_name(field_type_name) }}{% endif %}
+     - {{ model.get_field_docstring(field_name) }}
+     - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
+{%- endfor %}
+{% endif %}
+{% endfor %}

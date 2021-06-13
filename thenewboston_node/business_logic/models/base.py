@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from enum import Enum, unique
 
 from .mixins.compactable import CompactableMixin
+from .mixins.documentable import DocumentableMixin
 from .mixins.misc import HumanizedClassNameMixin
 
 
@@ -25,5 +26,5 @@ def get_request_to_block_type_map():
 
 
 @dataclass
-class BaseDataclass(CompactableMixin, HumanizedClassNameMixin):
+class BaseDataclass(CompactableMixin, HumanizedClassNameMixin, DocumentableMixin):
     pass

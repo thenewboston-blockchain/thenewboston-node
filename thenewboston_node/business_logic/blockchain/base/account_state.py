@@ -211,7 +211,7 @@ class AccountStateMixin:
                     blockchain_state_account_state = AccountState()
                     account_states[account_number] = blockchain_state_account_state
 
-                for attribute in AccountState.__dataclass_fields__.keys():  # type: ignore
+                for attribute in AccountState.get_field_names():  # type: ignore
                     value = getattr(block_account_state, attribute)
                     if value is not None:
                         setattr(blockchain_state_account_state, attribute, deepcopy(value))

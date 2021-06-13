@@ -8,7 +8,7 @@ from thenewboston_node.business_logic.blockchain import file_blockchain
 from thenewboston_node.business_logic.models.mixins.compactable import COMPACT_KEY_MAP
 from thenewboston_node.business_logic.storages import file_system, path_optimized_file_system
 
-from .funcs import get_model_docs
+from .funcs import get_mapped_type_name, is_model
 from .samples import BLOCK_SAMPLE, BLOCKCHAIN_STATE_SAMPLE  # noqa: I101
 
 BLOCK_MODELS = (
@@ -26,15 +26,24 @@ BLOCKCHAIN_STATE_MODELS = (
 
 
 def get_context():
+    block_models = models.Block.get_nested_models(include_self=True)
+    blockchain_state_models = models.BlockchainState.get_nested_models(include_self=True)
+    common_models = set(block_models) & set(blockchain_state_models)
+
+    block_models = [model for model in block_models if model not in common_models]
+    blockchain_state_models = [model for model in blockchain_state_models if model not in common_models]
+
     return {
+        'f': {func.__name__: func for func in (get_mapped_type_name, is_model)},
+        'block_models': block_models,
+        'blockchain_state_models': blockchain_state_models,
+        'common_models': common_models,
         'models': {
             'block': {
                 'sample': BLOCK_SAMPLE,
-                'docs': get_model_docs(model_classes=BLOCK_MODELS),
             },
             'blockchain_state': {
                 'sample': BLOCKCHAIN_STATE_SAMPLE,
-                'docs': get_model_docs(model_classes=BLOCKCHAIN_STATE_MODELS),
             }
         },
         'file_blockchain': {

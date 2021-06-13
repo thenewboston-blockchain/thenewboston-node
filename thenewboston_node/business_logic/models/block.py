@@ -26,12 +26,6 @@ logger = logging.getLogger(__name__)
 class Block(SignableMixin, MessagpackCompactableMixin, BaseDataclass):
     """
     Blocks represent a description of change to the network.
-    These originate from signed requests and may include:
-
-     - a transfer of coins between accounts
-     - the registration of a username
-     - a new node being added to the network
-     - etc...
     """
     message: BlockMessage
     """Block payload"""

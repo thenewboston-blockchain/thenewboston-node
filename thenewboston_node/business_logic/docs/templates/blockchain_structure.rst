@@ -166,7 +166,7 @@ Account root file example
 
 .. code-block:: JSON
 
-    {{ models.blockchain_state.sample.to_dict() | tojson(indent=4) | indent }}
+    {{ models.blockchain_state.sample.serialize_to_dict() | tojson(indent=4) | indent }}
 
 Compacted account root file example
 '''''''''''''''''''''''''''''''''''
@@ -236,7 +236,7 @@ Block example
 
 .. code-block:: JSON
 
-    {{ models.block.sample.to_dict() | tojson(indent=4) | indent }}
+    {{ models.block.sample.serialize_to_dict() | tojson(indent=4) | indent }}
 
 Compacted block example
 '''''''''''''''''''''''

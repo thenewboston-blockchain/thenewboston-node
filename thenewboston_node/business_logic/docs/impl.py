@@ -1,43 +1,70 @@
 import builtins
+from collections import Counter
 
 import jinja2
 
 import thenewboston_node.business_logic.docs
 from thenewboston_node.business_logic import models
 from thenewboston_node.business_logic.blockchain import file_blockchain
+from thenewboston_node.business_logic.models.base import get_request_to_block_type_map
 from thenewboston_node.business_logic.models.mixins.compactable import COMPACT_KEY_MAP
 from thenewboston_node.business_logic.storages import file_system, path_optimized_file_system
 
 from .funcs import get_mapped_type_name, is_model
 from .samples import BLOCK_SAMPLE, BLOCKCHAIN_STATE_SAMPLE  # noqa: I101
 
-BLOCK_MODELS = (
-    models.Block,
-    models.BlockMessage,
-    models.CoinTransferSignedChangeRequest,
-    models.CoinTransferSignedChangeRequestMessage,
-    models.CoinTransferTransaction,
-)
 
-BLOCKCHAIN_STATE_MODELS = (
-    models.BlockchainState,
-    models.AccountState,
-)
+def get_block_models(exclude=()):
+    block_models = models.Block.get_nested_models(include_self=True)
+    return [model for model in block_models if model not in exclude]
+
+
+def get_blockchain_state_models(exclude=()):
+    blockchain_state_models = models.BlockchainState.get_nested_models(include_self=True)
+    return [model for model in blockchain_state_models if model not in exclude]
+
+
+def get_signed_change_request_message_child_models():
+    return [
+        signed_change_request_child_model.get_field_type('message')
+        for signed_change_request_child_model in get_request_to_block_type_map()
+    ]
+
+
+def get_signed_change_request_message_models(exclude=()):
+    signed_change_request_message_child_models = get_signed_change_request_message_child_models()
+    signed_change_request_message_models = []
+    for model in signed_change_request_message_child_models:
+        for nested_model in model.get_nested_models(include_self=True):
+            if nested_model in exclude:
+                continue
+
+            signed_change_request_message_models.append(nested_model)
+
+    return signed_change_request_message_models
+
+
+def get_common_models():
+    models = get_block_models() + get_signed_change_request_message_models() + get_blockchain_state_models()
+    return [model for model, count in Counter(models).items() if count > 1]
 
 
 def get_context():
-    block_models = models.Block.get_nested_models(include_self=True)
-    blockchain_state_models = models.BlockchainState.get_nested_models(include_self=True)
-    common_models = set(block_models) & set(blockchain_state_models)
+    # TODO(dmu) MEDIUM: Is there a way to avoid duplicate traversable that does not hurt code readability?
+    common_models = get_common_models()
 
-    block_models = [model for model in block_models if model not in common_models]
-    blockchain_state_models = [model for model in blockchain_state_models if model not in common_models]
+    exclude = set(common_models) | {models.SignedChangeRequestMessage}
+
+    block_models = get_block_models(exclude=exclude)
+    blockchain_state_models = get_blockchain_state_models(exclude=exclude)
+    signed_change_request_message_models = get_signed_change_request_message_models(exclude=exclude)
 
     return {
         'f': {func.__name__: func for func in (get_mapped_type_name, is_model)},
         'block_models': block_models,
         'blockchain_state_models': blockchain_state_models,
         'common_models': common_models,
+        'signed_change_request_message_models': signed_change_request_message_models,
         'models': {
             'block': {
                 'sample': BLOCK_SAMPLE,

@@ -75,7 +75,7 @@ class CoinTransferBlockFactory(Factory):
 
 
 @factory(BlockchainState)
-class InitialAccountRootFileFactory(Factory):
+class InitialBlockchainStateFactory(Factory):
     account_states = {DEFAULT_ACCOUNT: AccountStateFactory()}
     last_block_number = None
     last_block_identifier = None

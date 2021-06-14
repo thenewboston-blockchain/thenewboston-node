@@ -91,7 +91,7 @@ Uncompact
 ^^^^^^^^^
 
 Restore human readable key names
-''''''''''''''''''''''''''''''''
+""""""""""""""""""""""""""""""""
 .. list-table::
    :header-rows: 1
 
@@ -106,7 +106,7 @@ Restore human readable key names
 {% endfor %}
 
 Convert byte array to hexadecimal representation
-''''''''''''''''''''''''''''''''''''''''''''''''
+""""""""""""""""""""""""""""""""""""""""""""""""
 
 TODO(dmu) HIGH: Get information from code which values to be converted
 
@@ -141,7 +141,7 @@ Account root file format
 
 {% for model in blockchain_models %}
 {{ model.__name__ }}
-{{ "'" * model.__name__.__len__() }}
+{{ '"' * model.__name__.__len__() }}
 
 {{ model.get_docstring() }}
 
@@ -166,14 +166,14 @@ Account root file format
 
 
 Account root file example
-'''''''''''''''''''''''''
+"""""""""""""""""""""""""
 
 .. code-block:: JSON
 
     {{ models.blockchain_state.sample.serialize_to_dict() | tojson(indent=4) | indent }}
 
 Compacted account root file example
-'''''''''''''''''''''''''''''''''''
+"""""""""""""""""""""""""""""""""""
 
 .. code-block:: JSON
 
@@ -215,6 +215,36 @@ Block structure
 
 {% for model in block_models %}
 {{ model.__name__ }}
+{{ '"' * model.__name__.__len__() }}
+
+{{ model.get_docstring() }}
+
+{% if model.get_field_names() -%}
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Is mandatory
+{% for field_name in model.get_field_names() -%}
+{%- set field_type = model.get_field_type(field_name) %}
+{%- set field_type_name = field_type.__name__ %}
+   * - {{ field_name }}
+     - {% if f.is_model(field_type) %}`{{ field_type_name }}`_{% else %}{{ f.get_mapped_type_name(field_type_name) }}{% endif %}
+     - {{ model.get_field_docstring(field_name) }}
+     - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
+{%- endfor %}
+{% endif %}
+{% endfor %}
+
+SignedChangeRequestMessage
+""""""""""""""""""""""""""
+
+SignedChangeRequestMessage is a base type for the following subtypes.
+
+{% for model in signed_change_request_message_models %}
+{{ model.__name__ }}
 {{ "'" * model.__name__.__len__() }}
 
 {{ model.get_docstring() }}
@@ -239,14 +269,14 @@ Block structure
 {% endfor %}
 
 Block example
-'''''''''''''
+"""""""""""""
 
 .. code-block:: JSON
 
     {{ models.block.sample.serialize_to_dict() | tojson(indent=4) | indent }}
 
 Compacted block example
-'''''''''''''''''''''''
+"""""""""""""""""""""""
 
 Byte arrays are shown as hexadecimals for representation purposes:
 

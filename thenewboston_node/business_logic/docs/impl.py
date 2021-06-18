@@ -11,7 +11,7 @@ from thenewboston_node.business_logic.models.mixins.compactable import COMPACT_K
 from thenewboston_node.business_logic.storages import file_system, path_optimized_file_system
 
 from .funcs import get_mapped_type_name, is_model
-from .samples import BLOCK_SAMPLE, BLOCKCHAIN_STATE_SAMPLE  # noqa: I101
+from .samples import SamplesFactory  # noqa: I101
 
 
 def get_block_models(exclude=()):
@@ -59,20 +59,16 @@ def get_context():
     blockchain_state_models = get_blockchain_state_models(exclude=exclude)
     signed_change_request_message_models = get_signed_change_request_message_models(exclude=exclude)
 
+    samples_factory = SamplesFactory()
+
     return {
         'f': {func.__name__: func for func in (get_mapped_type_name, is_model)},
         'block_models': block_models,
         'blockchain_state_models': blockchain_state_models,
         'common_models': common_models,
         'signed_change_request_message_models': signed_change_request_message_models,
-        'models': {
-            'block': {
-                'sample': BLOCK_SAMPLE,
-            },
-            'blockchain_state': {
-                'sample': BLOCKCHAIN_STATE_SAMPLE,
-            }
-        },
+        'sample_block_map': samples_factory.get_sample_block_map(),
+        'sample_blockchain_state': samples_factory.get_sample_blockchain_state(),
         'file_blockchain': {
             'account_root_file_subdir': file_blockchain.DEFAULT_ACCOUNT_ROOT_FILE_SUBDIR,
             'blocks_subdir': file_blockchain.DEFAULT_BLOCKS_SUBDIR,

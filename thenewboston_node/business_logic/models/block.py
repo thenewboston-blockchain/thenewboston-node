@@ -65,8 +65,13 @@ class Block(SignableMixin, MessagpackCompactableMixin, BaseDataclass):
 
     @classmethod
     @timeit_method(level=logging.INFO, is_class_method=True)
-    def create_from_signed_change_request(cls: Type[T], blockchain, signed_change_request: SignedChangeRequest) -> T:
-        signing_key = get_node_signing_key()
+    def create_from_signed_change_request(
+        cls: Type[T],
+        blockchain,
+        signed_change_request: SignedChangeRequest,
+        signing_key=None,
+    ) -> T:
+        signing_key = signing_key or get_node_signing_key()
         block = cls(
             signer=derive_verify_key(signing_key),
             message=BlockMessage.from_signed_change_request(blockchain, signed_change_request)

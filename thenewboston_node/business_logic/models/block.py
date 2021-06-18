@@ -28,10 +28,7 @@ class Block(SignableMixin, MessagpackCompactableMixin, BaseDataclass):
     Blocks represent a description of change to the network.
     """
     message: BlockMessage
-    """Block payload"""
-
     message_hash: Optional[hexstr] = None
-    """Hash value of message field"""
 
     @classmethod
     def deserialize_from_dict(cls, dict_, complain_excessive_keys=True, exclude=()):

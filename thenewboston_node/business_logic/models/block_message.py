@@ -28,19 +28,12 @@ class BlockMessage(MessageMixin, BaseDataclass):
     block_type: str
 
     signed_change_request: SignedChangeRequest
-    """Signed change request"""
 
     # We need timestamp, block_number and block_identifier to be signed and hashed therefore
     # they are included in BlockMessage, not in Block model
     timestamp: datetime
-    """Block timestamp in UTC"""
-
     block_number: int
-    """Sequential block number"""
-
     block_identifier: hexstr
-    """Unique block identifier"""
-
     updated_account_states: dict[hexstr, AccountState]
     """Updated account states: {"account_number": `AccountState`_, ...}"""
 

@@ -21,19 +21,6 @@ class BaseMixin:
 
         return type_
 
-    # @classmethod
-    # def get_field_origin_type(cls, field_name):
-    #     type_ = cls.get_field_type(field_name)
-    #     origin = typing.get_origin(type_)
-    #     if not origin:
-    #         return type_
-    #
-    #     for subclass in (dict, list, tuple, set, frozenset):
-    #         if isinstance(origin, subclass)
-    #         return origin
-    #
-    #     return type_
-
     @classmethod
     def is_optional_field(cls, field_name):
         return is_optional(cls.__dataclass_fields__[field_name].type)

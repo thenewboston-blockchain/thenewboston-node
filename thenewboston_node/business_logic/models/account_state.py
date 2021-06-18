@@ -17,13 +17,8 @@ class AccountState(BaseDataclass):
     """Account state"""
 
     balance: Optional[int] = None  # type: ignore
-    """Balance"""
-
     balance_lock: Optional[hexstr] = None  # type: ignore
-    """Balance lock"""
-
     node: Optional[Node] = None  # type: ignore
-    """Network addresses"""
 
     @classmethod
     def deserialize_from_dict(cls, dict_, complain_excessive_keys=True, override=None):

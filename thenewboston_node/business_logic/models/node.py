@@ -10,16 +10,9 @@ from .base import BaseDataclass
 @dataclass
 class Node(BaseDataclass):
     identifier: hexstr
-    """Identifier"""
-
     network_addresses: list[str]
-    """Network addresses"""
-
     fee_amount: int
-    """Fee amount"""
-
     fee_account: Optional[hexstr] = None
-    """Fee account"""
 
     def serialize_to_dict(self, skip_none_values=True, coerce_to_json_types=True, exclude=('identifier',)):
         return super(Node, self).serialize_to_dict(

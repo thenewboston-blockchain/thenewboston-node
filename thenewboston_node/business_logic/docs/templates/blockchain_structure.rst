@@ -150,15 +150,15 @@ Account root file format
    :header-rows: 1
 
    * - Name
-     - Type
      - Description
+     - Type
      - Is mandatory
 {% for field_name in model.get_field_names() -%}
 {%- set field_type = model.get_field_type(field_name) %}
 {%- set field_type_name = field_type.__name__ %}
    * - {{ field_name }}
-     - {% if f.is_model(field_type) %}`{{ field_type_name }}`_{% else %}{{ f.get_mapped_type_name(field_type_name) }}{% endif %}
      - {{ model.get_field_docstring(field_name) }}
+     - {% if f.is_model(field_type) %}`{{ field_type_name }}`_{% else %}{{ f.get_mapped_type_name(field_type_name) }}{% endif %}
      - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
 {%- endfor %}
 {% endif %}
@@ -224,15 +224,15 @@ Block structure
    :header-rows: 1
 
    * - Name
-     - Type
      - Description
+     - Type
      - Is mandatory
 {% for field_name in model.get_field_names() -%}
 {%- set field_type = model.get_field_type(field_name) %}
 {%- set field_type_name = field_type.__name__ %}
    * - {{ field_name }}
-     - {% if f.is_model(field_type) %}`{{ field_type_name }}`_{% else %}{{ f.get_mapped_type_name(field_type_name) }}{% endif %}
      - {{ model.get_field_docstring(field_name) }}
+     - {% if f.is_model(field_type) %}`{{ field_type_name }}`_{% else %}{{ f.get_mapped_type_name(field_type_name) }}{% endif %}
      - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
 {%- endfor %}
 {% endif %}
@@ -254,15 +254,15 @@ SignedChangeRequestMessage is a base type for the following subtypes.
    :header-rows: 1
 
    * - Name
-     - Type
      - Description
+     - Type
      - Is mandatory
 {% for field_name in model.get_field_names() -%}
 {%- set field_type = model.get_field_type(field_name) %}
 {%- set field_type_name = field_type.__name__ %}
    * - {{ field_name }}
-     - {% if f.is_model(field_type) %}`{{ field_type_name }}`_{% else %}{{ f.get_mapped_type_name(field_type_name) }}{% endif %}
      - {{ model.get_field_docstring(field_name) }}
+     - {% if f.is_model(field_type) %}`{{ field_type_name }}`_{% else %}{{ f.get_mapped_type_name(field_type_name) }}{% endif %}
      - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
 {%- endfor %}
 {% endif %}
@@ -303,15 +303,15 @@ Common models structure
    :header-rows: 1
 
    * - Name
-     - Type
      - Description
+     - Type
      - Is mandatory
 {% for field_name in model.get_field_names() -%}
 {%- set field_type = model.get_field_type(field_name) %}
 {%- set field_type_name = field_type.__name__ %}
    * - {{ field_name }}
-     - {% if f.is_model(field_type) %}`{{ field_type_name }}`_{% else %}{{ f.get_mapped_type_name(field_type_name) }}{% endif %}
      - {{ model.get_field_docstring(field_name) }}
+     - {% if f.is_model(field_type) %}`{{ field_type_name }}`_{% else %}{{ f.get_mapped_type_name(field_type_name) }}{% endif %}
      - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
 {%- endfor %}
 {% endif %}

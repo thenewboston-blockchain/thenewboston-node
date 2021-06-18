@@ -15,14 +15,13 @@ logger = logging.getLogger(__name__)
 class SignableMixin:
 
     signer: hexstr
-    """Signer's account number"""
+    """Signer account number"""
 
     message: MessageMixin
-    """Payload"""
 
     # We need signature to be optional to be able to create dataclass instance first and then sign it
     signature: Optional[hexstr] = None
-    """Signature of the message"""
+    """Message signature"""
 
     def sign(self, signing_key):
         verify_key = derive_verify_key(signing_key)

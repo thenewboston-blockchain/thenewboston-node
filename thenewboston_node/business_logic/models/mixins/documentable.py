@@ -4,6 +4,8 @@ from inspect import getdoc
 
 import class_doc
 
+from thenewboston_node.core.utils.misc import humanize_snake_case
+
 from .base import BaseMixin
 
 
@@ -17,6 +19,7 @@ def extract_attribute_docs(model):
 
 
 class DocumentableMixin(BaseMixin):
+    attribute_docs = None
 
     @classmethod
     def get_nested_models(cls, known_models=(), include_self=False):
@@ -49,11 +52,14 @@ class DocumentableMixin(BaseMixin):
         return getdoc(cls)
 
     @classmethod
-    def get_field_docstring(cls, field_name):
-        # TODO(dmu) CRITICAL: Optimize not to extract all attributes
-        attribute_docs = extract_attribute_docs(cls)
-        attr_docstrings = attribute_docs.get(field_name)
-        if attr_docstrings:
-            return textwrap.dedent(attr_docstrings[0])
+    def get_field_docstring(cls, field_name, imply_field_name=True):
+        if (attribute_docs := cls.attribute_docs) is None:
+            cls.attribute_docs = attribute_docs = extract_attribute_docs(cls)
+
+        docstrings = attribute_docs.get(field_name)
+        if docstrings:
+            return textwrap.dedent(' '.join(docstrings))
+        elif imply_field_name:
+            return humanize_snake_case(field_name)
 
         return None

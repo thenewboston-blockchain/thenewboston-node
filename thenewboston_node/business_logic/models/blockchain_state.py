@@ -31,10 +31,7 @@ class BlockchainState(MessagpackCompactableMixin, NormalizableMixin, BaseDatacla
     """Block identifier at which snapshot was taken"""
 
     last_block_timestamp: Optional[datetime] = None
-    """Naive datetime in UTC"""
-
     next_block_identifier: Optional[hexstr] = None
-    """Next block identifier"""
 
     def get_account_state(self, account: hexstr) -> Optional[AccountState]:
         return self.account_states.get(account)

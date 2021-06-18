@@ -19,10 +19,10 @@ class CoinTransferSignedChangeRequestMessage(SignedChangeRequestMessage):
     """Coin transfer request message"""
 
     balance_lock: hexstr
-    """Current sender's balance lock"""
+    """Sender balance lock"""
 
     txs: list[CoinTransferTransaction]
-    """List of `CoinTransferTransaction`_ objects"""
+    """List of transactions: `CoinTransferTransaction`_"""
 
     @classmethod
     def from_transactions(cls: Type[T], blockchain, coin_sender: str, txs: list[CoinTransferTransaction]) -> T:

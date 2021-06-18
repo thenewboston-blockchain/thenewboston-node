@@ -17,17 +17,15 @@ class CoinTransferTransaction(BaseDataclass):
     """Coin transfer between accounts"""
 
     recipient: hexstr
-    """Recipient's account number"""
+    """Recipient account number"""
 
     amount: int
-    """Coins being sent to the recipient"""
 
     # TODO(dmu) HIGH: Rename to `is_fee`
     fee: Optional[bool] = False  # None value won't be serialized
     """Set if transaction is fee"""
 
     memo: Optional[str] = None
-    """Optional memo"""
 
     @classmethod
     def deserialize_from_dict(cls, dict_, complain_excessive_keys=True, override=None):

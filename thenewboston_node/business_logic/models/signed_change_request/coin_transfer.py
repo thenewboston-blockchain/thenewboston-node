@@ -20,7 +20,6 @@ logger = logging.getLogger(__name__)
 @dataclass
 class CoinTransferSignedChangeRequest(SignedChangeRequest):
     message: CoinTransferSignedChangeRequestMessage
-    """Coin transfer request payload"""
 
     @classmethod
     @timeit_method(level=logging.INFO)

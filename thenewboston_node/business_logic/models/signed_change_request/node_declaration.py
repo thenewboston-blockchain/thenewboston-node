@@ -15,7 +15,6 @@ T = TypeVar('T', bound='NodeDeclarationSignedChangeRequest')
 @dataclass
 class NodeDeclarationSignedChangeRequest(SignedChangeRequest):
     message: NodeDeclarationSignedChangeRequestMessage
-    """Network address registration request payload"""
 
     @classmethod
     def create(

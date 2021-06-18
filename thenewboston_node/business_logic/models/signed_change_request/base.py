@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SignedChangeRequest(SignableMixin, BaseDataclass):
     message: SignedChangeRequestMessage
-    """Request payload"""
 
     @classmethod
     def create_from_signed_change_request_message(

@@ -39,9 +39,11 @@ class CoinTransferSignedChangeRequestMessage(SignedChangeRequestMessage):
         txs = [
             CoinTransferTransaction(recipient=recipient, amount=amount),
             CoinTransferTransaction(
-                recipient=primary_validator.identifier, amount=primary_validator.fee_amount, fee=True
+                recipient=primary_validator.fee_account or primary_validator.identifier,
+                amount=primary_validator.fee_amount,
+                fee=True
             ),
-            CoinTransferTransaction(recipient=node.identifier, amount=node.fee_amount, fee=True),
+            CoinTransferTransaction(recipient=node.fee_account or node.identifier, amount=node.fee_amount, fee=True),
         ]
         return cls.from_transactions(blockchain, coin_sender, txs)
 

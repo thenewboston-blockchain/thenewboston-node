@@ -170,14 +170,14 @@ Account root file example
 
 .. code-block:: JSON
 
-    {{ models.blockchain_state.sample.serialize_to_dict() | tojson(indent=4) | indent }}
+    {{ sample_blockchain_state.serialize_to_dict() | tojson(indent=4) | indent }}
 
 Compacted account root file example
 """""""""""""""""""""""""""""""""""
 
 .. code-block:: JSON
 
-    {{ models.blockchain_state.sample.to_compact_dict(compact_keys=True, compact_values=False) |
+    {{ sample_blockchain_state.to_compact_dict(compact_keys=True, compact_values=False) |
        tojson(indent=4) | indent }}
 
 Block chunk files
@@ -266,28 +266,25 @@ SignedChangeRequestMessage is a base type for the following subtypes.
      - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
 {%- endfor %}
 {% endif %}
-{% endfor %}
 
-Block example
-"""""""""""""
+{% if model in sample_block_map %}
+**Block example**
 
 .. code-block:: JSON
 
-    {{ models.block.sample.serialize_to_dict() | tojson(indent=4) | indent }}
+    {{ sample_block_map[model].serialize_to_dict() | tojson(indent=4) | indent }}
 
-Compacted block example
-"""""""""""""""""""""""
+**Compacted block example**
 
 Byte arrays are shown as hexadecimals for representation purposes:
 
 .. code-block:: JSON
 
-    {{ models.block.sample.to_compact_dict(compact_keys=True, compact_values=False) |
+    {{ sample_block_map[model].to_compact_dict(compact_keys=True, compact_values=False) |
        tojson(indent=4) | indent }}
 
-.. Links targets
-.. _MessagePack: https://msgpack.org/
-
+{% endif %}
+{% endfor %}
 
 Common models structure
 =======================
@@ -316,3 +313,6 @@ Common models structure
 {%- endfor %}
 {% endif %}
 {% endfor %}
+
+.. Links targets
+.. _MessagePack: https://msgpack.org/

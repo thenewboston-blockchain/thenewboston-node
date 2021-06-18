@@ -1,78 +1,101 @@
-import datetime
-
-from thenewboston_node.business_logic import models
-from thenewboston_node.business_logic.models.base import BlockType
+from thenewboston_node.core.utils.cryptography import KeyPair
 from thenewboston_node.core.utils.types import hexstr
 
-BLOCK_SAMPLE = models.Block(
-    signer=hexstr('4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732'),
-    message_hash=hexstr('9677f4cbd7aaf32ba9615416f7bd0991b7de1434a7fa2c31add25c3355ef3959'),
-    signature=hexstr(
-        'd1c49087103b631a58228bdf8fb70d4789259cf22d815e207660cfe8d478ad'
-        'ad9c7affe587942203e08be1dc1e14c6dd5a8abd8640f328e45f667a91a7c06a06'
-    ),
-    message=models.BlockMessage(
-        block_type=BlockType.COIN_TRANSFER.value,
-        block_identifier=hexstr('d606af9d1d769192813d71051148ef1896e3d85062c31ad3e62331e25d9c96bc'),
-        block_number=0,
-        timestamp=datetime.datetime(2021, 1, 1),
-        signed_change_request=models.CoinTransferSignedChangeRequest(
-            message=models.CoinTransferSignedChangeRequestMessage(
-                balance_lock=hexstr('cb0467e380e032881e3f5c26878da3584f1dc1f2262ef77ba5e1fa7ef4b2821c'),
-                txs=[
-                    models.CoinTransferTransaction(
-                        amount=54,
-                        recipient=hexstr('8d3bf5323afa7a8c6bc9418288e96491a0434a98925bf392835bfdb5a4f817ff'),
-                    ),
-                    models.CoinTransferTransaction(
-                        amount=5,
-                        recipient=hexstr('4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732'),
-                        fee=True,
-                    ),
-                    models.CoinTransferTransaction(
-                        amount=1,
-                        recipient=hexstr('1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a'),
-                        fee=True,
-                    )
-                ]
-            ),
-            signature=hexstr(
-                'ae74562897f228a3d9bc388eba5037f34393e33813086c103bb5d6fc39a0'
-                '23408655057f4ed8593c2d36bc98fb468112fdac186bec616ec2f2ba45c579c02108'
-            ),
-            signer=hexstr('cb0467e380e032881e3f5c26878da3584f1dc1f2262ef77ba5e1fa7ef4b2821c'),
-        ),
-        updated_account_states={
-            hexstr('1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a'):
-                models.AccountState(balance=1),
-            hexstr('4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732'):
-                models.AccountState(balance=4),
-            hexstr('8d3bf5323afa7a8c6bc9418288e96491a0434a98925bf392835bfdb5a4f817ff'):
-                models.AccountState(balance=54),
-        },
-    ),
+from ..blockchain.memory_blockchain import MemoryBlockchain
+from ..models import (
+    AccountState, Block, BlockchainState, CoinTransferSignedChangeRequest, NodeDeclarationSignedChangeRequest,
+    PrimaryValidator, RegularNode
 )
 
-BLOCKCHAIN_STATE_SAMPLE = models.BlockchainState(
-    account_states={
-        hexstr('1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a'):
-            models.AccountState(
-                balance=1,
-                balance_lock=hexstr('1be4f03ab7ea1184dbb5e4ff53b8cf0fe1cc400150ca1476fcd10546c1b3cd6a'),
-            ),  # noqa: E123
-        hexstr('4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732'):
-            models.AccountState(
-                balance=4,
-                balance_lock=hexstr('4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732'),
-            ),  # noqa: E123
-        hexstr('8d3bf5323afa7a8c6bc9418288e96491a0434a98925bf392835bfdb5a4f817ff'):
-            models.AccountState(
-                balance=54,
-                balance_lock=hexstr('8d3bf5323afa7a8c6bc9418288e96491a0434a98925bf392835bfdb5a4f817ff'),
-            ),  # noqa: E123
-    },
-    last_block_number=100,
-    last_block_identifier=hexstr('d606af9d1d769192813d71051148ef1896e3d85062c31ad3e62331e25d9c96bc'),
-    last_block_timestamp=datetime.datetime(2021, 1, 1),
-    next_block_identifier=hexstr('18266e8fb5fba0ca9a0078d799c73ca34512c229519b1d021b8c2b78ef5f70b7'),
+TREASURY_KEY_PAIR = KeyPair(
+    public=hexstr('00f3d2477317d53bcc2a410decb68c769eea2f0d74b679369b7417e198bd97b6'),
+    private=hexstr('f94fbd639d9507f544fb27b79b5344a2d7b461e333053ed1be45b90c988e6355'),
 )
+
+REGULAR_NODE_KEY_PAIR = KeyPair(
+    public=hexstr('accf7efe1b2ae044f25b98c38cffa3d6992b82e271c71353df549cbab7abaaf9'),
+    private=hexstr('0e92ed657cafd81a51cc32b867af259d8aca2446dd31d1598f0467a15904187b'),
+)
+
+PV_KEY_PAIR = KeyPair(
+    public=hexstr('657cf373f6f8fb72854bd302269b8b2b3576e3e2a686bd7d0a112babaa1790c6'),
+    private=hexstr('5ef5773228743963817f79ea4a4b1e7c1a270f781af44fd141dc68193bce1228'),
+)
+
+PV_FIN_ACCOUNT_KEY_PAIR = KeyPair(
+    public=hexstr('7a5dc06babda703a7d2d8ea18d3309a0c5e6830a25bac03e69633d283244e001'),
+    private=hexstr('d41f52e67645aea0657e2c324efa88a7583310d1e8e7e616bb1233fffeba5151'),
+)
+
+USER_KEY_PAIR = KeyPair(
+    public=hexstr('7584e5ad3f3d29f44179be133790dc94b52dd2e671b9b96694faa36bcc14c135'),
+    private=hexstr('ba719a713651bf1a3ea07bd6eb9bc98721546df2425941d808c2a13c7966ab1f'),
+)
+
+
+def make_sample_blockchain():
+    blockchain = MemoryBlockchain()
+
+    pv = PrimaryValidator(
+        identifier=PV_KEY_PAIR.public,
+        network_addresses=['https://pv-non-existing.thenewboston.com:8000', 'http://78.107.238.40:8000'],
+        fee_amount=4,
+        fee_account=PV_FIN_ACCOUNT_KEY_PAIR.public
+    )
+    blockchain_state = BlockchainState(
+        account_states={
+            TREASURY_KEY_PAIR.public: AccountState(balance=281474976710656),
+            PV_KEY_PAIR.public: AccountState(node=pv),
+        }
+    )
+    blockchain.add_blockchain_state(blockchain_state)
+
+    node = RegularNode(
+        identifier=REGULAR_NODE_KEY_PAIR.public,
+        network_addresses=['https://node42-non-existing.thenewboston.com:8000', 'http://78.107.238.42:8000'],
+        fee_amount=3,
+    )
+    regular_node_scr = NodeDeclarationSignedChangeRequest.create(
+        identifier=node.identifier,
+        network_addresses=node.network_addresses,
+        fee_amount=node.fee_amount,
+        signing_key=REGULAR_NODE_KEY_PAIR.private
+    )
+    blockchain.add_block(Block.create_from_signed_change_request(blockchain, regular_node_scr, PV_KEY_PAIR.private))
+
+    coin_transfer_scr = CoinTransferSignedChangeRequest.from_main_transaction(
+        blockchain=blockchain,
+        recipient=USER_KEY_PAIR.public,
+        amount=1200,
+        signing_key=TREASURY_KEY_PAIR.private,
+        primary_validator=pv,
+        node=node,
+    )
+    blockchain.add_block(Block.create_from_signed_change_request(blockchain, coin_transfer_scr, PV_KEY_PAIR.private))
+
+    blockchain.snapshot_blockchain_state()
+    return blockchain
+
+
+class SamplesFactory:
+
+    def __init__(self):
+        self._blockchain = None
+
+    @property
+    def blockchain(self):
+        if (blockchain := self._blockchain) is None:
+            self._blockchain = blockchain = make_sample_blockchain()
+
+        return blockchain
+
+    def get_sample_blockchain_state(self):
+        return self.blockchain.get_last_blockchain_state()
+
+    def get_sample_block_map(self):
+        block_map = {}
+        for block in self.blockchain.yield_blocks():
+            field_type = block.message.signed_change_request.get_field_type('message')
+            block_map.setdefault(field_type, block)
+
+        return block_map

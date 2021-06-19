@@ -6,8 +6,8 @@ from typing import Optional
 
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.validators import (
-    validate_empty, validate_exact_value, validate_greater_than_zero, validate_min_item_count, validate_not_empty,
-    validate_type
+    validate_empty, validate_exact_value, validate_greater_than_zero, validate_gt_value, validate_gte_value,
+    validate_is_none, validate_min_item_count, validate_not_empty, validate_not_none, validate_type
 )
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.types import hexstr
@@ -121,22 +121,15 @@ class BlockMessage(MessageMixin, BaseDataclass):
     @validates('transfer request on block message level')
     def validate_signed_change_request(self, blockchain):
         signed_change_request = self.signed_change_request
-        if signed_change_request is None:
-            raise ValidationError('Block message transfer request must present')
-
+        validate_not_none(f'{self.humanized_class_name} signed_change_request', self.signed_change_request)
         signed_change_request.validate(blockchain, self.block_number)
 
     @validates('block message timestamp')
     def validate_timestamp(self, blockchain):
         timestamp = self.timestamp
-        if timestamp is None:
-            raise ValidationError('Block message timestamp must be set')
-
-        if not isinstance(timestamp, datetime):
-            raise ValidationError('Block message timestamp must be datetime type')
-
-        if timestamp.tzinfo is not None:
-            raise ValidationError('Block message timestamp must be naive datetime (UTC timezone implied)')
+        validate_not_none(f'{self.humanized_class_name} timestamp', timestamp)
+        validate_type(f'{self.humanized_class_name} timestamp', timestamp, datetime)
+        validate_is_none(f'{self.humanized_class_name} timestamp timezone', timestamp.tzinfo)
 
         block_number = self.block_number
         assert block_number is not None
@@ -146,50 +139,41 @@ class BlockMessage(MessageMixin, BaseDataclass):
             prev_block = blockchain.get_block_by_number(prev_block_number)
             if prev_block is None:
                 logger.debug('Partial blockchain detected')
-                account_root_file = blockchain.get_closest_blockchain_state_snapshot(block_number)
-                if account_root_file is None:
-                    raise ValidationError('Unexpected could not find base account root file')
+                blockchain_state = blockchain.get_closest_blockchain_state_snapshot(block_number)
+                validate_not_none('Closest blockchain state', blockchain_state)
 
-                if account_root_file.is_initial():
+                if blockchain_state.is_initial():
                     raise ValidationError('Unexpected initial account root file found')
 
-                if account_root_file.last_block_number != prev_block_number:
-                    raise ValidationError('Base account root file block number mismatch')
+                validate_exact_value(
+                    'Blockchain state last block number', blockchain_state.last_block_number, prev_block_number
+                )
 
-                assert account_root_file.last_block_timestamp
-                min_timestamp = account_root_file.last_block_timestamp
+                assert blockchain_state.last_block_timestamp
+                min_timestamp = blockchain_state.last_block_timestamp
             else:
                 min_timestamp = prev_block.message.timestamp
 
-            if timestamp <= min_timestamp:
-                raise ValidationError('Block message timestamp must be greater than from previous block')
+            validate_gt_value(f'{self.humanized_class_name} timestamp', timestamp, min_timestamp)
 
     @validates('block number')
     def validate_block_number(self):
         block_number = self.block_number
-        if block_number is None:
-            raise ValidationError('Block number must be set')
-
-        if not isinstance(block_number, int):
-            raise ValidationError('Block number must be integer')
-
-        if block_number < 0:
-            raise ValidationError('Block number must be greater or equal to 0')
+        validate_not_none(f'{self.humanized_class_name} block_number', block_number)
+        validate_type(f'{self.humanized_class_name} block_number', block_number, int)
+        validate_gte_value(f'{self.humanized_class_name} block_number', block_number, 0)
 
     @validates('block identifier')
     def validate_block_identifier(self, blockchain):
         block_identifier = self.block_identifier
-        if block_identifier is None:
-            raise ValidationError('Block identifier must be set')
-
-        if not isinstance(block_identifier, str):
-            raise ValidationError('Block identifier must be a string')
+        validate_not_none(f'{self.humanized_class_name} block_identifier', block_identifier)
+        validate_type(f'{self.humanized_class_name} block_identifier', block_identifier, str)
 
         block_number = self.block_number
         assert block_number is not None
 
-        if block_identifier != blockchain.get_expected_block_identifier(block_number):
-            raise ValidationError('Invalid block identifier')
+        expected_identifier = blockchain.get_expected_block_identifier(block_number)
+        validate_exact_value(f'{self.humanized_class_name} block_identifier', block_identifier, expected_identifier)
 
     @validates()
     def validate_updated_account_states(self, blockchain):

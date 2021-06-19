@@ -4,6 +4,9 @@ from typing import Optional
 from django.conf import settings
 
 from thenewboston_node.business_logic.exceptions import ValidationError
+from thenewboston_node.business_logic.validators import (
+    validate_gte_value, validate_in, validate_not_empty, validate_type
+)
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.constants import SENTINEL
 from thenewboston_node.core.utils.misc import humanize_camel_case
@@ -56,21 +59,12 @@ class CoinTransferTransaction(BaseDataclass):
 
     @validates('transaction {}')
     def validate(self):
-        with validates('recipient'):
-            if not self.recipient:
-                raise ValidationError(f'{self.humanized_class_name} recipient is not set')
+        amount = self.amount
 
-        with validates('amount'):
-            amount = self.amount
-            if not isinstance(amount, int):
-                raise ValidationError(f'{self.humanized_class_name} amount must be an integer')
-
-            if amount < 1:
-                raise ValidationError(f'{self.humanized_class_name} amount must be greater or equal to 1')
-
-        with validates('fee'):
-            if self.fee not in (True, False, None):
-                raise ValidationError(f'{self.humanized_class_name} fee value is invalid')
+        validate_not_empty(f'{self.humanized_class_name} recipient', self.recipient)
+        validate_type(f'{self.humanized_class_name} amount', amount, int)
+        validate_gte_value(f'{self.humanized_class_name} amount', amount, 1)
+        validate_in(f'{self.humanized_class_name} fee', self.fee, (True, False, None))
 
         with validates('memo'):
             max_len = settings.MEMO_MAX_LENGTH

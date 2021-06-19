@@ -7,6 +7,7 @@ from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
 from thenewboston_node.business_logic.network.base import NetworkBase
 from thenewboston_node.business_logic.node import get_node_signing_key
+from thenewboston_node.business_logic.validators import validate_exact_value, validate_not_empty
 from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.types import hexstr
@@ -120,19 +121,10 @@ class Block(SignableMixin, MessagpackCompactableMixin, BaseDataclass):
     @validates('block')
     def validate(self, blockchain):
         with validates(f'block number {self.message.block_number} (identifier: {self.message.block_identifier})'):
-            self.validate_message(blockchain)
-            self.validate_message_hash()
+            validate_not_empty(f'{self.humanized_class_name} message', self.message)
+            self.message.validate(blockchain)
+            validate_exact_value(
+                f'{self.humanized_class_name} message_hash', self.message_hash, self.message.get_hash()
+            )
             with validates('block signature'):
                 self.validate_signature()
-
-    @validates('block message on block level')
-    def validate_message(self, blockchain):
-        if not self.message:
-            raise ValidationError('Block message must be not empty')
-
-        self.message.validate(blockchain)
-
-    @validates('block message hash')
-    def validate_message_hash(self):
-        if self.message.get_hash() != self.message_hash:
-            raise ValidationError('Block message hash is invalid')

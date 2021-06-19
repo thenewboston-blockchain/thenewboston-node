@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import Optional
 
-from thenewboston_node.business_logic.validators import validate_min_value, validate_not_empty, validate_type
+from thenewboston_node.business_logic.validators import validate_gte_value, validate_not_empty, validate_type
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.types import hexstr
 
@@ -56,7 +56,7 @@ class AccountState(BaseDataclass):
     @validates()
     def validate_balance(self):
         validate_type(f'{self.humanized_class_name_lowered} balance', self.balance, int)
-        validate_min_value(f'{self.humanized_class_name_lowered} balance', self.balance, 0)
+        validate_gte_value(f'{self.humanized_class_name_lowered} balance', self.balance, 0)
 
     @validates()
     def validate_balance_lock(self):

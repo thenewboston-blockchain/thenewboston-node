@@ -2,9 +2,10 @@ import logging
 from dataclasses import dataclass
 from typing import Type, TypeVar
 
-from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
-from thenewboston_node.business_logic.validators import validate_greater_than_zero
+from thenewboston_node.business_logic.validators import (
+    validate_exact_value, validate_greater_than_zero, validate_lte_value
+)
 from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.types import hexstr
@@ -56,10 +57,11 @@ class CoinTransferSignedChangeRequest(SignedChangeRequest):
         balance = blockchain.get_account_balance(self.signer, in_block_number - 1)
         validate_greater_than_zero(f'{self.humanized_class_name_lowered} singer balance', balance)
 
-        if self.message.get_total_amount() > balance:
-            raise ValidationError(f'{self.humanized_class_name} total amount is greater than signer account balance')
+        validate_lte_value(f'{self.humanized_class_name} total amount', self.message.get_total_amount(), balance)
 
     @validates('transfer request balance lock on transfer request level')
     def validate_balance_lock(self, blockchain, in_block_number: int):
-        if self.message.balance_lock != blockchain.get_account_balance_lock(self.signer, in_block_number - 1):
-            raise ValidationError('Transfer request balance lock does not match expected balance lock')
+        expected_lock = blockchain.get_account_balance_lock(self.signer, in_block_number - 1)
+        validate_exact_value(
+            f'{self.humanized_class_name} message balance_lock', self.message.balance_lock, expected_lock
+        )

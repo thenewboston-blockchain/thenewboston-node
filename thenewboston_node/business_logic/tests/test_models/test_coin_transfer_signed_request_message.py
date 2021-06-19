@@ -44,11 +44,15 @@ def test_validate(sample_coin_transfer_signed_request_message):
 
 def test_validate_balance_lock(sample_coin_transfer_signed_request_message):
     sample_coin_transfer_signed_request_message.balance_lock = ''
-    with pytest.raises(ValidationError, match='Coin transfer signed change request message balance lock must be set'):
+    with pytest.raises(
+        ValidationError, match='Coin transfer signed change request message balance lock must be not empty'
+    ):
         sample_coin_transfer_signed_request_message.validate()
 
     sample_coin_transfer_signed_request_message.balance_lock = None
-    with pytest.raises(ValidationError, match='Coin transfer signed change request message balance lock must be set'):
+    with pytest.raises(
+        ValidationError, match='Coin transfer signed change request message balance lock must be not empty'
+    ):
         sample_coin_transfer_signed_request_message.validate()
 
 
@@ -59,14 +63,14 @@ def test_validate_transactions(sample_coin_transfer_signed_request_message: Coin
 
     sample_coin_transfer_signed_request_message.txs[0] = 'dummy'  # type: ignore
     with pytest.raises(
-        ValidationError, match='Coin transfer signed change request message txs must contain only Transactions types'
+        ValidationError, match='Coin transfer signed change request message txs must be CoinTransferTransaction'
     ):
         sample_coin_transfer_signed_request_message.validate()
 
     sample_coin_transfer_signed_request_message.txs = 'dummy'  # type: ignore
-    with pytest.raises(ValidationError, match='Coin transfer signed change request message txs must be a list'):
+    with pytest.raises(ValidationError, match='Coin transfer signed change request message txs must be list'):
         sample_coin_transfer_signed_request_message.validate()
 
     sample_coin_transfer_signed_request_message.txs = []
-    with pytest.raises(ValidationError, match='txs must contain at least one transaction'):
+    with pytest.raises(ValidationError, match='Coin transfer signed change request message txs must be not empty'):
         sample_coin_transfer_signed_request_message.validate()

@@ -11,17 +11,17 @@ def test_validation(sample_coin_transfer_transaction):
 
 def test_recipient_validation(sample_coin_transfer_transaction):
     sample_coin_transfer_transaction.recipient = ''
-    with pytest.raises(ValidationError, match='Coin transfer transaction recipient is not set'):
+    with pytest.raises(ValidationError, match='Coin transfer transaction recipient must be not empty'):
         sample_coin_transfer_transaction.validate()
 
     sample_coin_transfer_transaction.recipient = None
-    with pytest.raises(ValidationError, match='Coin transfer transaction recipient is not set'):
+    with pytest.raises(ValidationError, match='Coin transfer transaction recipient must be not empty'):
         sample_coin_transfer_transaction.validate()
 
 
 def test_amount_validation(sample_coin_transfer_transaction):
     sample_coin_transfer_transaction.amount = 1.2
-    with pytest.raises(ValidationError, match='Coin transfer transaction amount must be an integer'):
+    with pytest.raises(ValidationError, match='Coin transfer transaction amount must be integer'):
         sample_coin_transfer_transaction.validate()
 
     sample_coin_transfer_transaction.amount = 0
@@ -35,7 +35,7 @@ def test_amount_validation(sample_coin_transfer_transaction):
 
 def test_fee_validation(sample_coin_transfer_transaction):
     sample_coin_transfer_transaction.fee = 'NODE'
-    with pytest.raises(ValidationError, match='Coin transfer transaction fee value is invalid'):
+    with pytest.raises(ValidationError, match='Coin transfer transaction fee must be one of True, False, None'):
         sample_coin_transfer_transaction.validate()
 
 

@@ -13,7 +13,16 @@ jobs:
     container: python:3.9.2
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout codebase
+        uses: actions/checkout@v2
+        with:
+          path: codebase
+
+      - name: Checkout wiki
+        uses: actions/checkout@v2
+        with:
+          repository: ${{github.repository}}.wiki
+          path: wiki
 
       - name: Run Poetry image
         uses: abatilo/actions-poetry@v2.0.0
@@ -21,9 +30,18 @@ jobs:
           poetry-version: 1.1.4
 
       - name: Install
-        run: make install
+        run: cd codebase && make install
 
       - name: Generate
-        run: make docs-html
+        run: cd codebase && make docs-rst
         env:
           THENEWBOSTON_NODE_SECRET_KEY: dummy
+
+      - name: Upload to wiki
+        run: |
+          cd wiki
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          cp ../codebase/docs/thenewboston-blockchain-format.rst ./thenewboston-blockchain-format.rest
+          git add thenewboston-blockchain-format.rest
+          git diff-index --quiet HEAD || git commit -m 'GitHub Action changes' && git push

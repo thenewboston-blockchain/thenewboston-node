@@ -56,8 +56,8 @@ docs:
 
 .PHONY: docs-rst
 docs-rst: docs
-	poetry run python -m thenewboston_node.manage generate_documentation > docs/blockchain-structure-documentation.rst
+	poetry run python -m thenewboston_node.manage generate_documentation > docs/thenewboston-blockchain-format.rst
 
 .PHONY: docs-html
 docs-html: docs
-	poetry run python -m thenewboston_node.manage generate_documentation | poetry run rst2html.py > docs/blockchain-structure-documentation.html
+	poetry run python -m thenewboston_node.manage generate_documentation | poetry run rst2html.py > docs/thenewboston-blockchain-format.html

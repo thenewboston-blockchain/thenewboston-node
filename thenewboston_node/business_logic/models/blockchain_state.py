@@ -23,7 +23,7 @@ class BlockchainState(MessagpackCompactableMixin, NormalizableMixin, BaseDatacla
     """Historical snapshot of all account balances at any point in time"""
 
     account_states: dict[hexstr, AccountState]
-    """Map like {"account_number": `AccountState`_, ...}"""
+    """Account number to account state map"""
 
     last_block_number: Optional[int] = None
     """Block number at which snapshot was taken"""

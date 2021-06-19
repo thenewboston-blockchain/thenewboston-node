@@ -2,8 +2,8 @@ import copy
 from dataclasses import dataclass
 from typing import Type, TypeVar
 
-from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
+from thenewboston_node.business_logic.validators import validate_not_empty, validate_type
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import normalize_dict
 from thenewboston_node.core.utils.types import hexstr
@@ -72,20 +72,15 @@ class CoinTransferSignedChangeRequestMessage(SignedChangeRequestMessage):
 
     @validates('transfer request message balance lock')
     def validate_balance_lock(self):
-        if not self.balance_lock:
-            raise ValidationError(f'{self.humanized_class_name} balance lock must be set')
+        validate_not_empty(f'{self.humanized_class_name} balance lock', self.balance_lock)
 
     @validates('transfer request message transactions', is_plural_target=True)
     def validate_transactions(self):
         txs = self.txs
-        if not isinstance(txs, list):
-            raise ValidationError(f'{self.humanized_class_name} txs must be a list')
-
-        if not txs:
-            raise ValidationError(f'{self.humanized_class_name} txs must contain at least one transaction')
+        validate_type(f'{self.humanized_class_name} txs', txs, list)
+        validate_not_empty(f'{self.humanized_class_name} txs', txs)
 
         for tx in self.txs:
             with validates(f'Validating transaction {tx} on {self.get_humanized_class_name(False)} level'):
-                if not isinstance(tx, CoinTransferTransaction):
-                    raise ValidationError(f'{self.humanized_class_name} txs must contain only Transactions types')
+                validate_type(f'{self.humanized_class_name} txs', tx, CoinTransferTransaction)
                 tx.validate()

@@ -2,8 +2,8 @@ import logging
 from dataclasses import dataclass
 from typing import Optional
 
-from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.mixins.message import MessageMixin
+from thenewboston_node.business_logic.validators import validate_not_empty, validate_type
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
 from thenewboston_node.core.utils.types import hexstr
@@ -42,21 +42,13 @@ class SignableMixin:
     def validate_signature(self):
         verify_key = self.validate_signer()
         signature = self.signature
-        if not signature:
-            raise ValidationError('Signature must be set')
-
-        if not isinstance(signature, str):
-            raise ValidationError('Signature  must be a string')
-
+        validate_not_empty('Signature', signature)
+        validate_type('Signature', signature, str)
         self.message.validate_signature(verify_key, self.signature)
 
     @validates('signer')
     def validate_signer(self):
         signer = self.signer
-        if not signer:
-            raise ValidationError('Signer must be set')
-
-        if not isinstance(signer, str):
-            raise ValidationError('Signer must be a string')
-
+        validate_not_empty('Signer', signer)
+        validate_type('Signer', signer, str)
         return signer

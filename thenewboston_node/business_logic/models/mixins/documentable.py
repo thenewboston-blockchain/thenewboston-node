@@ -1,12 +1,24 @@
 import textwrap
 import typing
+from datetime import datetime
 from inspect import getdoc
 
 import class_doc
 
 from thenewboston_node.core.utils.misc import humanize_snake_case
+from thenewboston_node.core.utils.types import hexstr
 
 from .base import BaseMixin
+
+TYPE_NAME_MAP = {
+    str: 'string',
+    hexstr: 'hexstr',
+    int: 'integer',
+    dict: 'object',
+    list: 'array',
+    tuple: 'array',
+    datetime: 'datetime'
+}
 
 
 def extract_attribute_docs(model):
@@ -16,6 +28,14 @@ def extract_attribute_docs(model):
             docs |= class_doc.extract_docs_from_cls_obj(cls=class_)
 
     return docs
+
+
+def normalize_type_representation(type_, jsonify=True, targetized_types=(hexstr, datetime)):
+    type_name = TYPE_NAME_MAP.get(type_, type_.__name__) if jsonify else type_.__name__
+    if issubclass(type_, targetized_types + (DocumentableMixin,)):
+        type_name = f'`{type_name}`_'
+
+    return type_name
 
 
 class DocumentableMixin(BaseMixin):
@@ -63,3 +83,25 @@ class DocumentableMixin(BaseMixin):
             return humanize_snake_case(field_name)
 
         return None
+
+    @classmethod
+    def get_field_type_representation(cls, field_name, jsonify=True):
+        field_type = cls.get_field_type(field_name)
+
+        origin = typing.get_origin(field_type)
+        if origin:
+            if issubclass(origin, list):
+                (item_type,) = typing.get_args(field_type)
+                return (
+                    f'{normalize_type_representation(list, jsonify=jsonify)}'
+                    f'[{normalize_type_representation(item_type, jsonify=jsonify)}]'
+                )
+            elif issubclass(origin, dict):
+                item_key_type, item_value_type = typing.get_args(field_type)
+                return (
+                    f'{normalize_type_representation(dict, jsonify=jsonify)}'
+                    f'[{normalize_type_representation(item_key_type, jsonify=jsonify)}, '
+                    f'{normalize_type_representation(item_value_type, jsonify=jsonify)}]'
+                )
+
+        return normalize_type_representation(field_type, jsonify=jsonify)

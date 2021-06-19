@@ -6,11 +6,11 @@ import jinja2
 import thenewboston_node.business_logic.docs
 from thenewboston_node.business_logic import models
 from thenewboston_node.business_logic.blockchain import file_blockchain
+from thenewboston_node.business_logic.models import SignedChangeRequestMessage
 from thenewboston_node.business_logic.models.base import get_request_to_block_type_map
 from thenewboston_node.business_logic.models.mixins.compactable import COMPACT_KEY_MAP
 from thenewboston_node.business_logic.storages import file_system, path_optimized_file_system
 
-from .funcs import get_mapped_type_name, is_model
 from .samples import SamplesFactory  # noqa: I101
 
 
@@ -59,14 +59,20 @@ def get_context():
     blockchain_state_models = get_blockchain_state_models(exclude=exclude)
     signed_change_request_message_models = get_signed_change_request_message_models(exclude=exclude)
 
+    # we need it a list to keep the same order with `signed_change_request_message_subtypes`
+    assert isinstance(signed_change_request_message_models, list)
+    signed_change_request_message_subtypes = [
+        type_ for type_ in signed_change_request_message_models if issubclass(type_, SignedChangeRequestMessage)
+    ]
+
     samples_factory = SamplesFactory()
 
     return {
-        'f': {func.__name__: func for func in (get_mapped_type_name, is_model)},
         'block_models': block_models,
         'blockchain_state_models': blockchain_state_models,
         'common_models': common_models,
         'signed_change_request_message_models': signed_change_request_message_models,
+        'signed_change_request_message_subtypes': signed_change_request_message_subtypes,
         'sample_block_map': samples_factory.get_sample_block_map(),
         'sample_blockchain_state': samples_factory.get_sample_blockchain_state(),
         'file_blockchain': {
@@ -90,7 +96,7 @@ def get_context():
 
 def render(context):
     env = jinja2.Environment(loader=jinja2.PackageLoader(thenewboston_node.business_logic.docs.__name__, 'templates'))
-    template = env.get_template('blockchain_structure.rst')
+    template = env.get_template('blockchain-format.rst')
     return template.render(context)
 
 

@@ -9,7 +9,7 @@ Directory structure
 +=====================================+====================================+
 | Blockchain root directory           | ``/path/to/blockchain/root/``      |
 +-------------------------------------+------------------------------------+
-| `Blockchain states`_ directory      | ``+---{{ (file_blockchain.account_root_file_subdir + '/``').ljust(28) }} |
+| `Blockchain state files`_ directory | ``+---{{ (file_blockchain.account_root_file_subdir + '/``').ljust(28) }} |
 +-------------------------------------+------------------------------------+
 | `Block chunk files`_ directory      | ``+---{{ (file_blockchain.blocks_subdir + '/``').ljust(28) }} |
 +-------------------------------------+------------------------------------+
@@ -102,13 +102,13 @@ Restore human readable key names
 Convert byte array to hexadecimal representation
 """"""""""""""""""""""""""""""""""""""""""""""""
 
-TODO(dmu) HIGH: Get information from code which values to be converted
+All fields of `hexstr`_ type are the objects for such conversion.
 
-Blockchain states
-=================
+Blockchain state files
+======================
 
-Blockchain states directory
----------------------------
+Blockchain state files directory
+--------------------------------
 
 Blockchain states are saved to ``/path/to/blockchain/root/{{ file_blockchain.account_root_file_subdir }}/``
 in a nested directory structure as described in `Directory nesting`_ section
@@ -165,12 +165,10 @@ Format description
      - Description
      - Type
      - Is mandatory
-{% for field_name in model.get_field_names() -%}
-{%- set field_type = model.get_field_type(field_name) %}
-{%- set field_type_name = field_type.__name__ %}
+{% for field_name in model.get_field_names() %}
    * - {{ field_name }}
      - {{ model.get_field_docstring(field_name) }}
-     - {% if f.is_model(field_type) %}`{{ field_type_name }}`_{% else %}{{ f.get_mapped_type_name(field_type_name) }}{% endif %}
+     - {{ model.get_field_type_representation(field_name) }}
      - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
 {%- endfor %}
 {% endif %}
@@ -223,12 +221,10 @@ Block structure
      - Description
      - Type
      - Is mandatory
-{% for field_name in model.get_field_names() -%}
-{%- set field_type = model.get_field_type(field_name) %}
-{%- set field_type_name = field_type.__name__ %}
+{% for field_name in model.get_field_names() %}
    * - {{ field_name }}
      - {{ model.get_field_docstring(field_name) }}
-     - {% if f.is_model(field_type) %}`{{ field_type_name }}`_{% else %}{{ f.get_mapped_type_name(field_type_name) }}{% endif %}
+     - {{ model.get_field_type_representation(field_name) }}
      - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
 {%- endfor %}
 {% endif %}
@@ -237,7 +233,11 @@ Block structure
 SignedChangeRequestMessage
 """"""""""""""""""""""""""
 
-SignedChangeRequestMessage is a base type for the following subtypes.
+SignedChangeRequestMessage is a base type for the following subtypes:
+
+{% for model in signed_change_request_message_subtypes %}
+- `{{ model.__name__ }}`_
+{% endfor %}
 
 {% for model in signed_change_request_message_models %}
 {{ model.__name__ }}
@@ -273,19 +273,25 @@ Byte arrays are shown as hexadecimals for representation purposes:
      - Description
      - Type
      - Is mandatory
-{% for field_name in model.get_field_names() -%}
-{%- set field_type = model.get_field_type(field_name) %}
-{%- set field_type_name = field_type.__name__ %}
+{% for field_name in model.get_field_names() %}
    * - {{ field_name }}
      - {{ model.get_field_docstring(field_name) }}
-     - {% if f.is_model(field_type) %}`{{ field_type_name }}`_{% else %}{{ f.get_mapped_type_name(field_type_name) }}{% endif %}
+     - {{ model.get_field_type_representation(field_name) }}
      - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
 {%- endfor %}
 {% endif %}
 {% endfor %}
 
-Common models structure
-=======================
+Common types and models structure
+=================================
+
+hexstr
+------
+A string of hexadecimal characters
+
+datetime
+--------
+A string of `ISO formatted datetime <https://en.wikipedia.org/wiki/ISO_8601>`_
 
 {% for model in common_models %}
 {{ model.__name__ }}
@@ -301,12 +307,10 @@ Common models structure
      - Description
      - Type
      - Is mandatory
-{% for field_name in model.get_field_names() -%}
-{%- set field_type = model.get_field_type(field_name) %}
-{%- set field_type_name = field_type.__name__ %}
+{% for field_name in model.get_field_names() %}
    * - {{ field_name }}
      - {{ model.get_field_docstring(field_name) }}
-     - {% if f.is_model(field_type) %}`{{ field_type_name }}`_{% else %}{{ f.get_mapped_type_name(field_type_name) }}{% endif %}
+     - {{ model.get_field_type_representation(field_name) }}
      - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
 {%- endfor %}
 {% endif %}

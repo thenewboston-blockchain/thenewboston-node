@@ -60,4 +60,4 @@ docs-rst: docs
 
 .PHONY: docs-html
 docs-html: docs
-	poetry run python -m thenewboston_node.manage generate_documentation | rst2html.py > docs/blockchain-structure-documentation.html
+	poetry run python -m thenewboston_node.manage generate_documentation | peotry run rst2html.py > docs/blockchain-structure-documentation.html

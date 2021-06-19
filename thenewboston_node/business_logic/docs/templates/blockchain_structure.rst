@@ -4,22 +4,22 @@ thenewboston blockchain format
 Directory structure
 ===================
 
-+------------------------------------+------------------------------------+
-| Content                            | Path                               |
-+====================================+====================================+
-| Blockchain root directory          | ``/path/to/blockchain/root/``      |
-+------------------------------------+------------------------------------+
-| `Account root files`_ directory    | ``+---{{ (file_blockchain.account_root_file_subdir + '/``').ljust(28) }} |
-+------------------------------------+------------------------------------+
-| `Block chunk files`_ directory     | ``+---{{ (file_blockchain.blocks_subdir + '/``').ljust(28) }} |
-+------------------------------------+------------------------------------+
++-------------------------------------+------------------------------------+
+| Content                             | Path                               |
++=====================================+====================================+
+| Blockchain root directory           | ``/path/to/blockchain/root/``      |
++-------------------------------------+------------------------------------+
+| `Blockchain states`_ directory      | ``+---{{ (file_blockchain.account_root_file_subdir + '/``').ljust(28) }} |
++-------------------------------------+------------------------------------+
+| `Block chunk files`_ directory      | ``+---{{ (file_blockchain.blocks_subdir + '/``').ljust(28) }} |
++-------------------------------------+------------------------------------+
 
 Directory nesting
 =================
 
 For filesystem access optimization files are saved to nested directories of
 ``{{ file_blockchain.file_optimization_max_depth }}`` levels. It is used for storing both
-account root files and block chunk files.
+blockchain state files and block chunk files.
 
 +---------------------------------+---------------------------------------------------------------+
 | Content                         | Path                                                          |
@@ -40,8 +40,8 @@ Examples:
 Files format
 ============
 
-Both account root files and block chunk files have the same format, but different business logic
-related structure. Latter is described in sections `Account root file structure`_ and
+Both blockchain state files and block chunk files have the same format, but different business logic
+related structure. Latter is described in sections `Blockchain state structure`_ and
 `Block chunk file structure`_. This section describes general technical format regardless to
 the actual data being stored in the files.
 
@@ -60,15 +60,9 @@ Supported compression algorithms:
 Deserialization
 ---------------
 
-+-----------------------------------------+------------------------------------+-------------------------------------------------+
-| Source                                  | Deserialization step               | Result                                          |
-+=========================================+====================================+=================================================+
-| ``base-name.msgpack{{ ('[.' + '|'.join(file_blockchain.compressors) + ']``').ljust(20) }} | `Decompress`_                      | MessagePack_ binary: ``base-name.msgpack``      |
-+-----------------------------------------+------------------------------------+-------------------------------------------------+
-| ``base-name.msgpack``                   | `Deserialize from MessagePack`_    | In-memory MessagePack_ compacted object         |
-+-----------------------------------------+------------------------------------+-------------------------------------------------+
-| In-memory MessagePack_ compacted object | `Uncompact`_                       | In-memory MessagePack_ object                   |
-+-----------------------------------------+------------------------------------+-------------------------------------------------+
+``base-name.msgpack[.({{ '|'.join(file_blockchain.compressors) }})]`` === `Decompress`_ ==>
+MessagePack_ binary: ``base-name.msgpack`` === `Deserialize from MessagePack`_ ==>
+In-memory MessagePack_ compacted object === `Uncompact`_ ==> In-memory MessagePack_ object
 
 Decompress
 ^^^^^^^^^^
@@ -84,7 +78,7 @@ Just use corresponding decompression algorithm. Here is how we do it in Python::
 Deserialize from MessagePack
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Account root file contains a single serialized MessagePack object.
+- Blockchain state contains a single serialized MessagePack object.
 - See `Block chunk file format`_
 
 Uncompact
@@ -110,36 +104,54 @@ Convert byte array to hexadecimal representation
 
 TODO(dmu) HIGH: Get information from code which values to be converted
 
-Account root files
-==================
+Blockchain states
+=================
 
-Account root files directory
-----------------------------
+Blockchain states directory
+---------------------------
 
-Account root files are saved to ``/path/to/blockchain/root/{{ file_blockchain.account_root_file_subdir }}/``
+Blockchain states are saved to ``/path/to/blockchain/root/{{ file_blockchain.account_root_file_subdir }}/``
 in a nested directory structure as described in `Directory nesting`_ section
 
 For example, file named ``0000100199-arf.msgpack.xz`` will be saved to as
 ``/path/to/blockchain/root/{{ file_blockchain.make_optimized_file_path('0000100199-arf.msgpack.xz', file_blockchain.file_optimization_max_depth) }}``
 
-Account root file structure
----------------------------
+Blockchain state structure
+--------------------------
 
-Account root filename format
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Blockchain state filename format
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Filename template is "``{{ file_blockchain.account_root_file_template.format(last_block_number='x' *  file_blockchain.order_of_account_root_file) }}[.compressor]``"
-where "``{{ 'x' *  file_blockchain.order_of_account_root_file }}``" is the last block number of the account root file and "``.compressor``" represents compression algorithm
+where "``{{ 'x' *  file_blockchain.order_of_account_root_file }}``" is the last block number of the blockchain state file and "``.compressor``" represents compression algorithm
 if present.
 
 Filename example of last block number 199 compressed with LZMA compression: ``{{ file_blockchain.get_account_root_filename(199) }}.xz``.
 
 NOTE: Initial root account file filename is ``{{ file_blockchain.get_account_root_filename(None) }}``.
 
-Account root file format
-^^^^^^^^^^^^^^^^^^^^^^^^
+Blockchain state format
+^^^^^^^^^^^^^^^^^^^^^^^
 
-{% for model in blockchain_models %}
+Blockchain state example
+""""""""""""""""""""""""
+
+.. code-block:: JSON
+
+    {{ sample_blockchain_state.serialize_to_dict() | tojson(indent=4) | indent }}
+
+Compacted blockchain state example
+""""""""""""""""""""""""""""""""""
+
+.. code-block:: JSON
+
+    {{ sample_blockchain_state.to_compact_dict(compact_keys=True, compact_values=False) |
+       tojson(indent=4) | indent }}
+
+Format description
+""""""""""""""""""
+
+{% for model in blockchain_state_models %}
 {{ model.__name__ }}
 {{ '"' * model.__name__.__len__() }}
 
@@ -164,26 +176,10 @@ Account root file format
 {% endif %}
 {% endfor %}
 
-
-Account root file example
-"""""""""""""""""""""""""
-
-.. code-block:: JSON
-
-    {{ sample_blockchain_state.serialize_to_dict() | tojson(indent=4) | indent }}
-
-Compacted account root file example
-"""""""""""""""""""""""""""""""""""
-
-.. code-block:: JSON
-
-    {{ sample_blockchain_state.to_compact_dict(compact_keys=True, compact_values=False) |
-       tojson(indent=4) | indent }}
-
 Block chunk files
 =================
 
-Account root files are saved to ``/path/to/blockchain/root/{{ file_blockchain.blocks_subdir }}/``
+Blockchain state files are saved to ``/path/to/blockchain/root/{{ file_blockchain.blocks_subdir }}/``
 in a nested directory structure as described in `Directory nesting`_ section
 
 For example, file named ``00012300000000000100-00012300000000000199-block-chunk.msgpack.xz`` will be saved to as
@@ -249,24 +245,6 @@ SignedChangeRequestMessage is a base type for the following subtypes.
 
 {{ model.get_docstring() }}
 
-{% if model.get_field_names() -%}
-.. list-table::
-   :header-rows: 1
-
-   * - Name
-     - Description
-     - Type
-     - Is mandatory
-{% for field_name in model.get_field_names() -%}
-{%- set field_type = model.get_field_type(field_name) %}
-{%- set field_type_name = field_type.__name__ %}
-   * - {{ field_name }}
-     - {{ model.get_field_docstring(field_name) }}
-     - {% if f.is_model(field_type) %}`{{ field_type_name }}`_{% else %}{{ f.get_mapped_type_name(field_type_name) }}{% endif %}
-     - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
-{%- endfor %}
-{% endif %}
-
 {% if model in sample_block_map %}
 **Block example**
 
@@ -283,6 +261,26 @@ Byte arrays are shown as hexadecimals for representation purposes:
     {{ sample_block_map[model].to_compact_dict(compact_keys=True, compact_values=False) |
        tojson(indent=4) | indent }}
 
+{% endif %}
+
+**Format description**
+
+{% if model.get_field_names() -%}
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Description
+     - Type
+     - Is mandatory
+{% for field_name in model.get_field_names() -%}
+{%- set field_type = model.get_field_type(field_name) %}
+{%- set field_type_name = field_type.__name__ %}
+   * - {{ field_name }}
+     - {{ model.get_field_docstring(field_name) }}
+     - {% if f.is_model(field_type) %}`{{ field_type_name }}`_{% else %}{{ f.get_mapped_type_name(field_type_name) }}{% endif %}
+     - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
+{%- endfor %}
 {% endif %}
 {% endfor %}
 

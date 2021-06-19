@@ -1,17 +1,19 @@
-name: Quality Assurance
+name: Documentation
 
-on: [pull_request]
+on:
+  push:
+    branches:
+      - master
 
 jobs:
-  tests:
-    name: Quality Assurance
+  publish-docs:
+    name: Documentation
 
     runs-on: ubuntu-latest
     container: python:3.9.2
 
     services:
-      # TODO(dmu) LOW: This section duplicates services already defined in `docker-compose.yml`.
-      #                Is there a way to make it DRY?
+      # TODO(dmu) LOW: Make database not required to generate documentation
       db:
         image: postgres:13.2-alpine
         env:
@@ -33,14 +35,7 @@ jobs:
           poetry-version: 1.1.4
 
       - name: Install
-        run: make install && make install-pre-commit
+        run: make install
 
-      - name: Lint
-        run: make lint
-
-      - name: Test
-        run: make test
-        env:
-          THENEWBOSTON_NODE_TEST_WITH_ENV_VARS: 'true'
-          THENEWBOSTON_NODE_DATABASES: '{"default":{"HOST":"db"}}'
-          THENEWBOSTON_NODE_SECRET_KEY: dummy
+      - name: Generate
+        run: make docs-html

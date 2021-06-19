@@ -12,20 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     container: python:3.9.2
 
-    services:
-      # TODO(dmu) LOW: Make database not required to generate documentation
-      db:
-        image: postgres:13.2-alpine
-        env:
-          POSTGRES_DB: thenewboston_node
-          POSTGRES_USER: thenewboston
-          POSTGRES_PASSWORD: thenewboston
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - uses: actions/checkout@v2
 
@@ -39,3 +25,5 @@ jobs:
 
       - name: Generate
         run: make docs-html
+        env:
+          THENEWBOSTON_NODE_SECRET_KEY: dummy

@@ -61,3 +61,7 @@ docs-rst: docs
 .PHONY: docs-html
 docs-html: docs
 	poetry run python -m thenewboston_node.manage generate_documentation | poetry run rst2html.py > docs/thenewboston-blockchain-format.html
+
+.PHONY: docs-html-test
+docs-html-test:
+	poetry run python -m thenewboston_node.manage generate_documentation | poetry run rst2html.py --strict > /dev/null

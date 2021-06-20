@@ -2,12 +2,15 @@ from dataclasses import dataclass
 from typing import Optional
 
 from thenewboston_node.business_logic.enums import NodeType
+from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
 
 from .base import BaseDataclass
 
 
+@revert_docstring
 @dataclass
+@cover_docstring
 class Node(BaseDataclass):
     identifier: hexstr
     network_addresses: list[str]

@@ -8,6 +8,7 @@ from thenewboston_node.business_logic.validators import (
 )
 from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
+from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
 
 from ..signed_change_request_message import CoinTransferSignedChangeRequestMessage
@@ -18,7 +19,9 @@ T = TypeVar('T', bound='CoinTransferSignedChangeRequest')
 logger = logging.getLogger(__name__)
 
 
+@revert_docstring
 @dataclass
+@cover_docstring
 class CoinTransferSignedChangeRequest(SignedChangeRequest):
     message: CoinTransferSignedChangeRequestMessage
 

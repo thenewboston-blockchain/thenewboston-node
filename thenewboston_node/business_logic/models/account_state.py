@@ -4,6 +4,7 @@ from typing import Optional
 
 from thenewboston_node.business_logic.validators import validate_gte_value, validate_not_empty, validate_type
 from thenewboston_node.core.logging import validates
+from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
 
 from .base import BaseDataclass
@@ -12,9 +13,10 @@ from .node import Node
 logger = logging.getLogger(__name__)
 
 
+@revert_docstring
 @dataclass
+@cover_docstring
 class AccountState(BaseDataclass):
-    """Account state"""
 
     balance: Optional[int] = None  # type: ignore
     balance_lock: Optional[hexstr] = None  # type: ignore

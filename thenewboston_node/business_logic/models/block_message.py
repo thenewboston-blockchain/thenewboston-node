@@ -10,6 +10,7 @@ from thenewboston_node.business_logic.validators import (
     validate_is_none, validate_min_item_count, validate_not_empty, validate_not_none, validate_type
 )
 from thenewboston_node.core.logging import validates
+from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
 
 from . import AccountState
@@ -20,11 +21,10 @@ from .signed_change_request import SignedChangeRequest
 logger = logging.getLogger(__name__)
 
 
+@revert_docstring
 @dataclass
+@cover_docstring
 class BlockMessage(MessageMixin, BaseDataclass):
-    """
-    Contains requested changes in the network like transfer of coins, etc...
-    """
     block_type: str
 
     signed_change_request: SignedChangeRequest

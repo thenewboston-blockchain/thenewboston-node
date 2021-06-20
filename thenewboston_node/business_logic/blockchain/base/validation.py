@@ -74,7 +74,7 @@ class ValidationMixin:
                 raise ValidationError('Account root file last_block_number does not match last_block_identifier')
 
         with validates('account root file next_block_identifier'):
-            if account_root_file_last_block.message_hash != account_root_file.next_block_identifier:
+            if account_root_file_last_block.hash != account_root_file.next_block_identifier:
                 raise ValidationError(
                     'Account root file next_block_identifier does not match last_block_number message hash'
                 )
@@ -164,8 +164,8 @@ class ValidationMixin:
             if prev_block is None:
                 raise ValidationError(f'Previous block for block number {first_block_number} is not found')
 
-            assert prev_block.message_hash
-            expected_block_identifier = prev_block.message_hash
+            assert prev_block.hash
+            expected_block_identifier = prev_block.hash
 
         expected_block_number = first_account_root_file.get_next_block_number() + offset
         for block in chain((first_block,), blocks_iter):
@@ -179,7 +179,7 @@ class ValidationMixin:
                 expected_block_identifier=expected_block_identifier
             )
             expected_block_number += 1
-            expected_block_identifier = block.message_hash
+            expected_block_identifier = block.hash
 
     @validates(
         'block number {block.message.block_number} (identifier: block.message.block_identifier) '

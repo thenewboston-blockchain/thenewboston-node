@@ -37,7 +37,7 @@ def test_can_make_blockchain_state_on_last_block(
     assert account_root_file is not None
     assert account_root_file.last_block_number == 0
     assert account_root_file.last_block_identifier == block0.message.block_identifier
-    assert account_root_file.next_block_identifier == block0.message_hash
+    assert account_root_file.next_block_identifier == block0.hash
 
     assert len(account_root_file.account_states) == 4
     assert account_root_file.account_states.keys() == {
@@ -78,7 +78,7 @@ def test_can_make_blockchain_state_on_last_block(
     assert account_root_file is not None
     assert account_root_file.last_block_number == 2
     assert account_root_file.last_block_identifier == block2.message.block_identifier
-    assert account_root_file.next_block_identifier == block2.message_hash
+    assert account_root_file.next_block_identifier == block2.hash
 
     assert len(account_root_file.account_states) == 4
     assert account_root_file.account_states.keys() == {

@@ -135,4 +135,4 @@ def test_get_expected_block_identifier_from_last_block(
     with patch_blocks(blockchain_base, [block_0, block_1, block_2]):
         block_identifier = blockchain_base.get_expected_block_identifier(block_number=3)
 
-    assert block_identifier == block_2.message_hash
+    assert block_identifier == block_2.hash

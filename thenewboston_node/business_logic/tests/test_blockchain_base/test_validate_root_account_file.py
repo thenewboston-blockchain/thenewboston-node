@@ -51,7 +51,7 @@ def test_validate_account_root_file_last_block_identifier_mismatch(blockchain_ba
     blockchain_genesis_state = factories.InitialBlockchainStateFactory()
     block_0 = factories.CoinTransferBlockFactory(
         message=factories.CoinTransferBlockMessageFactory(block_number=block_number, block_identifier='e' * 64),
-        message_hash=next_block_identifier,
+        hash=next_block_identifier,
     )
     state_0 = factories.BlockchainStateFactory(
         last_block_number=block_number,
@@ -77,7 +77,7 @@ def test_validate_account_root_file_next_block_identifier_mismatch(blockchain_ba
         message=factories.CoinTransferBlockMessageFactory(
             block_number=block_number, block_identifier=last_block_identifier
         ),
-        message_hash='e' * 64,
+        hash='e' * 64,
     )
     state_1 = factories.BlockchainStateFactory(
         last_block_number=block_number,

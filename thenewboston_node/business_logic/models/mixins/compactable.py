@@ -18,7 +18,7 @@ COMPACT_KEY_MAP = {
     'balance_lock': 'bl',
     # block
     'message': 'm',
-    'message_hash': 'mh',
+    'hash': 'h',
     # block message
     'signed_change_request': 'tr',
     'timestamp': 'ts',
@@ -59,7 +59,7 @@ def bytes_to_hex(value):
 
 COMPACT_VALUE_MAP = {
     'signer': hex_to_bytes,
-    'message_hash': hex_to_bytes,
+    'hash': hex_to_bytes,
     'signature': hex_to_bytes,
     'block_identifier': hex_to_bytes,
     'balance_lock': hex_to_bytes,
@@ -69,7 +69,7 @@ COMPACT_VALUE_MAP = {
 
 UNCOMPACT_VALUE_MAP = {
     'signer': bytes_to_hex,
-    'message_hash': bytes_to_hex,
+    'hash': bytes_to_hex,
     'signature': bytes_to_hex,
     'block_identifier': bytes_to_hex,
     'balance_lock': bytes_to_hex,

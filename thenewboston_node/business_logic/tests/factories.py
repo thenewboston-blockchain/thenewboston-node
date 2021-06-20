@@ -70,7 +70,7 @@ class CoinTransferBlockMessageFactory(Factory):
 class CoinTransferBlockFactory(Factory):
     signer = DEFAULT_ACCOUNT
     message = CoinTransferBlockMessageFactory()
-    message_hash = None
+    hash = None  # noqa: A003
     signature = None
 
 

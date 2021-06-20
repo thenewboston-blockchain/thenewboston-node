@@ -32,7 +32,7 @@ class Block(SignableMixin, MessagpackCompactableMixin, BaseDataclass):
     Blocks represent a description of change to the network.
     """
     message: BlockMessage
-    message_hash: Optional[hexstr] = field(
+    hash: Optional[hexstr] = field(  # noqa: A003
         default=None,
         metadata={
             'example_value': 'dc6671e1132cbb7ecbc190bf145b5a5cfb139ca502b5d66aafef4d096f4d2709',
@@ -121,19 +121,17 @@ class Block(SignableMixin, MessagpackCompactableMixin, BaseDataclass):
 
     def hash_message(self) -> None:
         message_hash = self.message.get_hash()
-        stored_message_hash = self.message_hash
+        stored_message_hash = self.hash
         if stored_message_hash and stored_message_hash != message_hash:
             logger.warning('Overwriting existing message hash')
 
-        self.message_hash = message_hash
+        self.hash = message_hash
 
     @validates('block')
     def validate(self, blockchain):
         with validates(f'block number {self.message.block_number} (identifier: {self.message.block_identifier})'):
             validate_not_empty(f'{self.humanized_class_name} message', self.message)
             self.message.validate(blockchain)
-            validate_exact_value(
-                f'{self.humanized_class_name} message_hash', self.message_hash, self.message.get_hash()
-            )
+            validate_exact_value(f'{self.humanized_class_name} hash', self.hash, self.message.get_hash())
             with validates('block signature'):
                 self.validate_signature()

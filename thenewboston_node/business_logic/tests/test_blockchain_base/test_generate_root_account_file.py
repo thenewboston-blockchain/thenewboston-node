@@ -43,7 +43,7 @@ def test_generate_blockchain_state(blockchain_base):
                 )
             }
         ),
-        message_hash='fake-message-hash',
+        hash='fake-message-hash',
     )
 
     blockchain_state_patch = patch_blockchain_states(blockchain_base, [blockchain_genesis_state])
@@ -67,5 +67,5 @@ def test_generate_blockchain_state(blockchain_base):
         last_block_number=0,
         last_block_identifier=block_0.message.block_identifier,
         last_block_timestamp=block_0.message.timestamp,
-        next_block_identifier=block_0.message_hash,
+        next_block_identifier=block_0.hash,
     )

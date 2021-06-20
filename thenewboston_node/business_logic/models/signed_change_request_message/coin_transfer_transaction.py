@@ -27,11 +27,7 @@ class CoinTransferTransaction(BaseDataclass):
     """Recipient account number"""
 
     amount: int = field(metadata={'example_value': 1200})
-
-    # TODO(dmu) HIGH: Rename to `is_fee`
-    fee: Optional[bool] = field(default=False, metadata={'example_value': True})
-    """Set if transaction is fee"""
-
+    is_fee: Optional[bool] = field(default=False, metadata={'example_value': True})
     memo: Optional[str] = field(default=None, metadata={'example_value': 'For candy'})
 
     @classmethod
@@ -40,9 +36,9 @@ class CoinTransferTransaction(BaseDataclass):
             dict_, complain_excessive_keys=complain_excessive_keys, override=override
         )
 
-        # TODO(dmu) CRITICAL: Fix fee workaround
-        if deserialized.fee is None:
-            deserialized.fee = False
+        # TODO(dmu) CRITICAL: Fix is_fee workaround
+        if deserialized.is_fee is None:
+            deserialized.is_fee = False
 
         return deserialized
 
@@ -52,8 +48,8 @@ class CoinTransferTransaction(BaseDataclass):
             coerce_to_json_types=coerce_to_json_types,
             exclude=exclude,
         )
-        if serialized.get('fee', SENTINEL) in (None, False):
-            del serialized['fee']
+        if serialized.get('is_fee', SENTINEL) in (None, False):
+            del serialized['is_fee']
 
         return serialized
 
@@ -68,7 +64,7 @@ class CoinTransferTransaction(BaseDataclass):
         validate_not_empty(f'{self.humanized_class_name} recipient', self.recipient)
         validate_type(f'{self.humanized_class_name} amount', amount, int)
         validate_gte_value(f'{self.humanized_class_name} amount', amount, 1)
-        validate_in(f'{self.humanized_class_name} fee', self.fee, (True, False, None))
+        validate_in(f'{self.humanized_class_name} is_fee', self.is_fee, (True, False, None))
 
         with validates('memo'):
             max_len = settings.MEMO_MAX_LENGTH

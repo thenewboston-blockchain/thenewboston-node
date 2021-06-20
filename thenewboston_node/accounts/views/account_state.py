@@ -4,21 +4,23 @@ from rest_framework.viewsets import ViewSet
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 
-from ..serializers.account_balance import AccountBalanceSerializer
+from ..serializers.account_state import AccountStateSerializer
 
 
-class AccountBalanceViewSet(ViewSet):
+class AccountStateViewSet(ViewSet):
 
+    # TODO(dmu) LOW: Are there better ways to generate correct documentation?
     @extend_schema(
-        responses=AccountBalanceSerializer,
+        responses=AccountStateSerializer,
         parameters=[OpenApiParameter('id', str, OpenApiParameter.PATH, description='Account number')],
     )
     def retrieve(self, request, pk=None):
         # TODO(dmu) MEDIUM: There is a room for performance optimization use something like `?fields=` to
-        #                   retrieval of unneeded fields using get_account_balance() and get_account_balance_lock() directly.
+        #                   retrieval of unneeded fields using get_account_balance() and
+        #                   get_account_balance_lock() directly.
         #                   Also see `drf-flex-fields` and `django-restql`.
         assert pk is not None
 
         blockchain = BlockchainBase.get_instance()
-        serializer = AccountBalanceSerializer(blockchain.get_account_state(pk))
+        serializer = AccountStateSerializer(blockchain.get_account_state(pk))
         return Response(serializer.data)

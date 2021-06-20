@@ -95,18 +95,18 @@ class AccountStateMixin:
         if block_number < 0:
             raise ValueError('block_number must be greater or equal to 0')
 
-        account_root_file = self.get_closest_blockchain_state_snapshot(block_number)
-        if account_root_file is None:
+        blockchain_state = self.get_closest_blockchain_state_snapshot(block_number)
+        if blockchain_state is None:
             logger.warning('Block number %s is beyond known account root files', block_number)
             return None
 
         if block_number == 0:
-            assert account_root_file.is_initial()
-            return account_root_file.get_next_block_identifier()
+            assert blockchain_state.is_initial()
+            return blockchain_state.get_next_block_identifier()
 
         prev_block_number = block_number - 1
-        if prev_block_number == account_root_file.last_block_number:
-            return account_root_file.get_next_block_identifier()
+        if prev_block_number == blockchain_state.last_block_number:
+            return blockchain_state.get_next_block_identifier()
 
         block = self.get_block_by_number(prev_block_number)  # type: ignore
         assert block is not None

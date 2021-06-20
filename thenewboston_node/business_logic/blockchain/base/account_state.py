@@ -110,7 +110,7 @@ class AccountStateMixin:
 
         block = self.get_block_by_number(prev_block_number)  # type: ignore
         assert block is not None
-        return block.message_hash
+        return block.hash
 
     def get_closest_blockchain_state_snapshot(self,
                                               excludes_block_number: Optional[int] = None
@@ -220,6 +220,6 @@ class AccountStateMixin:
             blockchain_state.last_block_number = block.message.block_number
             blockchain_state.last_block_identifier = block.message.block_identifier
             blockchain_state.last_block_timestamp = block.message.timestamp
-            blockchain_state.next_block_identifier = block.message_hash
+            blockchain_state.next_block_identifier = block.hash
 
         return blockchain_state

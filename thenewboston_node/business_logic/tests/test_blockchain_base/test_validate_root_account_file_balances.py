@@ -38,7 +38,7 @@ def block_0():
                 USER_ACCOUNT_2: factories.AccountStateFactory(balance=11, balance_lock=None),
             }
         ),
-        message_hash=MESSAGE_HASH,
+        hash=MESSAGE_HASH,
     )
 
 

@@ -17,5 +17,5 @@ def block_1():
 def block_2():
     return factories.CoinTransferBlockFactory(
         message=factories.CoinTransferBlockMessageFactory(block_number=2),
-        message_hash='fake-message-hash',
+        hash='fake-message-hash',
     )

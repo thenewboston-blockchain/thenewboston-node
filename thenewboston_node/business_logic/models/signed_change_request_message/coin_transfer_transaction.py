@@ -28,6 +28,8 @@ class CoinTransferTransaction(BaseDataclass):
 
     amount: int = field(metadata={'example_value': 1200})
     is_fee: Optional[bool] = field(default=False, metadata={'example_value': True})
+    """Is fee?"""
+
     memo: Optional[str] = field(default=None, metadata={'example_value': 'For candy'})
 
     @classmethod

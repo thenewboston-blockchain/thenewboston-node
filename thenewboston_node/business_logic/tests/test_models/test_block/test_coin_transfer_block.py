@@ -19,10 +19,10 @@ def test_can_serialize_coin_transfer_block():
     block = baker.make(Block, message=block_message)
     block_dict = block.serialize_to_dict()
     assert isinstance(block_dict, dict)
-    assert block_dict.keys() == {'signer', 'message', 'message_hash', 'signature'}
+    assert block_dict.keys() == {'signer', 'message', 'hash', 'signature'}
     assert isinstance(block_dict['signer'], str)
     assert isinstance(block_dict['message'], dict)
-    assert isinstance(block_dict['message_hash'], str)
+    assert isinstance(block_dict['hash'], str)
     assert isinstance(block_dict['signature'], str)
 
     block_message = block_dict['message']
@@ -89,7 +89,7 @@ def test_can_create_block_from_signed_change_request(
         block = Block.create_from_signed_change_request(forced_mock_blockchain, sample_signed_change_request)
 
     assert block.message
-    assert block.message_hash
+    assert block.hash
     assert block.signature
     block.validate_signature()
     assert block.signer
@@ -147,7 +147,7 @@ def test_can_create_block_from_main_transaction(
 
     # Assert block
     assert block.message
-    assert block.message_hash
+    assert block.hash
     assert block.signature
 
     block.validate_signature()

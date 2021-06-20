@@ -49,9 +49,9 @@ def test_can_serialize_coin_transfer_block():
     assert isinstance(signed_change_request_message['txs'], list)
     for transaction in signed_change_request_message['txs']:
         assert isinstance(transaction, dict)
-        if 'fee' in transaction:
-            assert transaction.keys() == {'recipient', 'amount', 'fee', 'memo'}
-            assert isinstance(transaction['fee'], bool)
+        if 'is_fee' in transaction:
+            assert transaction.keys() == {'recipient', 'amount', 'is_fee', 'memo'}
+            assert isinstance(transaction['is_fee'], bool)
         else:
             assert transaction.keys() == {'recipient', 'amount', 'memo'}
 
@@ -194,13 +194,13 @@ def test_can_create_block_from_main_transaction(
     assert len(txs_dict) == 3
 
     assert txs_dict[user_account_key_pair.public].amount == 20
-    assert txs_dict[user_account_key_pair.public].fee is False
+    assert txs_dict[user_account_key_pair.public].is_fee is False
 
     assert txs_dict[primary_validator_key_pair.public].amount == 4
-    assert txs_dict[primary_validator_key_pair.public].fee
+    assert txs_dict[primary_validator_key_pair.public].is_fee
 
     assert txs_dict[node_key_pair.public].amount == 1
-    assert txs_dict[node_key_pair.public].fee
+    assert txs_dict[node_key_pair.public].is_fee
 
     assert coin_transfer_signed_request_message.get_total_amount() == 25
 
@@ -217,11 +217,11 @@ def test_normalized_block_message(forced_mock_blockchain, sample_signed_change_r
         '"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732",'
         '"txs":'
         '[{"amount":425,"recipient":"484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc"},'
-        '{"amount":1,"fee":true,"recipient":"5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8"},'
-        '{"amount":4,"fee":true,"recipient":'
+        '{"amount":1,"is_fee":true,"recipient":"5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8"},'
+        '{"amount":4,"is_fee":true,"recipient":'
         '"ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314"}]},'
-        '"signature":"8c1b5719745cdc81e71905e874c1f1fb938d941dd6d03ddc6dc39fc60ca42dcb8a17bb2e721c3f2a'
-        '128a2dff35a3b0f843efe78893adde78a27192ca54212a08",'
+        '"signature":"362dc47191d5d1a33308de1f036a5e93fbaf0b05fa971d9537f954f13cd22b5ed9bee56f4701bd'
+        'af9b995c47271806ba73e75d63f46084f5830cec5f5b7e9600",'
         '"signer":"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732"},'
         '"timestamp":"<replace-with-timestamp>",'
         '"updated_account_states":{'
@@ -229,7 +229,7 @@ def test_normalized_block_message(forced_mock_blockchain, sample_signed_change_r
         '"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732":'
         '{'
         '"balance":20,'
-        '"balance_lock":"ae4116766c916e761c5ab7590e2426f9c391078519d8cef8673ee3fe0cdb75ad"'
+        '"balance_lock":"ff3127bdb408e5f3f4f07dd364ce719b2854dc28ee66aa7af839e46468761885"'
         '},'
         '"5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8":{"balance":1},'
         '"ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314":{"balance":4}'

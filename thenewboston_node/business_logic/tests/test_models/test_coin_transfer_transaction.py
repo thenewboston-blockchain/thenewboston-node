@@ -34,8 +34,8 @@ def test_amount_validation(sample_coin_transfer_transaction):
 
 
 def test_fee_validation(sample_coin_transfer_transaction):
-    sample_coin_transfer_transaction.fee = 'NODE'
-    with pytest.raises(ValidationError, match='Coin transfer transaction fee must be one of True, False, None'):
+    sample_coin_transfer_transaction.is_fee = 'NODE'
+    with pytest.raises(ValidationError, match='Coin transfer transaction is_fee must be one of True, False, None'):
         sample_coin_transfer_transaction.validate()
 
 

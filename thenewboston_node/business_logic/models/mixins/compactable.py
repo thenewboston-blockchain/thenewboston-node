@@ -30,7 +30,7 @@ COMPACT_KEY_MAP = {
     # transaction
     'recipient': 'r',
     'amount': 'at',
-    'fee': 'f',
+    'is_fee': 'f',
     'memo': 'mm',
     # common
     'signer': 's',

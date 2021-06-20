@@ -52,9 +52,11 @@ class CoinTransferSignedChangeRequestMessage(SignedChangeRequestMessage):
             CoinTransferTransaction(
                 recipient=primary_validator.fee_account or primary_validator.identifier,
                 amount=primary_validator.fee_amount,
-                fee=True
+                is_fee=True
             ),
-            CoinTransferTransaction(recipient=node.fee_account or node.identifier, amount=node.fee_amount, fee=True),
+            CoinTransferTransaction(
+                recipient=node.fee_account or node.identifier, amount=node.fee_amount, is_fee=True
+            ),
         ]
         return cls.from_transactions(blockchain, coin_sender, txs)
 
@@ -71,7 +73,7 @@ class CoinTransferSignedChangeRequestMessage(SignedChangeRequestMessage):
             # This should fire when we add new fields to CoinTransferTransaction and forget to amend the sorting key
             assert len(tx) <= 3
         message_dict['txs'] = sorted(
-            message_dict['txs'], key=lambda x: (x['recipient'], x.get('fee', False), x['amount'])
+            message_dict['txs'], key=lambda x: (x['recipient'], x.get('is_fee', False), x['amount'])
         )
 
         return normalize_dict(message_dict)

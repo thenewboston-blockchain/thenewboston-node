@@ -5,8 +5,8 @@ from thenewboston_node.business_logic.tests import factories
 
 @pytest.mark.parametrize('key,value', (
     ('memo', None),
-    ('fee', None),
-    ('fee', False),
+    ('is_fee', None),
+    ('is_fee', False),
 ))
 def test_transaction_optional_keys_are_not_serialized(key, value):
     # TODO(dmu) HIGH: This test must test transaction without using outer structures
@@ -26,7 +26,7 @@ def test_non_ascii_memo_is_serialized_correctly():
     # TODO(dmu) HIGH: This test must test transaction without using outer structures
     memo = 'Тестовое сообщение'  # Test message in Russian
     transaction = factories.CoinTransferTransactionFactory(memo=memo)
-    transaction.fee = False
+    transaction.is_fee = False
     trm = factories.CoinTransferSignedChangeRequestMessageFactory(txs=[transaction])
     tr = factories.CoinTransferSignedChangeRequestFactory(message=trm)
     block_message = factories.CoinTransferBlockMessageFactory(signed_change_request=tr)

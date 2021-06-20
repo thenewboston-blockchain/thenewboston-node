@@ -33,14 +33,14 @@ def add_blocks_to_blockchain(blockchain, block_count, treasury_account_private_k
 class CoinTransferTransactionFactory(Factory):
     recipient = DEFAULT_ACCOUNT
     amount = 100
-    fee = None
+    is_fee = None
     memo = None
 
 
 @factory(CoinTransferSignedChangeRequestMessage)
 class CoinTransferSignedChangeRequestMessageFactory(Factory):
     balance_lock = DEFAULT_ACCOUNT
-    txs = [CoinTransferTransactionFactory(amount=99), CoinTransferTransactionFactory(amount=1, fee=True)]
+    txs = [CoinTransferTransactionFactory(amount=99), CoinTransferTransactionFactory(amount=1, is_fee=True)]
 
 
 @factory(CoinTransferSignedChangeRequest)

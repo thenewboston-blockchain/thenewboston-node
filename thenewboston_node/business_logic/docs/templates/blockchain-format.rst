@@ -164,11 +164,13 @@ Format description
    * - Name
      - Description
      - Type
+     - Example value
      - Is mandatory
 {% for field_name in model.get_field_names() %}
    * - {{ field_name }}
      - {{ model.get_field_docstring(field_name) }}
      - {{ model.get_field_type_representation(field_name) }}
+     - {{ model.get_field_example_value(field_name)|default('', True) }}
      - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
 {%- endfor %}
 {% endif %}
@@ -207,6 +209,19 @@ of blocks).
 Block structure
 ^^^^^^^^^^^^^^^
 
+Block types
+"""""""""""
+
+.. list-table::
+   :header-rows: 1
+
+   * - Type
+     - Value
+{% for key, name in block_types.items() %}
+   * - {{ name }}
+     - "{{ key }}"
+{% endfor %}
+
 {% for model in block_models %}
 {{ model.__name__ }}
 {{ '"' * model.__name__.__len__() }}
@@ -220,11 +235,13 @@ Block structure
    * - Name
      - Description
      - Type
+     - Example value
      - Is mandatory
 {% for field_name in model.get_field_names() %}
    * - {{ field_name }}
      - {{ model.get_field_docstring(field_name) }}
      - {{ model.get_field_type_representation(field_name) }}
+     - {{ model.get_field_example_value(field_name)|default('', True) }}
      - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
 {%- endfor %}
 {% endif %}
@@ -272,11 +289,13 @@ Byte arrays are shown as hexadecimals for representation purposes:
    * - Name
      - Description
      - Type
+     - Example value
      - Is mandatory
 {% for field_name in model.get_field_names() %}
    * - {{ field_name }}
      - {{ model.get_field_docstring(field_name) }}
      - {{ model.get_field_type_representation(field_name) }}
+     - {{ model.get_field_example_value(field_name)|default('', True) }}
      - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
 {%- endfor %}
 {% endif %}
@@ -291,7 +310,7 @@ A string of hexadecimal characters
 
 datetime
 --------
-A string of `ISO formatted datetime <https://en.wikipedia.org/wiki/ISO_8601>`_
+A string of `ISO formatted <https://en.wikipedia.org/wiki/ISO_8601>`_ UTC datetime without timezone part.
 
 {% for model in common_models %}
 {{ model.__name__ }}
@@ -306,11 +325,13 @@ A string of `ISO formatted datetime <https://en.wikipedia.org/wiki/ISO_8601>`_
    * - Name
      - Description
      - Type
+     - Example value
      - Is mandatory
 {% for field_name in model.get_field_names() %}
    * - {{ field_name }}
      - {{ model.get_field_docstring(field_name) }}
      - {{ model.get_field_type_representation(field_name) }}
+     - {{ model.get_field_example_value(field_name)|default('', True) }}
      - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
 {%- endfor %}
 {% endif %}

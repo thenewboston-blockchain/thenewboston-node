@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 from django.conf import settings
@@ -21,16 +21,18 @@ from ..base import BaseDataclass
 @cover_docstring
 class CoinTransferTransaction(BaseDataclass):
 
-    recipient: hexstr
+    recipient: hexstr = field(
+        metadata={'example_value': '7584e5ad3f3d29f44179be133790dc94b52dd2e671b9b96694faa36bcc14c135'}
+    )
     """Recipient account number"""
 
-    amount: int
+    amount: int = field(metadata={'example_value': 1200})
 
     # TODO(dmu) HIGH: Rename to `is_fee`
-    fee: Optional[bool] = False  # None value won't be serialized
+    fee: Optional[bool] = field(default=False, metadata={'example_value': True})
     """Set if transaction is fee"""
 
-    memo: Optional[str] = None
+    memo: Optional[str] = field(default=None, metadata={'example_value': 'For candy'})
 
     @classmethod
     def deserialize_from_dict(cls, dict_, complain_excessive_keys=True, override=None):

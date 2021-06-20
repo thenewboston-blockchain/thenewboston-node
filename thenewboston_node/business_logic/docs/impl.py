@@ -7,9 +7,10 @@ import thenewboston_node.business_logic.docs
 from thenewboston_node.business_logic import models
 from thenewboston_node.business_logic.blockchain import file_blockchain
 from thenewboston_node.business_logic.models import SignedChangeRequestMessage
-from thenewboston_node.business_logic.models.base import get_request_to_block_type_map
+from thenewboston_node.business_logic.models.base import BlockType, get_request_to_block_type_map
 from thenewboston_node.business_logic.models.mixins.compactable import COMPACT_KEY_MAP
 from thenewboston_node.business_logic.storages import file_system, path_optimized_file_system
+from thenewboston_node.core.utils.misc import humanize_snake_case
 
 from .samples import SamplesFactory  # noqa: I101
 
@@ -75,6 +76,7 @@ def get_context():
         'signed_change_request_message_subtypes': signed_change_request_message_subtypes,
         'sample_block_map': samples_factory.get_sample_block_map(),
         'sample_blockchain_state': samples_factory.get_sample_blockchain_state(),
+        'block_types': {item.value: humanize_snake_case(item.name.lower()) for item in BlockType},
         'file_blockchain': {
             'account_root_file_subdir': file_blockchain.DEFAULT_ACCOUNT_ROOT_FILE_SUBDIR,
             'blocks_subdir': file_blockchain.DEFAULT_BLOCKS_SUBDIR,

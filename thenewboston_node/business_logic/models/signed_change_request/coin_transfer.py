@@ -28,8 +28,15 @@ class CoinTransferSignedChangeRequest(SignedChangeRequest):
     @classmethod
     @timeit_method(level=logging.INFO)
     def from_main_transaction(
-        cls: Type[T], *, blockchain, recipient: hexstr, amount: int, signing_key: hexstr,
-        primary_validator: PrimaryValidator, node: RegularNode
+        cls: Type[T],
+        *,
+        blockchain,
+        recipient: hexstr,
+        amount: int,
+        signing_key: hexstr,
+        primary_validator: PrimaryValidator,
+        node: RegularNode,
+        memo: str = None
     ) -> T:
         message = CoinTransferSignedChangeRequestMessage.from_main_transaction(
             blockchain=blockchain,
@@ -38,6 +45,7 @@ class CoinTransferSignedChangeRequest(SignedChangeRequest):
             amount=amount,
             primary_validator=primary_validator,
             node=node,
+            memo=memo,
         )
         return cls.create_from_signed_change_request_message(message, signing_key)
 

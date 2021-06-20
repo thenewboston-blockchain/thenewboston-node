@@ -75,6 +75,7 @@ def make_sample_blockchain():
         signing_key=TREASURY_KEY_PAIR.private,
         primary_validator=pv,
         node=node,
+        memo='For candy'
     )
     blockchain.add_block(Block.create_from_signed_change_request(blockchain, coin_transfer_scr, PV_KEY_PAIR.private))
 

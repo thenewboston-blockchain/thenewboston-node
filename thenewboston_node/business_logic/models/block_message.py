@@ -1,6 +1,6 @@
 import copy
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
 
@@ -14,7 +14,7 @@ from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docst
 from thenewboston_node.core.utils.types import hexstr
 
 from . import AccountState
-from .base import BaseDataclass, get_request_to_block_type_map  # noqa: I101
+from .base import BaseDataclass, BlockType, get_request_to_block_type_map  # noqa: I101
 from .mixins.message import MessageMixin
 from .signed_change_request import SignedChangeRequest
 
@@ -25,17 +25,23 @@ logger = logging.getLogger(__name__)
 @dataclass
 @cover_docstring
 class BlockMessage(MessageMixin, BaseDataclass):
-    block_type: str
+    block_type: str = field(metadata={'example_value': BlockType.COIN_TRANSFER.value})
+    """One of the `Block types`_"""
 
     signed_change_request: SignedChangeRequest
 
     # We need timestamp, block_number and block_identifier to be signed and hashed therefore
     # they are included in BlockMessage, not in Block model
-    timestamp: datetime
-    block_number: int
-    block_identifier: hexstr
-    updated_account_states: dict[hexstr, AccountState]
-    """Updated account states: {"account_number": `AccountState`_, ...}"""
+    timestamp: datetime = field(metadata={'example_value': datetime(2021, 6, 20, 12, 41, 2, 994406)})
+    block_number: int = field(metadata={'example_value': 3})
+    block_identifier: hexstr = field(
+        metadata={'example_value': 'b0dabd367eb1ed670ab9ce4cef9d45106332f211c7b50ddd60dec4ae62711fb7'}
+    )
+    updated_account_states: dict[hexstr, AccountState] = field(
+        metadata={'example_value': {
+            '657cf373f6f8fb72854bd302269b8b2b3576e3e2a686bd7d0a112babaa1790c6': {}
+        }}
+    )
 
     @classmethod
     def deserialize_from_dict(cls, dict_, complain_excessive_keys=True, override=None):

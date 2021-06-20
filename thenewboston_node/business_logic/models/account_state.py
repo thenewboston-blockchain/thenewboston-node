@@ -1,5 +1,5 @@
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 from thenewboston_node.business_logic.validators import validate_gte_value, validate_not_empty, validate_type
@@ -18,8 +18,10 @@ logger = logging.getLogger(__name__)
 @cover_docstring
 class AccountState(BaseDataclass):
 
-    balance: Optional[int] = None  # type: ignore
-    balance_lock: Optional[hexstr] = None  # type: ignore
+    balance: Optional[int] = field(default=None, metadata={'example_value': 3000})  # type: ignore
+    balance_lock: Optional[hexstr] = field(
+        default=None, metadata={'example_value': 'ce20609f5c89dc9803f1c75a77c9e4b19b4f3c2c9cc690ff9966edd2b07d9130'}
+    )  # type: ignore
     node: Optional[Node] = None  # type: ignore
 
     @classmethod

@@ -1,10 +1,12 @@
+import json
 import textwrap
 import typing
-from datetime import datetime
+from datetime import date, datetime
 from inspect import getdoc
 
 import class_doc
 
+from thenewboston_node.core.utils.constants import SENTINEL
 from thenewboston_node.core.utils.misc import humanize_camel_case, humanize_snake_case
 from thenewboston_node.core.utils.types import hexstr
 
@@ -36,6 +38,11 @@ def normalize_type_representation(type_, jsonify=True, targetized_types=(hexstr,
         type_name = f'`{type_name}`_'
 
     return type_name
+
+
+def default_serialize(obj):
+    if isinstance(obj, (date, datetime)):
+        return obj.isoformat()
 
 
 class DocumentableMixin(BaseMixin):
@@ -109,3 +116,15 @@ class DocumentableMixin(BaseMixin):
                 )
 
         return normalize_type_representation(field_type, jsonify=jsonify)
+
+    @classmethod
+    def get_field_example_value(cls, field_name, jsonify=True):
+        field = cls.get_field(field_name)
+        value = field.metadata.get('example_value', SENTINEL)
+        if value is SENTINEL:
+            return None
+
+        if jsonify:
+            value = json.dumps(value, default=default_serialize)
+
+        return value

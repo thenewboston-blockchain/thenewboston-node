@@ -1,5 +1,5 @@
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
 
@@ -24,18 +24,28 @@ logger = logging.getLogger(__name__)
 @cover_docstring
 class BlockchainState(MessagpackCompactableMixin, NormalizableMixin, BaseDataclass):
 
-    account_states: dict[hexstr, AccountState]
+    account_states: dict[hexstr, AccountState] = field(
+        metadata={'example_value': {
+            '00f3d2477317d53bcc2a410decb68c769eea2f0d74b679369b7417e198bd97b6': {}
+        }}
+    )
     """Account number to account state map"""
 
-    last_block_number: Optional[int] = None
+    last_block_number: Optional[int] = field(default=None, metadata={'example_value': 5})
     """Block number at which snapshot was taken"""
 
     # TODO(dmu) MEDIUM: Do we really need last_block_identifier?
-    last_block_identifier: Optional[hexstr] = None
+    last_block_identifier: Optional[hexstr] = field(
+        default=None, metadata={'example_value': 'b0dabd367eb1ed670ab9ce4cef9d45106332f211c7b50ddd60dec4ae62711fb7'}
+    )
     """Block identifier at which snapshot was taken"""
 
-    last_block_timestamp: Optional[datetime] = None
-    next_block_identifier: Optional[hexstr] = None
+    last_block_timestamp: Optional[datetime] = field(
+        default=None, metadata={'example_value': datetime(2021, 5, 19, 10, 34, 5, 54106)}
+    )
+    next_block_identifier: Optional[hexstr] = field(
+        default=None, metadata={'example_value': 'dc6671e1132cbb7ecbc190bf145b5a5cfb139ca502b5d66aafef4d096f4d2709'}
+    )
 
     def get_account_state(self, account: hexstr) -> Optional[AccountState]:
         return self.account_states.get(account)
@@ -112,7 +122,7 @@ class BlockchainState(MessagpackCompactableMixin, NormalizableMixin, BaseDatacla
         else:
             validate_not_none(f'{self.humanized_class_name} last_block_timestamp', timestamp)
             validate_type(f'{self.humanized_class_name} last_block_timestamp', timestamp, datetime)
-            validate_is_none(f'{self.humanized_class_name} last_block_timestamp', timestamp.tzinfo)
+            validate_is_none(f'{self.humanized_class_name} last_block_timestamp timezone', timestamp.tzinfo)
 
     @validates('blockchain state next_block_identifier')
     def validate_next_block_identifier(self, is_initial):

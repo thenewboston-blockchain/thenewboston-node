@@ -1,5 +1,5 @@
 import copy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Type, TypeVar
 
 from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
@@ -20,7 +20,9 @@ T = TypeVar('T', bound='CoinTransferSignedChangeRequestMessage')
 @cover_docstring
 class CoinTransferSignedChangeRequestMessage(SignedChangeRequestMessage):
 
-    balance_lock: hexstr
+    balance_lock: hexstr = field(
+        metadata={'example_value': '00f3d2477317d53bcc2a410decb68c769eea2f0d74b679369b7417e198bd97b6'}
+    )
     """Sender balance lock"""
 
     txs: list[CoinTransferTransaction]
@@ -35,11 +37,18 @@ class CoinTransferSignedChangeRequestMessage(SignedChangeRequestMessage):
 
     @classmethod
     def from_main_transaction(
-        cls: Type[T], *, blockchain, coin_sender: hexstr, recipient: hexstr, amount: int,
-        primary_validator: PrimaryValidator, node: RegularNode
+        cls: Type[T],
+        *,
+        blockchain,
+        coin_sender: hexstr,
+        recipient: hexstr,
+        amount: int,
+        primary_validator: PrimaryValidator,
+        node: RegularNode,
+        memo: str = None
     ) -> T:
         txs = [
-            CoinTransferTransaction(recipient=recipient, amount=amount),
+            CoinTransferTransaction(recipient=recipient, amount=amount, memo=memo),
             CoinTransferTransaction(
                 recipient=primary_validator.fee_account or primary_validator.identifier,
                 amount=primary_validator.fee_amount,

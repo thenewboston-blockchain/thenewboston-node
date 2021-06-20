@@ -1,6 +1,6 @@
 import logging
 import warnings
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional, Type, TypeVar
 
 from thenewboston_node.business_logic.exceptions import ValidationError
@@ -32,7 +32,9 @@ class Block(SignableMixin, MessagpackCompactableMixin, BaseDataclass):
     Blocks represent a description of change to the network.
     """
     message: BlockMessage
-    message_hash: Optional[hexstr] = None
+    message_hash: Optional[hexstr] = field(
+        default=None, metadata={'example_value': 'dc6671e1132cbb7ecbc190bf145b5a5cfb139ca502b5d66aafef4d096f4d2709'}
+    )
 
     @classmethod
     def deserialize_from_dict(cls, dict_, complain_excessive_keys=True, exclude=()):

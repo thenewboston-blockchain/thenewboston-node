@@ -25,11 +25,18 @@ class Node(BaseDataclass):
         )
 
 
+# TODO(dmu) HIGH: Do we really need `PrimaryValidator` and `RegularNode` classes?
 @dataclass
 class PrimaryValidator(Node):
-    node_type: str = NodeType.PRIMARY_VALIDATOR.value
+
+    @property
+    def node_type(self):
+        return NodeType.PRIMARY_VALIDATOR.value
 
 
 @dataclass
 class RegularNode(Node):
-    node_type: str = NodeType.REGULAR_NODE.value
+
+    @property
+    def node_type(self):
+        return NodeType.REGULAR_NODE.value

@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Type, TypeVar
 
 from django.conf import settings
@@ -34,3 +35,6 @@ class BlockchainBase(ValidationMixin, BlockchainStateMixin, BlocksMixin, Account
     @classmethod
     def clear_instance_cache(cls):
         cls._instance = None
+
+    def utcnow(self):
+        return datetime.utcnow()

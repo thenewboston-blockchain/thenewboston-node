@@ -81,8 +81,7 @@ class BlockMessage(MessageMixin, BaseDataclass):
 
         assert block_type
 
-        # TODO(dmu) HIGH: Move source of time to Blockchain?
-        timestamp = datetime.utcnow()
+        timestamp = blockchain.utcnow()
 
         block_number = blockchain.get_next_block_number()
         block_identifier = blockchain.get_next_block_identifier()

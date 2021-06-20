@@ -5,7 +5,7 @@ from inspect import getdoc
 
 import class_doc
 
-from thenewboston_node.core.utils.misc import humanize_snake_case
+from thenewboston_node.core.utils.misc import humanize_camel_case, humanize_snake_case
 from thenewboston_node.core.utils.types import hexstr
 
 from .base import BaseMixin
@@ -68,8 +68,12 @@ class DocumentableMixin(BaseMixin):
         return known_models
 
     @classmethod
-    def get_docstring(cls):
-        return getdoc(cls)
+    def get_docstring(cls, use_humanized_default=True):
+        doc = getdoc(cls)
+        if doc is None and use_humanized_default:
+            doc = humanize_camel_case(cls.__name__)
+
+        return doc
 
     @classmethod
     def get_field_docstring(cls, field_name, imply_field_name=True):

@@ -1,15 +1,17 @@
 from dataclasses import dataclass
 from typing import Optional
 
+from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
 
 from ..node import Node
 from .base import SignedChangeRequestMessage
 
 
+@revert_docstring
 @dataclass
+@cover_docstring
 class NodeDeclarationSignedChangeRequestMessage(SignedChangeRequestMessage):
-    """Network address registration signed change request message"""
 
     node: Node
 

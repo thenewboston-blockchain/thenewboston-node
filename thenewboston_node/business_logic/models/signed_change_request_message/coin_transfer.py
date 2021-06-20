@@ -6,6 +6,7 @@ from thenewboston_node.business_logic.models.node import PrimaryValidator, Regul
 from thenewboston_node.business_logic.validators import validate_not_empty, validate_type
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import normalize_dict
+from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
 
 from .base import SignedChangeRequestMessage
@@ -14,9 +15,10 @@ from .coin_transfer_transaction import CoinTransferTransaction
 T = TypeVar('T', bound='CoinTransferSignedChangeRequestMessage')
 
 
+@revert_docstring
 @dataclass
+@cover_docstring
 class CoinTransferSignedChangeRequestMessage(SignedChangeRequestMessage):
-    """Coin transfer request message"""
 
     balance_lock: hexstr
     """Sender balance lock"""

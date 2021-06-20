@@ -2,6 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import Optional, Type, TypeVar
 
+from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
 
 from ..signed_change_request_message import NodeDeclarationSignedChangeRequestMessage
@@ -12,7 +13,9 @@ logger = logging.getLogger(__name__)
 T = TypeVar('T', bound='NodeDeclarationSignedChangeRequest')
 
 
+@revert_docstring
 @dataclass
+@cover_docstring
 class NodeDeclarationSignedChangeRequest(SignedChangeRequest):
     message: NodeDeclarationSignedChangeRequestMessage
 

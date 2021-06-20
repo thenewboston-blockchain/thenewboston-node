@@ -1,7 +1,5 @@
 import typing
 
-from thenewboston_node.core.utils.dataclass import is_optional
-
 NONE_TYPE = type(None)
 
 
@@ -23,4 +21,5 @@ class BaseMixin:
 
     @classmethod
     def is_optional_field(cls, field_name):
-        return is_optional(cls.__dataclass_fields__[field_name].type)
+        type_ = cls.__dataclass_fields__[field_name].type
+        return typing.get_origin(type_) is typing.Union and type(None) in typing.get_args(type_)

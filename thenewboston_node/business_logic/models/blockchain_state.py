@@ -8,6 +8,7 @@ from thenewboston_node.business_logic.validators import (
 )
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import hash_normalized_dict
+from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
 
 from .account_state import AccountState
@@ -18,9 +19,10 @@ from .mixins.normalizable import NormalizableMixin
 logger = logging.getLogger(__name__)
 
 
+@revert_docstring
 @dataclass
+@cover_docstring
 class BlockchainState(MessagpackCompactableMixin, NormalizableMixin, BaseDataclass):
-    """Historical snapshot of all account balances at any point in time"""
 
     account_states: dict[hexstr, AccountState]
     """Account number to account state map"""

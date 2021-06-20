@@ -9,15 +9,17 @@ from thenewboston_node.business_logic.validators import (
 )
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.constants import SENTINEL
+from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.misc import humanize_camel_case
 from thenewboston_node.core.utils.types import hexstr
 
 from ..base import BaseDataclass
 
 
+@revert_docstring
 @dataclass
+@cover_docstring
 class CoinTransferTransaction(BaseDataclass):
-    """Coin transfer between accounts"""
 
     recipient: hexstr
     """Recipient account number"""

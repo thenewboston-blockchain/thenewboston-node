@@ -6,6 +6,7 @@ from typing import Type, TypeVar
 from thenewboston_node.business_logic.models.base import BaseDataclass
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import derive_verify_key
+from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
 
 from ..mixins.signable import SignableMixin
@@ -16,7 +17,9 @@ T = TypeVar('T', bound='SignedChangeRequest')
 logger = logging.getLogger(__name__)
 
 
+@revert_docstring
 @dataclass
+@cover_docstring
 class SignedChangeRequest(SignableMixin, BaseDataclass):
     message: SignedChangeRequestMessage
 

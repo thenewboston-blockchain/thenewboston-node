@@ -171,7 +171,7 @@ Format description
      - {{ model.get_field_docstring(field_name) }}
      - {{ model.get_field_type_representation(field_name) }}
      - {{ model.get_field_example_value(field_name)|default('', True) }}
-     - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
+     - {% if model.is_serialized_optional_field(field_name) %}No{% else %}Yes{% endif %}
 {%- endfor %}
 {% endif %}
 {% endfor %}
@@ -242,7 +242,7 @@ Block types
      - {{ model.get_field_docstring(field_name) }}
      - {{ model.get_field_type_representation(field_name) }}
      - {{ model.get_field_example_value(field_name)|default('', True) }}
-     - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
+     - {% if model.is_serialized_optional_field(field_name) %}No{% else %}Yes{% endif %}
 {%- endfor %}
 {% endif %}
 {% endfor %}
@@ -296,7 +296,7 @@ Byte arrays are shown as hexadecimals for representation purposes:
      - {{ model.get_field_docstring(field_name) }}
      - {{ model.get_field_type_representation(field_name) }}
      - {{ model.get_field_example_value(field_name)|default('', True) }}
-     - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
+     - {% if model.is_serialized_optional_field(field_name) %}No{% else %}Yes{% endif %}
 {%- endfor %}
 {% endif %}
 {% endfor %}
@@ -332,7 +332,7 @@ A string of `ISO formatted <https://en.wikipedia.org/wiki/ISO_8601>`_ UTC dateti
      - {{ model.get_field_docstring(field_name) }}
      - {{ model.get_field_type_representation(field_name) }}
      - {{ model.get_field_example_value(field_name)|default('', True) }}
-     - {% if model.is_optional_field(field_name) %}No{% else %}Yes{% endif %}
+     - {% if model.is_serialized_optional_field(field_name) %}No{% else %}Yes{% endif %}
 {%- endfor %}
 {% endif %}
 {% endfor %}

@@ -33,7 +33,11 @@ class Block(SignableMixin, MessagpackCompactableMixin, BaseDataclass):
     """
     message: BlockMessage
     message_hash: Optional[hexstr] = field(
-        default=None, metadata={'example_value': 'dc6671e1132cbb7ecbc190bf145b5a5cfb139ca502b5d66aafef4d096f4d2709'}
+        default=None,
+        metadata={
+            'example_value': 'dc6671e1132cbb7ecbc190bf145b5a5cfb139ca502b5d66aafef4d096f4d2709',
+            'is_serialized_optional': False,
+        }
     )
 
     @classmethod

@@ -32,20 +32,25 @@ class BlockchainState(MessagpackCompactableMixin, NormalizableMixin, BaseDatacla
     """Account number to account state map"""
 
     last_block_number: Optional[int] = field(default=None, metadata={'example_value': 5})
-    """Block number at which snapshot was taken"""
+    """Number of the last block included into the blockchain state (optional for blockchain genesis state)"""
 
     # TODO(dmu) MEDIUM: Do we really need last_block_identifier?
     last_block_identifier: Optional[hexstr] = field(
         default=None, metadata={'example_value': 'b0dabd367eb1ed670ab9ce4cef9d45106332f211c7b50ddd60dec4ae62711fb7'}
     )
-    """Block identifier at which snapshot was taken"""
+    """Identifier of the last block included into the blockchain state (optional for blockchain genesis state)"""
 
+    # TODO(dmu) HIGH: Do we really need `last_block_timestamp`?
     last_block_timestamp: Optional[datetime] = field(
         default=None, metadata={'example_value': datetime(2021, 5, 19, 10, 34, 5, 54106)}
     )
+    """Timestamp of the last block included into the blockchain state (optional for blockchain genesis state)"""
+
     next_block_identifier: Optional[hexstr] = field(
         default=None, metadata={'example_value': 'dc6671e1132cbb7ecbc190bf145b5a5cfb139ca502b5d66aafef4d096f4d2709'}
     )
+    """Identifier of the next block to be added on top of the blockchain state
+    (optional for blockchain genesis state, blockchain state hash is used as next block identifier in this case)"""
 
     def get_account_state(self, account: hexstr) -> Optional[AccountState]:
         return self.account_states.get(account)

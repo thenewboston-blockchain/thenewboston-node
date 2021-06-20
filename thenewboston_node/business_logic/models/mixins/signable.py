@@ -29,7 +29,9 @@ class SignableMixin:
         default=None,
         metadata={
             'example_value':
-                '047185123de32d69184b93ae1f1d6a0228f0cfe477d7130f3318e620e481d4372090f013de5441278feda65ddd2b79daac62ee89870acb4834a27a1a10368b0b'
+                '047185123de32d69184b93ae1f1d6a0228f0cfe477d7130f3318e620e481d4372090f013de5441278feda65ddd2b79daac62ee89870acb4834a27a1a10368b0b',
+            'is_serialized_optional':
+                False,
         }
     )
     """Message signature"""

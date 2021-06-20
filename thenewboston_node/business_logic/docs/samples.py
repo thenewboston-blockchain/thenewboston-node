@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from thenewboston_node.core.utils.cryptography import KeyPair
 from thenewboston_node.core.utils.types import hexstr
 
@@ -61,8 +63,11 @@ def make_sample_blockchain():
         fee_amount=node.fee_amount,
         signing_key=REGULAR_NODE_KEY_PAIR.private
     )
+    original_utcnow = blockchain.utcnow
+    blockchain.utcnow = lambda: datetime.fromisoformat('2021-06-19T23:13:22.003468')
     blockchain.add_block(Block.create_from_signed_change_request(blockchain, regular_node_scr, PV_KEY_PAIR.private))
 
+    blockchain.utcnow = lambda: datetime.fromisoformat('2021-06-19T23:15:45.575678')
     coin_transfer_scr = CoinTransferSignedChangeRequest.from_main_transaction(
         blockchain=blockchain,
         recipient=USER_KEY_PAIR.public,
@@ -74,6 +79,7 @@ def make_sample_blockchain():
     blockchain.add_block(Block.create_from_signed_change_request(blockchain, coin_transfer_scr, PV_KEY_PAIR.private))
 
     blockchain.snapshot_blockchain_state()
+    blockchain.utcnow = original_utcnow
     return blockchain
 
 

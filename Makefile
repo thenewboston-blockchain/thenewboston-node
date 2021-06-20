@@ -40,6 +40,11 @@ update: install migrate install-pre-commit ;
 create-superuser:
 	poetry run python -m thenewboston_node.manage createsuperuser
 
+.PHONY: generate-blockchain
+generate-blockchain:
+	mkdir -p local/blockchain
+	poetry run python -m thenewboston_node.manage generate_blockchain --path local/blockchain --do-not-validate 200 > local/blockchain-generation.log 2>&1
+
 .PHONY: run-server
 run-server:
 	poetry run python -m thenewboston_node.manage runserver 127.0.0.1:8001

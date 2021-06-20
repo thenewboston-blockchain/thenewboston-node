@@ -1,8 +1,8 @@
 from rest_framework import routers
 
-from .views.account_balance import AccountBalanceViewSet
+from .views.account_state import AccountStateViewSet
 
 router = routers.SimpleRouter()
-router.register('account-states', AccountBalanceViewSet, basename='account-balance')
+router.register('account-states', AccountStateViewSet, basename='account-state')
 
 urlpatterns = router.urls

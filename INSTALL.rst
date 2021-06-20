@@ -86,9 +86,8 @@ to get the latest version for development.
 
 #. Generate sample blockchain::
 
-    # Generate account numbers will be logged on INFO level
-    mkdir -p local/blockchain
-    python -m thenewboston_node.manage generate_blockchain --path local/blockchain --do-not-validate 200
+    # Generate account numbers will be logged to local/blockchain-generation.log
+    make generate-blockchain
 
 Update
 ++++++

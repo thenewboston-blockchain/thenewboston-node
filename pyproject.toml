@@ -29,6 +29,7 @@ daphne = "^3.0.2"
 Pygments = "^2.9.0"
 docutils = "^0.17.1"
 filelock = "^3.0.12"
+django-tqdm = "^1.0.0"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.10.1"

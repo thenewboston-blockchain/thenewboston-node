@@ -53,7 +53,6 @@ class CoinTransferSignedChangeRequestFactory(Factory):
 @factory(AccountState)
 class AccountStateFactory(Factory):
     balance = 1000
-    balance_lock = DEFAULT_ACCOUNT
 
 
 @factory(BlockMessage)

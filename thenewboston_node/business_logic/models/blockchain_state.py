@@ -52,6 +52,16 @@ class BlockchainState(MessagpackCompactableMixin, NormalizableMixin, BaseDatacla
     """Identifier of the next block to be added on top of the blockchain state
     (optional for blockchain genesis state, blockchain state hash is used as next block identifier in this case)"""
 
+    def serialize_to_dict(self, skip_none_values=True, coerce_to_json_types=True, exclude=()):
+        serialized = super().serialize_to_dict(
+            skip_none_values=skip_none_values, coerce_to_json_types=coerce_to_json_types, exclude=exclude
+        )
+        for account_number, account_state in serialized['account_states'].items():
+            if account_state.get('balance_lock') == account_number:
+                del account_state['balance_lock']
+
+        return serialized
+
     def get_account_state(self, account: hexstr) -> Optional[AccountState]:
         return self.account_states.get(account)
 

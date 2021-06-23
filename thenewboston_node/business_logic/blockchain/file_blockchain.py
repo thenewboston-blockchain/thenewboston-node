@@ -93,6 +93,7 @@ class FileBlockchain(BlockchainBase):
 
         account_root_files_directory = os.path.join(base_directory, account_root_files_subdir)
         block_directory = os.path.join(base_directory, blocks_subdir)
+        self.base_directory = base_directory
 
         self.block_storage = PathOptimizedFileSystemStorage(base_path=block_directory, **(blocks_storage_kwargs or {}))
         self.account_root_files_storage = PathOptimizedFileSystemStorage(
@@ -106,8 +107,19 @@ class FileBlockchain(BlockchainBase):
             snapshot_period_in_blocks * 2 if blocks_cache_size is None else blocks_cache_size
         )
 
-        lock_file_path = os.path.join(base_directory, lock_filename)
-        self.file_lock = filelock.FileLock(lock_file_path, timeout=0)
+        self._file_lock = None
+        self.lock_filename = lock_filename
+
+    @property
+    def file_lock(self):
+        file_lock = self._file_lock
+        if file_lock is None:
+            base_directory = self.base_directory
+            os.makedirs(base_directory, exist_ok=True)
+            lock_file_path = os.path.join(base_directory, self.lock_filename)
+            self._file_lock = file_lock = filelock.FileLock(lock_file_path, timeout=0)
+
+        return file_lock
 
     # Account root files methods
     @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
@@ -115,12 +127,12 @@ class FileBlockchain(BlockchainBase):
         return super().add_blockchain_state(blockchain_state)
 
     @ensure_locked(lock_attr='file_lock', exception=EXPECTED_LOCK_EXCEPTION)
-    def persist_blockchain_state(self, account_root_file: BlockchainState):
+    def persist_blockchain_state(self, blockchain_state: BlockchainState):
         storage = self.account_root_files_storage
-        last_block_number = account_root_file.last_block_number
+        last_block_number = blockchain_state.last_block_number
 
         file_path = get_account_root_filename(last_block_number)
-        storage.save(file_path, account_root_file.to_messagepack(), is_final=True)
+        storage.save(file_path, blockchain_state.to_messagepack(), is_final=True)
 
     def _load_account_root_file(self, file_path):
         cache = self.account_root_files_cache

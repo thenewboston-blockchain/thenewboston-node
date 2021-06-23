@@ -1,5 +1,6 @@
 import re
 from datetime import datetime
+from urllib.parse import urlparse
 
 import yaml
 
@@ -69,3 +70,11 @@ def coerce_from_json_type(value, type_):
         return datetime.fromisoformat(value)
 
     return value
+
+
+def is_valid_url(source):
+    try:
+        parsed = urlparse(source)
+        return all((parsed.scheme, parsed.netloc, parsed.path))
+    except Exception:
+        return False

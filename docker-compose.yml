@@ -34,12 +34,10 @@ services:
       - node
 
   node:
-    build: .
-    image: thenewboston-node:current
+    image: docker.pkg.github.com/thenewboston-developers/thenewboston-node/thenewboston-node:latest
     environment:
       - THENEWBOSTON_NODE_DATABASES={"default":{"HOST":"db"}}
-    env_file:
-      - .env
+    env_file: .env
     command: ./run.sh
     ports:
       # We expose it for testing purposes only

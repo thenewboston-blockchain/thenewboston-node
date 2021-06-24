@@ -2,11 +2,8 @@ name: Package
 
 on:
   push:
-# TODO(dmu) HIGH: Enable the disable package pulbication
-    branches-ignore:
-      - '**'
-#    branches:
-#      - master
+    branches:
+      - master
 
 jobs:
   # TODO(dmu) CRITICAL: Do not publish if unittests do not pass

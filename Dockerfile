@@ -47,3 +47,5 @@ COPY README.rst .
 
 COPY thenewboston_node thenewboston_node
 RUN poetry install
+ENV ARF_URL https://raw.githubusercontent.com/thenewboston-developers/Account-Backups/master/latest_backup/latest.json
+RUN THENEWBOSTON_NODE_BLOCKCHAIN='{"kwargs":{"base_directory":"/opt/project/blockchain"}}' THENEWBOSTON_NODE_SECRET_KEY=fake poetry run python -m thenewboston_node.manage convert_account_root_file $ARF_URL

@@ -18,8 +18,12 @@ up-dependencies-only:
 	docker-compose up --force-recreate db
 
 .PHONY: up
-up:
-	docker-compose up --force-recreate --build
+up: build
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --force-recreate
+
+.PHONY: up-prod
+up-prod: build
+	docker-compose up --force-recreate
 
 .PHONY: install
 install:

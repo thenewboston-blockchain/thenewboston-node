@@ -2,7 +2,7 @@ import typing
 
 from thenewboston_node.business_logic.models import BlockchainState
 from thenewboston_node.business_logic.models.base import BlockType
-from thenewboston_node.business_logic.models.mixins.compactable import COMPACT_KEY_MAP, bytes_to_hex
+from thenewboston_node.business_logic.models.mixins.compactable import COMPACT_KEY_MAP
 from thenewboston_node.business_logic.models.mixins.compactable import compact_key as ck
 from thenewboston_node.business_logic.models.mixins.serializable import SerializableMixin
 from thenewboston_node.business_logic.tests import baker_factories
@@ -56,7 +56,7 @@ def assert_instance_is_binarized(instance, dict_):  # noqa: C901
                     if issubclass(item_key_type, hexstr):
                         assert isinstance(item_key, bytes), f'{item_key} of {field_name} is not binarized'
 
-                    instance_item_key = bytes_to_hex(item_key) if isinstance(item_key, bytes) else item_key
+                    instance_item_key = hexstr.from_bytes(item_key) if isinstance(item_key, bytes) else item_key
                     if issubclass(item_value_type, SerializableMixin):
                         assert_instance_is_binarized(instance_value[instance_item_key], item_value)
                     elif issubclass(item_value_type, hexstr):

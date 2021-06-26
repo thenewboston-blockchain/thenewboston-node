@@ -1,8 +1,11 @@
 import logging
+import typing
 
 import msgpack
 
-from thenewboston_node.core.utils.collections import map_values, replace_keys
+from thenewboston_node.core.utils.collections import replace_keys
+from thenewboston_node.core.utils.types import hexstr
+from thenewboston_node.core.utils.typing import unwrap_optional
 
 from .serializable import SerializableMixin
 
@@ -44,61 +47,60 @@ COMPACT_KEY_MAP = {
 
 UNCOMPACT_KEY_MAP = {value: key for key, value in COMPACT_KEY_MAP.items()}
 
-
-def hex_to_bytes(value):
-    if value is None:
-        return value
-    return bytes.fromhex(value)
-
-
-def bytes_to_hex(value):
-    if value is None:
-        return value
-    return value.hex()
-
-
-COMPACT_VALUE_MAP = {
-    'signer': hex_to_bytes,
-    'hash': hex_to_bytes,
-    'signature': hex_to_bytes,
-    'block_identifier': hex_to_bytes,
-    'balance_lock': hex_to_bytes,
-    'recipient': hex_to_bytes,
-    'fee_account': hex_to_bytes,
-}
-
-UNCOMPACT_VALUE_MAP = {
-    'signer': bytes_to_hex,
-    'hash': bytes_to_hex,
-    'signature': bytes_to_hex,
-    'block_identifier': bytes_to_hex,
-    'balance_lock': bytes_to_hex,
-    'recipient': bytes_to_hex,
-    'fee_account': bytes_to_hex,
-}
-
-COMPACT_SUBKEY_MAP = {
-    'updated_account_states': hex_to_bytes,
-    'account_states': hex_to_bytes,
-}
-
-UNCOMPACT_SUBKEY_MAP = {
-    'updated_account_states': bytes_to_hex,
-    'account_states': bytes_to_hex,
-}
-
 # Assert that bidirectional mapping is defined correctly
 assert len(COMPACT_KEY_MAP) == len(UNCOMPACT_KEY_MAP)
 assert COMPACT_KEY_MAP.keys() == set(UNCOMPACT_KEY_MAP.values())
 assert UNCOMPACT_KEY_MAP.keys() == set(COMPACT_KEY_MAP.values())
-assert set(COMPACT_VALUE_MAP.keys()) == set(UNCOMPACT_VALUE_MAP.keys())
-assert set(COMPACT_SUBKEY_MAP.keys()) == set(UNCOMPACT_SUBKEY_MAP.keys())
 
 logger = logging.getLogger(__name__)
 
 
 def compact_key(key):
     return COMPACT_KEY_MAP.get(key, key)
+
+
+def get_type_compact_transform_map():
+    return {
+        CompactableMixin: lambda type_, value: type_.to_compact_values(value),
+        hexstr: lambda type_, value: hexstr(value).to_bytes(),
+    }
+
+
+def get_type_uncompact_transform_map():
+    return {
+        CompactableMixin: lambda type_, value: type_.from_compact_values(value),
+        hexstr: lambda type_, value: type_.from_bytes(value),
+    }
+
+
+def transform_value(value, type_, transform_map):
+    type_ = unwrap_optional(type_)
+    assert type_ is not typing.Union, 'Multitype fields are not supported'
+    type_origin = typing.get_origin(type_)
+    type_args = typing.get_args(type_)
+
+    for transform_type, transform_func in transform_map.items():
+        if issubclass(type_, transform_type):
+            return transform_func(type_, value)
+
+    if type_origin and issubclass(type_origin, dict):
+        new_value = {}
+        for item_key, item_value in value.items():
+            item_key_type, item_value_type = type_args
+
+            item_key = transform_value(item_key, item_key_type, transform_map)
+            item_value = transform_value(item_value, item_value_type, transform_map)
+            new_value[item_key] = item_value
+        return new_value
+    elif type_origin and issubclass(type_origin, list):
+        new_value = []
+        for item in value:
+            item_type = type_args[0]
+            item_value = transform_value(item, item_type, transform_map)
+            new_value.append(item_value)
+        return new_value
+    else:
+        return value
 
 
 class CompactableMixin(SerializableMixin):
@@ -111,8 +113,7 @@ class CompactableMixin(SerializableMixin):
             dict_ = replace_keys(dict_, UNCOMPACT_KEY_MAP)
 
         if compact_values:
-            dict_ = map_values(dict_, UNCOMPACT_VALUE_MAP)
-            dict_ = map_values(dict_, UNCOMPACT_SUBKEY_MAP, subkeys=True)
+            dict_ = cls.from_compact_values(dict_)
 
         return cls.deserialize_from_dict(dict_)
 
@@ -120,13 +121,36 @@ class CompactableMixin(SerializableMixin):
         dict_ = self.serialize_to_dict()
 
         if compact_values:
-            dict_ = map_values(dict_, COMPACT_VALUE_MAP)
-            dict_ = map_values(dict_, COMPACT_SUBKEY_MAP, subkeys=True)
+            dict_ = self.to_compact_values(dict_)
 
         if compact_keys:
             dict_ = replace_keys(dict_, COMPACT_KEY_MAP)
 
         return dict_
+
+    @classmethod
+    def to_compact_values(cls, dict_):
+        return cls._transform_dict(dict_, transform_map=get_type_compact_transform_map())
+
+    @classmethod
+    def from_compact_values(cls, dict_):
+        return cls._transform_dict(dict_, transform_map=get_type_uncompact_transform_map())
+
+    @classmethod
+    def _transform_dict(cls, dict_, transform_map):
+        polymorphic_type_map = cls.get_polymorphic_type_map(dict_)
+
+        new_dict = {}
+        for key, value in dict_.items():
+            type_ = polymorphic_type_map.get(key, cls.get_field(key).type)
+            value = transform_value(value, type_, transform_map)
+            new_dict[key] = value
+
+        return new_dict
+
+    @classmethod
+    def get_polymorphic_type_map(cls, dict_) -> typing.Dict[str, typing.Type]:
+        return {}
 
 
 class MessagpackCompactableMixin(CompactableMixin):

@@ -14,7 +14,7 @@ from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docst
 from thenewboston_node.core.utils.types import hexstr
 
 from . import AccountState
-from .base import BaseDataclass, BlockType, get_request_to_block_type_map  # noqa: I101
+from .base import BaseDataclass, BlockType, get_request_to_block_type_map, get_signed_change_request_type  # noqa: I101
 from .mixins.message import MessageMixin
 from .signed_change_request import SignedChangeRequest
 
@@ -72,6 +72,12 @@ class BlockMessage(MessageMixin, BaseDataclass):
             override['updated_account_states'] = updated_account_states_obj
 
         return super().deserialize_from_dict(dict_, complain_excessive_keys=complain_excessive_keys, override=override)
+
+    @classmethod
+    def get_polymorphic_type_map(cls, dict_):
+        block_type = dict_.get('block_type')
+        validate_not_empty('block_type', block_type)
+        return {'signed_change_request': get_signed_change_request_type(block_type)}
 
     @classmethod
     def from_signed_change_request(cls, blockchain, signed_change_request: SignedChangeRequest):

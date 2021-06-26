@@ -1,6 +1,6 @@
 import typing
 
-NONE_TYPE = type(None)
+from thenewboston_node.core.utils.typing import unwrap_optional
 
 
 class BaseMixin:
@@ -16,10 +16,8 @@ class BaseMixin:
     @classmethod
     def get_field_type(cls, field_name):
         type_ = cls.get_field(field_name).type
-        if typing.get_origin(type_) is typing.Union:
-            type_args = [arg for arg in typing.get_args(type_) if arg is not NONE_TYPE]
-            assert len(type_args) == 1, 'Multitype fields are not supported'
-            type_ = type_args[0]
+        type_ = unwrap_optional(type_)
+        assert type_ is not typing.Union, 'Multitype fields are not supported'
 
         return type_
 

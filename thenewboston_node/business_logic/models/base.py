@@ -27,6 +27,12 @@ def get_request_to_block_type_map():
     }
 
 
+def get_signed_change_request_type(block_type):
+    for signed_change_request_class, (item_block_type, _) in get_request_to_block_type_map().items():
+        if item_block_type == block_type:
+            return signed_change_request_class
+
+
 @revert_docstring
 @dataclass
 @cover_docstring

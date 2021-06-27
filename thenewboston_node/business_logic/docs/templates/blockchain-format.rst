@@ -190,7 +190,7 @@ Block chunk filename format
 
 Filename template is "``{{ file_blockchain.block_chunk_template.format(start='x' *  file_blockchain.order_of_block, end='y' *  file_blockchain.order_of_block) }}[.compressor]``"
 where "``{{ 'x' *  file_blockchain.order_of_block }}``" is the first block number of the block chunk file,
-"``{{ 'y' *  file_blockchain.order_of_block }}``" is the last block number of the block chunk file, 
+"``{{ 'y' *  file_blockchain.order_of_block }}``" is the last block number of the block chunk file,
 and "``.compressor``" represents compression algorithm, if present.
 
 Filename example of block chunk file for block from 100 to 199 compressed with LZMA compression: ``{{ file_blockchain.get_block_chunk_filename(100, 199) }}``

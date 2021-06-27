@@ -78,7 +78,7 @@ def get_context():
         'sample_blockchain_state': samples_factory.get_sample_blockchain_state(),
         'block_types': {item.value: humanize_snake_case(item.name.lower()) for item in BlockType},
         'file_blockchain': {
-            'account_root_file_subdir': file_blockchain.DEFAULT_ACCOUNT_ROOT_FILE_SUBDIR,
+            'account_root_file_subdir': file_blockchain.DEFAULT_BLOCKCHAIN_STATES_SUBDIR,
             'blocks_subdir': file_blockchain.DEFAULT_BLOCKS_SUBDIR,
             'block_chunk_size': file_blockchain.DEFAULT_BLOCK_CHUNK_SIZE,
             'order_of_block': file_blockchain.ORDER_OF_BLOCK,

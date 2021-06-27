@@ -29,7 +29,7 @@ BLOCK_CHUNK_FILENAME_RE = re.compile(
     BLOCK_CHUNK_FILENAME_TEMPLATE.format(start=r'(?P<start>\d+)', end=r'(?P<end>\d+)')
 )
 
-DEFAULT_ACCOUNT_ROOT_FILE_SUBDIR = 'account-root-files'
+DEFAULT_BLOCKCHAIN_STATES_SUBDIR = 'blockchain-states'
 DEFAULT_BLOCKS_SUBDIR = 'blocks'
 
 DEFAULT_BLOCK_CHUNK_SIZE = 100
@@ -71,7 +71,7 @@ class FileBlockchain(BlockchainBase):
         base_directory,
 
         # Account root files
-        account_root_files_subdir=DEFAULT_ACCOUNT_ROOT_FILE_SUBDIR,
+        account_root_files_subdir=DEFAULT_BLOCKCHAIN_STATES_SUBDIR,
         account_root_files_cache_size=128,
         account_root_files_storage_kwargs=None,
 

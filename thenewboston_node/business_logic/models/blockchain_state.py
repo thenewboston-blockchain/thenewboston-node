@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Type, TypeVar
 
 from thenewboston_node.business_logic.validators import (
     validate_gte_value, validate_is_none, validate_not_none, validate_type
@@ -15,6 +15,8 @@ from .account_state import AccountState
 from .base import BaseDataclass
 from .mixins.compactable import MessagpackCompactableMixin
 from .mixins.normalizable import NormalizableMixin
+
+T = TypeVar('T', bound='BlockchainState')
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +53,16 @@ class BlockchainState(MessagpackCompactableMixin, NormalizableMixin, BaseDatacla
     )
     """Identifier of the next block to be added on top of the blockchain state
     (optional for blockchain genesis state, blockchain state hash is used as next block identifier in this case)"""
+
+    @classmethod
+    def from_account_root_file(cls: Type[T], account_root_file_dict) -> T:
+        account_states = {}
+        for account_number, content in account_root_file_dict.items():
+            balance_lock = content.get('balance_lock')
+            account_states[account_number] = AccountState(
+                balance=content['balance'], balance_lock=None if balance_lock == account_number else balance_lock
+            )
+        return cls(account_states=account_states)
 
     def serialize_to_dict(self, skip_none_values=True, coerce_to_json_types=True, exclude=()):
         serialized = super().serialize_to_dict(

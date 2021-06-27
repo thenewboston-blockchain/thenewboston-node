@@ -177,3 +177,7 @@ class BlocksMixin:
                 assert block_number == 0
             else:
                 assert block_number == account_root_file_block_number + 1
+
+    def has_blocks(self):
+        # Override this method if a particular blockchain implementation can provide a high performance
+        return self.get_first_block() is not None

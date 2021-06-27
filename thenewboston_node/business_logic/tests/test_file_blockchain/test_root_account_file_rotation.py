@@ -21,7 +21,7 @@ def test_account_root_file_is_rotated(file_blockchain_w_memory_storage):
     initial_arf_filename = '000000000.-arf.msgpack'
     new_blockchain_state = '0000000001-arf.msgpack'
 
-    assert blockchain.get_account_root_file_count() == 2
+    assert blockchain.get_blockchain_states_count() == 2
     assert blockchain.account_root_files_storage.files.keys() == {initial_arf_filename, new_blockchain_state}
     assert blockchain.account_root_files_storage.finalized == {initial_arf_filename, new_blockchain_state}
 

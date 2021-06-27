@@ -5,7 +5,7 @@ from thenewboston_node.business_logic.tests.mocks.utils import patch_blockchain_
 
 def test_can_get_account_root_file_count(blockchain_base, blockchain_state_10, blockchain_state_20):
     with patch_blockchain_states(blockchain_base, [blockchain_state_10, blockchain_state_20]):
-        arf_count = blockchain_base.get_account_root_file_count()
+        arf_count = blockchain_base.get_blockchain_states_count()
 
     assert arf_count == 2
 

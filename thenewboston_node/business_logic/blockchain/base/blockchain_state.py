@@ -17,7 +17,7 @@ class BlockchainStateMixin:
     def yield_blockchain_states(self) -> Generator[BlockchainState, None, None]:
         raise NotImplementedError('Must be implemented in a child class')
 
-    def get_account_root_file_count(self) -> int:
+    def get_blockchain_states_count(self) -> int:
         # Highly recommended to override this method in the particular implementation of the blockchain for
         # performance reasons
         warnings.warn('Using low performance implementation of get_account_root_file_count() method (override it)')
@@ -48,3 +48,7 @@ class BlockchainStateMixin:
             return next(self.yield_blockchain_states_reversed())
         except StopIteration:
             return None
+
+    def has_blockchain_states(self):
+        # Override this method if a particular blockchain implementation can provide a high performance
+        return self.get_first_blockchain_state() is not None

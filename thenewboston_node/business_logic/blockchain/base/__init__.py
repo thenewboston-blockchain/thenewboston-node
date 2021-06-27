@@ -38,3 +38,6 @@ class BlockchainBase(ValidationMixin, BlockchainStateMixin, BlocksMixin, Account
 
     def utcnow(self):
         return datetime.utcnow()
+
+    def is_empty(self):
+        return not (self.has_blockchain_states() or self.has_blocks())

@@ -50,7 +50,7 @@ def generate_blockchain(
     treasury_account = treasury_account_key_pair.public
     logger.info('Using treasury account: %s', treasury_account_key_pair)
 
-    if add_blockchain_genesis_state and blockchain.get_account_root_file_count() == 0:
+    if add_blockchain_genesis_state and blockchain.get_blockchain_states_count() == 0:
         blockchain_genesis_state = BlockchainState(
             account_states={treasury_account: AccountState(balance=281474976710656, balance_lock=treasury_account)}
         )

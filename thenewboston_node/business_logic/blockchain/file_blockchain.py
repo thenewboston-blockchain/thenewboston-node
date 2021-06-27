@@ -158,7 +158,7 @@ class FileBlockchain(BlockchainBase):
     def yield_blockchain_states_reversed(self) -> Generator[BlockchainState, None, None]:
         yield from self._yield_blockchain_states(-1)
 
-    def get_account_root_file_count(self) -> int:
+    def get_blockchain_states_count(self) -> int:
         storage = self.account_root_files_storage
         return ilen(storage.list_directory())
 

@@ -13,7 +13,7 @@ LOGGING = {
     },
     'handlers': {
         'console': {
-            'level': 'WARNING',
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'standard',
             'filters': [],
@@ -26,7 +26,7 @@ LOGGING = {
     },
     'loggers': {
         logger_name: {
-            'level': 'WARNING',
+            'level': 'INFO',
             'propagate': True,
         } for logger_name in (
             'django', 'django.request', 'django.db.backends', 'django.template', 'thenewboston_node',

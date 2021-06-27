@@ -34,7 +34,7 @@ class MemoryBlockchain(BlockchainBase):
     def persist_blockchain_state(self, account_root_file: BlockchainState):
         self.blockchain_states.append(account_root_file)
 
-    def get_account_root_file_count(self) -> int:
+    def get_blockchain_states_count(self) -> int:
         return len(self.blockchain_states)
 
     def yield_blockchain_states(self) -> Generator[BlockchainState, None, None]:

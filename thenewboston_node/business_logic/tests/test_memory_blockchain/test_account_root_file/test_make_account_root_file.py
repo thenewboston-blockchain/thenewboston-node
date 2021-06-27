@@ -18,10 +18,10 @@ def test_can_make_blockchain_state_on_last_block(
     assert blockchain.get_closest_blockchain_state_snapshot() == blockchain_genesis_state
     assert blockchain.get_closest_blockchain_state_snapshot(-1) == blockchain_genesis_state
     assert blockchain_genesis_state.account_states[treasury_account].balance_lock == treasury_account
-    assert blockchain.get_account_root_file_count() == 1
+    assert blockchain.get_blockchain_states_count() == 1
 
     blockchain.snapshot_blockchain_state()
-    assert blockchain.get_account_root_file_count() == 1
+    assert blockchain.get_blockchain_states_count() == 1
 
     block0 = Block.create_from_main_transaction(
         blockchain, user_account, 30, signing_key=treasury_account_key_pair.private
@@ -29,9 +29,9 @@ def test_can_make_blockchain_state_on_last_block(
     blockchain.add_block(block0)
 
     blockchain.snapshot_blockchain_state()
-    assert blockchain.get_account_root_file_count() == 2
+    assert blockchain.get_blockchain_states_count() == 2
     blockchain.snapshot_blockchain_state()
-    assert blockchain.get_account_root_file_count() == 2
+    assert blockchain.get_blockchain_states_count() == 2
 
     account_root_file = blockchain.get_last_blockchain_state()
     assert account_root_file is not None

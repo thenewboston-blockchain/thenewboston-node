@@ -17,9 +17,8 @@ Directory structure
 Directory nesting
 =================
 
-For filesystem access optimization files are saved to nested directories of
-``{{ file_blockchain.file_optimization_max_depth }}`` levels. It is used for storing both
-blockchain state files and block chunk files.
+For filesystem access optimization, files are saved to ``{{ file_blockchain.file_optimization_max_depth }}``
+levels of nested directories. These store both blockchain state files and block chunk files.
 
 +---------------------------------+---------------------------------------------------------------+
 | Content                         | Path                                                          |
@@ -34,22 +33,22 @@ blockchain state files and block chunk files.
 Examples:
 
 - ``0000100199-arf.msgpack.xz`` to be saved to ``/path/to/blockchain/root/{{ file_blockchain.make_optimized_file_path('0000100199-arf.msgpack.xz', file_blockchain.file_optimization_max_depth) }}``
-- ``00012300000000000100-00012300000000000199-block-chunk.msgpack.xz`` to be saved to as
+- ``00012300000000000100-00012300000000000199-block-chunk.msgpack.xz`` to be saved to / as
   ``/path/to/blockchain/root/{{ file_blockchain.make_optimized_file_path('00012300000000000100-00012300000000000199-block-chunk.msgpack.xz', file_blockchain.file_optimization_max_depth) }}``
 
 Files format
 ============
+Although blockchain state files and block chunk files have the same format, their
+business logic related structure is different. For details on their structure, see
+sections `Blockchain state structure`_ and `Block chunk file structure`_.
+This section describes the general technical format regardless of the actual data
+stored in the files.
 
-Both blockchain state files and block chunk files have the same format, but different business logic
-related structure. Latter is described in sections `Blockchain state structure`_ and
-`Block chunk file structure`_. This section describes general technical format regardless to
-the actual data being stored in the files.
+The general filename template is ``base-name.msgpack[.compressor]``:
 
-General filename template is ``base-name.msgpack[.compressor]``:
-
-- ``base-name`` is specific to file type and described in other sections
-- ``.msgpack`` denotes that data is stored in MessagePack_ format
-- ``.compressor`` represents compression algorithm if present
+- ``base-name`` is specific to file type and described in other sections.
+- ``.msgpack`` denotes data is stored in MessagePack_ format.
+- ``.compressor`` represents compression algorithm, if present.
 
 Supported compression algorithms:
 
@@ -67,7 +66,7 @@ In-memory MessagePack_ compacted object === `Uncompact`_ ==> In-memory MessagePa
 Decompress
 ^^^^^^^^^^
 
-Just use corresponding decompression algorithm. Here is how we do it in Python::
+Use corresponding decompression algorithm. For example, in Python use:
 
     DECOMPRESSION_FUNCTIONS = {
         'gz': gzip.decompress,
@@ -78,8 +77,7 @@ Just use corresponding decompression algorithm. Here is how we do it in Python::
 Deserialize from MessagePack
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Blockchain state contains a single serialized MessagePack object.
-- See `Block chunk file format`_
+Blockchain state contains a single serialized MessagePack_ object. For details, see `Block chunk file format`_.
 
 Uncompact
 ^^^^^^^^^
@@ -111,9 +109,9 @@ Blockchain state files directory
 --------------------------------
 
 Blockchain states are saved to ``/path/to/blockchain/root/{{ file_blockchain.account_root_file_subdir }}/``
-in a nested directory structure as described in `Directory nesting`_ section
+in a nested directory structure, as described in section `Directory nesting`_.
 
-For example, file named ``0000100199-arf.msgpack.xz`` will be saved to as
+For example, a file named ``0000100199-arf.msgpack.xz`` will be saved as
 ``/path/to/blockchain/root/{{ file_blockchain.make_optimized_file_path('0000100199-arf.msgpack.xz', file_blockchain.file_optimization_max_depth) }}``
 
 Blockchain state structure
@@ -123,12 +121,11 @@ Blockchain state filename format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Filename template is "``{{ file_blockchain.account_root_file_template.format(last_block_number='x' *  file_blockchain.order_of_account_root_file) }}[.compressor]``"
-where "``{{ 'x' *  file_blockchain.order_of_account_root_file }}``" is the last block number of the blockchain state file and "``.compressor``" represents compression algorithm
-if present.
+where "``{{ 'x' *  file_blockchain.order_of_account_root_file }}``" is the last block number of the blockchain state file and "``.compressor``" represents compression algorithm, if present.
 
 Filename example of last block number 199 compressed with LZMA compression: ``{{ file_blockchain.get_account_root_filename(199) }}.xz``.
 
-NOTE: Initial root account file filename is ``{{ file_blockchain.get_account_root_filename(None) }}``.
+**Note:** Initial root account file filename is ``{{ file_blockchain.get_account_root_filename(None) }}``.
 
 Blockchain state format
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -180,9 +177,9 @@ Block chunk files
 =================
 
 Blockchain state files are saved to ``/path/to/blockchain/root/{{ file_blockchain.blocks_subdir }}/``
-in a nested directory structure as described in `Directory nesting`_ section
+in a nested directory structure, as described in section `Directory nesting`_.
 
-For example, file named ``00012300000000000100-00012300000000000199-block-chunk.msgpack.xz`` will be saved to as
+For example, a file named ``00012300000000000100-00012300000000000199-block-chunk.msgpack.xz`` will be saved to / as
 ``/path/to/blockchain/root/{{ file_blockchain.make_optimized_file_path('00012300000000000100-00012300000000000199-block-chunk.msgpack.xz', file_blockchain.file_optimization_max_depth) }}``
 
 Block chunk file structure
@@ -193,8 +190,8 @@ Block chunk filename format
 
 Filename template is "``{{ file_blockchain.block_chunk_template.format(start='x' *  file_blockchain.order_of_block, end='y' *  file_blockchain.order_of_block) }}[.compressor]``"
 where "``{{ 'x' *  file_blockchain.order_of_block }}``" is the first block number of the block chunk file,
-"``{{ 'y' *  file_blockchain.order_of_block }}``" is the last block number of the block chunk file
-and "``.compressor``" represents compression algorithm if present.
+"``{{ 'y' *  file_blockchain.order_of_block }}``" is the last block number of the block chunk file, 
+and "``.compressor``" represents compression algorithm, if present.
 
 Filename example of block chunk file for block from 100 to 199 compressed with LZMA compression: ``{{ file_blockchain.get_block_chunk_filename(100, 199) }}``
 
@@ -203,8 +200,8 @@ Block chunk file format
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Block chunk file contains multiple streamed serialized MessagePack objects: each block is
-serialized and the MessagePack_ binary appended to the file (it is NOT a serializes array
-of blocks).
+serialized and the MessagePack_ binary appended to the file. (It is NOT a serialized array
+of blocks.)
 
 Block structure
 ^^^^^^^^^^^^^^^

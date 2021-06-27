@@ -14,15 +14,15 @@ def test_blockchain_state_is_created_every_x_block(
     treasury_account_key_pair: KeyPair,
     user_account_key_pair: KeyPair,
 ):
-    assert not os.path.isfile(str(blockchain_path / 'account-root-files/0/0/0/0/0/0/0/0/000000000.-arf.msgpack'))
+    assert not os.path.isfile(str(blockchain_path / 'blockchain-states/0/0/0/0/0/0/0/0/000000000.-arf.msgpack'))
     blockchain = FileBlockchain(
         base_directory=str(blockchain_path),
         snapshot_period_in_blocks=5,
-        account_root_files_subdir='account-root-files',
+        account_root_files_subdir='blockchain-states',
         account_root_files_storage_kwargs={'compressors': ()}
     )
     blockchain.add_blockchain_state(blockchain_genesis_state)
-    assert os.path.isfile(str(blockchain_path / 'account-root-files/0/0/0/0/0/0/0/0/000000000.-arf.msgpack'))
+    assert os.path.isfile(str(blockchain_path / 'blockchain-states/0/0/0/0/0/0/0/0/000000000.-arf.msgpack'))
     blockchain.validate()
 
     user_account = user_account_key_pair.public
@@ -34,7 +34,7 @@ def test_blockchain_state_is_created_every_x_block(
         assert not os.path.isfile(
             str(
                 blockchain_path /
-                f'account-root-files/0/0/0/0/0/0/0/0/000000000{block.message.block_number}-arf.msgpack'
+                f'blockchain-states/0/0/0/0/0/0/0/0/000000000{block.message.block_number}-arf.msgpack'
             )
         )
         blockchain.add_block(block)
@@ -44,7 +44,7 @@ def test_blockchain_state_is_created_every_x_block(
     )
     blockchain.add_block(block)
     assert os.path.isfile(
-        str(blockchain_path / f'account-root-files/0/0/0/0/0/0/0/0/000000000{block.message.block_number}-arf.msgpack')
+        str(blockchain_path / f'blockchain-states/0/0/0/0/0/0/0/0/000000000{block.message.block_number}-arf.msgpack')
     )
 
     for _ in range(4):
@@ -54,7 +54,7 @@ def test_blockchain_state_is_created_every_x_block(
         assert not os.path.isfile(
             str(
                 blockchain_path /
-                f'account-root-files/0/0/0/0/0/0/0/0/000000000{block.message.block_number}-arf.msgpack'
+                f'blockchain-states/0/0/0/0/0/0/0/0/000000000{block.message.block_number}-arf.msgpack'
             )
         )
         blockchain.add_block(block)
@@ -64,5 +64,5 @@ def test_blockchain_state_is_created_every_x_block(
     )
     blockchain.add_block(block)
     assert os.path.isfile(
-        str(blockchain_path / f'account-root-files/0/0/0/0/0/0/0/0/000000000{block.message.block_number}-arf.msgpack')
+        str(blockchain_path / f'blockchain-states/0/0/0/0/0/0/0/0/000000000{block.message.block_number}-arf.msgpack')
     )

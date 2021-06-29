@@ -10,7 +10,7 @@ from thenewboston_node.business_logic.models import (
 )
 from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.core.utils import baker
-from thenewboston_node.core.utils.cryptography import KeyPair, derive_verify_key
+from thenewboston_node.core.utils.cryptography import KeyPair, derive_public_key
 
 
 def test_can_serialize_coin_transfer_block():
@@ -93,7 +93,7 @@ def test_can_create_block_from_signed_change_request(
     assert block.signature
     block.validate_signature()
     assert block.signer
-    assert block.signer == derive_verify_key(get_node_signing_key())
+    assert block.signer == derive_public_key(get_node_signing_key())
 
     block_message = block.message
 
@@ -152,7 +152,7 @@ def test_can_create_block_from_main_transaction(
 
     block.validate_signature()
     assert block.signer
-    assert block.signer == derive_verify_key(get_node_signing_key())
+    assert block.signer == derive_public_key(get_node_signing_key())
 
     # Assert block.message
     block_message = block.message

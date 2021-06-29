@@ -4,7 +4,6 @@ from thenewboston_node.business_logic.blockchain.memory_blockchain import Memory
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models import Block, NodeDeclarationSignedChangeRequest
 from thenewboston_node.core.utils.cryptography import KeyPair
-from thenewboston_node.core.utils.types import hexstr
 
 
 @pytest.mark.usefixtures('forced_mock_network', 'get_primary_validator_mock', 'get_preferred_node_mock')
@@ -71,25 +70,19 @@ def test_can_add_node_declaration_block(
     user_account = user_account_key_pair.public
 
     request0 = NodeDeclarationSignedChangeRequest.create(
-        identifier=hexstr('abcd'),
-        network_addresses=['127.0.0.1'],
-        fee_amount=3,
-        signing_key=user_account_key_pair.private
+        network_addresses=['127.0.0.1'], fee_amount=3, signing_key=user_account_key_pair.private
     )
     block0 = Block.create_from_signed_change_request(blockchain, request0)
     blockchain.add_block(block0)
-    assert blockchain.get_current_node(user_account) == request0.message.node
+    assert blockchain.get_node_by_identifier(user_account) == request0.message.node
     blockchain.snapshot_blockchain_state()
     assert blockchain.blockchain_states[-1].get_node(user_account) == request0.message.node
 
     request1 = NodeDeclarationSignedChangeRequest.create(
-        identifier=hexstr('abcd'),
-        network_addresses=['127.0.0.2', '192.168.0.34'],
-        fee_amount=3,
-        signing_key=user_account_key_pair.private
+        network_addresses=['127.0.0.2', '192.168.0.34'], fee_amount=3, signing_key=user_account_key_pair.private
     )
     block1 = Block.create_from_signed_change_request(blockchain, request1)
     blockchain.add_block(block1)
-    assert blockchain.get_current_node(user_account) == request1.message.node
+    assert blockchain.get_node_by_identifier(user_account) == request1.message.node
     blockchain.snapshot_blockchain_state()
     assert blockchain.blockchain_states[-1].get_node(user_account) == request1.message.node

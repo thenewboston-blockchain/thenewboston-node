@@ -1,4 +1,5 @@
 import typing
+from typing import Any, Optional
 
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.core.utils.misc import coerce_from_json_type, coerce_to_json_type
@@ -93,7 +94,15 @@ class SerializableMixin(BaseMixin):
         return new_value
 
     @classmethod
-    def deserialize_from_dict(cls, dict_, complain_excessive_keys=True, override=None):  # noqa: C901
+    def deserialize_from_dict(
+        cls, dict_, complain_excessive_keys=True, override: Optional[dict[str, Any]] = None
+    ):  # noqa: C901
+        """Return instance deserialized from `dict_`.
+        Args:
+            dict_ (dict): dict object to be deserialized from
+            complain_excessive_keys (bool): if `True` then `ValidationError` is raise if unknown keys are met
+            override (dict): a dict of values that have already been deserialized
+        """
         override = override or {}
         field_names = set(cls.get_field_names())
         missing_keys = [
@@ -129,7 +138,7 @@ class SerializableMixin(BaseMixin):
 
         deserialized.update(override)
 
-        return cls(**deserialized)
+        return cls(**deserialized)  # type: ignore
 
     def serialize_to_dict(self, skip_none_values=True, coerce_to_json_types=True, exclude=()):
         serialized = {}

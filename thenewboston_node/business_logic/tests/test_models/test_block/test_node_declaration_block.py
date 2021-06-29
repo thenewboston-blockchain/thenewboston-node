@@ -7,7 +7,6 @@ from thenewboston_node.core.utils.types import hexstr
 
 def test_create_node_declaration_block(memory_blockchain, user_account_key_pair):
     request = NodeDeclarationSignedChangeRequest.create(
-        identifier=hexstr('abcd'),
         network_addresses=['127.0.0.1'],
         fee_amount=3,
         fee_account=hexstr('dcba'),
@@ -28,7 +27,6 @@ def test_node_identifier_is_removed_when_node_declaration_signed_change_request_
     memory_blockchain, user_account_key_pair
 ):
     request = NodeDeclarationSignedChangeRequest.create(
-        identifier=hexstr('abcd'),
         network_addresses=['127.0.0.1'],
         fee_amount=3,
         fee_account=hexstr('dcba'),

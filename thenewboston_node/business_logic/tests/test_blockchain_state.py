@@ -2,7 +2,7 @@ from thenewboston_node.business_logic.models.blockchain_state import BlockchainS
 
 
 def test_from_account_root_file(sample_account_root_file_dict):
-    blockchain_state = BlockchainState.from_account_root_file(sample_account_root_file_dict)
+    blockchain_state = BlockchainState.create_from_account_root_file(sample_account_root_file_dict)
     for key, value in sample_account_root_file_dict.items():
         account_state = blockchain_state.get_account_state(key)
         assert account_state.balance == value['balance']

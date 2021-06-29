@@ -47,6 +47,8 @@ class CoinTransferSignedChangeRequestMessage(SignedChangeRequestMessage):
         node: RegularNode,
         memo: str = None
     ) -> T:
+        assert primary_validator.identifier
+        assert node.identifier
         txs = [
             CoinTransferTransaction(recipient=recipient, amount=amount, memo=memo),
             CoinTransferTransaction(

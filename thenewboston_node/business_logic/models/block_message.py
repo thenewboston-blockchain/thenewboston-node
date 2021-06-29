@@ -73,6 +73,16 @@ class BlockMessage(MessageMixin, BaseDataclass):
 
         return super().deserialize_from_dict(dict_, complain_excessive_keys=complain_excessive_keys, override=override)
 
+    def serialize_to_dict(self, skip_none_values=True, coerce_to_json_types=True, exclude=()):
+        serialized = super().serialize_to_dict(
+            skip_none_values=skip_none_values, coerce_to_json_types=coerce_to_json_types, exclude=exclude
+        )
+        for account_state in serialized['updated_account_states'].values():
+            if node := account_state.get('node'):
+                node.pop('identifier', None)
+
+        return serialized
+
     @classmethod
     def get_polymorphic_type_map(cls, dict_):
         block_type = dict_.get('block_type')

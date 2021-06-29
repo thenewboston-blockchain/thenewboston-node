@@ -48,7 +48,7 @@ def make_blockchain_state_from_account_root_file(source, path=None):
     logger.info('DONE: %s', message)
 
     logger.info('Converting')
-    blockchain_state = BlockchainState.from_account_root_file(account_root_file)
+    blockchain_state = BlockchainState.create_from_account_root_file(account_root_file)
     logger.info('DONE: Converting')
 
     logger.info('Writing result')

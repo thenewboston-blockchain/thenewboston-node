@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional, Type, TypeVar
+from typing import Any, Optional, Type, TypeVar
 
 from thenewboston_node.business_logic.validators import (
     validate_gte_value, validate_is_none, validate_not_none, validate_type
@@ -55,7 +55,7 @@ class BlockchainState(MessagpackCompactableMixin, NormalizableMixin, BaseDatacla
     (optional for blockchain genesis state, blockchain state hash is used as next block identifier in this case)"""
 
     @classmethod
-    def from_account_root_file(cls: Type[T], account_root_file_dict) -> T:
+    def create_from_account_root_file(cls: Type[T], account_root_file_dict) -> T:
         account_states = {}
         for account_number, content in account_root_file_dict.items():
             balance_lock = content.get('balance_lock')
@@ -63,6 +63,25 @@ class BlockchainState(MessagpackCompactableMixin, NormalizableMixin, BaseDatacla
                 balance=content['balance'], balance_lock=None if balance_lock == account_number else balance_lock
             )
         return cls(account_states=account_states)
+
+    @classmethod
+    def deserialize_from_dict(
+        cls: Type[T], dict_, complain_excessive_keys=True, override: Optional[dict[str, Any]] = None
+    ) -> T:
+        override = override or {}
+        if 'account_states' in dict_ and 'account_states' not in override:
+            # Replace null value of node.identifier with account number
+            account_states = dict_.pop('account_states')
+            account_state_objects = {}
+            for account_number, account_state in account_states.items():
+                account_state_object = AccountState.deserialize_from_dict(account_state)
+                if (node := account_state_object.node) and node.identifier is None:
+                    node.identifier = account_number
+                account_state_objects[account_number] = account_state_object
+
+            override['account_states'] = account_state_objects
+
+        return super().deserialize_from_dict(dict_, override=override)
 
     def serialize_to_dict(self, skip_none_values=True, coerce_to_json_types=True, exclude=()):
         serialized = super().serialize_to_dict(
@@ -72,7 +91,13 @@ class BlockchainState(MessagpackCompactableMixin, NormalizableMixin, BaseDatacla
             if account_state.get('balance_lock') == account_number:
                 del account_state['balance_lock']
 
+            if node := account_state.get('node'):
+                node.pop('identifier', None)
+
         return serialized
+
+    def yield_account_states(self):
+        yield from self.account_states.items()
 
     def get_account_state(self, account: hexstr) -> Optional[AccountState]:
         return self.account_states.get(account)

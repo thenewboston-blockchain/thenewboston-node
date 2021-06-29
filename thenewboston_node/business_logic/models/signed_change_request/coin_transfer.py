@@ -7,7 +7,7 @@ from thenewboston_node.business_logic.validators import (
     validate_exact_value, validate_greater_than_zero, validate_lte_value
 )
 from thenewboston_node.core.logging import timeit_method, validates
-from thenewboston_node.core.utils.cryptography import derive_verify_key
+from thenewboston_node.core.utils.cryptography import derive_public_key
 from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
 
@@ -40,7 +40,7 @@ class CoinTransferSignedChangeRequest(SignedChangeRequest):
     ) -> T:
         message = CoinTransferSignedChangeRequestMessage.from_main_transaction(
             blockchain=blockchain,
-            coin_sender=derive_verify_key(signing_key),
+            coin_sender=derive_public_key(signing_key),
             recipient=recipient,
             amount=amount,
             primary_validator=primary_validator,

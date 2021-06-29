@@ -9,7 +9,7 @@ from thenewboston_node.business_logic.network.base import NetworkBase
 from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.business_logic.validators import validate_exact_value, validate_not_empty
 from thenewboston_node.core.logging import timeit_method, validates
-from thenewboston_node.core.utils.cryptography import derive_verify_key
+from thenewboston_node.core.utils.cryptography import derive_public_key
 from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
 
@@ -83,7 +83,7 @@ class Block(SignableMixin, MessagpackCompactableMixin, BaseDataclass):
     ) -> T:
         signing_key = signing_key or get_node_signing_key()
         block = cls(
-            signer=derive_verify_key(signing_key),
+            signer=derive_public_key(signing_key),
             message=BlockMessage.from_signed_change_request(blockchain, signed_change_request)
         )
         block.sign(signing_key)

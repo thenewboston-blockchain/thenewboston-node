@@ -8,6 +8,7 @@ from thenewboston_node.core.utils.importing import import_from_string
 from .account_state import AccountStateMixin
 from .blockchain_state import BlockchainStateMixin
 from .blocks import BlocksMixin
+from .network import NetworkMixin
 from .validation import ValidationMixin
 
 T = TypeVar('T', bound='BlockchainBase')
@@ -15,7 +16,7 @@ T = TypeVar('T', bound='BlockchainBase')
 
 # BlockchainBase is broken into several classes to reduce a single source code file size and simply navigation
 # over the class code
-class BlockchainBase(ValidationMixin, BlockchainStateMixin, BlocksMixin, AccountStateMixin):
+class BlockchainBase(ValidationMixin, BlockchainStateMixin, BlocksMixin, AccountStateMixin, NetworkMixin):
     _instance = None
 
     def __init__(self, snapshot_period_in_blocks=None):

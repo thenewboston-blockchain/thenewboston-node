@@ -119,7 +119,6 @@ class CompactableMixin(SerializableMixin):
 
     def to_compact_dict(self, compact_keys=True, compact_values=True):
         dict_ = self.serialize_to_dict()
-
         if compact_values:
             dict_ = self.to_compact_values(dict_)
 

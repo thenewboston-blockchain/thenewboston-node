@@ -108,14 +108,13 @@ class BlocksMixin:
         assert account_root_file
         return account_root_file.get_next_block_number()
 
-    def get_current_block_number(self):
+    def get_current_block_number(self) -> int:
         return self.get_next_block_number() - 1
 
     @timeit(is_method=True, verbose_args=True)
     def yield_blocks_till_snapshot(self, from_block_number: Optional[int] = None):
-        """
-        Return generator of block traversing from `from_block_number` block (or head block if not specified)
-        to the block in included in the closest account root file (exclusive: the account root file block is not
+        """Return generator of blocks traversing from `from_block_number` block (or head block if not specified)
+        to the block of the closest blockchain state (exclusive: the blockchain state block is not
         traversed).
         """
         if from_block_number is not None and from_block_number < 0:
@@ -129,12 +128,12 @@ class BlocksMixin:
             return
 
         excludes_block_number = None if from_block_number is None else (from_block_number + 1)
-        account_root_file = self.get_closest_blockchain_state_snapshot(excludes_block_number)  # type: ignore
-        if account_root_file is None:
+        blockchain_state = self.get_closest_blockchain_state_snapshot(excludes_block_number)  # type: ignore
+        if blockchain_state is None:
             logger.warning('Could not find account root file excluding from_block_number: %s', from_block_number)
             return
 
-        account_root_file_block_number = account_root_file.last_block_number
+        account_root_file_block_number = blockchain_state.last_block_number
         logger.debug('Closest account root file last block number is %s', account_root_file_block_number)
         assert (
             from_block_number is None or account_root_file_block_number is None or

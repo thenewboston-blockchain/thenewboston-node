@@ -1,7 +1,8 @@
 import logging
 from dataclasses import dataclass
-from typing import Optional, Type, TypeVar
+from typing import Any, Optional, Type, TypeVar
 
+from thenewboston_node.core.utils.cryptography import derive_public_key
 from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
 
@@ -23,19 +24,35 @@ class NodeDeclarationSignedChangeRequest(SignedChangeRequest):
     def create(
         cls: Type[T],
         *,
-        identifier: hexstr,
         network_addresses: list[str],
         fee_amount: int,
         signing_key: hexstr,
         fee_account: Optional[hexstr] = None
     ) -> T:
         message = NodeDeclarationSignedChangeRequestMessage.create(
-            identifier=identifier,
+            identifier=derive_public_key(signing_key),
             network_addresses=network_addresses,
             fee_amount=fee_amount,
             fee_account=fee_account,
         )
         return cls.create_from_signed_change_request_message(message, signing_key)
+
+    @classmethod
+    def deserialize_from_dict(cls, dict_, complain_excessive_keys=True, override: Optional[dict[str, Any]] = None):
+        override = override or {}
+        if 'message' in dict_ and 'message' not in override:
+            dict_['message']['node']['identifier'] = dict_['signer']
+
+        return super().deserialize_from_dict(
+            dict_=dict_, complain_excessive_keys=complain_excessive_keys, override=override
+        )
+
+    def serialize_to_dict(self, skip_none_values=True, coerce_to_json_types=True, exclude=()):
+        serialized = super().serialize_to_dict(
+            skip_none_values=skip_none_values, coerce_to_json_types=coerce_to_json_types, exclude=exclude
+        )
+        serialized['message']['node'].pop('identifier', None)
+        return serialized
 
     def validate(self, blockchain, block_number: Optional[int] = None):
         # TODO(dmu) CRIRICAL: Implement

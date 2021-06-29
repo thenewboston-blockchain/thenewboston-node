@@ -5,7 +5,7 @@ from typing import Optional
 from thenewboston_node.business_logic.models.mixins.message import MessageMixin
 from thenewboston_node.business_logic.validators import validate_not_empty, validate_type
 from thenewboston_node.core.logging import validates
-from thenewboston_node.core.utils.cryptography import derive_verify_key
+from thenewboston_node.core.utils.cryptography import derive_public_key
 from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
 
@@ -37,7 +37,7 @@ class SignableMixin:
     """Message signature"""
 
     def sign(self, signing_key):
-        verify_key = derive_verify_key(signing_key)
+        verify_key = derive_public_key(signing_key)
         stored_verify_key = self.signer
         if not stored_verify_key:
             logger.warning('Signing message with an empty signer')

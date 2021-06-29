@@ -18,7 +18,7 @@ def generate_signature(signing_key: hexstr, message: bytes) -> hexstr:
     return SigningKey(hex_to_bytes(signing_key)).sign(message).signature.hex()
 
 
-def derive_verify_key(signing_key: hexstr):
+def derive_public_key(signing_key: hexstr):
     return bytes_to_hex(SigningKey(hex_to_bytes(signing_key)).verify_key)
 
 

@@ -58,7 +58,6 @@ def make_sample_blockchain():
         fee_amount=3,
     )
     regular_node_scr = NodeDeclarationSignedChangeRequest.create(
-        identifier=node.identifier,
         network_addresses=node.network_addresses,
         fee_amount=node.fee_amount,
         signing_key=REGULAR_NODE_KEY_PAIR.private

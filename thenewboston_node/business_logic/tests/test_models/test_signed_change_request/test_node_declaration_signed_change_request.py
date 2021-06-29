@@ -3,7 +3,6 @@ from thenewboston_node.business_logic.models import NodeDeclarationSignedChangeR
 
 def test_can_create_node_declaration_signed_change_request(user_account_key_pair):
     request = NodeDeclarationSignedChangeRequest.create(
-        identifier='abcd',
         network_addresses=['127.0.0.1'],
         fee_amount=3,
         fee_account='fake_fee_account',

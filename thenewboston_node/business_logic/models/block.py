@@ -3,21 +3,24 @@ import warnings
 from dataclasses import dataclass, field
 from typing import Optional, Type, TypeVar
 
-from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
 from thenewboston_node.business_logic.network.base import NetworkBase
 from thenewboston_node.business_logic.node import get_node_signing_key
-from thenewboston_node.business_logic.validators import validate_exact_value, validate_not_empty
+from thenewboston_node.business_logic.validators import (
+    validate_exact_value, validate_in, validate_not_empty, validate_not_none, validate_type
+)
 from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.cryptography import derive_public_key
 from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
 
-from .base import BaseDataclass, get_request_to_block_type_map
+from .base import BaseDataclass
 from .block_message import BlockMessage
 from .mixins.compactable import MessagpackCompactableMixin
 from .mixins.signable import SignableMixin
-from .signed_change_request import CoinTransferSignedChangeRequest, SignedChangeRequest
+from .signed_change_request import (  # noqa: I101
+    SIGNED_CHANGE_REQUEST_TYPE_MAP, CoinTransferSignedChangeRequest, SignedChangeRequest
+)
 
 T = TypeVar('T', bound='Block')
 
@@ -44,26 +47,19 @@ class Block(SignableMixin, MessagpackCompactableMixin, BaseDataclass):
     def deserialize_from_dict(cls, dict_, complain_excessive_keys=True, exclude=()):
         dict_ = dict_.copy()
         message_dict = dict_.pop('message', None)
-        if message_dict is None:
-            raise ValidationError('Missing keys: message')
-        elif not isinstance(message_dict, dict):
-            raise ValidationError('message must be a dict')
+        validate_not_none(f'{cls.__name__} message', message_dict)
+        validate_type(f'{cls.__name__} message', message_dict, dict)
 
+        signed_change_request_dict = message_dict.get('signed_change_request')
+        validate_not_none(f'{cls.__name__} message.signed_change_request', signed_change_request_dict)
+        validate_type(f'{cls.__name__} message.signed_change_request', signed_change_request_dict, dict)
+
+        signed_change_request_type_map = dict(SIGNED_CHANGE_REQUEST_TYPE_MAP)
         instance_block_type = message_dict.get('block_type')
-        for signed_change_request_class, (block_type, _) in get_request_to_block_type_map().items():
-            if block_type == instance_block_type:
-                signed_change_request_dict = message_dict.get('signed_change_request')
-                if signed_change_request_dict is None:
-                    raise ValidationError('Missing keys: signed_change_request')
-                elif not isinstance(signed_change_request_dict, dict):
-                    raise ValidationError('signed_change_request must be a dict')
-
-                signed_change_request_obj = signed_change_request_class.deserialize_from_dict(
-                    signed_change_request_dict
-                )
-                break
-        else:
-            raise NotImplementedError(f'message.block_type "{instance_block_type}" is not supported')
+        validate_not_none(f'{cls.__name__} message.block_type', instance_block_type)
+        validate_in(f'{cls.__name__} message.block_type', instance_block_type, signed_change_request_type_map)
+        signed_change_request_class = signed_change_request_type_map[instance_block_type]
+        signed_change_request_obj = signed_change_request_class.deserialize_from_dict(signed_change_request_dict)
 
         message_obj = BlockMessage.deserialize_from_dict(
             message_dict, override={'signed_change_request': signed_change_request_obj}

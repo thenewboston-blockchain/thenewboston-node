@@ -1,3 +1,4 @@
+import dataclasses
 import random
 from dataclasses import is_dataclass
 from datetime import datetime, timezone
@@ -45,8 +46,9 @@ class RandomDataClassGenerator:
 
     def generate(self, data_class: Any, *args, **kwargs) -> Any:  # noqa: C901
         random_data = {}
-        for field_name, metadata in data_class.__dataclass_fields__.items():
-            field_type = metadata.type
+        for field in dataclasses.fields(data_class):
+            field_name = field.name
+            field_type = field.type
 
             arguments = kwargs.get(field_name, {})
             if defaults.FIXED_VALUE_ARG in arguments:  # Value fixed

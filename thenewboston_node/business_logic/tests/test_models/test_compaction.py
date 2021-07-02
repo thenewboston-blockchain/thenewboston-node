@@ -1,10 +1,10 @@
 import typing
 
 from thenewboston_node.business_logic.models import BlockchainState
-from thenewboston_node.business_logic.models.base import BlockType
 from thenewboston_node.business_logic.models.mixins.compactable import COMPACT_KEY_MAP
 from thenewboston_node.business_logic.models.mixins.compactable import compact_key as ck
 from thenewboston_node.business_logic.models.mixins.serializable import SerializableMixin
+from thenewboston_node.business_logic.models.signed_change_request.constants import BlockType
 from thenewboston_node.business_logic.tests import baker_factories
 from thenewboston_node.core.utils import baker
 from thenewboston_node.core.utils.types import hexstr

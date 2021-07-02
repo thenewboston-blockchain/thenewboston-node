@@ -1,3 +1,4 @@
+import dataclasses
 import typing
 
 from thenewboston_node.core.utils.typing import unwrap_optional
@@ -6,12 +7,16 @@ from thenewboston_node.core.utils.typing import unwrap_optional
 class BaseMixin:
 
     @classmethod
+    def get_fields(cls):
+        return dict((f.name, f) for f in dataclasses.fields(cls))
+
+    @classmethod
     def get_field(cls, field_name):
-        return cls.__dataclass_fields__[field_name]
+        return cls.get_fields()[field_name]
 
     @classmethod
     def get_field_names(cls):
-        return tuple(cls.__dataclass_fields__.keys())
+        return tuple(cls.get_fields().keys())
 
     @classmethod
     def get_field_type(cls, field_name):

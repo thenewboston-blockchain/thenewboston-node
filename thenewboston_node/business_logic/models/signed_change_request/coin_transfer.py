@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import Type, TypeVar
+from typing import ClassVar, Type, TypeVar
 
 from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
 from thenewboston_node.business_logic.validators import (
@@ -11,8 +11,10 @@ from thenewboston_node.core.utils.cryptography import derive_public_key
 from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
 
+from ..account_state import AccountState
 from ..signed_change_request_message import CoinTransferSignedChangeRequestMessage
 from .base import SignedChangeRequest
+from .constants import BlockType
 
 T = TypeVar('T', bound='CoinTransferSignedChangeRequest')
 
@@ -23,6 +25,8 @@ logger = logging.getLogger(__name__)
 @dataclass
 @cover_docstring
 class CoinTransferSignedChangeRequest(SignedChangeRequest):
+    block_type: ClassVar[str] = BlockType.COIN_TRANSFER.value
+
     message: CoinTransferSignedChangeRequestMessage
 
     @classmethod
@@ -76,3 +80,31 @@ class CoinTransferSignedChangeRequest(SignedChangeRequest):
         validate_exact_value(
             f'{self.humanized_class_name} message balance_lock', self.message.balance_lock, expected_lock
         )
+
+    def get_updated_account_states(self, blockchain) -> dict[hexstr, AccountState]:
+        updated_account_states: dict[hexstr, AccountState] = {}
+        sent_amount = 0
+        for transaction in self.message.txs:
+            recipient = transaction.recipient
+            amount = transaction.amount
+
+            account_state = updated_account_states.get(recipient)
+            if account_state is None:
+                account_state = AccountState(balance=blockchain.get_account_current_balance(recipient))
+                updated_account_states[recipient] = account_state
+
+            assert account_state.balance is not None
+            account_state.balance += amount
+            sent_amount += amount
+        assert sent_amount > 0
+
+        coin_sender = self.signer
+        sender_balance = blockchain.get_account_current_balance(coin_sender)
+        assert sender_balance > 0
+        assert sender_balance >= sent_amount
+
+        updated_account_states[coin_sender] = AccountState(
+            balance=sender_balance - sent_amount, balance_lock=self.make_balance_lock()
+        )
+
+        return updated_account_states

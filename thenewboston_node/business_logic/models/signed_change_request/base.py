@@ -1,7 +1,7 @@
 import copy
 import logging
 from dataclasses import dataclass
-from typing import Type, TypeVar
+from typing import ClassVar, Type, TypeVar
 
 from thenewboston_node.business_logic.models.base import BaseDataclass
 from thenewboston_node.core.logging import validates
@@ -21,6 +21,8 @@ logger = logging.getLogger(__name__)
 @dataclass
 @cover_docstring
 class SignedChangeRequest(SignableMixin, BaseDataclass):
+    block_type: ClassVar[str]
+
     message: SignedChangeRequestMessage
 
     @classmethod
@@ -40,3 +42,9 @@ class SignedChangeRequest(SignableMixin, BaseDataclass):
     @validates('signed request message')
     def validate_message(self):
         self.message.validate()
+
+    def make_balance_lock(self):
+        return self.message.get_hash()
+
+    def get_updated_account_states(self, blockchain):
+        raise NotImplementedError('Must be implemented in subclass')

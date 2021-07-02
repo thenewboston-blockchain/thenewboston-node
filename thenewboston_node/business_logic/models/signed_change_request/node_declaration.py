@@ -1,13 +1,16 @@
 import logging
+from copy import deepcopy
 from dataclasses import dataclass
-from typing import Any, Optional, Type, TypeVar
+from typing import Any, ClassVar, Optional, Type, TypeVar
 
 from thenewboston_node.core.utils.cryptography import derive_public_key
 from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
 
+from ..account_state import AccountState
 from ..signed_change_request_message import NodeDeclarationSignedChangeRequestMessage
 from .base import SignedChangeRequest
+from .constants import BlockType
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +21,8 @@ T = TypeVar('T', bound='NodeDeclarationSignedChangeRequest')
 @dataclass
 @cover_docstring
 class NodeDeclarationSignedChangeRequest(SignedChangeRequest):
+    block_type: ClassVar[str] = BlockType.NODE_DECLARATION.value
+
     message: NodeDeclarationSignedChangeRequestMessage
 
     @classmethod
@@ -53,6 +58,9 @@ class NodeDeclarationSignedChangeRequest(SignedChangeRequest):
         )
         serialized['message']['node'].pop('identifier', None)
         return serialized
+
+    def get_updated_account_states(self, blockchain) -> dict[hexstr, AccountState]:
+        return {self.signer: AccountState(node=deepcopy(self.message.node))}
 
     def validate(self, blockchain, block_number: Optional[int] = None):
         # TODO(dmu) CRIRICAL: Implement

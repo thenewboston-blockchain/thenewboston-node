@@ -7,16 +7,17 @@ from typing import Optional
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.validators import (
     validate_empty, validate_exact_value, validate_greater_than_zero, validate_gt_value, validate_gte_value,
-    validate_is_none, validate_min_item_count, validate_not_empty, validate_not_none, validate_type
+    validate_in, validate_is_none, validate_min_item_count, validate_not_empty, validate_not_none, validate_type
 )
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
 
 from . import AccountState
-from .base import BaseDataclass, BlockType, get_request_to_block_type_map, get_signed_change_request_type  # noqa: I101
+from .base import BaseDataclass  # noqa: I101
 from .mixins.message import MessageMixin
-from .signed_change_request import SignedChangeRequest
+from .signed_change_request import SIGNED_CHANGE_REQUEST_TYPE_MAP, SignedChangeRequest
+from .signed_change_request.constants import BlockType
 
 logger = logging.getLogger(__name__)
 
@@ -84,24 +85,23 @@ class BlockMessage(MessageMixin, BaseDataclass):
         return serialized
 
     @classmethod
-    def get_polymorphic_type_map(cls, dict_):
+    def get_field_types(cls, dict_):
+        field_types = super().get_field_types(dict_)
+
+        signed_change_request_type_map = dict(SIGNED_CHANGE_REQUEST_TYPE_MAP)
         block_type = dict_.get('block_type')
         validate_not_empty('block_type', block_type)
-        return {'signed_change_request': get_signed_change_request_type(block_type)}
+        validate_in('block type', block_type, signed_change_request_type_map.keys())
+
+        field_types['signed_change_request'] = signed_change_request_type_map[block_type]
+        return field_types
 
     @classmethod
     def from_signed_change_request(cls, blockchain, signed_change_request: SignedChangeRequest):
         if not signed_change_request.signer:
             raise ValueError('Sender must be set')
 
-        for class_, (block_type, get_updated_account_states) in get_request_to_block_type_map().items():  # noqa: B007
-            if isinstance(signed_change_request, class_):
-                updated_account_states = get_updated_account_states(signed_change_request, blockchain)
-                break
-        else:
-            raise NotImplementedError(f'signed_change_request type {type(signed_change_request)} is not supported')
-
-        assert block_type
+        updated_account_states = signed_change_request.get_updated_account_states(blockchain)
 
         timestamp = blockchain.utcnow()
 
@@ -109,7 +109,7 @@ class BlockMessage(MessageMixin, BaseDataclass):
         block_identifier = blockchain.get_next_block_identifier()
 
         return BlockMessage(
-            block_type=block_type,
+            block_type=signed_change_request.block_type,
             signed_change_request=copy.deepcopy(signed_change_request),
             timestamp=timestamp,
             block_number=block_number,
@@ -240,8 +240,7 @@ class BlockMessage(MessageMixin, BaseDataclass):
         if is_sender:
             validate_not_empty(subject, balance_lock)
             validate_type(subject, balance_lock, str)
-            from ..algorithms.updated_account_states.coin_transfer import make_balance_lock
-            validate_exact_value(subject, balance_lock, make_balance_lock(self.signed_change_request))
+            validate_exact_value(subject, balance_lock, self.signed_change_request.make_balance_lock())
         else:
             validate_empty(subject, balance_lock)
 

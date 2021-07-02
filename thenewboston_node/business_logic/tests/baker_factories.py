@@ -1,15 +1,12 @@
 from thenewboston_node.business_logic.models import Block, BlockMessage
-from thenewboston_node.business_logic.models.base import BlockType, get_request_to_block_type_map
+from thenewboston_node.business_logic.models.signed_change_request import SIGNED_CHANGE_REQUEST_TYPE_MAP
+from thenewboston_node.business_logic.models.signed_change_request.constants import BlockType
 from thenewboston_node.core.utils import baker
-
-BLOCK_TYPE_TO_REQUEST_MAP = {
-    type_: request_class for request_class, (type_, _) in get_request_to_block_type_map().items()
-}
 
 
 def make_block(block_type, **kwargs):
     if 'message' not in kwargs:
-        request_class = BLOCK_TYPE_TO_REQUEST_MAP.get(block_type)
+        request_class = dict(SIGNED_CHANGE_REQUEST_TYPE_MAP).get(block_type)
         if not request_class:
             raise NotImplementedError(f'Block type {block_type} is not supported yet')
 

@@ -3,9 +3,9 @@ import typing
 
 import msgpack
 
+from thenewboston_node.business_logic.validators import validate_not_none
 from thenewboston_node.core.utils.collections import replace_keys
 from thenewboston_node.core.utils.types import hexstr
-from thenewboston_node.core.utils.typing import unwrap_optional
 
 from .serializable import SerializableMixin
 
@@ -74,8 +74,6 @@ def get_type_uncompact_transform_map():
 
 
 def transform_value(value, type_, transform_map):
-    type_ = unwrap_optional(type_)
-    assert type_ is not typing.Union, 'Multitype fields are not supported'
     type_origin = typing.get_origin(type_)
     type_args = typing.get_args(type_)
 
@@ -137,19 +135,20 @@ class CompactableMixin(SerializableMixin):
 
     @classmethod
     def _transform_dict(cls, dict_, transform_map):
-        polymorphic_type_map = cls.get_polymorphic_type_map(dict_)
+        field_types = cls.get_field_types(dict_)
 
         new_dict = {}
         for key, value in dict_.items():
-            type_ = polymorphic_type_map.get(key, cls.get_field(key).type)
+            type_ = field_types.get(key)
+            validate_not_none(f'{cls.__name__} {key} type', type_)
             value = transform_value(value, type_, transform_map)
             new_dict[key] = value
 
         return new_dict
 
     @classmethod
-    def get_polymorphic_type_map(cls, dict_) -> typing.Dict[str, typing.Type]:
-        return {}
+    def get_field_types(cls, dict_) -> typing.Dict[str, typing.Type]:
+        return {field_name: cls.get_field_type(field_name) for field_name in dict_}
 
 
 class MessagpackCompactableMixin(CompactableMixin):

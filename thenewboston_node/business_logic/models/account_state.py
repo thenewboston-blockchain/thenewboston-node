@@ -72,4 +72,4 @@ class AccountState(BaseDataclass):
         return
 
 
-# TODO(dmu) CRITICAL: Assert all attributes are optional
+assert all(AccountState.is_optional_field(field) for field in AccountState.get_field_names())

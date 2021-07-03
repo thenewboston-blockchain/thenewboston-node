@@ -5,7 +5,7 @@ from thenewboston_node.core.utils.types import hexstr
 
 
 def get_node_signing_key() -> hexstr:
-    signing_key = settings.SIGNING_KEY
+    signing_key = settings.NODE_SIGNING_KEY
     assert signing_key is not NotImplemented
     return signing_key
 

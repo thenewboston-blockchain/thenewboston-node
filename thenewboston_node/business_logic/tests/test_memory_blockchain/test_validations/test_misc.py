@@ -2,6 +2,7 @@ import pytest
 
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
 from thenewboston_node.business_logic.models.block import Block
+from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.core.utils.cryptography import KeyPair
 
 
@@ -18,21 +19,33 @@ def test_can_validate_blockchain(
     blockchain.validate(is_partial_allowed=False)
 
     block0 = Block.create_from_main_transaction(
-        blockchain, user_account, 30, signing_key=treasury_account_key_pair.private
+        blockchain=blockchain,
+        recipient=user_account,
+        amount=30,
+        request_signing_key=treasury_account_key_pair.private,
+        pv_signing_key=get_node_signing_key(),
     )
     blockchain.add_block(block0)
     blockchain.snapshot_blockchain_state()
     blockchain.validate(is_partial_allowed=False)
 
     block1 = Block.create_from_main_transaction(
-        blockchain, user_account, 10, signing_key=treasury_account_key_pair.private
+        blockchain=blockchain,
+        recipient=user_account,
+        amount=10,
+        request_signing_key=treasury_account_key_pair.private,
+        pv_signing_key=get_node_signing_key(),
     )
     blockchain.add_block(block1)
     blockchain.snapshot_blockchain_state()
     blockchain.validate(is_partial_allowed=False)
 
     block2 = Block.create_from_main_transaction(
-        blockchain, treasury_account, 5, signing_key=user_account_key_pair.private
+        blockchain=blockchain,
+        recipient=treasury_account,
+        amount=10,
+        request_signing_key=user_account_key_pair.private,
+        pv_signing_key=get_node_signing_key(),
     )
     blockchain.add_block(block2)
     blockchain.snapshot_blockchain_state()

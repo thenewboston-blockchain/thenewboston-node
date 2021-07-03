@@ -2,6 +2,7 @@ import pytest
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.models.block import Block
+from thenewboston_node.business_logic.node import get_node_signing_key
 
 
 @pytest.mark.usefixtures('forced_mock_network', 'get_primary_validator_mock', 'get_preferred_node_mock')
@@ -24,7 +25,11 @@ def test_can_make_blockchain_state_on_last_block(
     assert blockchain.get_blockchain_states_count() == 1
 
     block0 = Block.create_from_main_transaction(
-        blockchain, user_account, 30, signing_key=treasury_account_key_pair.private
+        blockchain=blockchain,
+        recipient=user_account,
+        amount=30,
+        request_signing_key=treasury_account_key_pair.private,
+        pv_signing_key=get_node_signing_key(),
     )
     blockchain.add_block(block0)
 
@@ -63,12 +68,20 @@ def test_can_make_blockchain_state_on_last_block(
     ) == preferred_node.identifier
 
     block1 = Block.create_from_main_transaction(
-        blockchain, treasury_account, 20, signing_key=user_account_key_pair.private
+        blockchain=blockchain,
+        recipient=treasury_account,
+        amount=20,
+        request_signing_key=user_account_key_pair.private,
+        pv_signing_key=get_node_signing_key(),
     )
     blockchain.add_block(block1)
 
     block2 = Block.create_from_main_transaction(
-        blockchain, primary_validator.identifier, 2, signing_key=treasury_account_key_pair.private
+        blockchain=blockchain,
+        recipient=primary_validator.identifier,
+        amount=2,
+        request_signing_key=treasury_account_key_pair.private,
+        pv_signing_key=get_node_signing_key(),
     )
     blockchain.add_block(block2)
 

@@ -2,6 +2,7 @@ import pytest
 
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
+from thenewboston_node.business_logic.node import get_node_signing_key
 
 primary_validator_fee = 5
 node_fee = 3
@@ -19,7 +20,13 @@ def set_up(
     node = RegularNode(identifier=node_identifier, fee_amount=node_fee, network_addresses=[])
 
     block = Block.create_from_main_transaction(
-        file_blockchain_w_memory_storage, user_account, 100, signing_key, pv, node
+        blockchain=file_blockchain_w_memory_storage,
+        recipient=user_account,
+        amount=100,
+        request_signing_key=signing_key,
+        pv_signing_key=get_node_signing_key(),
+        primary_validator=pv,
+        node=node
     )
     file_blockchain_w_memory_storage.add_block(block)
     file_blockchain_w_memory_storage.snapshot_blockchain_state()

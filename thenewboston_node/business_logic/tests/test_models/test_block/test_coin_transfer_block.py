@@ -86,7 +86,9 @@ def test_can_create_block_from_signed_change_request(
         return 450 if account == sender else 0
 
     with patch.object(MockBlockchain, 'get_account_balance', new=get_account_balance):
-        block = Block.create_from_signed_change_request(forced_mock_blockchain, sample_signed_change_request)
+        block = Block.create_from_signed_change_request(
+            forced_mock_blockchain, sample_signed_change_request, get_node_signing_key()
+        )
 
     assert block.message
     assert block.hash
@@ -142,7 +144,11 @@ def test_can_create_block_from_main_transaction(
 
     with patch.object(MockBlockchain, 'get_account_balance', new=get_account_balance):
         block = Block.create_from_main_transaction(
-            forced_mock_blockchain, user_account_key_pair.public, 20, signing_key=treasury_account_key_pair.private
+            blockchain=forced_mock_blockchain,
+            recipient=user_account_key_pair.public,
+            amount=20,
+            request_signing_key=treasury_account_key_pair.private,
+            pv_signing_key=get_node_signing_key(),
         )
 
     # Assert block
@@ -241,7 +247,9 @@ def test_normalized_block_message(forced_mock_blockchain, sample_signed_change_r
         return 450 if account == sample_signed_change_request.signer else 0
 
     with patch.object(MockBlockchain, 'get_account_balance', new=get_account_balance):
-        block = Block.create_from_signed_change_request(forced_mock_blockchain, sample_signed_change_request)
+        block = Block.create_from_signed_change_request(
+            forced_mock_blockchain, sample_signed_change_request, get_node_signing_key()
+        )
 
     expected_message = expected_message_template.replace(
         '<replace-with-timestamp>', block.message.timestamp.isoformat()
@@ -259,7 +267,9 @@ def test_can_serialize_deserialize_coin_transfer_signed_change_request_message()
 
 @pytest.mark.usefixtures('get_next_block_identifier_mock', 'get_next_block_number_mock', 'get_account_state_mock')
 def test_can_serialize_deserialize(forced_mock_blockchain, sample_signed_change_request):
-    block = Block.create_from_signed_change_request(forced_mock_blockchain, sample_signed_change_request)
+    block = Block.create_from_signed_change_request(
+        forced_mock_blockchain, sample_signed_change_request, get_node_signing_key()
+    )
     serialized_dict = block.serialize_to_dict()
     deserialized_block = Block.deserialize_from_dict(serialized_dict)
     assert deserialized_block == block
@@ -288,7 +298,7 @@ def test_can_duplicate_recipients(
     )
 
     with patch.object(MockBlockchain, 'get_account_balance', new=get_account_balance):
-        block = Block.create_from_signed_change_request(forced_mock_blockchain, request)
+        block = Block.create_from_signed_change_request(forced_mock_blockchain, request, get_node_signing_key())
 
     updated_account_states = block.message.updated_account_states
     assert len(updated_account_states) == 2

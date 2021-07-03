@@ -56,12 +56,7 @@ class BlockchainStateMixin(BaseMixin):
 
     def has_blockchain_states(self):
         # Override this method if a particular blockchain implementation can provide a high performance
-        try:
-            self.get_first_blockchain_state()
-        except StopIteration:
-            return False
-
-        return True
+        return any(self.yield_blockchain_states())
 
     def get_blockchain_state_by_block_number(self, block_number: int, inclusive: bool = False) -> BlockchainState:
         if block_number < -1:

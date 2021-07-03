@@ -3,16 +3,29 @@ from unittest.mock import patch
 import pytest
 
 from thenewboston_node.business_logic.models.block import Block
+from thenewboston_node.business_logic.node import get_node_signing_key
 
 
 @pytest.fixture(autouse=True)
 def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_signing_key):
     signing_key = treasury_account_signing_key
     with patch.object(file_blockchain_w_memory_storage, 'snapshot_period_in_blocks', 2):
-        block0 = Block.create_from_main_transaction(file_blockchain_w_memory_storage, user_account, 10, signing_key)
+        block0 = Block.create_from_main_transaction(
+            blockchain=file_blockchain_w_memory_storage,
+            recipient=user_account,
+            amount=10,
+            request_signing_key=signing_key,
+            pv_signing_key=get_node_signing_key()
+        )
         file_blockchain_w_memory_storage.add_block(block0)
 
-        block1 = Block.create_from_main_transaction(file_blockchain_w_memory_storage, user_account, 20, signing_key)
+        block1 = Block.create_from_main_transaction(
+            blockchain=file_blockchain_w_memory_storage,
+            recipient=user_account,
+            amount=20,
+            request_signing_key=signing_key,
+            pv_signing_key=get_node_signing_key()
+        )
         file_blockchain_w_memory_storage.add_block(block1)
 
 

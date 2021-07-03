@@ -4,6 +4,7 @@ from thenewboston_node.business_logic.blockchain.memory_blockchain import Memory
 from thenewboston_node.business_logic.models import CoinTransferSignedChangeRequest
 from thenewboston_node.business_logic.models.account_state import AccountState
 from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
+from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.core.utils.cryptography import generate_key_pair
 
 
@@ -46,7 +47,7 @@ def test_partial_blockchain(primary_validator, preferred_node):
         node=preferred_node
     )
     signed_change_request1.validate(blockchain, blockchain.get_next_block_number())
-    blockchain.add_block_from_signed_change_request(signed_change_request1)
+    blockchain.add_block_from_signed_change_request(signed_change_request1, get_node_signing_key())
     blockchain.validate()
 
     assert blockchain.get_block_count() == 1
@@ -64,7 +65,7 @@ def test_partial_blockchain(primary_validator, preferred_node):
         node=preferred_node
     )
     signed_change_request2.validate(blockchain, blockchain.get_next_block_number())
-    blockchain.add_block_from_signed_change_request(signed_change_request2)
+    blockchain.add_block_from_signed_change_request(signed_change_request2, get_node_signing_key())
     blockchain.validate()
 
     assert blockchain.get_block_count() == 2
@@ -90,7 +91,7 @@ def test_partial_blockchain(primary_validator, preferred_node):
         node=preferred_node
     )
     signed_change_request3.validate(blockchain, blockchain.get_next_block_number())
-    blockchain.add_block_from_signed_change_request(signed_change_request3)
+    blockchain.add_block_from_signed_change_request(signed_change_request3, get_node_signing_key())
     blockchain.validate()
 
     assert blockchain.get_account_current_balance(account1_key_pair.public) == 1000 - 10 - 4 - 1

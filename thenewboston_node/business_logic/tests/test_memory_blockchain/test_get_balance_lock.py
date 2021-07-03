@@ -2,6 +2,7 @@ import pytest
 
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
 from thenewboston_node.business_logic.models.block import Block
+from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.core.utils.cryptography import KeyPair
 
 
@@ -21,7 +22,11 @@ def test_get_account_lock(
     assert blockchain.get_account_balance_lock(treasury_account, -1) == treasury_account
 
     block0 = Block.create_from_main_transaction(
-        blockchain, user_account, 30, signing_key=treasury_account_key_pair.private
+        blockchain=blockchain,
+        recipient=user_account,
+        amount=30,
+        request_signing_key=treasury_account_key_pair.private,
+        pv_signing_key=get_node_signing_key(),
     )
     blockchain.add_block(block0)
     assert blockchain.get_next_block_number() == 1
@@ -34,7 +39,11 @@ def test_get_account_lock(
     assert blockchain.get_account_balance_lock(treasury_account, -1) == treasury_account
 
     block1 = Block.create_from_main_transaction(
-        blockchain, user_account, 10, signing_key=treasury_account_key_pair.private
+        blockchain=blockchain,
+        recipient=user_account,
+        amount=10,
+        request_signing_key=treasury_account_key_pair.private,
+        pv_signing_key=get_node_signing_key(),
     )
     blockchain.add_block(block1)
     assert blockchain.get_next_block_number() == 2

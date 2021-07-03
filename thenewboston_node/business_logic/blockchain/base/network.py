@@ -16,10 +16,10 @@ class NetworkMixin(BaseMixin):
             on_block_number = self.get_last_block_number()
         return self.get_account_state_attribute_value(identifier, 'node', on_block_number)
 
-    def get_nodes(self, on_block_number: Optional[int] = None) -> list[Node]:
+    def get_nodes(self, block_number: Optional[int] = None) -> list[Node]:
         nodes = []
         known_accounts = set()
-        for account_number, account_state in self.yield_account_states(from_block_number=on_block_number):
+        for account_number, account_state in self.yield_account_states(from_block_number=block_number):
             node = account_state.node
             if not node:
                 continue

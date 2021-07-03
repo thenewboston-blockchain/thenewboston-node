@@ -113,19 +113,11 @@ class BlocksMixin(BaseMixin):
         return self.get_next_block_number() - 1
 
     @timeit(is_method=True, verbose_args=True)
-    def yield_blocks_till_snapshot(self, from_block_number: Optional[int] = None):
-        """Return generator of blocks traversing from `from_block_number` block (or head block if not specified)
-        to the block of the closest blockchain state (exclusive: the blockchain state block is not
-        traversed).
-        """
-        if from_block_number is not None and from_block_number < 0:
-            logger.debug('No blocks to return: from_block_number (== %s) is less than 0', from_block_number)
+    def yield_blocks_slice(self, from_block_number: int, to_block_number_exclusive: int):
+        if from_block_number - to_block_number_exclusive < 1:
             return
 
-        block_count = self.get_block_count()  # type: ignore
-        assert block_count >= 0
-        if block_count == 0:
-            logger.debug('No blocks to return: blockchain does not contain blocks')
+        if not self.has_blocks():
             return
 
         block_number = self.get_last_block_number() if from_block_number is None else from_block_number
@@ -134,27 +126,14 @@ class BlocksMixin(BaseMixin):
             logger.warning('Could not find account root file excluding from_block_number: %s', from_block_number)
             return
 
-        account_root_file_block_number = blockchain_state.last_block_number
-        logger.debug('Closest account root file last block number is %s', account_root_file_block_number)
-        assert (
-            from_block_number is None or account_root_file_block_number is None or
-            account_root_file_block_number <= from_block_number
-        )
-
         current_head_block = self.get_last_block()  # type: ignore
         assert current_head_block
-        current_head_block_number = current_head_block.message.block_number
+        current_head_block_number = current_head_block.get_block_number()
         logger.debug('Head block number is %s', current_head_block_number)
 
-        if from_block_number is None or from_block_number > current_head_block_number:
-            offset = 0
-        else:
-            offset = current_head_block_number - from_block_number
-
-        if account_root_file_block_number is None:
-            blocks_to_return = block_count - offset
-        else:
-            blocks_to_return = current_head_block_number - account_root_file_block_number - offset
+        assert from_block_number <= current_head_block_number
+        offset = current_head_block_number - from_block_number
+        blocks_to_return = current_head_block_number - to_block_number_exclusive - offset
 
         start = offset
         stop = offset + blocks_to_return
@@ -164,19 +143,30 @@ class BlocksMixin(BaseMixin):
         # TODO(dmu) HIGH: Consider performance optimizations for islice(self.yield_blocks_reversed(), start, stop, 1)
         block = None
         for block in islice(self.yield_blocks_reversed(), start, stop, 1):  # type: ignore
-            block_number = block.message.block_number
-            assert account_root_file_block_number is None or account_root_file_block_number < block_number
+            block_number = block.get_block_number()
             logger.debug('Returning block number: %s', block_number)
             yield block
 
         logger.debug('All blocks have been iterated over')
-        # Assert we traversed all blocks up to the account root file
-        if block:
-            block_number = block.message.block_number
-            if account_root_file_block_number is None:
-                assert block_number == 0
-            else:
-                assert block_number == account_root_file_block_number + 1
+        # Assert we traversed all blocks
+        assert block
+        assert block_number == to_block_number_exclusive + 1
+
+    @timeit(is_method=True, verbose_args=True)
+    def yield_blocks_till_snapshot(self, from_block_number: Optional[int] = None):
+        """Return generator of blocks traversing from `from_block_number` block (or head block if not specified)
+        to the block of the closest blockchain state (exclusive: the blockchain state block is not
+        traversed).
+        """
+        block_number = self.get_last_block_number() if from_block_number is None else from_block_number
+        if block_number < 0:
+            return
+
+        if not self.has_blocks():
+            return
+
+        blockchain_state = self.get_blockchain_state_by_block_number(block_number, inclusive=True)  # type: ignore
+        yield from self.yield_blocks_slice(block_number, blockchain_state.get_last_block_number())
 
     def has_blocks(self):
         # Override this method if a particular blockchain implementation can provide a high performance

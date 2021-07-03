@@ -13,7 +13,7 @@ class NetworkMixin(BaseMixin):
 
     def get_node_by_identifier(self, identifier: hexstr, on_block_number: Optional[int] = None) -> Optional[Node]:
         if on_block_number is None:
-            on_block_number = self.get_current_block_number()
+            on_block_number = self.get_last_block_number()
         return self.get_account_state_attribute_value(identifier, 'node', on_block_number)
 
     def get_nodes(self, on_block_number: Optional[int] = None) -> list[Node]:

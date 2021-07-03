@@ -1,16 +1,20 @@
 import logging
 import warnings
 from copy import deepcopy
+from operator import le, lt
 from typing import Generator, Optional
 
 from more_itertools import always_reversible, ilen
 
+from thenewboston_node.business_logic.exceptions import InvalidBlockchain
 from thenewboston_node.business_logic.models import AccountState, BlockchainState
+
+from .base import BaseMixin
 
 logger = logging.getLogger(__name__)
 
 
-class BlockchainStateMixin:
+class BlockchainStateMixin(BaseMixin):
 
     def persist_blockchain_state(self, account_root_file: BlockchainState):
         raise NotImplementedError('Must be implemented in a child class')
@@ -36,71 +40,45 @@ class BlockchainStateMixin:
         blockchain_state.validate(is_initial=blockchain_state.is_initial())
         self.persist_blockchain_state(blockchain_state)
 
-    def get_first_blockchain_state(self) -> Optional[BlockchainState]:
+    def get_first_blockchain_state(self) -> BlockchainState:
         # Override this method if a particular blockchain implementation can provide a high performance
         try:
             return next(self.yield_blockchain_states())
         except StopIteration:
-            return None
+            raise InvalidBlockchain('Blockchain must contain a blockchain state')
 
-    def get_last_blockchain_state(self) -> Optional[BlockchainState]:
+    def get_last_blockchain_state(self) -> BlockchainState:
         # Override this method if a particular blockchain implementation can provide a high performance
         try:
             return next(self.yield_blockchain_states_reversed())
         except StopIteration:
-            return None
+            raise InvalidBlockchain('Blockchain must contain a blockchain state')
 
     def has_blockchain_states(self):
         # Override this method if a particular blockchain implementation can provide a high performance
-        return self.get_first_blockchain_state() is not None
+        try:
+            self.get_first_blockchain_state()
+        except StopIteration:
+            return False
 
-    def get_closest_blockchain_state_snapshot(self,
-                                              excludes_block_number: Optional[int] = None
-                                              ) -> Optional[BlockchainState]:
-        if excludes_block_number is not None and excludes_block_number < -1:
-            raise ValueError('before_block_number_inclusive must be greater or equal to -1')
+        return True
 
-        if excludes_block_number is None:
-            logger.debug('excludes_block_number is None: returning the last account root file')
-            account_root_file = self.get_last_blockchain_state()
-        elif excludes_block_number == -1:
-            logger.debug('excludes_block_number == -1: initial account root file is requested (not just first)')
-            first_account_root_file = self.get_first_blockchain_state()
-            if first_account_root_file and first_account_root_file.is_initial():
-                logger.debug('Returning first account root file (which is also an initial account root file)')
-                account_root_file = first_account_root_file
-            else:
-                logger.warning('Initial account root file is not found')
-                account_root_file = None
-        else:
-            logger.debug(
-                'excludes_block_number == %s: intermediate account root file is requested', excludes_block_number
-            )
-            for account_root_file in self.yield_blockchain_states_reversed():  # type: ignore
-                logger.debug(
-                    'Traversing account root file with last_block_number=%s', account_root_file.last_block_number
-                )
-                last_block_number = account_root_file.last_block_number
-                if last_block_number is None:
-                    assert account_root_file.is_initial()
-                    logger.debug('Encountered initial account root file')
-                    break
+    def get_blockchain_state_by_block_number(self, block_number: int, inclusive: bool = False) -> BlockchainState:
+        if block_number < -1:
+            raise ValueError('block_number must be greater or equal to -1')
 
-                if last_block_number < excludes_block_number:
-                    logger.debug(
-                        'Found account root file that does not include block number %s (last_block_number=%s)',
-                        excludes_block_number, last_block_number
-                    )
-                    break
-            else:
-                logger.warning('Requested account root file is not found (partial blockchain is unexpectedly short)')
-                account_root_file = None
+        if block_number == -1:
+            assert not inclusive
+            return self.get_first_blockchain_state()
 
-        if account_root_file is None:
-            logger.warning('Could not find account root file that excludes block number %s', excludes_block_number)
-            return None
+        op = le if inclusive else lt
+        # TODO(dmu) MEDIUM: Optimize with binary search
+        for blockchain_state in self.yield_blockchain_states_reversed():
+            last_block_number = blockchain_state.get_last_block_number()
+            if op(last_block_number, block_number):
+                return blockchain_state
 
-        return deepcopy(account_root_file)
+        raise InvalidBlockchain(f'Blockchain state before block number {block_number} is not found')
 
     def snapshot_blockchain_state(self):
         last_block = self.get_last_block()  # type: ignore
@@ -121,7 +99,10 @@ class BlockchainStateMixin:
         self.add_blockchain_state(account_root_file)
 
     def generate_blockchain_state(self, last_block_number: Optional[int] = None) -> BlockchainState:
-        last_blockchain_state_snapshot = self.get_closest_blockchain_state_snapshot(last_block_number)
+        if last_block_number is None:
+            last_block_number = self.get_last_block_number()
+
+        last_blockchain_state_snapshot = self.get_blockchain_state_by_block_number(last_block_number)
         assert last_blockchain_state_snapshot is not None
         logger.debug(
             'Generating blockchain state snapshot based on blockchain state with last_block_number=%s',

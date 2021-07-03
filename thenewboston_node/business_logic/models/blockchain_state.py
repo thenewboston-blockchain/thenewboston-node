@@ -9,6 +9,7 @@ from thenewboston_node.business_logic.validators import (
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import hash_normalized_dict
 from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
+from thenewboston_node.core.utils.misc import if_none
 from thenewboston_node.core.utils.types import hexstr
 
 from .account_state import AccountState
@@ -119,9 +120,11 @@ class BlockchainState(MessagpackCompactableMixin, NormalizableMixin, BaseDatacla
     def get_node(self, account: hexstr):
         return self.get_account_state_attribute_value(account, 'node')
 
+    def get_last_block_number(self) -> int:
+        return if_none(self.last_block_number, -1)
+
     def get_next_block_number(self) -> int:
-        last_block_number = self.last_block_number
-        return 0 if last_block_number is None else last_block_number + 1
+        return self.get_last_block_number() + 1
 
     def get_next_block_identifier(self) -> hexstr:
         next_block_identifier = self.next_block_identifier

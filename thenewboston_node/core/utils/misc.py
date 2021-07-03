@@ -78,3 +78,7 @@ def is_valid_url(source):
         return all((parsed.scheme, parsed.netloc, parsed.path))
     except Exception:
         return False
+
+
+def if_none(value, replacement):
+    return replacement if value is None else value

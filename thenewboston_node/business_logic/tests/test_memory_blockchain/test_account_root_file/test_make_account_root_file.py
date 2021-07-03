@@ -15,8 +15,8 @@ def test_can_make_blockchain_state_on_last_block(
     treasury_initial_balance = blockchain.get_account_current_balance(treasury_account)
     assert treasury_initial_balance is not None
 
-    assert blockchain.get_closest_blockchain_state_snapshot() == blockchain_genesis_state
-    assert blockchain.get_closest_blockchain_state_snapshot(-1) == blockchain_genesis_state
+    assert blockchain.get_last_blockchain_state() == blockchain_genesis_state
+    assert blockchain.get_blockchain_state_by_block_number(-1) == blockchain_genesis_state
     assert blockchain_genesis_state.account_states[treasury_account].balance_lock == treasury_account
     assert blockchain.get_blockchain_states_count() == 1
 

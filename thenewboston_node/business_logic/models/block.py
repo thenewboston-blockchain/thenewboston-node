@@ -123,6 +123,9 @@ class Block(SignableMixin, MessagpackCompactableMixin, BaseDataclass):
 
         self.hash = message_hash
 
+    def yield_account_states(self):
+        yield from self.message.yield_account_states()
+
     @validates('block')
     def validate(self, blockchain):
         with validates(f'block number {self.message.block_number} (identifier: {self.message.block_identifier})'):

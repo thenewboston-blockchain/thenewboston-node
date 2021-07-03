@@ -5,7 +5,6 @@ from typing import Optional, Type, TypeVar
 
 from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
 from thenewboston_node.business_logic.network.base import NetworkBase
-from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.business_logic.validators import (
     validate_exact_value, validate_in, validate_not_empty, validate_not_none, validate_type
 )
@@ -75,24 +74,25 @@ class Block(SignableMixin, MessagpackCompactableMixin, BaseDataclass):
         cls: Type[T],
         blockchain,
         signed_change_request: SignedChangeRequest,
-        signing_key=None,
+        pv_signing_key,
     ) -> T:
-        signing_key = signing_key or get_node_signing_key()
         block = cls(
-            signer=derive_public_key(signing_key),
+            signer=derive_public_key(pv_signing_key),
             message=BlockMessage.from_signed_change_request(blockchain, signed_change_request)
         )
-        block.sign(signing_key)
+        block.sign(pv_signing_key)
         block.hash_message()
         return block
 
     @classmethod
     def create_from_main_transaction(
         cls: Type[T],
+        *,
         blockchain,
         recipient: str,
         amount: int,
-        signing_key: str,
+        request_signing_key: str,
+        pv_signing_key: str,
         primary_validator: Optional[PrimaryValidator] = None,
         node: Optional[RegularNode] = None
     ) -> T:
@@ -109,11 +109,11 @@ class Block(SignableMixin, MessagpackCompactableMixin, BaseDataclass):
             blockchain=blockchain,
             recipient=recipient,
             amount=amount,
-            signing_key=signing_key,
+            signing_key=request_signing_key,
             primary_validator=primary_validator,
             node=node,
         )
-        return cls.create_from_signed_change_request(blockchain, signed_change_request)
+        return cls.create_from_signed_change_request(blockchain, signed_change_request, pv_signing_key)
 
     def hash_message(self) -> None:
         message_hash = self.message.get_hash()

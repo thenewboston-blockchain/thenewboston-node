@@ -7,6 +7,7 @@ from thenewboston_node.business_logic.models.account_state import AccountState
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.models.block_message import BlockMessage
 from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
+from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.business_logic.utils.blockchain import generate_blockchain
 from thenewboston_node.core.utils.cryptography import KeyPair, derive_public_key
 from thenewboston_node.core.utils.factory import Factory, factory
@@ -23,6 +24,7 @@ def add_blocks_to_blockchain(blockchain, block_count, treasury_account_private_k
     generate_blockchain(
         blockchain,
         block_count,
+        get_node_signing_key(),
         add_blockchain_genesis_state=False,
         validate=False,
         treasury_account_key_pair=treasury_account_key_pair

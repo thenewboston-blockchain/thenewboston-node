@@ -3,6 +3,7 @@ import pytest
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models import Block, NodeDeclarationSignedChangeRequest
+from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.core.utils.cryptography import KeyPair
 
 
@@ -27,7 +28,11 @@ def test_can_add_coin_transfer_block(
     total_fees = 1 + 4
 
     block0 = Block.create_from_main_transaction(
-        blockchain, user_account, 30, signing_key=treasury_account_key_pair.private
+        blockchain=blockchain,
+        recipient=user_account,
+        amount=30,
+        request_signing_key=treasury_account_key_pair.private,
+        pv_signing_key=get_node_signing_key(),
     )
     blockchain.add_block(block0)
     assert blockchain.get_account_current_balance(user_account) == 30
@@ -39,7 +44,11 @@ def test_can_add_coin_transfer_block(
         blockchain.add_block(block0)
 
     block1 = Block.create_from_main_transaction(
-        blockchain, user_account, 10, signing_key=treasury_account_key_pair.private
+        blockchain=blockchain,
+        recipient=user_account,
+        amount=10,
+        request_signing_key=treasury_account_key_pair.private,
+        pv_signing_key=get_node_signing_key(),
     )
     blockchain.add_block(block1)
     assert blockchain.get_account_current_balance(user_account) == 40
@@ -50,7 +59,11 @@ def test_can_add_coin_transfer_block(
     assert blockchain.get_account_current_balance(pv_account) == 4 * 2
 
     block2 = Block.create_from_main_transaction(
-        blockchain, treasury_account, 5, signing_key=user_account_key_pair.private
+        blockchain=blockchain,
+        recipient=treasury_account,
+        amount=5,
+        request_signing_key=user_account_key_pair.private,
+        pv_signing_key=get_node_signing_key(),
     )
     blockchain.add_block(block2)
     assert blockchain.get_account_current_balance(user_account) == 40 - 5 - total_fees
@@ -72,7 +85,7 @@ def test_can_add_node_declaration_block(
     request0 = NodeDeclarationSignedChangeRequest.create(
         network_addresses=['127.0.0.1'], fee_amount=3, signing_key=user_account_key_pair.private
     )
-    block0 = Block.create_from_signed_change_request(blockchain, request0)
+    block0 = Block.create_from_signed_change_request(blockchain, request0, get_node_signing_key())
     blockchain.add_block(block0)
     assert blockchain.get_node_by_identifier(user_account) == request0.message.node
     blockchain.snapshot_blockchain_state()
@@ -81,7 +94,7 @@ def test_can_add_node_declaration_block(
     request1 = NodeDeclarationSignedChangeRequest.create(
         network_addresses=['127.0.0.2', '192.168.0.34'], fee_amount=3, signing_key=user_account_key_pair.private
     )
-    block1 = Block.create_from_signed_change_request(blockchain, request1)
+    block1 = Block.create_from_signed_change_request(blockchain, request1, get_node_signing_key())
     blockchain.add_block(block1)
     assert blockchain.get_node_by_identifier(user_account) == request1.message.node
     blockchain.snapshot_blockchain_state()

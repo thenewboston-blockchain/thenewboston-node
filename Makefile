@@ -53,6 +53,10 @@ generate-blockchain:
 run-server:
 	poetry run python -m thenewboston_node.manage runserver 127.0.0.1:8001
 
+.PHONY: dev-start-node
+dev-start-node:
+	poetry run python -m thenewboston_node.manage start_node https://raw.githubusercontent.com/thenewboston-developers/Account-Backups/master/latest_backup/latest.json
+
 .PHONY: lint
 lint:
 	poetry run pre-commit run --all-files

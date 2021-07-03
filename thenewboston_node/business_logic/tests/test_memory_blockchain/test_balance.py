@@ -3,6 +3,7 @@ import pytest
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
+from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.core.utils.cryptography import KeyPair
 
 
@@ -35,7 +36,11 @@ def test_can_get_account_state_by_block_number(
     assert blockchain.get_account_current_balance(recipient) == 0
 
     block0 = Block.create_from_main_transaction(
-        blockchain, recipient, 10, signing_key=treasury_account_key_pair.private
+        blockchain=blockchain,
+        recipient=recipient,
+        amount=10,
+        request_signing_key=treasury_account_key_pair.private,
+        pv_signing_key=get_node_signing_key(),
     )
     blockchain.add_block(block0)
     assert blockchain.get_account_balance(sender, -1) == sender_initial_balance
@@ -46,7 +51,11 @@ def test_can_get_account_state_by_block_number(
     assert blockchain.get_account_current_balance(recipient) == 10
 
     block1 = Block.create_from_main_transaction(
-        blockchain, recipient, 11, signing_key=treasury_account_key_pair.private
+        blockchain=blockchain,
+        recipient=recipient,
+        amount=11,
+        request_signing_key=treasury_account_key_pair.private,
+        pv_signing_key=get_node_signing_key(),
     )
     blockchain.add_block(block1)
     assert blockchain.get_account_balance(sender, -1) == sender_initial_balance
@@ -59,7 +68,11 @@ def test_can_get_account_state_by_block_number(
     assert blockchain.get_account_current_balance(recipient) == 10 + 11
 
     block2 = Block.create_from_main_transaction(
-        blockchain, recipient, 12, signing_key=treasury_account_key_pair.private
+        blockchain=blockchain,
+        recipient=recipient,
+        amount=12,
+        request_signing_key=treasury_account_key_pair.private,
+        pv_signing_key=get_node_signing_key(),
     )
     blockchain.add_block(block2)
     assert blockchain.get_account_balance(sender, -1) == sender_initial_balance

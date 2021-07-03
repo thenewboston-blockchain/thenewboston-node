@@ -90,9 +90,9 @@ class BlocksMixin(BaseMixin):
 
     @timeit_method(level=logging.INFO)
     def add_block_from_signed_change_request(
-        self, signed_change_request: CoinTransferSignedChangeRequest, validate=True
+        self, signed_change_request: CoinTransferSignedChangeRequest, pv_signing_key, validate=True
     ):
-        block = Block.create_from_signed_change_request(self, signed_change_request)
+        block = Block.create_from_signed_change_request(self, signed_change_request, pv_signing_key)
         self.add_block(block, validate=validate)
 
     def get_next_block_identifier(self) -> str:

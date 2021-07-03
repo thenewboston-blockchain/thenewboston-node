@@ -42,6 +42,7 @@ def get_initial_balances(blockchain):
 def generate_blockchain(
     blockchain: BlockchainBase,
     size,
+    signing_key,
     add_blockchain_genesis_state=True,
     validate=True,
     treasury_account_key_pair=None
@@ -104,7 +105,7 @@ def generate_blockchain(
         if recipient_new_balance >= min_sender_amount:
             sender_candidates.add(recipient)
 
-        blockchain.add_block_from_signed_change_request(signed_change_request, validate=validate)
+        blockchain.add_block_from_signed_change_request(signed_change_request, signing_key, validate=validate)
 
 
 def get_attribute_default_value(attribute, account):

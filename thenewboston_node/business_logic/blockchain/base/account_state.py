@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 class AccountStateMixin(BaseMixin):
 
     def yield_known_accounts(self):
+        # We keep this implementation because it is faster than using self.yield_account_states()
         known_accounts = set()
         for block in self.yield_blocks_till_snapshot():  # type: ignore
             block_accounts = set(block.message.updated_account_states.keys())

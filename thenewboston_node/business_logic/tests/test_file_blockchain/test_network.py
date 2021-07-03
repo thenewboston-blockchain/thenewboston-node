@@ -9,7 +9,7 @@ def test_can_get_nodes_empty_list(blockchain_directory, blockchain_genesis_state
     blockchain.add_blockchain_state(blockchain_genesis_state)
     blockchain.validate()
 
-    assert blockchain.get_nodes() == []
+    assert list(blockchain.yield_nodes()) == []
 
 
 def test_can_get_nodes_single_node_from_blockchain_genesis_state(
@@ -24,7 +24,7 @@ def test_can_get_nodes_single_node_from_blockchain_genesis_state(
     blockchain.add_blockchain_state(blockchain_genesis_state)
     blockchain.validate()
 
-    assert blockchain.get_nodes() == [node]
+    assert list(blockchain.yield_nodes()) == [node]
 
 
 def test_can_get_nodes_single_node_from_blocks(blockchain_directory, blockchain_genesis_state, user_account_key_pair):
@@ -41,7 +41,7 @@ def test_can_get_nodes_single_node_from_blocks(blockchain_directory, blockchain_
     block = Block.create_from_signed_change_request(blockchain, request)
     blockchain.add_block(block)
 
-    assert blockchain.get_nodes() == [node]
+    assert list(blockchain.yield_nodes()) == [node]
 
 
 def test_can_get_nodes_from_genesis_state_and_blocks(
@@ -65,7 +65,7 @@ def test_can_get_nodes_from_genesis_state_and_blocks(
     block = Block.create_from_signed_change_request(blockchain, request)
     blockchain.add_block(block)
 
-    assert blockchain.get_nodes() == [blocks_node, blockchain_state_node]
+    assert list(blockchain.yield_nodes()) == [blocks_node, blockchain_state_node]
 
 
 def test_can_get_nodes_blocks_node_overrides_genesis_state_node(
@@ -92,7 +92,7 @@ def test_can_get_nodes_blocks_node_overrides_genesis_state_node(
     blockchain.add_block(block)
 
     assert blocks_node != blockchain_state_node
-    assert blockchain.get_nodes() == [blocks_node]
+    assert list(blockchain.yield_nodes()) == [blocks_node]
 
 
 def test_can_get_nodes_from_different_block_numbers(
@@ -127,11 +127,11 @@ def test_can_get_nodes_from_different_block_numbers(
     node2 = request.message.node
     blockchain.add_block(Block.create_from_signed_change_request(blockchain, request))
 
-    assert blockchain.get_nodes() == [node2]
-    assert blockchain.get_nodes(block_number=2) == [node2]
-    assert blockchain.get_nodes(block_number=1) == [node1]
-    assert blockchain.get_nodes(block_number=0) == [node0]
-    assert blockchain.get_nodes(block_number=-1) == [blockchain_state_node]
+    assert list(blockchain.yield_nodes()) == [node2]
+    assert list(blockchain.yield_nodes(block_number=2)) == [node2]
+    assert list(blockchain.yield_nodes(block_number=1)) == [node1]
+    assert list(blockchain.yield_nodes(block_number=0)) == [node0]
+    assert list(blockchain.yield_nodes(block_number=-1)) == [blockchain_state_node]
 
 
 def test_can_get_nodes_from_complex_blockchain(blockchain_directory, blockchain_genesis_state):
@@ -178,7 +178,7 @@ def test_can_get_nodes_from_complex_blockchain(blockchain_directory, blockchain_
     def sort_me(list_):
         return sorted(list_, key=sort_key)
 
-    assert sort_me(blockchain.get_nodes(block_number=2)) == sort_me([node4, node3_old, node2, node1])
+    assert sort_me(blockchain.yield_nodes(block_number=2)) == sort_me([node4, node3_old, node2, node1])
 
     blockchain.snapshot_blockchain_state()
 
@@ -203,11 +203,11 @@ def test_can_get_nodes_from_complex_blockchain(blockchain_directory, blockchain_
     node6 = request.message.node
     blockchain.add_block(Block.create_from_signed_change_request(blockchain, request))
 
-    assert sort_me(blockchain.get_nodes()) == sort_me([node6, node5, node3, node4, node2, node1])
-    assert sort_me(blockchain.get_nodes(block_number=5)) == sort_me([node6, node5, node3, node4, node2, node1])
-    assert sort_me(blockchain.get_nodes(block_number=4)) == sort_me([node5, node3, node4, node2, node1])
-    assert sort_me(blockchain.get_nodes(block_number=3)) == sort_me([node3, node4, node2, node1])
-    assert sort_me(blockchain.get_nodes(block_number=2)) == sort_me([node4, node3_old, node2, node1])
-    assert sort_me(blockchain.get_nodes(block_number=1)) == sort_me([node3_old, node2, node1])
-    assert sort_me(blockchain.get_nodes(block_number=0)) == sort_me([node2, node1])
-    assert sort_me(blockchain.get_nodes(block_number=-1)) == sort_me([node1])
+    assert sort_me(blockchain.yield_nodes()) == sort_me([node6, node5, node3, node4, node2, node1])
+    assert sort_me(blockchain.yield_nodes(block_number=5)) == sort_me([node6, node5, node3, node4, node2, node1])
+    assert sort_me(blockchain.yield_nodes(block_number=4)) == sort_me([node5, node3, node4, node2, node1])
+    assert sort_me(blockchain.yield_nodes(block_number=3)) == sort_me([node3, node4, node2, node1])
+    assert sort_me(blockchain.yield_nodes(block_number=2)) == sort_me([node4, node3_old, node2, node1])
+    assert sort_me(blockchain.yield_nodes(block_number=1)) == sort_me([node3_old, node2, node1])
+    assert sort_me(blockchain.yield_nodes(block_number=0)) == sort_me([node2, node1])
+    assert sort_me(blockchain.yield_nodes(block_number=-1)) == sort_me([node1])

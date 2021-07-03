@@ -30,28 +30,33 @@ class AccountStateMixin(BaseMixin):
 
     def yield_account_states(self, from_block_number: Optional[int] = None):
         # TODO(dmu) HIGH: Reuse this method where
-        excludes_block_number = None if from_block_number is None else from_block_number + 1
-        blockchain_state = self.get_closest_blockchain_state_snapshot(excludes_block_number=excludes_block_number)
-        assert blockchain_state
+        block_number = self.get_last_block_number() if from_block_number is None else from_block_number
+        if block_number == -1:
+            yield from self.get_first_blockchain_state().yield_account_states()
+            return
 
+        blockchain_state = self.get_blockchain_state_by_block_number(block_number, inclusive=True)
         # TODO(dmu) CRITICAL: yield blocks it blockchain_state.last_block number to prevent race conditions
         for block in self.yield_blocks_till_snapshot(from_block_number=from_block_number):
             yield from block.yield_account_states()
 
         yield from blockchain_state.yield_account_states()
 
-    def get_account_state_attribute_value(self, account: hexstr, attribute: str, on_block_number: int):
-        if on_block_number < -1:
+    def get_account_state_attribute_value(self, account: hexstr, attribute: str, block_number: int):
+        if block_number < -1:
             raise ValueError('block_number must be greater or equal to -1')
-        elif on_block_number > self.get_current_block_number():  # type: ignore
+        elif block_number > self.get_last_block_number():  # type: ignore
             raise ValueError('block_number must be less than current block number')
 
-        account_state = self._get_account_state_from_block(account, on_block_number, attribute)
-        if account_state:
-            return account_state.get_attribute_value(attribute, account)
+        if block_number > -1:
+            account_state = self._get_account_state_from_block(account, block_number, attribute)
+            if account_state:
+                return account_state.get_attribute_value(attribute, account)
 
-        blockchain_state = self.get_closest_blockchain_state_snapshot(on_block_number + 1)
-        assert blockchain_state
+            blockchain_state = self.get_blockchain_state_by_block_number(block_number, inclusive=True)
+        else:
+            assert block_number == -1
+            blockchain_state = self.get_first_blockchain_state()
 
         return blockchain_state.get_account_state_attribute_value(account, attribute)
 
@@ -59,16 +64,16 @@ class AccountStateMixin(BaseMixin):
         return self.get_account_state_attribute_value(account, 'balance', on_block_number)
 
     def get_account_current_balance(self, account: str) -> int:
-        return self.get_account_balance(account, self.get_current_block_number())  # type: ignore
+        return self.get_account_balance(account, self.get_last_block_number())  # type: ignore
 
     def get_account_balance_lock(self, account: hexstr, on_block_number: int) -> hexstr:
         return self.get_account_state_attribute_value(account, 'balance_lock', on_block_number)
 
     def get_account_current_balance_lock(self, account: hexstr) -> hexstr:
-        return self.get_account_balance_lock(account, self.get_current_block_number())  # type: ignore
+        return self.get_account_balance_lock(account, self.get_last_block_number())  # type: ignore
 
     def get_account_state(self, account: hexstr) -> AccountState:
-        block_number = self.get_current_block_number()  # type: ignore
+        block_number = self.get_last_block_number()  # type: ignore
         return AccountState(
             balance=self.get_account_balance(account, block_number),
             balance_lock=self.get_account_balance_lock(account, block_number),
@@ -101,19 +106,15 @@ class AccountStateMixin(BaseMixin):
         if block_number < 0:
             raise ValueError('block_number must be greater or equal to 0')
 
-        blockchain_state = self.get_closest_blockchain_state_snapshot(block_number)
-        if blockchain_state is None:
-            logger.warning('Block number %s is beyond known account root files', block_number)
-            return None
-
-        if block_number == 0:
-            assert blockchain_state.is_initial()
-            return blockchain_state.get_next_block_identifier()
-
+        # We should try to find blockchain state first to support partial blockchains
         prev_block_number = block_number - 1
-        if prev_block_number == blockchain_state.last_block_number:
+        if prev_block_number == -1:
+            return self.get_first_blockchain_state().get_next_block_identifier()
+
+        blockchain_state = self.get_blockchain_state_by_block_number(prev_block_number, inclusive=True)
+        if blockchain_state.get_last_block_number() == prev_block_number:
             return blockchain_state.get_next_block_identifier()
 
-        block = self.get_block_by_number(prev_block_number)  # type: ignore
+        block = self.get_block_by_number(prev_block_number)
         assert block is not None
         return block.hash

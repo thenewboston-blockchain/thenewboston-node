@@ -163,7 +163,7 @@ class BlockMessage(MessageMixin, BaseDataclass):
             prev_block = blockchain.get_block_by_number(prev_block_number)
             if prev_block is None:
                 logger.debug('Partial blockchain detected')
-                blockchain_state = blockchain.get_closest_blockchain_state_snapshot(block_number)
+                blockchain_state = blockchain.get_blockchain_state_by_block_number(block_number)
                 validate_not_none('Closest blockchain state', blockchain_state)
 
                 if blockchain_state.is_initial():

@@ -1,10 +1,19 @@
 from typing import Optional
 
-from thenewboston_node.business_logic.models import BlockchainState, Node
+from thenewboston_node.business_logic.models import Block, BlockchainState, Node
 from thenewboston_node.core.utils.types import hexstr
 
 
 class BaseMixin:
+
+    def get_first_blockchain_state(self) -> BlockchainState:
+        raise NotImplementedError('Must be implemented in a child class')
+
+    def get_last_blockchain_state(self) -> BlockchainState:
+        raise NotImplementedError('Must be implemented in a child class')
+
+    def get_blockchain_state_by_block_number(self, block_number: int, inclusive: bool = False) -> BlockchainState:
+        raise NotImplementedError('Must be implemented in a child class')
 
     def yield_blocks_till_snapshot(self, from_block_number: Optional[int] = None):
         raise NotImplementedError('Must be implemented in a child class')
@@ -30,15 +39,8 @@ class BaseMixin:
         """
         raise NotImplementedError('Must be implemented in a child class')
 
-    def get_current_block_number(self) -> int:
+    def get_last_block_number(self) -> int:
         raise NotImplementedError('Must be implemented in a child class')
 
-    def get_closest_blockchain_state_snapshot(self,
-                                              excludes_block_number: Optional[int] = None
-                                              ) -> Optional[BlockchainState]:
-        """Return the latest blockchain state that does not include `excludes_block_number` (
-        head block by default thus the latest blockchain state, use -1 for getting blockchain genesis state).
-        None is returned if `excludes_block_number` block is not included in even in the earliest blockchain state
-        (this may happen for partial blockchains that do not have actual blockchain genesis state)
-        """
+    def get_block_by_number(self, block_number: int) -> Optional[Block]:
         raise NotImplementedError('Must be implemented in a child class')

@@ -10,11 +10,12 @@ from thenewboston_node.business_logic.models import CoinTransferSignedChangeRequ
 from thenewboston_node.core.logging import timeit, timeit_method
 
 from ...models.block import Block
+from .base import BaseMixin
 
 logger = logging.getLogger(__name__)
 
 
-class BlocksMixin:
+class BlocksMixin(BaseMixin):
 
     def persist_block(self, block: Block):
         raise NotImplementedError('Must be implemented in a child class')
@@ -102,13 +103,13 @@ class BlocksMixin:
     def get_next_block_number(self) -> int:
         last_block = self.get_last_block()
         if last_block:
-            return last_block.message.block_number + 1
+            return last_block.get_block_number() + 1
 
-        account_root_file = self.get_closest_blockchain_state_snapshot()  # type: ignore
-        assert account_root_file
-        return account_root_file.get_next_block_number()
+        blockchain_state = self.get_last_blockchain_state()
+        assert blockchain_state
+        return blockchain_state.get_next_block_number()
 
-    def get_current_block_number(self) -> int:
+    def get_last_block_number(self) -> int:
         return self.get_next_block_number() - 1
 
     @timeit(is_method=True, verbose_args=True)
@@ -127,8 +128,8 @@ class BlocksMixin:
             logger.debug('No blocks to return: blockchain does not contain blocks')
             return
 
-        excludes_block_number = None if from_block_number is None else (from_block_number + 1)
-        blockchain_state = self.get_closest_blockchain_state_snapshot(excludes_block_number)  # type: ignore
+        block_number = self.get_last_block_number() if from_block_number is None else from_block_number
+        blockchain_state = self.get_blockchain_state_by_block_number(block_number, inclusive=True)  # type: ignore
         if blockchain_state is None:
             logger.warning('Could not find account root file excluding from_block_number: %s', from_block_number)
             return

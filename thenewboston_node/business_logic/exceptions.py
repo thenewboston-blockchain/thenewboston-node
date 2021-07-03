@@ -38,3 +38,7 @@ class StorageError(Exception):
 
 class FinalizedFileWriteError(StorageError):
     pass
+
+
+class InvalidBlockchain(BlockchainError):
+    pass

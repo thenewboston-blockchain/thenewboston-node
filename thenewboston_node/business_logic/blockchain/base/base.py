@@ -12,6 +12,9 @@ class BaseMixin:
     def get_last_blockchain_state(self) -> BlockchainState:
         raise NotImplementedError('Must be implemented in a child class')
 
+    def yield_blocks_slice(self, from_block_number: int, to_block_number_exclusive: int):
+        raise NotImplementedError('Must be implemented in a child class')
+
     def get_blockchain_state_by_block_number(self, block_number: int, inclusive: bool = False) -> BlockchainState:
         raise NotImplementedError('Must be implemented in a child class')
 

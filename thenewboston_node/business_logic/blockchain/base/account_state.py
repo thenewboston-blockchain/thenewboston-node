@@ -29,15 +29,14 @@ class AccountStateMixin(BaseMixin):
             yield new_account
 
     def yield_account_states(self, from_block_number: Optional[int] = None):
-        # TODO(dmu) HIGH: Reuse this method where
+        # TODO(dmu) HIGH: Reuse this method where possible
         block_number = self.get_last_block_number() if from_block_number is None else from_block_number
         if block_number == -1:
             yield from self.get_first_blockchain_state().yield_account_states()
             return
 
         blockchain_state = self.get_blockchain_state_by_block_number(block_number, inclusive=True)
-        # TODO(dmu) CRITICAL: yield blocks it blockchain_state.last_block number to prevent race conditions
-        for block in self.yield_blocks_till_snapshot(from_block_number=from_block_number):
+        for block in self.yield_blocks_slice(block_number, blockchain_state.get_last_block_number()):
             yield from block.yield_account_states()
 
         yield from blockchain_state.yield_account_states()

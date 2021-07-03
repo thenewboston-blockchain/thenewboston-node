@@ -128,10 +128,10 @@ def test_can_get_nodes_from_different_block_numbers(
     blockchain.add_block(Block.create_from_signed_change_request(blockchain, request))
 
     assert blockchain.get_nodes() == [node2]
-    assert blockchain.get_nodes(on_block_number=2) == [node2]
-    assert blockchain.get_nodes(on_block_number=1) == [node1]
-    assert blockchain.get_nodes(on_block_number=0) == [node0]
-    assert blockchain.get_nodes(on_block_number=-1) == [blockchain_state_node]
+    assert blockchain.get_nodes(block_number=2) == [node2]
+    assert blockchain.get_nodes(block_number=1) == [node1]
+    assert blockchain.get_nodes(block_number=0) == [node0]
+    assert blockchain.get_nodes(block_number=-1) == [blockchain_state_node]
 
 
 def test_can_get_nodes_from_complex_blockchain(blockchain_directory, blockchain_genesis_state):
@@ -178,7 +178,7 @@ def test_can_get_nodes_from_complex_blockchain(blockchain_directory, blockchain_
     def sort_me(list_):
         return sorted(list_, key=sort_key)
 
-    assert sort_me(blockchain.get_nodes(on_block_number=2)) == sort_me([node4, node3_old, node2, node1])
+    assert sort_me(blockchain.get_nodes(block_number=2)) == sort_me([node4, node3_old, node2, node1])
 
     blockchain.snapshot_blockchain_state()
 
@@ -204,10 +204,10 @@ def test_can_get_nodes_from_complex_blockchain(blockchain_directory, blockchain_
     blockchain.add_block(Block.create_from_signed_change_request(blockchain, request))
 
     assert sort_me(blockchain.get_nodes()) == sort_me([node6, node5, node3, node4, node2, node1])
-    assert sort_me(blockchain.get_nodes(on_block_number=5)) == sort_me([node6, node5, node3, node4, node2, node1])
-    assert sort_me(blockchain.get_nodes(on_block_number=4)) == sort_me([node5, node3, node4, node2, node1])
-    assert sort_me(blockchain.get_nodes(on_block_number=3)) == sort_me([node3, node4, node2, node1])
-    assert sort_me(blockchain.get_nodes(on_block_number=2)) == sort_me([node4, node3_old, node2, node1])
-    assert sort_me(blockchain.get_nodes(on_block_number=1)) == sort_me([node3_old, node2, node1])
-    assert sort_me(blockchain.get_nodes(on_block_number=0)) == sort_me([node2, node1])
-    assert sort_me(blockchain.get_nodes(on_block_number=-1)) == sort_me([node1])
+    assert sort_me(blockchain.get_nodes(block_number=5)) == sort_me([node6, node5, node3, node4, node2, node1])
+    assert sort_me(blockchain.get_nodes(block_number=4)) == sort_me([node5, node3, node4, node2, node1])
+    assert sort_me(blockchain.get_nodes(block_number=3)) == sort_me([node3, node4, node2, node1])
+    assert sort_me(blockchain.get_nodes(block_number=2)) == sort_me([node4, node3_old, node2, node1])
+    assert sort_me(blockchain.get_nodes(block_number=1)) == sort_me([node3_old, node2, node1])
+    assert sort_me(blockchain.get_nodes(block_number=0)) == sort_me([node2, node1])
+    assert sort_me(blockchain.get_nodes(block_number=-1)) == sort_me([node1])

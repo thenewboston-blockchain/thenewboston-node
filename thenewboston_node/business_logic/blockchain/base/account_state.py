@@ -36,7 +36,7 @@ class AccountStateMixin(BaseMixin):
 
         # TODO(dmu) CRITICAL: yield blocks it blockchain_state.last_block number to prevent race conditions
         for block in self.yield_blocks_till_snapshot(from_block_number=from_block_number):
-            yield from block.message.updated_account_states.items()
+            yield from block.yield_account_states()
 
         yield from blockchain_state.yield_account_states()
 

@@ -128,6 +128,9 @@ class BlockMessage(MessageMixin, BaseDataclass):
         assert self.signed_change_request
         return self.signed_change_request.get_recipient_amount(recipient)
 
+    def yield_account_states(self):
+        yield from self.updated_account_states.items()
+
     @validates('block message')
     def validate(self, blockchain):
         self.validate_signed_change_request(blockchain)

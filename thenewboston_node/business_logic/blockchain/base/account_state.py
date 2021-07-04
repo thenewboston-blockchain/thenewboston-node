@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 
-from thenewboston_node.business_logic.models import AccountState
+from thenewboston_node.business_logic.models import AccountState, PrimaryValidatorSchedule
 from thenewboston_node.core.logging import timeit_method
 from thenewboston_node.core.utils.types import hexstr
 
@@ -72,12 +72,16 @@ class AccountStateMixin(BaseMixin):
     def get_account_current_balance_lock(self, account: hexstr) -> hexstr:
         return self.get_account_balance_lock(account, self.get_last_block_number())  # type: ignore
 
+    def get_primary_validator_schedule(self, account: hexstr, on_block_number: int) -> PrimaryValidatorSchedule:
+        return self.get_account_state_attribute_value(account, 'primary_validator_schedule', on_block_number)
+
     def get_account_state(self, account: hexstr) -> AccountState:
         block_number = self.get_last_block_number()  # type: ignore
         return AccountState(
             balance=self.get_account_balance(account, block_number),
             balance_lock=self.get_account_balance_lock(account, block_number),
             node=self.get_node_by_identifier(account, block_number),
+            primary_validator_schedule=self.get_primary_validator_schedule(account, block_number),
         )
 
     @timeit_method()

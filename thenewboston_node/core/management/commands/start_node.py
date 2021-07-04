@@ -7,7 +7,8 @@ import stun
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.models import (
-    Block, NodeDeclarationSignedChangeRequest, NodeDeclarationSignedChangeRequestMessage
+    Block, NodeDeclarationSignedChangeRequest, NodeDeclarationSignedChangeRequestMessage,
+    PrimaryValidatorScheduleSignedChangeRequest
 )
 from thenewboston_node.business_logic.node import derive_public_key, get_node_signing_key
 from thenewboston_node.business_logic.utils.blockchain_state import make_blockchain_state_from_account_root_file
@@ -58,6 +59,14 @@ def self_declare_node(blockchain, network_addresses):
     # TODO(dmu) CRITICAL: Release blockchain lock here
 
 
+def self_declare_as_primary_validator(blockchain: BlockchainBase, begin_block_number):
+    signing_key = get_node_signing_key()
+    end_block_number = begin_block_number + settings.SCHEDULE_DEFAULT_LENGTH_IN_BLOCKS - 1
+    request = PrimaryValidatorScheduleSignedChangeRequest.create(begin_block_number, end_block_number, signing_key)
+    block = Block.create_from_signed_change_request(blockchain, request, signing_key)
+    blockchain.add_block(block)
+
+
 class Command(BaseCommand):
     help = 'Start node'  # noqa: A003
 
@@ -84,7 +93,12 @@ class Command(BaseCommand):
                 logger.info('Network addresses are neither configured explicitly nor auto detected')
                 return
 
+            # TODO(dmu) LOW: For a valid blockchain without blocks ``begin_block_number`` should always be equal to 0.
+            #                Maybe we should investigate this edge case more, or just keep this forward compatible
+            #                implementation with ``blockchain.get_next_block_number()``
+            begin_block_number = blockchain.get_next_block_number()
             self_declare_node(blockchain, network_addresses)
+            self_declare_as_primary_validator(blockchain, begin_block_number)
             return
 
         raise NotImplementedError('Blockchain has nodes workflow is not implemented yet')

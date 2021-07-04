@@ -11,6 +11,8 @@ NODE_NETWORK_ADDRESSES: list[str] = []
 NODE_FEE_AMOUNT = 3
 NODE_FEE_ACCOUNT = None
 
+SCHEDULE_DEFAULT_LENGTH_IN_BLOCKS = 100
+
 NETWORK = {
     'class': 'thenewboston_node.business_logic.network.tcp_network.TCPNetwork',
     'kwargs': {},

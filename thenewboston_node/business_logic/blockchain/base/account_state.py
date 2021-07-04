@@ -37,7 +37,7 @@ class AccountStateMixin(BaseMixin):
             return
 
         blockchain_state = self.get_blockchain_state_by_block_number(block_number, inclusive=True)
-        for block in self.yield_blocks_slice(block_number, blockchain_state.get_last_block_number()):
+        for block in self.yield_blocks_slice_reversed(block_number, blockchain_state.get_last_block_number()):
             yield from block.yield_account_states()
 
         yield from blockchain_state.yield_account_states()

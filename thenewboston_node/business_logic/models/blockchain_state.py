@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Optional, Type, TypeVar
+from typing import Any, Generator, Optional, Type, TypeVar
 
 from thenewboston_node.business_logic.validators import (
     validate_gte_value, validate_is_none, validate_not_none, validate_type
@@ -97,7 +97,7 @@ class BlockchainState(MessagpackCompactableMixin, NormalizableMixin, BaseDatacla
 
         return serialized
 
-    def yield_account_states(self):
+    def yield_account_states(self) -> Generator[tuple[hexstr, AccountState], None, None]:
         yield from self.account_states.items()
 
     def get_account_state(self, account: hexstr) -> Optional[AccountState]:

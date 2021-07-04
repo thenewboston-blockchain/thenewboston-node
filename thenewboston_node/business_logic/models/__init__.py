@@ -4,9 +4,10 @@ from .block_message import BlockMessage  # noqa: F401
 from .blockchain_state import BlockchainState  # noqa: F401
 from .node import Node, PrimaryValidator, RegularNode  # noqa: F401
 from .signed_change_request import (  # noqa: F401
-    CoinTransferSignedChangeRequest, NodeDeclarationSignedChangeRequest, SignedChangeRequest
+    CoinTransferSignedChangeRequest, NodeDeclarationSignedChangeRequest, PrimaryValidatorScheduleSignedChangeRequest,
+    SignedChangeRequest
 )
 from .signed_change_request_message import (  # noqa: F401
     CoinTransferSignedChangeRequestMessage, CoinTransferTransaction, NodeDeclarationSignedChangeRequestMessage,
-    SignedChangeRequestMessage
+    PrimaryValidatorSchedule, PrimaryValidatorScheduleSignedChangeRequestMessage, SignedChangeRequestMessage
 )

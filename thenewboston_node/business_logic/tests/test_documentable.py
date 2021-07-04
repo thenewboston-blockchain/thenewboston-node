@@ -1,14 +1,16 @@
 from dataclasses import dataclass
 
 from thenewboston_node.business_logic.models import (
-    AccountState, Block, BlockMessage, Node, SignedChangeRequest, SignedChangeRequestMessage
+    AccountState, Block, BlockMessage, Node, PrimaryValidatorSchedule, SignedChangeRequest, SignedChangeRequestMessage
 )
 from thenewboston_node.business_logic.models.mixins.documentable import DocumentableMixin
 
 
 def test_get_nested_models():
-    assert set(Block.get_nested_models(include_self=True)
-               ) == {Block, BlockMessage, SignedChangeRequest, AccountState, Node, SignedChangeRequestMessage}
+    assert set(Block.get_nested_models(include_self=True)) == {
+        Block, BlockMessage, SignedChangeRequest, AccountState, Node, PrimaryValidatorSchedule,
+        SignedChangeRequestMessage
+    }
 
 
 def test_get_field_docstring():

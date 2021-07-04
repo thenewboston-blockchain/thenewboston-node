@@ -29,7 +29,7 @@ def get_blockchain_state_models(exclude=()):
 def get_signed_change_request_message_child_models():
     return [
         signed_change_request_child_model.get_field_type('message')
-        for _, signed_change_request_child_model in SIGNED_CHANGE_REQUEST_TYPE_MAP
+        for _, signed_change_request_child_model in SIGNED_CHANGE_REQUEST_TYPE_MAP.items()
     ]
 
 

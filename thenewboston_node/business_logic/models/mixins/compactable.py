@@ -10,19 +10,15 @@ from thenewboston_node.core.utils.types import hexstr
 from .serializable import SerializableMixin
 
 COMPACT_KEY_MAP = {
-    # account root file
     'account_states': 'a',
     'last_block_number': 'ln',
     'last_block_identifier': 'li',
     'last_block_timestamp': 'lt',
     'next_block_identifier': 'ni',
-    # account balance
     'balance': 'b',
     'balance_lock': 'bl',
-    # block
     'message': 'm',
     'hash': 'h',
-    # block message
     'signed_change_request': 'tr',
     'timestamp': 'ts',
     'block_number': 'bn',
@@ -30,19 +26,19 @@ COMPACT_KEY_MAP = {
     'block_type': 'bt',
     'updated_account_states': 'u',
     'network_addresses': 'na',
-    # transaction
     'recipient': 'r',
     'amount': 'at',
     'is_fee': 'f',
     'memo': 'mm',
-    # common
     'signer': 's',
     'signature': 'si',
-    # misc
     'node': 'n',
     'fee_amount': 'fa',
     'fee_account': 'fac',
     'txs': 't',
+    'primary_validator_schedule': 'pv',
+    'begin_block_number': 'bb',
+    'end_block_number': 'eb',
 }
 
 UNCOMPACT_KEY_MAP = {value: key for key, value in COMPACT_KEY_MAP.items()}

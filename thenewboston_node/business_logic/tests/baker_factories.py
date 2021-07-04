@@ -6,7 +6,7 @@ from thenewboston_node.core.utils import baker
 
 def make_block(block_type, **kwargs):
     if 'message' not in kwargs:
-        request_class = dict(SIGNED_CHANGE_REQUEST_TYPE_MAP).get(block_type)
+        request_class = SIGNED_CHANGE_REQUEST_TYPE_MAP.get(block_type)
         if not request_class:
             raise NotImplementedError(f'Block type {block_type} is not supported yet')
 

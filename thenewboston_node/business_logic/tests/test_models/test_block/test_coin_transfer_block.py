@@ -63,7 +63,7 @@ def test_can_serialize_coin_transfer_block():
     for key, value in updated_account_states.items():
         assert isinstance(key, str)
         assert isinstance(value, dict)
-        assert value.keys() == {'balance', 'balance_lock', 'node'}
+        assert value.keys() == {'balance', 'balance_lock', 'node', 'primary_validator_schedule'}
         assert isinstance(value['balance'], int)
         assert isinstance(value['balance_lock'], str)
         assert isinstance(value['node'], dict)

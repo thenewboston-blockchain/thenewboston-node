@@ -9,6 +9,7 @@ from thenewboston_node.core.utils.types import hexstr
 
 from .base import BaseDataclass
 from .node import Node
+from .signed_change_request_message import PrimaryValidatorSchedule
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,7 @@ class AccountState(BaseDataclass):
         default=None, metadata={'example_value': 'ce20609f5c89dc9803f1c75a77c9e4b19b4f3c2c9cc690ff9966edd2b07d9130'}
     )  # type: ignore
     node: Optional[Node] = None  # type: ignore
+    primary_validator_schedule: Optional[PrimaryValidatorSchedule] = None
 
     @classmethod
     def deserialize_from_dict(cls, dict_, complain_excessive_keys=True, override=None):
@@ -52,7 +54,7 @@ class AccountState(BaseDataclass):
 
     @validates()
     def validate(self):
-        for name in self.__dataclass_fields__.keys():
+        for name in self.get_field_names():
             value = getattr(self, name)
             if value is not None:
                 getattr(self, f'validate_{name}')()
@@ -69,6 +71,12 @@ class AccountState(BaseDataclass):
 
     @validates()
     def validate_node(self):
+        # TODO(dmu) CRITICAL: Implement
+        return
+
+    @validates()
+    def validate_primary_validator_schedule(self):
+        # TODO(dmu) CRITICAL: Implement
         return
 
 

@@ -46,18 +46,19 @@ class Block(SignableMixin, MessagpackCompactableMixin, BaseDataclass):
     def deserialize_from_dict(cls, dict_, complain_excessive_keys=True, exclude=()):
         dict_ = dict_.copy()
         message_dict = dict_.pop('message', None)
-        validate_not_none(f'{cls.__name__} message', message_dict)
-        validate_type(f'{cls.__name__} message', message_dict, dict)
+        validate_not_none(f'{cls.humanized_class_name} message', message_dict)
+        validate_type(f'{cls.humanized_class_name} message', message_dict, dict)
 
         signed_change_request_dict = message_dict.get('signed_change_request')
-        validate_not_none(f'{cls.__name__} message.signed_change_request', signed_change_request_dict)
-        validate_type(f'{cls.__name__} message.signed_change_request', signed_change_request_dict, dict)
+        validate_not_none(f'{cls.humanized_class_name} message.signed_change_request', signed_change_request_dict)
+        validate_type(f'{cls.humanized_class_name} message.signed_change_request', signed_change_request_dict, dict)
 
-        signed_change_request_type_map = dict(SIGNED_CHANGE_REQUEST_TYPE_MAP)
         instance_block_type = message_dict.get('block_type')
-        validate_not_none(f'{cls.__name__} message.block_type', instance_block_type)
-        validate_in(f'{cls.__name__} message.block_type', instance_block_type, signed_change_request_type_map)
-        signed_change_request_class = signed_change_request_type_map[instance_block_type]
+        validate_not_none(f'{cls.humanized_class_name} message.block_type', instance_block_type)
+        validate_in(
+            f'{cls.humanized_class_name} message.block_type', instance_block_type, SIGNED_CHANGE_REQUEST_TYPE_MAP
+        )
+        signed_change_request_class = SIGNED_CHANGE_REQUEST_TYPE_MAP[instance_block_type]
         signed_change_request_obj = signed_change_request_class.deserialize_from_dict(signed_change_request_dict)
 
         message_obj = BlockMessage.deserialize_from_dict(

@@ -5,3 +5,4 @@ from enum import Enum, unique
 class BlockType(Enum):
     COIN_TRANSFER = 'ct'
     NODE_DECLARATION = 'nd'
+    PV_SCHEDULE = 'pv'

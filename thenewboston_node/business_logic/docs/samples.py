@@ -6,7 +6,7 @@ from thenewboston_node.core.utils.types import hexstr
 from ..blockchain.memory_blockchain import MemoryBlockchain
 from ..models import (
     AccountState, Block, BlockchainState, CoinTransferSignedChangeRequest, NodeDeclarationSignedChangeRequest,
-    PrimaryValidator, RegularNode
+    PrimaryValidator, PrimaryValidatorScheduleSignedChangeRequest, RegularNode
 )
 
 TREASURY_KEY_PAIR = KeyPair(
@@ -77,6 +77,14 @@ def make_sample_blockchain():
         memo='For candy'
     )
     blockchain.add_block(Block.create_from_signed_change_request(blockchain, coin_transfer_scr, PV_KEY_PAIR.private))
+
+    blockchain.utcnow = lambda: datetime.fromisoformat('2021-06-19T23:20:00')
+    pv_schedule_scr = PrimaryValidatorScheduleSignedChangeRequest.create(
+        0,
+        99,
+        signing_key=TREASURY_KEY_PAIR.private,
+    )
+    blockchain.add_block(Block.create_from_signed_change_request(blockchain, pv_schedule_scr, PV_KEY_PAIR.private))
 
     blockchain.snapshot_blockchain_state()
     blockchain.utcnow = original_utcnow

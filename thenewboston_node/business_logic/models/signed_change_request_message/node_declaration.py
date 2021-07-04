@@ -27,3 +27,7 @@ class NodeDeclarationSignedChangeRequestMessage(SignedChangeRequestMessage):
                 fee_account=fee_account,
             )
         )
+
+    def validate(self):
+        # TODO(dmu) CRITICAL: Implement
+        return

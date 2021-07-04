@@ -12,7 +12,12 @@ def test_can_get_account_states(forced_memory_blockchain: MemoryBlockchain, api_
 
     response = api_client.get(f'/api/v1/account-states/{account_number}/')
     assert response.status_code == 200
-    assert response.json() == {'balance': balance, 'balance_lock': lock, 'node': None}
+    assert response.json() == {
+        'balance': balance,
+        'balance_lock': lock,
+        'node': None,
+        'primary_validator_schedule': None
+    }
 
 
 def test_can_get_account_states_on_file_blockchain(
@@ -30,7 +35,12 @@ def test_can_get_account_states_on_file_blockchain(
 
         response = api_client.get(f'/api/v1/account-states/{account_number}/')
         assert response.status_code == 200
-        assert response.json() == {'balance': balance, 'balance_lock': lock, 'node': None}
+        assert response.json() == {
+            'balance': balance,
+            'balance_lock': lock,
+            'node': None,
+            'primary_validator_schedule': None
+        }
 
 
 def test_yield_known_accounts(forced_file_blockchain: FileBlockchain, treasury_account_key_pair):

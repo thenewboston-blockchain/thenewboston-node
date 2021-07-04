@@ -10,4 +10,6 @@ from ..mixins.message import MessageMixin
 @dataclass
 @cover_docstring
 class SignedChangeRequestMessage(MessageMixin, BaseDataclass):
-    pass
+
+    def validate(self):
+        raise NotImplementedError('Must be implemented in subclass')

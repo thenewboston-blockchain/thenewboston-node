@@ -3,11 +3,13 @@ import subprocess
 from thenewboston_node.business_logic.docs.impl import get_signed_change_request_message_child_models
 from thenewboston_node.business_logic.docs.samples import SamplesFactory
 from thenewboston_node.business_logic.models.signed_change_request_message import (
-    CoinTransferSignedChangeRequestMessage, NodeDeclarationSignedChangeRequestMessage
+    CoinTransferSignedChangeRequestMessage, NodeDeclarationSignedChangeRequestMessage,
+    PrimaryValidatorScheduleSignedChangeRequestMessage
 )
 
 known_signed_change_request_message_classes = {
-    CoinTransferSignedChangeRequestMessage, NodeDeclarationSignedChangeRequestMessage
+    CoinTransferSignedChangeRequestMessage, NodeDeclarationSignedChangeRequestMessage,
+    PrimaryValidatorScheduleSignedChangeRequestMessage
 }
 
 

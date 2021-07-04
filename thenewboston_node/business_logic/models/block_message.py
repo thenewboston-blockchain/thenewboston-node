@@ -88,12 +88,11 @@ class BlockMessage(MessageMixin, BaseDataclass):
     def get_field_types(cls, dict_):
         field_types = super().get_field_types(dict_)
 
-        signed_change_request_type_map = dict(SIGNED_CHANGE_REQUEST_TYPE_MAP)
         block_type = dict_.get('block_type')
         validate_not_empty('block_type', block_type)
-        validate_in('block type', block_type, signed_change_request_type_map.keys())
+        validate_in('block type', block_type, SIGNED_CHANGE_REQUEST_TYPE_MAP.keys())
 
-        field_types['signed_change_request'] = signed_change_request_type_map[block_type]
+        field_types['signed_change_request'] = SIGNED_CHANGE_REQUEST_TYPE_MAP[block_type]
         return field_types
 
     @classmethod

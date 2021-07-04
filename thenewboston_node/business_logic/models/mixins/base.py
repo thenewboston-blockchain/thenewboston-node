@@ -8,15 +8,17 @@ class BaseMixin:
 
     @classmethod
     def get_fields(cls):
-        return dict((f.name, f) for f in dataclasses.fields(cls))
+        return {field.name: field for field in dataclasses.fields(cls)}
 
     @classmethod
     def get_field(cls, field_name):
-        return cls.get_fields()[field_name]
+        # Not using get_fields() on purpose for faster implementation (excluding pseudo fields
+        # is not relevant here)
+        return cls.__dataclass_fields__[field_name]
 
     @classmethod
     def get_field_names(cls):
-        return tuple(cls.get_fields().keys())
+        return cls.get_fields().keys()
 
     @classmethod
     def get_field_type(cls, field_name):

@@ -13,6 +13,9 @@ class PrimaryValidatorSchedule(BaseDataclass):
     begin_block_number: int
     end_block_number: int
 
+    def is_block_number_included(self, block_number):
+        return self.begin_block_number <= block_number <= self.end_block_number
+
 
 @revert_docstring
 @dataclass

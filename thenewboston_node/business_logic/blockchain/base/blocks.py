@@ -113,17 +113,11 @@ class BlocksMixin(BaseMixin):
         return self.get_next_block_number() - 1
 
     @timeit(is_method=True, verbose_args=True)
-    def yield_blocks_slice(self, from_block_number: int, to_block_number_exclusive: int):
-        if from_block_number - to_block_number_exclusive < 1:
+    def yield_blocks_slice_reversed(self, from_block_number: int, to_block_number_exclusive: int):
+        if from_block_number <= to_block_number_exclusive:
             return
 
         if not self.has_blocks():
-            return
-
-        block_number = self.get_last_block_number() if from_block_number is None else from_block_number
-        blockchain_state = self.get_blockchain_state_by_block_number(block_number, inclusive=True)  # type: ignore
-        if blockchain_state is None:
-            logger.warning('Could not find account root file excluding from_block_number: %s', from_block_number)
             return
 
         current_head_block = self.get_last_block()  # type: ignore
@@ -153,6 +147,15 @@ class BlocksMixin(BaseMixin):
         assert block_number == to_block_number_exclusive + 1
 
     @timeit(is_method=True, verbose_args=True)
+    def yield_blocks_slice(self, from_block_number: int, to_block_number: Optional[int]):
+        # TODO(dmu) HIGH: Produce a better implementation of this method
+        yield from always_reversible(
+            self.yield_blocks_slice_reversed(
+                from_block_number=to_block_number, to_block_number_exclusive=from_block_number - 1
+            )
+        )
+
+    @timeit(is_method=True, verbose_args=True)
     def yield_blocks_till_snapshot(self, from_block_number: Optional[int] = None):
         """Return generator of blocks traversing from `from_block_number` block (or head block if not specified)
         to the block of the closest blockchain state (exclusive: the blockchain state block is not
@@ -166,7 +169,7 @@ class BlocksMixin(BaseMixin):
             return
 
         blockchain_state = self.get_blockchain_state_by_block_number(block_number, inclusive=True)  # type: ignore
-        yield from self.yield_blocks_slice(block_number, blockchain_state.get_last_block_number())
+        yield from self.yield_blocks_slice_reversed(block_number, blockchain_state.get_last_block_number())
 
     def has_blocks(self):
         # Override this method if a particular blockchain implementation can provide a high performance

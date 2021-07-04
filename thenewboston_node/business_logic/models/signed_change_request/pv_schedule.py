@@ -20,7 +20,7 @@ T = TypeVar('T', bound='PrimaryValidatorScheduleSignedChangeRequest')
 @dataclass
 @cover_docstring
 class PrimaryValidatorScheduleSignedChangeRequest(SignedChangeRequest):
-    block_type: ClassVar[str] = BlockType.PV_SCHEDULE.value
+    block_type: ClassVar[str] = BlockType.PRIMARY_VALIDATOR_SCHEDULE.value
 
     message: PrimaryValidatorScheduleSignedChangeRequestMessage
 

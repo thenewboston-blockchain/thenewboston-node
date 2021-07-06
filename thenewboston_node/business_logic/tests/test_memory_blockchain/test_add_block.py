@@ -83,7 +83,7 @@ def test_can_add_node_declaration_block(
     user_account = user_account_key_pair.public
 
     request0 = NodeDeclarationSignedChangeRequest.create(
-        network_addresses=['127.0.0.1'], fee_amount=3, signing_key=user_account_key_pair.private
+        network_addresses=['http://127.0.0.1'], fee_amount=3, signing_key=user_account_key_pair.private
     )
     block0 = Block.create_from_signed_change_request(blockchain, request0, get_node_signing_key())
     blockchain.add_block(block0)
@@ -92,7 +92,9 @@ def test_can_add_node_declaration_block(
     assert blockchain.blockchain_states[-1].get_node(user_account) == request0.message.node
 
     request1 = NodeDeclarationSignedChangeRequest.create(
-        network_addresses=['127.0.0.2', '192.168.0.34'], fee_amount=3, signing_key=user_account_key_pair.private
+        network_addresses=['http://127.0.0.2', 'http://192.168.0.34'],
+        fee_amount=3,
+        signing_key=user_account_key_pair.private
     )
     block1 = Block.create_from_signed_change_request(blockchain, request1, get_node_signing_key())
     blockchain.add_block(block1)

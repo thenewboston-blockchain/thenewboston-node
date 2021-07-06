@@ -1,12 +1,17 @@
+from urllib.parse import urlparse
+
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.misc import upper_first
 
+from ..core.utils.types import hexstr
 from .exceptions import ValidationError
 
 HUMANIZED_TYPE_NAMES = {
     str: 'string',
     int: 'integer',
 }
+
+VALID_SCHEMES = ('http', 'https')
 
 
 def validate_not_empty(subject, value):
@@ -86,3 +91,19 @@ def validate_exact_value(subject, value, expected_value):
     with validates(f'{subject} value'):
         if value != expected_value:
             raise ValidationError(upper_first(f'{subject} must be equal to {expected_value}'))
+
+
+def validate_network_address(subject, value):
+    with validates(f'{subject} value'):
+        result = urlparse(value)
+        validate_not_empty(f'{subject} scheme', result.scheme)
+        validate_in(f'{subject} scheme', result.scheme, VALID_SCHEMES)
+        validate_not_empty(f'{subject} hostname', result.hostname)
+
+
+def validate_hexadecimal(subject, value):
+    with validates(f'{subject} value'):
+        try:
+            hexstr(value).to_bytes()
+        except ValueError:
+            raise ValidationError(upper_first(f'{subject} must be hexadecimal string'))

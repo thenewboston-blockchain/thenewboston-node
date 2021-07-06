@@ -45,6 +45,6 @@ class PrimaryValidatorScheduleSignedChangeRequest(SignedChangeRequest):
         }
 
     def validate(self, blockchain, block_number: Optional[int] = None):
-        super().validate()
+        super().validate(blockchain, block_number)
         # TODO(dmu) CRITICAL: Implement
         return

@@ -62,10 +62,10 @@ class CoinTransferSignedChangeRequest(SignedChangeRequest):
         return self.message.get_amount(recipient)
 
     @validates('coin transfer signed request')
-    def validate(self, blockchain, in_block_number: int):
-        super().validate()
-        self.validate_amount(blockchain, in_block_number)
-        self.validate_balance_lock(blockchain, in_block_number)
+    def validate(self, blockchain, block_number: int):
+        super().validate(blockchain, block_number)
+        self.validate_amount(blockchain, block_number)
+        self.validate_balance_lock(blockchain, block_number)
 
     @validates('amount on transfer request level')
     def validate_amount(self, blockchain, in_block_number: int):

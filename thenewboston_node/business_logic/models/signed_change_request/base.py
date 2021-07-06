@@ -34,7 +34,7 @@ class SignedChangeRequest(SignableMixin, BaseDataclass):
         return request
 
     @validates('signed request')
-    def validate(self):
+    def validate(self, blockchain, block_number: int):
         self.validate_message()
         with validates('block signature'):
             self.validate_signature()

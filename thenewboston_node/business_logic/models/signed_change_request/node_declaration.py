@@ -61,8 +61,3 @@ class NodeDeclarationSignedChangeRequest(SignedChangeRequest):
 
     def get_updated_account_states(self, blockchain) -> dict[hexstr, AccountState]:
         return {self.signer: AccountState(node=deepcopy(self.message.node))}
-
-    def validate(self, blockchain, block_number: Optional[int] = None):
-        super().validate()
-        # TODO(dmu) CRITICAL: Implement
-        return

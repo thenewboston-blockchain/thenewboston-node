@@ -8,12 +8,10 @@ from ..serializers.account_state import AccountStateSerializer
 
 
 class AccountStateViewSet(ViewSet):
+    serializer_class = AccountStateSerializer
 
     # TODO(dmu) LOW: Are there better ways to generate correct documentation?
-    @extend_schema(
-        responses=AccountStateSerializer,
-        parameters=[OpenApiParameter('id', str, OpenApiParameter.PATH, description='Account number')],
-    )
+    @extend_schema(parameters=[OpenApiParameter('id', str, OpenApiParameter.PATH, description='Account number')])
     def retrieve(self, request, pk=None):
         # TODO(dmu) MEDIUM: There is a room for performance optimization use something like `?fields=` to
         #                   retrieval of unneeded fields using get_account_balance() and
@@ -22,5 +20,5 @@ class AccountStateViewSet(ViewSet):
         assert pk is not None
 
         blockchain = BlockchainBase.get_instance()
-        serializer = AccountStateSerializer(blockchain.get_account_state(pk))
+        serializer = self.serializer_class(blockchain.get_account_state(pk))
         return Response(serializer.data)

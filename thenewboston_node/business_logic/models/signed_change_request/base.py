@@ -43,8 +43,5 @@ class SignedChangeRequest(SignableMixin, BaseDataclass):
     def validate_message(self):
         self.message.validate()
 
-    def make_balance_lock(self):
-        return self.message.get_hash()
-
     def get_updated_account_states(self, blockchain):
         raise NotImplementedError('Must be implemented in subclass')

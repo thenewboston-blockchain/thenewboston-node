@@ -108,3 +108,6 @@ class CoinTransferSignedChangeRequest(SignedChangeRequest):
         )
 
         return updated_account_states
+
+    def make_balance_lock(self):
+        return self.message.get_hash()

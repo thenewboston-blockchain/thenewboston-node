@@ -5,16 +5,19 @@ from thenewboston_node.core.utils.typing import unwrap_optional
 
 
 class BaseMixin:
+    _field_cache: typing.ClassVar = {}
 
     @classmethod
     def get_fields(cls):
-        return {field.name: field for field in dataclasses.fields(cls)}
+        fields = cls._field_cache.get(cls)
+        if fields is None:
+            fields = {field.name: field for field in dataclasses.fields(cls)}
+            cls._field_cache[cls] = fields
+        return fields
 
     @classmethod
     def get_field(cls, field_name):
-        # Not using get_fields() on purpose for faster implementation (excluding pseudo fields
-        # is not relevant here)
-        return cls.__dataclass_fields__[field_name]
+        return cls.get_fields()[field_name]
 
     @classmethod
     def get_field_names(cls):

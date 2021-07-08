@@ -29,5 +29,4 @@ class NodeDeclarationSignedChangeRequestMessage(SignedChangeRequestMessage):
         )
 
     def validate(self):
-        # TODO(dmu) CRITICAL: Implement
-        return
+        self.node.validate()

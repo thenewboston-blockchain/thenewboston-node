@@ -143,9 +143,8 @@ class BlockMessage(MessageMixin, BaseDataclass):
 
     @validates('transfer request on block message level')
     def validate_signed_change_request(self, blockchain):
-        signed_change_request = self.signed_change_request
         validate_not_none(f'{self.humanized_class_name} signed_change_request', self.signed_change_request)
-        signed_change_request.validate(blockchain, self.block_number)
+        self.signed_change_request.validate(blockchain, self.block_number)
 
     @validates('block message timestamp')
     def validate_timestamp(self, blockchain):

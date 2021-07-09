@@ -36,7 +36,6 @@ COPY scripts/run.sh .
 RUN chmod a+x run.sh
 
 RUN mkdir -p /etc/nginx/conf.d
-COPY thenewboston_node/project/settings/templates/nginx.conf /etc/nginx/conf.d/node.conf
 
 RUN mkdir -p /var/lib/blockchain
 ENV THENEWBOSTON_NODE_BLOCKCHAIN '{"kwargs":{"base_directory":"/var/lib/blockchain"}}'

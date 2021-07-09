@@ -163,7 +163,7 @@ Configure continuous deployment
 
     # Use empty pass phrase
     ssh-keygen -f ~/.ssh/github
-    cat ~/.ssh/github.pub >> ~/authorized_keys
+    cat ~/.ssh/github.pub >> ~/.ssh/authorized_keys
 
 #. Create github secrets::
 

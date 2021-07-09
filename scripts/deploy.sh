@@ -5,13 +5,6 @@ set -e
 GITHUB_USERNAME="${GITHUB_USERNAME:-$1}"
 GITHUB_PASSWORD="${GITHUB_PASSWORD:-$2}"
 
-wget https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/docker-compose.yml -O docker-compose.yml
-
-if [ ! -f .env ]; then
-  cat <<EOF > .env
-THENEWBOSTON_NODE_SECRET_KEY=$(dd bs=48 count=1 if=/dev/urandom | base64)
-EOF
-fi
 
 # Support github actions deploy as well as manual deploy
 if [[ -z "$GITHUB_USERNAME" || -z "$GITHUB_PASSWORD" ]]; then
@@ -24,5 +17,11 @@ else
 fi
 
 docker-compose pull
+
+wget https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/docker-compose.yml -O docker-compose.yml
+
+grep THENEWBOSTON_NODE_SECRET_KEY .env || echo "THENEWBOSTON_NODE_SECRET_KEY=$(dd bs=48 count=1 if=/dev/urandom | base64)" >> .env
+grep THENEWBOSTON_NODE_NODE_SIGNING_KEY .env || echo "THENEWBOSTON_NODE_NODE_SIGNING_KEY=$(docker-compose run node poetry run python -m thenewboston_node.manage generate_signing_key)" >> .env
+
 docker-compose up -d --force-recreate
 docker logout

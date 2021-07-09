@@ -8,7 +8,9 @@ on:
 jobs:
   deploy:
     name: Deploy
-    if: ${{ secrets.NODE_CONTINUOUS_DEPLOYMENT_ENABLED == 'True' }}
+    env:
+      NODE_CONTINUOUS_DEPLOYMENT_ENABLED: ${{ secrets.NODE_CONTINUOUS_DEPLOYMENT_ENABLED }}
+    if: ${{ env.NODE_CONTINUOUS_DEPLOYMENT_ENABLED == 'True' }}
     runs-on: ubuntu-latest
     steps:
       - name: test

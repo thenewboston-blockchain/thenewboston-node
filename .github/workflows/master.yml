@@ -6,9 +6,54 @@ on:
       - master
 
 jobs:
-  # TODO(dmu) CRITICAL: Do not publish if unittests do not pass
+# github does not support dependencies on other workflows therefore we have to duplicate the code
+# QUALITY-ASSURANCE-START
+  quality-assurance:
+    name: Quality Assurance
+
+    runs-on: ubuntu-latest
+    container: python:3.9.2
+
+    services:
+      # TODO(dmu) LOW: This section duplicates services already defined in `docker-compose.yml`.
+      #                Is there a way to make it DRY?
+      db:
+        image: postgres:13.2-alpine
+        env:
+          POSTGRES_DB: thenewboston_node
+          POSTGRES_USER: thenewboston
+          POSTGRES_PASSWORD: thenewboston
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run Poetry image
+        uses: abatilo/actions-poetry@v2.0.0
+        with:
+          poetry-version: 1.1.4
+
+      - name: Install
+        run: make install && make install-pre-commit
+
+      - name: Lint
+        run: make lint
+
+      - name: Test
+        run: make test
+        env:
+          THENEWBOSTON_NODE_TEST_WITH_ENV_VARS: 'true'
+          THENEWBOSTON_NODE_DATABASES: '{"default":{"HOST":"db"}}'
+          THENEWBOSTON_NODE_SECRET_KEY: dummy
+# QUALITY-ASSURANCE-END
+
   publish-image:
     name: Publish docker image
+    needs: quality-assurance
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -23,7 +68,7 @@ jobs:
           tag_with_ref: true
   deploy:
     name: Deploy to develoment environment
-    needs: publish
+    needs: publish-image
     runs-on: ubuntu-latest
     steps:
       - name: Configure SSH

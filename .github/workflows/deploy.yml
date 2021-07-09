@@ -1,0 +1,17 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    name: Deploy
+    if: ${{ env.NODE_CONTINUOUS_DEPLOYMENT_ENABLED == 'True' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: test
+        run: |
+          echo 'Test'
+          date

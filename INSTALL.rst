@@ -156,6 +156,13 @@ Run production Node
 
 #. Remove credentials for docker.pkg.github.com from ~/.docker/config.json
 
+Configure continuous deployment
+===============================
+
+#. Create github secrets::
+
+    NODE_CONTINUOUS_DEPLOYMENT_ENABLED=True
+
 Hints
 =====
 

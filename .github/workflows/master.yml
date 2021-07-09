@@ -1,4 +1,4 @@
-name: Package
+name: Continuous integration
 
 on:
   push:
@@ -7,7 +7,8 @@ on:
 
 jobs:
   # TODO(dmu) CRITICAL: Do not publish if unittests do not pass
-  publish:
+  publish-image:
+    name: Publish docker image
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -15,12 +16,13 @@ jobs:
         # TODO(dmu) HIGH: Upgrade to `docker/build-push-action@v2`
         uses: docker/build-push-action@v1
         with:
-          username: ${{ github.actor }}
+          username: $GITHUB_ACTOR
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
           repository: thenewboston-developers/thenewboston-node/thenewboston-node
           tag_with_ref: true
   deploy:
+    name: Deploy to develoment environment
     needs: publish
     runs-on: ubuntu-latest
     steps:

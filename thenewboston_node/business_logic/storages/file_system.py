@@ -3,6 +3,7 @@ import gzip
 import logging
 import lzma
 import os
+import shutil
 import stat
 from pathlib import Path
 from typing import Union
@@ -68,6 +69,9 @@ class FileSystemStorage:
     def __init__(self, base_path: Union[str, Path], compressors=tuple(COMPRESSION_FUNCTIONS)):
         self.base_path = Path(base_path).resolve()
         self.compressors = compressors
+
+    def clear(self):
+        shutil.rmtree(self.base_path, ignore_errors=True)
 
     @timeit_method()
     def save(self, file_path: Union[str, Path], binary_data: bytes, is_final=False):

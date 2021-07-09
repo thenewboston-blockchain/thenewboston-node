@@ -73,9 +73,13 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('blockchain_genesis_state_source')
         parser.add_argument('--failover-blockchain-genesis-state-source')
+        parser.add_argument('--replace-blockchain', action='store_true')
 
     def handle(self, *args, **options):
         blockchain = BlockchainBase.get_instance()
+        if not blockchain.is_empty() and options['replace_blockchain']:
+            blockchain.clear()
+
         if blockchain.is_empty():
             blockchain_genesis_state_source = options['blockchain_genesis_state_source']
             logger.info('Empty blockchain detected: initializing with %s', blockchain_genesis_state_source)

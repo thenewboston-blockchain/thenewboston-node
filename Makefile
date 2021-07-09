@@ -55,7 +55,7 @@ run-server:
 
 .PHONY: dev-start-node
 dev-start-node:
-	poetry run python -m thenewboston_node.manage start_node https://raw.githubusercontent.com/thenewboston-developers/Account-Backups/master/latest_backup/latest.json
+	poetry run python -m thenewboston_node.manage start_node --replace-blockchain https://raw.githubusercontent.com/thenewboston-developers/Account-Backups/master/latest_backup/latest.json
 
 .PHONY: lint
 lint:

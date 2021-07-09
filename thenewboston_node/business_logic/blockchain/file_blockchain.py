@@ -86,7 +86,7 @@ class FileBlockchain(BlockchainBase):
         if not os.path.isabs(base_directory):
             raise ValueError('base_directory must be an absolute path')
 
-        snapshot_period_in_blocks = kwargs.setdefault('snapshot_period_in_blocks', block_chunk_size)
+        kwargs.setdefault('snapshot_period_in_blocks', block_chunk_size)
         super().__init__(**kwargs)
 
         self.block_chunk_size = block_chunk_size
@@ -100,12 +100,12 @@ class FileBlockchain(BlockchainBase):
             base_path=account_root_files_directory, **(account_root_files_storage_kwargs or {})
         )
 
-        self.account_root_files_cache = LRUCache(account_root_files_cache_size)
-        self.blocks_cache = LRUCache(
-            # We do not really need to cache more than `snapshot_period_in_blocks` blocks since
-            # we use use account root file as a base
-            snapshot_period_in_blocks * 2 if blocks_cache_size is None else blocks_cache_size
-        )
+        self.account_root_files_cache_size = account_root_files_cache_size
+        self.blocks_cache_size = blocks_cache_size
+
+        self.account_root_files_cache: Optional[LRUCache] = None
+        self.blocks_cache: Optional[LRUCache] = None
+        self.initialize_caches()
 
         self._file_lock = None
         self.lock_filename = lock_filename
@@ -120,6 +120,20 @@ class FileBlockchain(BlockchainBase):
             self._file_lock = file_lock = filelock.FileLock(lock_file_path, timeout=0)
 
         return file_lock
+
+    @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
+    def clear(self):
+        self.initialize_caches()
+        self.block_storage.clear()
+        self.account_root_files_storage.clear()
+
+    def initialize_caches(self):
+        self.account_root_files_cache = LRUCache(self.account_root_files_cache_size)
+        self.blocks_cache = LRUCache(
+            # We do not really need to cache more than `snapshot_period_in_blocks` blocks since
+            # we use use account root file as a base
+            self.snapshot_period_in_blocks * 2 if self.blocks_cache_size is None else self.blocks_cache_size
+        )
 
     # Account root files methods
     @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
@@ -210,6 +224,7 @@ class FileBlockchain(BlockchainBase):
             yield from self._yield_blocks_from_file_cached(file_path, direction=1, start=max(start, block_number))
 
     def get_block_by_number(self, block_number: int) -> Optional[Block]:
+        assert self.blocks_cache
         block = self.blocks_cache.get(block_number)
         if block is not None:
             return block

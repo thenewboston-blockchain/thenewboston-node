@@ -10,7 +10,7 @@ EOF
 fi
 
 # Support github actions deploy as well as manual deploy
-if [[ -z $GITHUB_USERNAME || -z $GITHUB_PASSWORD ]]; then
+if [[ -z "$GITHUB_USERNAME" || -z "$GITHUB_PASSWORD" ]]; then
   docker login docker.pkg.github.com
 else
   # Avoid printing the password

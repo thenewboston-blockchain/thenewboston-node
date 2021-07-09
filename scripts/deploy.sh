@@ -11,11 +11,14 @@ fi
 
 # Support github actions deploy as well as manual deploy
 if [[ -z "$GITHUB_USERNAME" || -z "$GITHUB_PASSWORD" ]]; then
+  echo "Interactive docker login"
   docker login docker.pkg.github.com
 else
+  echo "Automated docker login"
   # TODO(dmu) LOW: Implement a defensive technique to avoid printing password in case of `set -x`
-  docker login --username $GITHUB_USERNAME --password "$GITHUB_PASSWORD" docker.pkg.github.com
+  docker login --username "$GITHUB_USERNAME" --password "$GITHUB_PASSWORD" docker.pkg.github.com
 fi
 
+docker-compose pull
 docker-compose up -d --force-recreate
 docker logout

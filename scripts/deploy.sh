@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
 set -e
+
+GITHUB_USERNAME=${$GITHUB_USERNAME:-$1}
+GITHUB_PASSWORD=${$GITHUB_PASSWORD:-$2}
+
 wget https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/docker-compose.yml -O docker-compose.yml
 
 if [ ! -f .env ]; then

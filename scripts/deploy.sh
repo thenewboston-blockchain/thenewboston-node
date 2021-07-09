@@ -14,7 +14,7 @@ if [[ -z "$GITHUB_USERNAME" || -z "$GITHUB_PASSWORD" ]]; then
   docker login docker.pkg.github.com
 else
   # Avoid printing the password
-  { docker login -u $GITHUB_USERNAME -p $GITHUB_PASSWORD docker.pkg.github.com; } > /dev/null 2> /dev/null
+  echo "$GITHUB_PASSWORD" | docker login -u $GITHUB_USERNAME --password-stdin docker.pkg.github.com
 fi
 
 docker-compose up -d

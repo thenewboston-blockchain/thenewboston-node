@@ -13,7 +13,9 @@ jobs:
       - name: test
         # TODO(dmu) MEDIUM: Once/if github implements secrets on job level
         #                   https://github.com/actions/runner/issues/520#issuecomment-877193387
-        if: ${{ secrets.NODE_CONTINUOUS_DEPLOYMENT_ENABLED == 'True' }}
+        if: ${{ env.NODE_CONTINUOUS_DEPLOYMENT_ENABLED == 'True' }}
         run: |
           echo 'Test'
           date
+        env:
+          NODE_CONTINUOUS_DEPLOYMENT_ENABLED: ${{ secrets.NODE_CONTINUOUS_DEPLOYMENT_ENABLED }}

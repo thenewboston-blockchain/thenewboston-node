@@ -10,12 +10,26 @@ jobs:
     name: Deploy
     runs-on: ubuntu-latest
     steps:
-      - name: test
+      - name: Configure SSH
         # TODO(dmu) MEDIUM: Once/if github implements secrets on job level
         #                   https://github.com/actions/runner/issues/520#issuecomment-877193387
         if: ${{ env.NODE_CONTINUOUS_DEPLOYMENT_ENABLED == 'True' }}
         run: |
-          echo 'Test'
-          date
+          mkdir -p ~/.ssh/
+          echo "$DEPLOY_SSH_KEY" > ~/.ssh/target.key
+          chmod 600 ~/.ssh/target.key
+          cat >>~/.ssh/config <<END
+          Host target
+            HostName $DEPLOY_SSH_HOST
+            User $DEPLOY_SSH_USER
+            IdentityFile ~/.ssh/target.key
+            StrictHostKeyChecking no
+          END
         env:
           NODE_CONTINUOUS_DEPLOYMENT_ENABLED: ${{ secrets.NODE_CONTINUOUS_DEPLOYMENT_ENABLED }}
+          DEPLOY_SSH_KEY: ${{ secrets.NODE_DEPLOY_SSH_KEY }}
+          DEPLOY_SSH_HOST: ${{ secrets.NODE_DEPLOY_SSH_HOST }}
+          DEPLOY_SSH_USER: ${{ secrets.NODE_DEPLOY_SSH_USER }}
+
+      - name: Rename me
+        run: ssh target 'date; echo Test'

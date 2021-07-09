@@ -159,9 +159,18 @@ Run production Node
 Configure continuous deployment
 ===============================
 
+#. Create deploy ssh key on target machine::
+
+    # Use empty pass phrase
+    ssh-keygen -f ~/.ssh/github
+    cat ~/.ssh/github.pub >> ~/authorized_keys
+
 #. Create github secrets::
 
     NODE_CONTINUOUS_DEPLOYMENT_ENABLED=True
+    NODE_DEPLOY_SSH_KEY=<content of ~/.ssh/github>
+    NODE_DEPLOY_SSH_HOST=<IP-address or domain name of target machine>
+    NODE_DEPLOY_SSH_USER=<username that has the corresponding public in ~/authorized_keys>
 
 Hints
 =====

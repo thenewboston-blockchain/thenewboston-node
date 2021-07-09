@@ -13,9 +13,9 @@ fi
 if [[ -z "$GITHUB_USERNAME" || -z "$GITHUB_PASSWORD" ]]; then
   docker login docker.pkg.github.com
 else
-  # Avoid printing the password
-  echo "$GITHUB_PASSWORD" | docker login -u $GITHUB_USERNAME --password-stdin docker.pkg.github.com
+  # TODO(dmu) LOW: Implement a defensive technique to avoid printing password in case of `set -x`
+  docker login --username $GITHUB_USERNAME --password "$GITHUB_PASSWORD" docker.pkg.github.com
 fi
 
-docker-compose up -d
+docker-compose up -d --force-recreate
 docker logout

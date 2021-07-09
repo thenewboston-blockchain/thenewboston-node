@@ -159,6 +159,16 @@ Run production Node
 Configure continuous deployment
 ===============================
 
+#. Install Docker according to https://docs.docker.com/engine/install/
+   (known working: Docker version 20.10.7, build f0df350)
+#. Add your user to docker group::
+
+    sudo usermod -aG docker $USER
+    exit
+
+#. Install Docker Compose according to https://docs.docker.com/compose/install/
+   (known working: docker-compose version 1.29.2, build 5becea4c)
+
 #. Create deploy ssh key on target machine::
 
     # Use empty pass phrase

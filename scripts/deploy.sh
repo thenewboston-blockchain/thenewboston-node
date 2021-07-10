@@ -2,16 +2,16 @@
 
 set -e
 
-GITHUB_USERNAME="${GITHUB_USERNAME:-$1}"
-GITHUB_PASSWORD="${GITHUB_PASSWORD:-$2}"
-START_NODE_ARGS="$3"
+START_NODE_ARGS="${START_NODE_ARGS:-$1}"
+GITHUB_USERNAME="${GITHUB_USERNAME:-$2}"
+GITHUB_PASSWORD="${GITHUB_PASSWORD:-$3}"
 
 # Support github actions deploy as well as manual deploy
 if [[ -z "$GITHUB_USERNAME" || -z "$GITHUB_PASSWORD" ]]; then
-  echo "Interactive docker login"
+  echo "Interactive docker registry login (username=github username; password=github personal access token (not github password)"
   docker login docker.pkg.github.com
 else
-  echo "Automated docker login"
+  echo "Automated docker registry login"
   # TODO(dmu) LOW: Implement a defensive technique to avoid printing password in case of `set -x`
   docker login --username "$GITHUB_USERNAME" --password "$GITHUB_PASSWORD" docker.pkg.github.com
 fi

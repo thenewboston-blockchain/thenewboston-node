@@ -120,54 +120,30 @@ Run
 Run production Node
 ===================
 
-#. Install Docker according to https://docs.docker.com/engine/install/
+Common configuration
+--------------------
+
+#. Install Docker on target machine according to https://docs.docker.com/engine/install/
    (known working: Docker version 20.10.7, build f0df350)
 #. Add your user to docker group::
 
     sudo usermod -aG docker $USER
     exit
 
-#. Install Docker Compose according to https://docs.docker.com/compose/install/
+#. Install Docker Compose  on target machine according to https://docs.docker.com/compose/install/
    (known working: docker-compose version 1.29.2, build 5becea4c)
 
-#. Download ``docker-compose.yml``::
+Manual deployment
+-----------------
 
-    wget https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/docker-compose.yml
+#. Run ``deploy.sh``::
 
-#. Create ``.env`` file::
-
-    cat <<EOF > .env
-    THENEWBOSTON_NODE_SECRET_KEY=$(dd bs=48 count=1 if=/dev/urandom | base64)
-    EOF
-
-#. Login to github docker repository (use Github name as username and
-   Github Personal Access Token as password, not your Github password:
-   https://github.com/settings/tokens )::
-
-    docker login docker.pkg.github.com
-
-#. Run Node::
-
-    docker-compose up -d
-
-#. Login to github docker repository::
-
-    docker logout
-
-#. Remove credentials for docker.pkg.github.com from ~/.docker/config.json
+    # Optionally set env var to reinitialize the blockchain
+    # export START_NODE_ARGS=--replace-blockchain
+    bash <(wget -qO- https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/scripts/deploy.sh)
 
 Configure continuous deployment
 ===============================
-
-#. Install Docker according to https://docs.docker.com/engine/install/
-   (known working: Docker version 20.10.7, build f0df350)
-#. Add your user to docker group::
-
-    sudo usermod -aG docker $USER
-    exit
-
-#. Install Docker Compose according to https://docs.docker.com/compose/install/
-   (known working: docker-compose version 1.29.2, build 5becea4c)
 
 #. Create deploy ssh key on target machine::
 

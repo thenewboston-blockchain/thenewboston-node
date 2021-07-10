@@ -15,7 +15,7 @@ def test_blockchain_state_is_created_every_x_block(
     treasury_account_key_pair: KeyPair,
     user_account_key_pair: KeyPair,
 ):
-    assert not os.path.isfile(str(blockchain_path / 'blockchain-states/0/0/0/0/0/0/0/0/000000000.-arf.msgpack'))
+    assert not os.path.isfile(str(blockchain_path / 'blockchain-states/0/0/0/0/0/0/0/0/000000000!-arf.msgpack'))
     blockchain = FileBlockchain(
         base_directory=str(blockchain_path),
         snapshot_period_in_blocks=5,
@@ -23,7 +23,7 @@ def test_blockchain_state_is_created_every_x_block(
         account_root_files_storage_kwargs={'compressors': ()}
     )
     blockchain.add_blockchain_state(blockchain_genesis_state)
-    assert os.path.isfile(str(blockchain_path / 'blockchain-states/0/0/0/0/0/0/0/0/000000000.-arf.msgpack'))
+    assert os.path.isfile(str(blockchain_path / 'blockchain-states/0/0/0/0/0/0/0/0/000000000!-arf.msgpack'))
     blockchain.validate()
 
     user_account = user_account_key_pair.public

@@ -2,7 +2,6 @@ version: '3.9'
 
 services:
   db:
-    container_name: node-db
     image: postgres:13.2-alpine
     environment:
       - POSTGRES_DB=thenewboston_node
@@ -14,7 +13,6 @@ services:
       - postgresql-data:/var/lib/postgresql/data
 
   reverse-proxy:
-    container_name: node-reverse-proxy
     image: nginx:1.19.10-alpine
     ports:
       - 8555:8555
@@ -36,7 +34,6 @@ services:
       - node
 
   node:
-    container_name: node
     image: docker.pkg.github.com/thenewboston-developers/thenewboston-node/thenewboston-node:latest
     environment:
       - THENEWBOSTON_NODE_DATABASES={"default":{"HOST":"db"}}

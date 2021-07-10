@@ -7,6 +7,8 @@ START_NODE_ARGS="${START_NODE_ARGS:-$1}"
 GITHUB_USERNAME="${GITHUB_USERNAME:-$2}"
 GITHUB_PASSWORD="${GITHUB_PASSWORD:-$3}"
 
+docker logout docker.pkg.github.com
+
 # Support github actions deploy as well as manual deploy
 if [[ -z "$GITHUB_USERNAME" || -z "$GITHUB_PASSWORD" ]]; then
   echo "Interactive docker registry login (username=github username; password=github personal access token (not github password)"

@@ -138,9 +138,8 @@ Manual deployment
 
 #. Run ``deploy.sh``::
 
-    # Optionally set env var to reinitialize the blockchain
-    # export START_NODE_ARGS=--replace-blockchain
-    bash <(wget -qO- https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/scripts/deploy.sh)
+    # TODO(dmu) CRITICAL: Once start node procedure is fully implemented make START_NODE_ARGS=--replace-blockchain optional
+    START_NODE_ARGS=--replace-blockchain bash <(wget -qO- https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/scripts/deploy.sh)
 
 Configure continuous deployment
 ===============================

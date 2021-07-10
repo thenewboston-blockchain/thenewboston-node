@@ -39,6 +39,7 @@ def test_node_declaration_signed_change_request_validate_empty_network_address(
         'http://example.com',
         'https://my.domain.com',
         'https://my.domain.com/path/to/resource#fragment',
+        'http://localhost:8555/',
     ]
 )
 def test_node_declaration_signed_change_request_valid_network_addresses(

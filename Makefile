@@ -15,7 +15,7 @@ test-dockerized:
 
 .PHONY: up-dependencies-only
 up-dependencies-only:
-	docker-compose up --force-recreate db
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --force-recreate db
 
 .PHONY: up
 up: build

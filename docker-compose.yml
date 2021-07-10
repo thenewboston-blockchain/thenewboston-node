@@ -7,8 +7,6 @@ services:
       - POSTGRES_DB=thenewboston_node
       - POSTGRES_USER=thenewboston
       - POSTGRES_PASSWORD=thenewboston
-    ports:
-      - 127.0.0.1:5432:5432
     volumes:
       - postgresql-data:/var/lib/postgresql/data
 
@@ -30,7 +28,7 @@ services:
           nocopy: true
         read_only: true
     depends_on:
-      # Depends on node to get the volume data for nginx configuration
+      # Depends on node to get /etc/nginx/conf.d/node.conf
       - node
 
   node:
@@ -39,10 +37,6 @@ services:
       - THENEWBOSTON_NODE_DATABASES={"default":{"HOST":"db"}}
     env_file: .env
     command: ./run.sh
-    ports:
-      # We expose it for testing purposes only
-      # (in production the access must be done via reverse proxy)
-      - 127.0.0.1:8000:8000
     depends_on:
       - db
     volumes:

@@ -1,4 +1,4 @@
-from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain, get_start_end
+from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
 from thenewboston_node.business_logic.tests.factories import CoinTransferBlockFactory
 
 
@@ -14,7 +14,3 @@ def test_yield_blocks_from_cache(blockchain_directory):
     assert list(blockchain._yield_blocks_from_cache(1, 2, 1)) == [block1, block2]
     assert list(blockchain._yield_blocks_from_cache(0, 3, -1)) == [block3, block2, block1, block0]
     assert list(blockchain._yield_blocks_from_cache(1, 2, -1)) == [block2, block1]
-
-
-def test_get_start_end():
-    assert get_start_end('00012-000101-block-chunk.msgpack') == (12, 101)

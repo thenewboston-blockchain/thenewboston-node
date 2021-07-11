@@ -57,6 +57,10 @@ run-server:
 dev-start-node:
 	poetry run python -m thenewboston_node.manage start_node --replace-blockchain https://raw.githubusercontent.com/thenewboston-developers/Account-Backups/master/latest_backup/latest.json
 
+.PHONY: dev-initialize-blockchain
+dev-initialize-blockchain:
+	poetry run python -m thenewboston_node.manage initialize_blockchain -f https://raw.githubusercontent.com/thenewboston-developers/Account-Backups/master/latest_backup/latest.json
+
 .PHONY: lint
 lint:
 	poetry run pre-commit run --all-files

@@ -76,6 +76,10 @@ def get_blockchain_state_filename_meta(filename):
     return None
 
 
+def get_blockchain_state_file_path_meta(file_path):
+    return get_blockchain_state_filename_meta(os.path.basename(file_path))
+
+
 def make_block_chunk_filename(start: int, end: int):
     start_block_str = str(start).zfill(ORDER_OF_BLOCK)
     end_block_str = str(end).zfill(ORDER_OF_BLOCK)

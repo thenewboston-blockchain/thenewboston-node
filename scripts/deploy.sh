@@ -47,4 +47,4 @@ until $(curl --output /dev/null --silent --head --fail http://127.0.0.1:8555/api
     sleep 5
 done
 
-echo "Node is up and running'
+echo 'Node is up and running'

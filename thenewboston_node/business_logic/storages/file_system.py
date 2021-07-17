@@ -5,13 +5,14 @@ import lzma
 import os
 import shutil
 import stat
-import tempfile
+# import tempfile
 from pathlib import Path
 from typing import Union
 
 from thenewboston_node.business_logic import exceptions
 from thenewboston_node.core.logging import timeit_method
-from thenewboston_node.core.utils.atomic_write import atomic_write_append
+
+# from thenewboston_node.core.utils.atomic_write import atomic_write_append
 
 # TODO(dmu) LOW: Support more / better compression methods
 COMPRESSION_FUNCTIONS = {
@@ -191,5 +192,7 @@ class FileSystemStorage:
         if self._is_finalized(file_path):
             raise exceptions.FinalizedFileWriteError(f'Could not write to finalized file: {file_path}')
 
-        with atomic_write_append(file_path, mode=mode, dir=tempfile.gettempdir()) as fo:
+        # TODO(dmu) CRITICAL: Fix and uncomment
+        # with atomic_write_append(file_path, mode=mode, dir=tempfile.gettempdir()) as fo:
+        with open(file_path, mode=mode) as fo:
             fo.write(binary_data)

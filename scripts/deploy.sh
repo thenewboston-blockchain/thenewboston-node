@@ -32,3 +32,17 @@ grep -o THENEWBOSTON_NODE_NODE_SIGNING_KEY .env || echo "THENEWBOSTON_NODE_NODE_
 
 docker-compose up -d --force-recreate
 docker logout $DOCKER_REGISTRY_HOST
+
+counter=0
+until $(curl --output /dev/null --silent --head --fail http://127.0.0.1:8555/api/v1/nodes/self/); do
+    counter=$(($counter + 1))
+    if [ ${counter} -ge 6 ];then
+      echo 'Unable to start node'
+      exit 1
+    fi
+
+    echo 'Node has not started yet, waiting 5 seconds for retry'
+    sleep 5
+done
+
+echo 'Node is up and running'

@@ -12,6 +12,7 @@ from more_itertools import always_reversible, ilen
 from thenewboston_node.business_logic.exceptions import BlockchainLockedError, BlockchainUnlockedError
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
+from thenewboston_node.business_logic.storages.file_system import COMPRESSION_FUNCTIONS
 from thenewboston_node.business_logic.storages.path_optimized_file_system import PathOptimizedFileSystemStorage
 from thenewboston_node.core.logging import timeit
 from thenewboston_node.core.utils.file_lock import ensure_locked, lock_method
@@ -30,14 +31,15 @@ BLOCKCHAIN_GENESIS_STATE_PREFIX = LAST_BLOCK_NUMBER_NONE_SENTINEL.zfill(ORDER_OF
 
 BLOCKCHAIN_STATE_FILENAME_TEMPLATE = '{last_block_number}-arf.msgpack'
 BLOCKCHAIN_STATE_FILENAME_RE = re.compile(
-    BLOCKCHAIN_STATE_FILENAME_TEMPLATE.format(
-        last_block_number=r'(?P<last_block_number>\d{,' + str(ORDER_OF_BLOCKCHAIN_STATE_FILE - 1) + r'}(?:!|\d))'
-    )
+    BLOCKCHAIN_STATE_FILENAME_TEMPLATE.
+    format(last_block_number=r'(?P<last_block_number>\d{,' + str(ORDER_OF_BLOCKCHAIN_STATE_FILE - 1) + r'}(?:!|\d))') +
+    r'(?:|\.(?P<compression>{}))$'.format('|'.join(COMPRESSION_FUNCTIONS.keys()))
 )
 
 BLOCK_CHUNK_FILENAME_TEMPLATE = '{start}-{end}-block-chunk.msgpack'
 BLOCK_CHUNK_FILENAME_RE = re.compile(
-    BLOCK_CHUNK_FILENAME_TEMPLATE.format(start=r'(?P<start>\d+)', end=r'(?P<end>\d+)')
+    BLOCK_CHUNK_FILENAME_TEMPLATE.format(start=r'(?P<start>\d+)', end=r'(?P<end>\d+)') +
+    r'(?:|\.(?P<compression>{}))$'.format('|'.join(COMPRESSION_FUNCTIONS.keys()))
 )
 
 DEFAULT_BLOCKCHAIN_STATES_SUBDIR = 'blockchain-states'
@@ -48,8 +50,8 @@ DEFAULT_BLOCK_CHUNK_SIZE = 100
 LOCKED_EXCEPTION = BlockchainLockedError('Blockchain locked. Probably it is being modified by another process')
 EXPECTED_LOCK_EXCEPTION = BlockchainUnlockedError('Blockchain was expected to be locked')
 
-BlockChunkFilenameMeta = namedtuple('BlockChunkFilenameMeta', 'start end')
-BlockchainFilenameMeta = namedtuple('BlockchainFilenameMeta', 'last_block_number')
+BlockChunkFilenameMeta = namedtuple('BlockChunkFilenameMeta', 'start end compression')
+BlockchainFilenameMeta = namedtuple('BlockchainFilenameMeta', 'last_block_number compression')
 
 
 def make_blockchain_state_filename(last_block_number=None):
@@ -62,7 +64,6 @@ def make_blockchain_state_filename(last_block_number=None):
 def get_blockchain_state_filename_meta(filename):
     match = BLOCKCHAIN_STATE_FILENAME_RE.match(filename)
     if match:
-        # TODO(dmu) CRITICAL: Support last_block_number == None
         last_block_number_str = match.group('last_block_number')
 
         if last_block_number_str.endswith(LAST_BLOCK_NUMBER_NONE_SENTINEL):
@@ -70,7 +71,7 @@ def get_blockchain_state_filename_meta(filename):
         else:
             last_block_number = int(last_block_number_str)
 
-        return BlockchainFilenameMeta(last_block_number)
+        return BlockchainFilenameMeta(last_block_number, match.group('compression') or None)
 
     return None
 
@@ -89,7 +90,7 @@ def get_block_chunk_filename_meta(file_path):
         start = int(match.group('start'))
         end = int(match.group('end'))
         assert start <= end
-        return BlockChunkFilenameMeta(start, end)
+        return BlockChunkFilenameMeta(start, end, match.group('compression') or None)
 
     return None
 

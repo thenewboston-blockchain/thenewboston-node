@@ -5,14 +5,12 @@ import lzma
 import os
 import shutil
 import stat
-# import tempfile
 from pathlib import Path
 from typing import Union
 
 from thenewboston_node.business_logic import exceptions
 from thenewboston_node.core.logging import timeit_method
-
-# from thenewboston_node.core.utils.atomic_write import atomic_write_append
+from thenewboston_node.core.utils.atomic_write import atomic_write_append
 
 # TODO(dmu) LOW: Support more / better compression methods
 COMPRESSION_FUNCTIONS = {
@@ -69,9 +67,10 @@ class FileSystemStorage:
     Compressing / decompressing storage for capacity optimization
     """
 
-    def __init__(self, base_path: Union[str, Path], compressors=tuple(COMPRESSION_FUNCTIONS)):
+    def __init__(self, base_path: Union[str, Path], compressors=tuple(COMPRESSION_FUNCTIONS), temp_dir='.tmp'):
         self.base_path = Path(base_path).resolve()
         self.compressors = compressors
+        self.temp_dir = self.base_path / temp_dir
 
     def clear(self):
         shutil.rmtree(self.base_path, ignore_errors=True)
@@ -192,7 +191,6 @@ class FileSystemStorage:
         if self._is_finalized(file_path):
             raise exceptions.FinalizedFileWriteError(f'Could not write to finalized file: {file_path}')
 
-        # TODO(dmu) CRITICAL: Fix and uncomment
-        # with atomic_write_append(file_path, mode=mode, dir=tempfile.gettempdir()) as fo:
-        with open(file_path, mode=mode) as fo:
+        self.temp_dir.mkdir(parents=True, exist_ok=True)
+        with atomic_write_append(file_path, mode=mode, dir=self.temp_dir) as fo:
             fo.write(binary_data)

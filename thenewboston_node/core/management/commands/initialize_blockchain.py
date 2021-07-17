@@ -8,6 +8,7 @@ from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.blockchain.file_blockchain import get_blockchain_state_file_path_meta
 from thenewboston_node.business_logic.utils.blockchain_state import add_blockchain_state_from_account_root_file
 from thenewboston_node.business_logic.utils.network import make_self_node
+from thenewboston_node.core.utils.misc import humanize_snake_case
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +45,12 @@ def guess_source_type(source):
 
 def add_blockchain_state_from_sources(blockchain, sources):
     for source in sources:
+        logger.info('Adding blockchain state from %s', source)
         for source_type in guess_source_type(source):
+            logger.info('Trying source type: %s', humanize_snake_case(source_type.name.lower(), False))
             if source_type == SourceType.ACCOUNT_ROOT_FILE:
                 node = make_self_node()
+                logger.info('Node identifier: %s', node.identifier)
                 try:
                     add_blockchain_state_from_account_root_file(blockchain, source, node)
                     return True
@@ -67,11 +71,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         blockchain = BlockchainBase.get_instance()
-        if options['force']:
+        if not blockchain.is_empty() and options['force']:
+            logger.info('Clearing existing blockchain')
             blockchain.clear()
 
         if not blockchain.is_empty():
-            logger.info('Nothing to do: the blockchain is already initialized')
+            logger.info('Blockchain is already initialized')
             return
 
         sources = options['sources']

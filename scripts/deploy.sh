@@ -3,7 +3,7 @@
 set -e
 
 DOCKER_REGISTRY_HOST=docker.pkg.github.com
-START_NODE_ARGS="${START_NODE_ARGS:-$1}"
+INITIALIZE_BLOCKCHAIN_ARGS="${INITIALIZE_BLOCKCHAIN_ARGS:-$1}"
 GITHUB_USERNAME="${GITHUB_USERNAME:-$2}"
 GITHUB_PASSWORD="${GITHUB_PASSWORD:-$3}"
 
@@ -26,7 +26,8 @@ grep -o THENEWBOSTON_NODE_SECRET_KEY .env || echo "THENEWBOSTON_NODE_SECRET_KEY=
 
 docker-compose pull
 
-grep -o START_NODE_ARGS .env && sed -i "s/START_NODE_ARGS=.*/START_NODE_ARGS=${START_NODE_ARGS}/" .env || echo "START_NODE_ARGS=${START_NODE_ARGS}" >> .env
+# This way we pass INITIALIZE_BLOCKCHAIN_ARGS to `run.sh` when started with docker-compose
+grep -o INITIALIZE_BLOCKCHAIN_ARGS .env && sed -i "s/INITIALIZE_BLOCKCHAIN_ARGS=.*/INITIALIZE_BLOCKCHAIN_ARGS=${INITIALIZE_BLOCKCHAIN_ARGS}/" .env || echo "INITIALIZE_BLOCKCHAIN_ARGS=${INITIALIZE_BLOCKCHAIN_ARGS}" >> .env
 grep -o THENEWBOSTON_NODE_NODE_SIGNING_KEY .env || echo "THENEWBOSTON_NODE_NODE_SIGNING_KEY=$(docker-compose --log-level CRITICAL run --rm node poetry run python -m thenewboston_node.manage generate_signing_key)" >> .env
 
 docker-compose up -d --force-recreate

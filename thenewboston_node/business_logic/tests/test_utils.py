@@ -4,7 +4,7 @@ import tempfile
 from django.test import override_settings
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
-from thenewboston_node.business_logic.utils.blockchain_state import make_blockchain_state_from_account_root_file
+from thenewboston_node.business_logic.utils.blockchain_state import add_blockchain_state_from_account_root_file
 
 
 @override_settings(
@@ -13,14 +13,14 @@ from thenewboston_node.business_logic.utils.blockchain_state import make_blockch
         'kwargs': {}
     }
 )
-def test_make_blockchain_state_from_account_root_file(sample_account_root_file_dict):
+def test_make_blockchain_state_from_account_root_file(sample_account_root_file_dict, primary_validator):
     BlockchainBase.clear_instance_cache()
+    blockchain = BlockchainBase.get_instance()
+
     with tempfile.NamedTemporaryFile('w') as fp:
         json.dump(sample_account_root_file_dict, fp)
         fp.flush()
-        make_blockchain_state_from_account_root_file(fp.name)
-
-    blockchain = BlockchainBase.get_instance()
+        add_blockchain_state_from_account_root_file(blockchain, fp.name, primary_validator)
 
     blockchain_state = blockchain.get_last_blockchain_state()
     for key, value in sample_account_root_file_dict.items():

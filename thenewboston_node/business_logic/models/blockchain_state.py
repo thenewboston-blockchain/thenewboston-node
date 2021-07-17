@@ -103,6 +103,9 @@ class BlockchainState(MessagpackCompactableMixin, NormalizableMixin, BaseDatacla
     def get_account_state(self, account: hexstr) -> Optional[AccountState]:
         return self.account_states.get(account)
 
+    def set_account_state(self, account: hexstr, account_state: AccountState):
+        self.account_states[account] = account_state
+
     def get_account_state_attribute_value(self, account: hexstr, attribute: str):
         account_state = self.get_account_state(account)
         if account_state is None:

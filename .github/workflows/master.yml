@@ -94,8 +94,9 @@ jobs:
           DEPLOY_SSH_USER: ${{ secrets.NODE_DEPLOY_SSH_USER }}
 
       - name: Run deploy
+        # TODO(dmu) LOW: Run with `bash <(wget -qO- https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/scripts/deploy.sh)` ?
         run: |
-          ssh target "wget https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/scripts/deploy.sh -O deploy.sh && chmod a+x deploy.sh && ./deploy.sh --force $GITHUB_ACTOR $GITHUB_PASSWORD"
+          ssh target "wget https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/scripts/deploy.sh -O deploy.sh && chmod a+x deploy.sh && ./deploy.sh $GITHUB_ACTOR $GITHUB_PASSWORD"
         env:
           GITHUB_USERNAME: $GITHUB_ACTOR
           GITHUB_PASSWORD: ${{ secrets.GITHUB_TOKEN }}

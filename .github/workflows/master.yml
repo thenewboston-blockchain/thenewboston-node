@@ -95,7 +95,7 @@ jobs:
 
       - name: Run deploy
         run: |
-          ssh target "wget https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/scripts/deploy.sh -O deploy.sh && chmod a+x deploy.sh && ./deploy.sh --replace-blockchain $GITHUB_ACTOR $GITHUB_PASSWORD"
+          ssh target "wget https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/scripts/deploy.sh -O deploy.sh && chmod a+x deploy.sh && ./deploy.sh --force $GITHUB_ACTOR $GITHUB_PASSWORD"
         env:
           GITHUB_USERNAME: $GITHUB_ACTOR
           GITHUB_PASSWORD: ${{ secrets.GITHUB_TOKEN }}

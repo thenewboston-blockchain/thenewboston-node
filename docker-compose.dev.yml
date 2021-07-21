@@ -6,7 +6,9 @@ services:
       - 127.0.0.1:5432:5432
 
   node:
-    build: .
+    build:
+      context: .
+      target: node
     image: thenewboston-node:current
     ports:
       - 127.0.0.1:8000:8000
@@ -14,5 +16,5 @@ services:
   reverse-proxy:
     build:
       context: .
-      dockerfile: Dockerfile-reverse-proxy
+      target: reverse-proxy
     image: thenewboston-node-reverse-proxy:current

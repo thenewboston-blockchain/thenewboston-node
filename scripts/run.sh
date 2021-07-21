@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 set -e
-cp -v thenewboston_node/project/settings/templates/nginx.conf /etc/nginx/conf.d/node.conf
 
 poetry run python -m thenewboston_node.manage migrate
 

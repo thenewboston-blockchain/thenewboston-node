@@ -52,7 +52,7 @@ jobs:
 # QUALITY-ASSURANCE-END
 
   publish-image:
-    name: Publish docker image
+    name: Publish docker images
     needs: quality-assurance
     runs-on: ubuntu-latest
     steps:
@@ -62,12 +62,14 @@ jobs:
           registry: docker.pkg.github.com
           username: $GITHUB_ACTOR
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v2
+      - name: Push node image to Github Packages
+        uses: docker/build-push-action@v2
         with:
           target: node
           tags: docker.pkg.github.com/thenewboston-developers/thenewboston-node/thenewboston-node:latest
           push: true
-      - uses: docker/build-push-action@v2
+      - name: Push reverse-proxy image to Github Packages
+        uses: docker/build-push-action@v2
         with:
           target: reverse-proxy
           tags: docker.pkg.github.com/thenewboston-developers/thenewboston-node/thenewboston-node-reverse-proxy:latest

@@ -1,6 +1,10 @@
-.PHONY: build
-build:
+.PHONY: build-node
+build-node:
 	docker build . -t thenewboston-node:current
+
+.PHONY: build-reverse-proxy
+build-reverse-proxy:
+	docker build . -f Dockerfile-reverse-proxy -t thenewboston-node-reverse-proxy:current
 
 .PHONY: test
 test:
@@ -18,11 +22,11 @@ up-dependencies-only:
 	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --force-recreate db
 
 .PHONY: up
-up: build
+up: build-node build-reverse-proxy
 	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --force-recreate
 
 .PHONY: up-prod
-up-prod: build
+up-prod: build-node build-reverse-proxy
 	docker-compose up --force-recreate
 
 .PHONY: install

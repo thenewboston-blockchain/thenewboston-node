@@ -10,3 +10,9 @@ services:
     image: thenewboston-node:current
     ports:
       - 127.0.0.1:8000:8000
+
+  reverse-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile-reverse-proxy
+    image: thenewboston-node-reverse-proxy:current

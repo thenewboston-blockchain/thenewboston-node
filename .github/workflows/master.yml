@@ -51,8 +51,8 @@ jobs:
           THENEWBOSTON_NODE_SECRET_KEY: dummy
 # QUALITY-ASSURANCE-END
 
-  publish-image:
-    name: Publish docker image
+  publish-node-image:
+    name: Publish node docker image
     needs: quality-assurance
     runs-on: ubuntu-latest
     steps:
@@ -66,9 +66,25 @@ jobs:
           registry: docker.pkg.github.com
           repository: thenewboston-developers/thenewboston-node/thenewboston-node
           tag_with_ref: true
+  publish-reverse-proxy-image:
+    name: Publish reverse proxy docker image
+    needs: publish-node-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to GitHub Docker Registry
+        uses: docker/login-action@v1
+        with:
+          registry: docker.pkg.github.com
+          username: $GITHUB_ACTOR
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v2
+        with:
+          file: Dockerfile-reverse-proxy
+          push: true
+          tags: docker.pkg.github.com/thenewboston-developers/thenewboston-node/thenewboston-node-reverse-proxy:latest
   deploy:
     name: Deploy to develoment environment
-    needs: publish-image
+    needs: publish-reverse-proxy-image
     runs-on: ubuntu-latest
     steps:
       - name: Configure SSH

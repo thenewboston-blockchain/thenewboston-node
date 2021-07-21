@@ -11,7 +11,7 @@ services:
       - postgresql-data:/var/lib/postgresql/data
 
   reverse-proxy:
-    image: nginx:1.19.10-alpine
+    image: docker.pkg.github.com/thenewboston-developers/thenewboston-node/thenewboston-node-reverse-proxy:latest
     ports:
       - 8555:8555
     volumes:

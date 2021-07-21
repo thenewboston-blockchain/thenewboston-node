@@ -1,4 +1,4 @@
-FROM python:3.9.2-buster
+FROM python:3.9.2-buster as node
 
 WORKDIR /opt/project
 
@@ -49,3 +49,6 @@ RUN poetry install
 ENV ARF_URL https://raw.githubusercontent.com/thenewboston-developers/Account-Backups/master/latest_backup/latest.json
 ENV ARF_PATH /opt/project/alpha-arf-latest.json
 RUN curl ${ARF_URL} -o ${ARF_PATH}
+
+
+FROM nginx:1.19.10-alpine as reverse-proxy

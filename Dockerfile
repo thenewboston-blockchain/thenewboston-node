@@ -35,8 +35,6 @@ RUN poetry export --without-hashes --dev -f requirements.txt -o requirements.txt
 COPY scripts/run.sh .
 RUN chmod a+x run.sh
 
-RUN mkdir -p /etc/nginx/conf.d
-
 RUN mkdir -p /var/lib/blockchain
 ENV THENEWBOSTON_NODE_BLOCKCHAIN '{"kwargs":{"base_directory":"/var/lib/blockchain"}}'
 
@@ -46,9 +44,17 @@ COPY README.rst .
 
 COPY thenewboston_node thenewboston_node
 RUN poetry install
+RUN make docs-html && make docs-rst
+
 ENV ARF_URL https://raw.githubusercontent.com/thenewboston-developers/Account-Backups/master/latest_backup/latest.json
 ENV ARF_PATH /opt/project/alpha-arf-latest.json
 RUN curl ${ARF_URL} -o ${ARF_PATH}
 
 
 FROM nginx:1.19.10-alpine as reverse-proxy
+
+RUN rm /etc/nginx/conf.d/default.conf
+COPY ./thenewboston_node/project/settings/templates/nginx.conf /etc/nginx/conf.d/node.conf
+
+COPY --from=node /opt/project/docs/thenewboston-blockchain-format.html /var/www/blockchain-docs/index.html
+COPY --from=node /opt/project/docs/thenewboston-blockchain-format.rst /var/www/blockchain-docs/index.rst

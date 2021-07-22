@@ -16,20 +16,11 @@ services:
       - 8555:8555
     volumes:
       - type: volume
-        source: nginx-conf.d
-        target: /etc/nginx/conf.d
-        volume:
-          nocopy: true
-        read_only: true
-      - type: volume
         source: blockchain
         target: /var/lib/blockchain
         volume:
           nocopy: true
         read_only: true
-    depends_on:
-      # Depends on node to get /etc/nginx/conf.d/node.conf
-      - node
 
   node:
     image: docker.pkg.github.com/thenewboston-developers/thenewboston-node/thenewboston-node:latest
@@ -40,13 +31,10 @@ services:
     depends_on:
       - db
     volumes:
-      - nginx-conf.d:/etc/nginx/conf.d
       - blockchain:/var/lib/blockchain
 
 volumes:
   postgresql-data:
-    driver: local
-  nginx-conf.d:
     driver: local
   blockchain:
     driver: local

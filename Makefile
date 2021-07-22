@@ -73,12 +73,12 @@ docs:
 
 .PHONY: docs-rst
 docs-rst: docs
-	poetry run python -m thenewboston_node.manage generate_documentation > docs/thenewboston-blockchain-format.rst
+	THENEWBOSTON_NODE_SECRET_KEY=default poetry run python -m thenewboston_node.manage generate_documentation > docs/thenewboston-blockchain-format.rst
 
 .PHONY: docs-html
 docs-html: docs
-	poetry run python -m thenewboston_node.manage generate_documentation | poetry run rst2html.py > docs/thenewboston-blockchain-format.html
+	THENEWBOSTON_NODE_SECRET_KEY=default poetry run python -m thenewboston_node.manage generate_documentation | poetry run rst2html.py > docs/thenewboston-blockchain-format.html
 
 .PHONY: docs-html-test
 docs-html-test:
-	poetry run python -m thenewboston_node.manage generate_documentation | poetry run rst2html.py --strict > /dev/null
+	THENEWBOSTON_NODE_SECRET_KEY=default poetry run python -m thenewboston_node.manage generate_documentation | poetry run rst2html.py --strict > /dev/null

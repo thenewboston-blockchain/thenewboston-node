@@ -1,4 +1,4 @@
-FROM python:3.9.2-buster as node
+FROM python:3.9.2-buster AS node
 
 WORKDIR /opt/project
 
@@ -50,8 +50,7 @@ ENV ARF_URL https://raw.githubusercontent.com/thenewboston-developers/Account-Ba
 ENV ARF_PATH /opt/project/alpha-arf-latest.json
 RUN curl ${ARF_URL} -o ${ARF_PATH}
 
-
-FROM nginx:1.19.10-alpine as reverse-proxy
+FROM nginx:1.19.10-alpine AS reverse-proxy
 
 RUN rm /etc/nginx/conf.d/default.conf
 COPY ./thenewboston_node/project/settings/templates/nginx.conf /etc/nginx/conf.d/node.conf

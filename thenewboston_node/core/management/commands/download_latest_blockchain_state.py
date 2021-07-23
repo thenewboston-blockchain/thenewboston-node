@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 
 from django.core.management import BaseCommand, CommandError
 
+from thenewboston_node.business_logic.storages.file_system import get_compressor
 from thenewboston_node.core.clients.node import NodeClient
 
 logger = logging.getLogger(__name__)
@@ -27,12 +28,13 @@ class Command(BaseCommand):
 
         data, url = result
 
+        filename = os.path.basename(urlparse(url).path)
         target = options['target']
         if os.path.isdir(target):
-            filename = os.path.basename(urlparse(url).path)
             file_path = os.path.join(target, filename)
         else:
-            file_path = target
+            compressor = get_compressor(filename)
+            file_path = target.format(compressor=('.' + compressor) if compressor else '')
 
         logger.info('Writing latest blockchain state binary to %s', file_path)
         with open(file_path, 'wb') as fo:

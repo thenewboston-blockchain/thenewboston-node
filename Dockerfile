@@ -48,6 +48,7 @@ RUN make docs-html && make docs-rst
 
 ENV ARF_URL https://raw.githubusercontent.com/thenewboston-developers/Account-Backups/master/latest_backup/latest.json
 ENV ARF_PATH /opt/project/alpha-arf-latest.json
+ENV BLOCKCHAIN_STATE_PATH /opt/project/blockchain-state.msgpack
 RUN curl ${ARF_URL} -o ${ARF_PATH}
 
 FROM nginx:1.19.10-alpine AS reverse-proxy

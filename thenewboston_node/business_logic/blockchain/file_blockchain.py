@@ -29,7 +29,7 @@ LAST_BLOCK_NUMBER_NONE_SENTINEL = '!'
 # We need to zfill to maintain the nested structure of directories
 BLOCKCHAIN_GENESIS_STATE_PREFIX = LAST_BLOCK_NUMBER_NONE_SENTINEL.zfill(ORDER_OF_BLOCKCHAIN_STATE_FILE)
 
-BLOCKCHAIN_STATE_FILENAME_TEMPLATE = '{last_block_number}-arf.msgpack'
+BLOCKCHAIN_STATE_FILENAME_TEMPLATE = '{last_block_number}-blockchain-state.msgpack'
 BLOCKCHAIN_STATE_FILENAME_RE = re.compile(
     BLOCKCHAIN_STATE_FILENAME_TEMPLATE.
     format(last_block_number=r'(?P<last_block_number>\d{,' + str(ORDER_OF_BLOCKCHAIN_STATE_FILE - 1) + r'}(?:!|\d))') +

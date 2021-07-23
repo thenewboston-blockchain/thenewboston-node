@@ -28,9 +28,13 @@ class NodeClient:
         #                     https://github.com/thenewboston-developers/thenewboston-node/issues/252
         assert network_address.endswith('/')
         return {
-            'last_block_number': None,
-            'url_path': '/blockchain/blockchain-states/0/0/0/0/0/0/0/0/000000000!-arf.msgpack.xz',
-            'urls': [f'{network_address}blockchain/blockchain-states/0/0/0/0/0/0/0/0/000000000!-arf.msgpack.xz']
+            'last_block_number':
+                None,
+            'url_path':
+                '/blockchain/blockchain-states/0/0/0/0/0/0/0/0/000000000!-blockchain-state.msgpack.xz',
+            'urls': [
+                f'{network_address}blockchain/blockchain-states/0/0/0/0/0/0/0/0/000000000!-blockchain-state.msgpack.xz'
+            ]
         }
 
     def get_latest_blockchain_state_binary_by_network_address(self, network_address) -> Optional[tuple[bytes, str]]:

@@ -69,14 +69,17 @@ def exist_compressed_file(file_path):
 open_read_binary = partial(open, mode='rb')
 
 
+def get_compressor(file_path):
+    match = FILE_PATH_RE.match(file_path)
+    return match.group('compressor') if match else None
+
+
 def read_compressed_file(file_path,
                          compressor=None,
                          raise_uncompressed_missing=True,
                          open_function=open_read_binary) -> Optional[bytes]:
     if compressor is None:
-        match = FILE_PATH_RE.match(file_path)
-        if match:
-            compressor = match.group('compressor')
+        compressor = get_compressor(file_path)
     elif compressor:  # we use empty line ('') to denote no compression
         file_path += '.' + compressor
 

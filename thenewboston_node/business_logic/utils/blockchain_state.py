@@ -1,31 +1,38 @@
 import json
 import logging
 from contextlib import closing
+from typing import Optional, cast
 from urllib.request import urlopen
 
 from django.conf import settings
 
 from thenewboston_node.business_logic.models import AccountState, BlockchainState
 from thenewboston_node.business_logic.models.signed_change_request_message.pv_schedule import PrimaryValidatorSchedule
+from thenewboston_node.business_logic.storages.file_system import read_compressed_file
 from thenewboston_node.core.utils.misc import is_valid_url
 
 logger = logging.getLogger()
 
 
-def read_source(source):
+def read_account_root_file_source(source):
     if is_valid_url(source):
-        fp = urlopen(source)
+        fo = urlopen(source)
     else:
-        fp = open(source)
+        fo = open(source)
 
-    with closing(fp) as fp:
-        return json.load(fp)
+    with closing(fo) as fo:
+        return json.load(fo)
+
+
+def read_blockchain_state_file_from_source(source) -> Optional[BlockchainState]:
+    data = read_compressed_file(source, open_function=urlopen)
+    return BlockchainState.from_messagepack(cast(bytes, data))
 
 
 def add_blockchain_state_from_account_root_file(blockchain, source, first_node):
     message = f'Reading account root file from {source}'
     logger.info(message)
-    account_root_file = read_source(source)
+    account_root_file = read_account_root_file_source(source)
     logger.info('DONE: %s', message)
 
     logger.info('Converting')

@@ -61,6 +61,10 @@ run-server:
 dev-initialize-blockchain:
 	poetry run python -m thenewboston_node.manage initialize_blockchain -f https://raw.githubusercontent.com/thenewboston-developers/Account-Backups/master/latest_backup/latest.json
 
+.PHONY: dev-download-latest-blockchain-state
+dev-download-latest-blockchain-state:
+	poetry run python -m thenewboston_node.manage download_latest_blockchain_state http://3.143.205.184:8555/
+
 .PHONY: lint
 lint:
 	poetry run pre-commit run --all-files

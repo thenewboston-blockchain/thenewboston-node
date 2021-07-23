@@ -3,10 +3,13 @@ import gzip
 import logging
 import lzma
 import os
+import re
 import shutil
 import stat
+from functools import partial
+from itertools import chain
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 from thenewboston_node.business_logic import exceptions
 from thenewboston_node.core.logging import timeit_method
@@ -14,17 +17,18 @@ from thenewboston_node.core.utils.atomic_write import atomic_write_append
 
 # TODO(dmu) LOW: Support more / better compression methods
 COMPRESSION_FUNCTIONS = {
-    'gz': lambda data: gzip.compress(data, compresslevel=9),
+    'xz': lzma.compress,
     'bz2': lambda data: bz2.compress(data, compresslevel=9),
-    'xz': lzma.compress
+    'gz': lambda data: gzip.compress(data, compresslevel=9),
 }
 
 DECOMPRESSION_FUNCTIONS = {
-    'gz': gzip.decompress,
-    'bz2': bz2.decompress,
     'xz': lzma.decompress,
+    'bz2': bz2.decompress,
+    'gz': gzip.decompress,
 }
 
+FILE_PATH_RE = re.compile(r'.*\.(?P<compressor>{})$'.format('|'.join(DECOMPRESSION_FUNCTIONS)))
 STAT_WRITE_PERMS_ALL = stat.S_IWGRP | stat.S_IWUSR | stat.S_IWOTH
 
 logger = logging.getLogger(__name__)
@@ -62,6 +66,33 @@ def exist_compressed_file(file_path):
     return False
 
 
+open_read_binary = partial(open, mode='rb')
+
+
+def read_compressed_file(file_path,
+                         compressor=None,
+                         raise_uncompressed_missing=True,
+                         open_function=open_read_binary) -> Optional[bytes]:
+    if compressor is None:
+        match = FILE_PATH_RE.match(file_path)
+        if match:
+            compressor = match.group('compressor')
+    elif compressor:  # we use empty line ('') to denote no compression
+        file_path += '.' + compressor
+
+    try:
+        with open_function(file_path) as fo:
+            data = fo.read()
+    except OSError:
+        if compressor is None and raise_uncompressed_missing:
+            raise
+
+        return None
+
+    decompress_func = DECOMPRESSION_FUNCTIONS.get(compressor) or (lambda x: x)
+    return decompress_func(data)  # type: ignore
+
+
 class FileSystemStorage:
     """
     Compressing / decompressing storage for capacity optimization
@@ -80,19 +111,13 @@ class FileSystemStorage:
         self._persist(file_path, binary_data, 'wb', is_final=is_final)
 
     def load(self, file_path: Union[str, Path]) -> bytes:
-        file_path = self._get_absolute_path(file_path)
-        for decompressor, func in DECOMPRESSION_FUNCTIONS.items():
-            path = str(file_path) + '.' + decompressor
-            try:
-                with open(path, mode='rb') as fo:
-                    data = fo.read()
-            except OSError:
-                continue
+        file_path = str(self._get_absolute_path(file_path))
+        for decompressor in chain(DECOMPRESSION_FUNCTIONS, ('',)):
+            data = read_compressed_file(file_path, decompressor)
+            if data is not None:
+                return data
 
-            return func(data)  # type: ignore
-
-        with open(file_path, mode='rb') as fo:
-            return fo.read()
+        raise AssertionError('We should never get here')
 
     def append(self, file_path: Union[str, Path], binary_data: bytes, is_final=False):
         self._persist(file_path, binary_data, 'ab', is_final=is_final)

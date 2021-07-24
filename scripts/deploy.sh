@@ -43,9 +43,9 @@ echo "Running migrations..."
 docker-compose run --rm node poetry run python -m thenewboston_node.manage migrate
 echo "Initializing blockchain..."
 if [ "$INITIALIZE_FROM_ALPHA" == True ]; then
-  docker-compose run --rm node bash 'poetry run python -m thenewboston_node.manage initialize_blockchain ${ARF_URL} ${ARF_PATH}'
+  docker-compose run --rm node bash -c 'poetry run python -m thenewboston_node.manage initialize_blockchain ${ARF_URL} ${ARF_PATH}'
 else
-  docker-compose run --rm node bash 'poetry run python -m thenewboston_node.manage initialize_blockchain ${BLOCKCHAIN_STATE_PATH}'
+  docker-compose run --rm node bash -c 'poetry run python -m thenewboston_node.manage initialize_blockchain ${BLOCKCHAIN_STATE_PATH}'
 fi
 
 

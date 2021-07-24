@@ -55,7 +55,7 @@ docker logout $DOCKER_REGISTRY_HOST
 counter=0
 until $(curl --output /dev/null --silent --head --fail http://127.0.0.1:8555/api/v1/nodes/self/); do
     counter=$(($counter + 1))
-    if [ ${counter} -ge 12 ];then
+    if [ ${counter} -ge 12 ]; then
       echo 'Unable to start node'
       exit 1
     fi

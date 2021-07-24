@@ -57,7 +57,7 @@ ENV BLOCKCHAIN_STATE_PATH /opt/project/blockchain-state.msgpack
 # TODO(dmu) LOW: Should we move the following line to the top of the file?
 ARG RESET_DOCKER_CACHE=default
 RUN echo ${RESET_DOCKER_CACHE}  # Reset cache here
-RUN THENEWBOSTON_NODE_SECRET_KEY=default poetry run python -m thenewboston_node.manage download_latest_blockchain_state ${BLOCKCHAIN_STATE_NODE_ADDRESS} --target "${BLOCKCHAIN_STATE_PATH}{compressor}"
+RUN THENEWBOSTON_NODE_SECRET_KEY=default poetry run python -m thenewboston_node.manage download_latest_blockchain_state ${BLOCKCHAIN_STATE_NODE_ADDRESS} --target "${BLOCKCHAIN_STATE_PATH}{compressor}" || echo "Unable to get beta blockchain state from ${BLOCKCHAIN_STATE_NODE_ADDRESS}"
 
 FROM nginx:1.19.10-alpine AS reverse-proxy
 

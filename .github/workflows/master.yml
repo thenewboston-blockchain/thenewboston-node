@@ -105,7 +105,7 @@ jobs:
 
       - name: Run deploy
         run: |
-          ssh target "wget https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/scripts/deploy.sh -O /tmp/deploy-node.sh && chmod a+x /tmp/deploy-node.sh && /tmp/deploy-node.sh $GITHUB_ACTOR $GITHUB_PASSWORD True True && rm /tmp/deploy-node.sh"
+          ssh target "wget https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/scripts/deploy.sh -O /tmp/deploy-node.sh && chmod a+x /tmp/deploy-node.sh && /tmp/deploy-node.sh $GITHUB_USERNAME $GITHUB_PASSWORD True True && rm /tmp/deploy-node.sh"
         env:
           GITHUB_USERNAME: $GITHUB_ACTOR
           GITHUB_PASSWORD: ${{ secrets.GITHUB_TOKEN }}

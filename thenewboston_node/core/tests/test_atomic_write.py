@@ -1,3 +1,6 @@
+import os
+import stat
+
 import pytest
 
 from thenewboston_node.core.utils.atomic_write import atomic_write_append
@@ -54,3 +57,27 @@ def test_file_is_not_created_on_error(tmp_path):
         pass
 
     assert not tmp_file.exists()
+
+
+@pytest.mark.parametrize('mode', (0o777, 0o400, 0o644))
+def test_new_file_permissions_are_set(tmp_path, mode):
+    tmp_file = tmp_path / 'testfile'
+
+    with atomic_write_append(tmp_file, 'w', create_perms=mode) as f:
+        f.write('test')
+
+    perms = os.stat(tmp_file).st_mode & 0o777
+    assert perms == stat.S_IMODE(mode)
+
+
+@pytest.mark.parametrize('mode', (0o777, 0o400, 0o644))
+def test_appended_file_permissions_are_persisted(tmp_path, mode):
+    tmp_file = tmp_path / 'testfile'
+
+    tmp_file.write_text('test\n')
+    os.chmod(tmp_file, mode)
+    with atomic_write_append(tmp_file, 'a') as f:
+        f.write('test')
+
+    perms = os.stat(tmp_file).st_mode & 0o777
+    assert perms == stat.S_IMODE(mode)

@@ -5,6 +5,7 @@ from django.core.management import BaseCommand, CommandError
 
 from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
+from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.business_logic.utils.blockchain import generate_blockchain
 
 
@@ -30,4 +31,4 @@ class Command(BaseCommand):
         else:
             blockchain = MemoryBlockchain()
 
-        generate_blockchain(blockchain, size, validate=validate)
+        generate_blockchain(blockchain, size, validate=validate, signing_key=get_node_signing_key())

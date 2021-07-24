@@ -21,6 +21,9 @@ services:
         volume:
           nocopy: true
         read_only: true
+    depends_on:
+    # we need to depend on node to avoid: nginx: [emerg] host not found in upstream "node" in /etc/nginx/conf.d/node.conf
+      - node
 
   node:
     image: docker.pkg.github.com/thenewboston-developers/thenewboston-node/thenewboston-node:latest

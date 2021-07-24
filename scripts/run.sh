@@ -2,10 +2,7 @@
 
 set -e
 
-poetry run python -m thenewboston_node.manage migrate
-
-# TODO(dmu) MEDIUM: We do not really need to collect static, since we are using Whitenoise
+# We need to collect static files to make WhiteNoise work (and we need to do it here)
+# TODO(dmu) LOW: Collect static once, not on every run (we need to have named volume for it)
 poetry run python -m thenewboston_node.manage collectstatic
-
-poetry run python -m thenewboston_node.manage initialize_blockchain ${INITIALIZE_BLOCKCHAIN_ARGS} ${ARF_URL} ${ARF_PATH}
-poetry run daphne -b 0.0.0.0 thenewboston_node.project.asgi:application
+poetry run daphne -b 0.0.0.0:8555 thenewboston_node.project.asgi:application

@@ -1,5 +1,6 @@
 import json
 import tempfile
+from unittest.mock import patch
 
 from django.test import override_settings
 
@@ -20,7 +21,9 @@ def test_make_blockchain_state_from_account_root_file(sample_account_root_file_d
     with tempfile.NamedTemporaryFile('w') as fp:
         json.dump(sample_account_root_file_dict, fp)
         fp.flush()
-        add_blockchain_state_from_account_root_file(blockchain, fp.name, primary_validator)
+        with patch('thenewboston_node.business_logic.utils.blockchain_state.make_self_node') as make_self_node:
+            make_self_node.return_value = primary_validator
+            add_blockchain_state_from_account_root_file(blockchain, fp.name)
 
     blockchain_state = blockchain.get_last_blockchain_state()
     for key, value in sample_account_root_file_dict.items():

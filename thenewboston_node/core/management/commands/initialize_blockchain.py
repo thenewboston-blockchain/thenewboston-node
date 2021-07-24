@@ -6,8 +6,9 @@ from django.core.management import BaseCommand
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.blockchain.file_blockchain import get_blockchain_state_file_path_meta
-from thenewboston_node.business_logic.utils.blockchain_state import add_blockchain_state_from_account_root_file
-from thenewboston_node.business_logic.utils.network import make_self_node
+from thenewboston_node.business_logic.utils.blockchain_state import (
+    add_blockchain_state_from_account_root_file, add_blockchain_state_from_blockchain_state
+)
 from thenewboston_node.core.utils.misc import humanize_snake_case
 
 logger = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ class SourceType(Enum):
 
 SOURCE_TYPE_MAKE_BLOCKCHAIN_STATE_MAP = {
     SourceType.ACCOUNT_ROOT_FILE: add_blockchain_state_from_account_root_file,
-    SourceType.BLOCKCHAIN_STATE: lambda x, y: None,
+    SourceType.BLOCKCHAIN_STATE: add_blockchain_state_from_blockchain_state,
 }
 
 
@@ -35,6 +36,8 @@ def guess_source_type(source):
 
     if result.path.endswith('.json'):
         types.append(SourceType.ACCOUNT_ROOT_FILE)
+    else:
+        types.append(SourceType.BLOCKCHAIN_STATE)
 
     for item in SourceType:
         if item not in types:
@@ -48,16 +51,12 @@ def add_blockchain_state_from_sources(blockchain, sources):
         logger.info('Adding blockchain state from %s', source)
         for source_type in guess_source_type(source):
             logger.info('Trying source type: %s', humanize_snake_case(source_type.name.lower(), False))
-            if source_type == SourceType.ACCOUNT_ROOT_FILE:
-                node = make_self_node()
-                logger.info('Node identifier: %s', node.identifier)
-                try:
-                    add_blockchain_state_from_account_root_file(blockchain, source, node)
-                    return True
-                except Exception:
-                    logger.warning(
-                        '%s does not match %s source type or unavailable', source, source_type, exc_info=True
-                    )
+            add_function = SOURCE_TYPE_MAKE_BLOCKCHAIN_STATE_MAP[source_type]
+            try:
+                add_function(blockchain, source)
+                return True
+            except Exception:
+                logger.warning('%s does not match %s source type or unavailable', source, source_type, exc_info=True)
 
     return False
 

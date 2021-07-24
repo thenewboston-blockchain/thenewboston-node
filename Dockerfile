@@ -9,7 +9,7 @@ ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH .
 ENV IN_DOCKER true
 
-EXPOSE 8000
+EXPOSE 8555
 
 COPY LICENSE .
 
@@ -54,6 +54,7 @@ RUN curl ${ARF_URL} -o ${ARF_PATH}
 
 ENV BLOCKCHAIN_STATE_PATH /opt/project/blockchain-state.msgpack
 
+# TODO(dmu) LOW: Should we move the following line to the top of the file?
 ARG RESET_DOCKER_CACHE=default
 RUN echo ${RESET_DOCKER_CACHE}  # Reset cache here
 RUN THENEWBOSTON_NODE_SECRET_KEY=default poetry run python -m thenewboston_node.manage download_latest_blockchain_state ${BLOCKCHAIN_STATE_NODE_ADDRESS} --target "${BLOCKCHAIN_STATE_PATH}{compressor}"

@@ -9,6 +9,7 @@ from django.conf import settings
 from thenewboston_node.business_logic.models import AccountState, BlockchainState
 from thenewboston_node.business_logic.models.signed_change_request_message.pv_schedule import PrimaryValidatorSchedule
 from thenewboston_node.business_logic.storages.file_system import read_compressed_file
+from thenewboston_node.business_logic.utils.network import make_self_node
 from thenewboston_node.core.utils.misc import is_valid_url
 
 logger = logging.getLogger()
@@ -25,11 +26,18 @@ def read_account_root_file_source(source):
 
 
 def read_blockchain_state_file_from_source(source) -> Optional[BlockchainState]:
-    data = read_compressed_file(source, open_function=urlopen)
+    kwargs = {}
+    if is_valid_url(source):
+        kwargs['open_function'] = urlopen
+
+    data = read_compressed_file(source, **kwargs)
+    if data is None:
+        return None
+
     return BlockchainState.from_messagepack(cast(bytes, data))
 
 
-def add_blockchain_state_from_account_root_file(blockchain, source, first_node):
+def add_blockchain_state_from_account_root_file(blockchain, source):
     message = f'Reading account root file from {source}'
     logger.info(message)
     account_root_file = read_account_root_file_source(source)
@@ -39,19 +47,32 @@ def add_blockchain_state_from_account_root_file(blockchain, source, first_node):
     blockchain_state = BlockchainState.create_from_account_root_file(account_root_file)
     logger.info('DONE: Converting')
 
-    node_identifier = first_node.identifier
-    logger.info('Injecting node %s', node_identifier)
+    node = make_self_node()
+    node_identifier = node.identifier
+    logger.info('Injecting node (identifier: %s)', node_identifier)
     account_state = blockchain_state.get_account_state(node_identifier)
     if account_state is None:
         account_state = AccountState()
         blockchain_state.set_account_state(node_identifier, account_state)
 
-    account_state.node = first_node
+    account_state.node = node
     account_state.primary_validator_schedule = PrimaryValidatorSchedule(
         begin_block_number=0, end_block_number=settings.SCHEDULE_DEFAULT_LENGTH_IN_BLOCKS - 1
     )
-
     logger.info('DONE: Injecting node')
+
+    logger.info('Adding the blockchain state')
+    blockchain.add_blockchain_state(blockchain_state)
+    logger.info('DONE: Adding the blockchain state')
+
+
+def add_blockchain_state_from_blockchain_state(blockchain, source):
+    message = f'Reading blockchain state from {source}'
+    logger.info(message)
+    blockchain_state = read_blockchain_state_file_from_source(source)
+    if blockchain_state is None:
+        raise IOError(f'Could not read blockchain state from {source}')
+    logger.info('DONE: %s', message)
 
     logger.info('Adding the blockchain state')
     blockchain.add_blockchain_state(blockchain_state)

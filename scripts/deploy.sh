@@ -3,9 +3,8 @@
 set -e
 
 DOCKER_REGISTRY_HOST=docker.pkg.github.com
-GITHUB_USERNAME="${GITHUB_USERNAME:-$1}"
-GITHUB_PASSWORD="${GITHUB_PASSWORD:-$2}"
-CLEAR_BLOCKCHAIN="${CLEAR_BLOCKCHAIN:-True}"
+CLEAR_BLOCKCHAIN="${CLEAR_BLOCKCHAIN:-False}"
+INITIALIZE_FROM_ALPHA="${INITIALIZE_FROM_ALPHA:-False}"
 
 docker logout docker.pkg.github.com
 
@@ -28,9 +27,17 @@ docker-compose pull
 
 grep -q -o THENEWBOSTON_NODE_NODE_SIGNING_KEY .env || echo "THENEWBOSTON_NODE_NODE_SIGNING_KEY=$(docker-compose --log-level CRITICAL run --rm node poetry run python -m thenewboston_node.manage generate_signing_key)" >> .env
 
-if [ "$CLEAR_BLOCKCHAIN" == "True" ]; then
+if [ "$CLEAR_BLOCKCHAIN" == True ]; then
   docker-compose run -rm node poetry run python -m thenewboston_node.manage clear_blockchain
 fi
+
+docker-compose run -rm node poetry run python -m thenewboston_node.manage migrate
+if [ "$INITIALIZE_FROM_ALPHA" == True ]; then
+  docker-compose run -rm node bash 'poetry run python -m thenewboston_node.manage initialize_blockchain ${ARF_URL} ${ARF_PATH}'
+else
+  docker-compose run -rm node bash 'poetry run python -m thenewboston_node.manage initialize_blockchain ${BLOCKCHAIN_STATE_PATH}'
+fi
+
 
 docker-compose up -d --force-recreate
 docker logout $DOCKER_REGISTRY_HOST

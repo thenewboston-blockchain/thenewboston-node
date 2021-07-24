@@ -53,6 +53,9 @@ ENV ARF_PATH /opt/project/alpha-arf-latest.json
 RUN curl ${ARF_URL} -o ${ARF_PATH}
 
 ENV BLOCKCHAIN_STATE_PATH /opt/project/blockchain-state.msgpack
+
+ARG RESET_DOCKER_CACHE=default
+RUN echo ${RESET_DOCKER_CACHE}  # Reset cache here
 RUN THENEWBOSTON_NODE_SECRET_KEY=default poetry run python -m thenewboston_node.manage download_latest_blockchain_state ${BLOCKCHAIN_STATE_NODE_ADDRESS} --target "${BLOCKCHAIN_STATE_PATH}{compressor}"
 
 FROM nginx:1.19.10-alpine AS reverse-proxy

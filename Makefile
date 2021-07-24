@@ -3,7 +3,7 @@ build: build-node build-reverse-proxy ;
 
 .PHONY: build-node
 build-node:
-	docker build . --target=node -t thenewboston-node:current
+	docker build . --build-arg RESET_DOCKER_CACHE="$$(date)" --target=node -t thenewboston-node:current
 
 .PHONY: build-reverse-proxy
 build-reverse-proxy:

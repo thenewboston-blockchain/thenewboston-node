@@ -21,7 +21,7 @@ def test_make_blockchain_state_from_account_root_file(sample_account_root_file_d
     with tempfile.NamedTemporaryFile('w') as fp:
         json.dump(sample_account_root_file_dict, fp)
         fp.flush()
-        with patch('thenewboston_node.business_logic.utils.blockchain_state.make_self_node') as make_self_node:
+        with patch('thenewboston_node.business_logic.utils.blockchain_state.make_own_node') as make_self_node:
             make_self_node.return_value = primary_validator
             add_blockchain_state_from_account_root_file(blockchain, fp.name)
 

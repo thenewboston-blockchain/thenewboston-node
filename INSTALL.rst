@@ -138,8 +138,7 @@ Manual deployment
 
 #. Run ``deploy.sh``::
 
-    # TODO(dmu) CRITICAL: Once start node procedure is fully implemented make CLEAR_BLOCKCHAIN=False
-    CLEAR_BLOCKCHAIN=True bash <(wget -qO- https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/scripts/deploy.sh)
+    bash <(wget -qO- https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/scripts/deploy.sh)
 
 Configure continuous deployment
 ===============================

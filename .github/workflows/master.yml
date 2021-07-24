@@ -106,7 +106,7 @@ jobs:
       - name: Run deploy
         # TODO(dmu) LOW: Run with `bash <(wget -qO- https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/scripts/deploy.sh)` ?
         run: |
-          ssh target "wget https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/scripts/deploy.sh -O deploy.sh && chmod a+x deploy.sh && ./deploy.sh $GITHUB_ACTOR $GITHUB_PASSWORD"
+          ssh target 'GITHUB_ACTOR="$GITHUB_ACTOR" GITHUB_PASSWORD="$GITHUB_PASSWORD" CLEAR_BLOCKCHAIN=True INITIALIZE_FROM_ALPHA=True bash <(wget -qO- https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/scripts/deploy.sh)'
         env:
           GITHUB_USERNAME: $GITHUB_ACTOR
           GITHUB_PASSWORD: ${{ secrets.GITHUB_TOKEN }}

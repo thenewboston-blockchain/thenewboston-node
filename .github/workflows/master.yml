@@ -68,6 +68,8 @@ jobs:
           target: node
           tags: docker.pkg.github.com/thenewboston-developers/thenewboston-node/thenewboston-node:latest
           push: true
+          # TODO(dmu) LOW: Make a better way of forcing the download of latest blockchain state
+          no-cache: true
       - name: Push reverse-proxy image to Github Packages
         uses: docker/build-push-action@v2
         with:

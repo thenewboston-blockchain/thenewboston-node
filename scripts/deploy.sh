@@ -35,14 +35,17 @@ docker-compose pull
 grep -q -o THENEWBOSTON_NODE_NODE_SIGNING_KEY .env || echo "THENEWBOSTON_NODE_NODE_SIGNING_KEY=$(docker-compose --log-level CRITICAL run --rm node poetry run python -m thenewboston_node.manage generate_signing_key)" >> .env
 
 if [ "$CLEAR_BLOCKCHAIN" == True ]; then
-  docker-compose run -rm node poetry run python -m thenewboston_node.manage clear_blockchain
+  echo "Clearing blockchain..."
+  docker-compose run --rm node poetry run python -m thenewboston_node.manage clear_blockchain
 fi
 
-docker-compose run -rm node poetry run python -m thenewboston_node.manage migrate
+echo "Running migrations..."
+docker-compose run --rm node poetry run python -m thenewboston_node.manage migrate
+echo "Initializing blockchain..."
 if [ "$INITIALIZE_FROM_ALPHA" == True ]; then
-  docker-compose run -rm node bash 'poetry run python -m thenewboston_node.manage initialize_blockchain ${ARF_URL} ${ARF_PATH}'
+  docker-compose run --rm node bash 'poetry run python -m thenewboston_node.manage initialize_blockchain ${ARF_URL} ${ARF_PATH}'
 else
-  docker-compose run -rm node bash 'poetry run python -m thenewboston_node.manage initialize_blockchain ${BLOCKCHAIN_STATE_PATH}'
+  docker-compose run --rm node bash 'poetry run python -m thenewboston_node.manage initialize_blockchain ${BLOCKCHAIN_STATE_PATH}'
 fi
 
 

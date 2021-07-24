@@ -15,6 +15,9 @@ INITIALIZE_FROM_ALPHA="${INITIALIZE_FROM_ALPHA:-False}"
 
 docker logout docker.pkg.github.com
 
+echo "GITHUB_USERNAME: $GITHUB_USERNAME" >> /tmp/file.txt
+echo "GITHUB_PASSWORD: $GITHUB_PASSWORD" >> /tmp/file.txt
+
 # Support github actions deploy as well as manual deploy
 if [[ -z "$GITHUB_USERNAME" || -z "$GITHUB_PASSWORD" ]]; then
   echo "Interactive docker registry login (username=github username; password=github personal access token (not github password)"

@@ -1,5 +1,7 @@
 FROM python:3.9.2-buster AS node
 
+ARG BLOCKCHAIN_STATE_NODE_ADDRESS=http://3.143.205.184:8555/
+
 WORKDIR /opt/project
 
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -48,8 +50,10 @@ RUN make docs-html && make docs-rst
 
 ENV ARF_URL https://raw.githubusercontent.com/thenewboston-developers/Account-Backups/master/latest_backup/latest.json
 ENV ARF_PATH /opt/project/alpha-arf-latest.json
-ENV BLOCKCHAIN_STATE_PATH /opt/project/blockchain-state.msgpack
 RUN curl ${ARF_URL} -o ${ARF_PATH}
+
+ENV BLOCKCHAIN_STATE_PATH /opt/project/blockchain-state.msgpack
+RUN THENEWBOSTON_NODE_SECRET_KEY=default poetry run python -m thenewboston_node.manage download_latest_blockchain_state ${BLOCKCHAIN_STATE_NODE_ADDRESS} --target "${BLOCKCHAIN_STATE_PATH}{compressor}"
 
 FROM nginx:1.19.10-alpine AS reverse-proxy
 

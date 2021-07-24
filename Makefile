@@ -1,3 +1,6 @@
+.PHONY: build
+build: build-node build-reverse-proxy ;
+
 .PHONY: build-node
 build-node:
 	docker build . --target=node -t thenewboston-node:current

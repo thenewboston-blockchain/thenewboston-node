@@ -3,7 +3,14 @@
 set -e
 
 DOCKER_REGISTRY_HOST=docker.pkg.github.com
+
+# TODO(dmu) MEDIUM: Figure out a way to pass environment variables from github actions to
+#                   this script instead of using positional arguments
+GITHUB_USERNAME="${GITHUB_USERNAME:-$1}"
+GITHUB_PASSWORD="${GITHUB_PASSWORD:-$2}"
+CLEAR_BLOCKCHAIN="${CLEAR_BLOCKCHAIN:-$3}"
 CLEAR_BLOCKCHAIN="${CLEAR_BLOCKCHAIN:-False}"
+INITIALIZE_FROM_ALPHA="${INITIALIZE_FROM_ALPHA:-$4}"
 INITIALIZE_FROM_ALPHA="${INITIALIZE_FROM_ALPHA:-False}"
 
 docker logout docker.pkg.github.com

@@ -146,7 +146,7 @@ class BlocksMixin(BaseMixin):
         assert block_number == to_block_number_exclusive + 1
 
     @timeit(is_method=True, verbose_args=True)
-    def yield_blocks_slice(self, from_block_number: int, to_block_number: Optional[int]):
+    def yield_blocks_slice(self, from_block_number: int, to_block_number: int):
         # TODO(dmu) HIGH: Produce a better implementation of this method
         yield from always_reversible(
             self.yield_blocks_slice_reversed(
@@ -173,3 +173,6 @@ class BlocksMixin(BaseMixin):
     def has_blocks(self):
         # Override this method if a particular blockchain implementation can provide a high performance
         return self.get_first_block() is not None
+
+    def clear_blocks(self, block_number_range=None):
+        raise NotImplementedError('Must be implemented in a child class')

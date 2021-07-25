@@ -58,11 +58,19 @@ class BlockchainStateMixin(BaseMixin):
         except StopIteration:
             raise InvalidBlockchainError('Blockchain must contain a blockchain state')
 
+    def get_last_blockchain_state_last_block_number(self) -> int:
+        # Override this method if a particular blockchain implementation can provide a high performance
+        return self.get_last_blockchain_state().last_block_number
+
     def has_blockchain_states(self):
         # Override this method if a particular blockchain implementation can provide a high performance
         return any(self.yield_blockchain_states())
 
     def get_blockchain_state_by_block_number(self, block_number: int, inclusive: bool = False) -> BlockchainState:
+        """
+        Return first known blockchain state that is made before ``block_number`` or includes ``block_number`` if
+        ``inclusive=True``
+        """
         if block_number < -1:
             raise ValueError('block_number must be greater or equal to -1')
 
@@ -146,3 +154,6 @@ class BlockchainStateMixin(BaseMixin):
             blockchain_state.next_block_identifier = block.hash
 
         return blockchain_state
+
+    def clear_blockchain_states(self, block_number_range=None):
+        raise NotImplementedError('Must be implemented in a child class')

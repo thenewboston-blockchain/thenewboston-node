@@ -4,13 +4,14 @@ from django.conf import settings
 
 import stun
 
+from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.models import Node
 from thenewboston_node.business_logic.node import derive_public_key, get_node_signing_key
 
 logger = logging.getLogger(__name__)
 
 
-def get_network_addresses():
+def get_own_network_addresses():
     network_addresses = settings.NODE_NETWORK_ADDRESSES
     if settings.APPEND_AUTO_DETECTED_NETWORK_ADDRESS:
         try:
@@ -27,12 +28,25 @@ def get_network_addresses():
     return network_addresses
 
 
-def make_self_node():
+def make_own_node():
     signing_key = get_node_signing_key()
     identifier = derive_public_key(signing_key)
     return Node(
         identifier=identifier,
-        network_addresses=get_network_addresses(),
+        network_addresses=get_own_network_addresses(),
         fee_amount=settings.NODE_FEE_AMOUNT,
         fee_account=settings.NODE_FEE_ACCOUNT,
     )
+
+
+def get_ranked_nodes(blockchain: BlockchainBase):
+    # TODO(dmu) HIGH: Implement a more sophisticated ranking algorithm
+    nodes = []
+    primary_validator = blockchain.get_primary_validator()
+    assert primary_validator is not None
+    for node in blockchain.yield_nodes():
+        if node.identifier != primary_validator.identifier:
+            nodes.append(node)
+
+    nodes.append(primary_validator)
+    return nodes

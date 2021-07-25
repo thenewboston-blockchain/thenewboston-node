@@ -9,7 +9,7 @@ from django.conf import settings
 from thenewboston_node.business_logic.models import AccountState, BlockchainState
 from thenewboston_node.business_logic.models.signed_change_request_message.pv_schedule import PrimaryValidatorSchedule
 from thenewboston_node.business_logic.storages.file_system import read_compressed_file
-from thenewboston_node.business_logic.utils.network import make_self_node
+from thenewboston_node.business_logic.utils.network import make_own_node
 from thenewboston_node.core.utils.misc import is_valid_url
 
 logger = logging.getLogger()
@@ -47,7 +47,7 @@ def add_blockchain_state_from_account_root_file(blockchain, source):
     blockchain_state = BlockchainState.create_from_account_root_file(account_root_file)
     logger.info('DONE: Converting')
 
-    node = make_self_node()
+    node = make_own_node()
     node_identifier = node.identifier
     logger.info('Injecting node (identifier: %s)', node_identifier)
     account_state = blockchain_state.get_account_state(node_identifier)
@@ -77,3 +77,10 @@ def add_blockchain_state_from_blockchain_state(blockchain, source):
     logger.info('Adding the blockchain state')
     blockchain.add_blockchain_state(blockchain_state)
     logger.info('DONE: Adding the blockchain state')
+
+
+def sync_blockchain_state():
+    # Get latest blockchain state from local blockchain
+    # Get latest blockchain state from node
+    # If blockchain state from node is more recent then download it and add to the blockchain
+    raise NotImplementedError

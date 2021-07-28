@@ -18,17 +18,19 @@ class Command(BaseCommand):
             '--path', help='Blockchain base directory (if not specified then memory blockchain is used)'
         )
         parser.add_argument('--do-not-validate', action='store_true')
+        parser.add_argument('--force', '-f', action='store_true', help='Replace blockchain even if it exists')
 
-    def handle(self, size, path=None, do_not_validate=False, *args, **options):
-        validate = not do_not_validate
+    def handle(self, size, path, do_not_validate, force, *args, **options):
         if path:
-            os.makedirs(path, exist_ok=True)
-
-            if os.listdir(path):
-                raise CommandError(f'Path {path} contains files')
-
-            blockchain = FileBlockchain(base_directory=os.path.abspath(path))
+            base_directory = os.path.abspath(path)
+            blockchain = FileBlockchain(base_directory=base_directory)
+            if not blockchain.is_empty():
+                if force:
+                    blockchain.clear()
+                else:
+                    raise CommandError(f'There is non-empty blockchain at {base_directory}')
         else:
             blockchain = MemoryBlockchain()
 
+        validate = not do_not_validate
         generate_blockchain(blockchain, size, validate=validate, signing_key=get_node_signing_key())

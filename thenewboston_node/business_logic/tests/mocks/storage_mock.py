@@ -35,3 +35,6 @@ class StorageMock:
 
     def is_finalized(self, file_path):
         return file_path in self.finalized
+
+    def get_optimized_path(self, file_path):
+        return '/0/0/0/0/' + file_path

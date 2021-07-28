@@ -1,6 +1,7 @@
 from thenewboston_node.business_logic.blockchain.file_blockchain import (
-    get_block_chunk_filename_meta, get_blockchain_state_filename_meta
+    FileBlockchain, get_block_chunk_filename_meta, get_blockchain_state_filename_meta
 )
+from thenewboston_node.business_logic.tests.factories import add_blocks_to_blockchain
 
 
 def test_get_block_chunk_filename_meta():
@@ -22,3 +23,41 @@ def test_get_blockchain_filename_meta():
     assert get_blockchain_state_filename_meta('000aaaa-blockchain-state.msgpack') is None
     assert get_blockchain_state_filename_meta('0000012-aaa.msgpack') is None
     assert get_blockchain_state_filename_meta('0000012-blockchain-state.msgpack.zip') is None
+
+
+def test_file_blockchain_blocks_contain_metadata(blockchain_directory, treasury_account_key_pair):
+    blockchain = FileBlockchain(base_directory=blockchain_directory, block_chunk_size=4)
+    add_blocks_to_blockchain(blockchain, 10, treasury_account_key_pair.private, add_blockchain_genesis_state=True)
+    blocks = blockchain.yield_blocks()
+    expected_meta = {
+        'chunk_start_block': 0,
+        'chunk_end_block': 3,
+        'chunk_file_path': '/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000003-block-chunk.msgpack'
+    }
+    for _ in range(4):
+        block = next(blocks)
+        block_meta = block.meta
+        del block_meta['chunk_compression']
+        assert block_meta == expected_meta
+
+    expected_meta = {
+        'chunk_start_block': 4,
+        'chunk_end_block': 7,
+        'chunk_file_path': '/0/0/0/0/0/0/0/0/00000000000000000004-00000000000000000007-block-chunk.msgpack'
+    }
+    for _ in range(4):
+        block = next(blocks)
+        block_meta = block.meta
+        del block_meta['chunk_compression']
+        assert block_meta == expected_meta
+
+    expected_meta = {
+        'chunk_start_block': 8,
+        'chunk_end_block': 9,
+        'chunk_file_path': '/0/0/0/0/0/0/0/0/00000000000000000008-00000000000000000009-block-chunk.msgpack'
+    }
+    for _ in range(2):
+        block = next(blocks)
+        block_meta = block.meta
+        del block_meta['chunk_compression']
+        assert block_meta == expected_meta

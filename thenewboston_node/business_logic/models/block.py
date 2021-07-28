@@ -1,7 +1,7 @@
 import logging
 import warnings
 from dataclasses import dataclass, field
-from typing import Optional, Type, TypeVar
+from typing import Any, Optional, Type, TypeVar
 
 from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
 from thenewboston_node.business_logic.network.base import NetworkBase
@@ -16,6 +16,7 @@ from thenewboston_node.core.utils.types import hexstr
 from .base import BaseDataclass
 from .block_message import BlockMessage
 from .mixins.compactable import MessagpackCompactableMixin
+from .mixins.metadata import MetadataMixin
 from .mixins.signable import SignableMixin
 from .signed_change_request import (  # noqa: I101
     SIGNED_CHANGE_REQUEST_TYPE_MAP, CoinTransferSignedChangeRequest, SignedChangeRequest
@@ -29,7 +30,7 @@ logger = logging.getLogger(__name__)
 @revert_docstring
 @dataclass
 @cover_docstring
-class Block(SignableMixin, MessagpackCompactableMixin, BaseDataclass):
+class Block(SignableMixin, MessagpackCompactableMixin, MetadataMixin, BaseDataclass):
     """
     Blocks represent a description of change to the network.
     """
@@ -41,6 +42,9 @@ class Block(SignableMixin, MessagpackCompactableMixin, BaseDataclass):
             'is_serialized_optional': False,
         }
     )
+    # We have to define `meta` here because otherwise we are getting
+    # "non-default argument 'signer' follows default argument" error
+    meta: Optional[dict[str, Any]] = None
 
     @classmethod
     def deserialize_from_dict(cls, dict_, complain_excessive_keys=True, exclude=()):

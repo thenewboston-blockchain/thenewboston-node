@@ -17,7 +17,9 @@ DEFAULT_ACCOUNT = 'd5356888dc9303e44ce52b1e06c3165a7759b9df1e6a6dfbd33ee1c3df1ab
 # TODO(dmu) HIGH: Replace these factories with `baker`-based factories
 
 
-def add_blocks_to_blockchain(blockchain, block_count, treasury_account_private_key):
+def add_blocks_to_blockchain(
+    blockchain, block_count, treasury_account_private_key, add_blockchain_genesis_state=False
+):
     treasury_account_key_pair = KeyPair(
         public=derive_public_key(treasury_account_private_key), private=treasury_account_private_key
     )
@@ -25,7 +27,7 @@ def add_blocks_to_blockchain(blockchain, block_count, treasury_account_private_k
         blockchain,
         block_count,
         get_node_signing_key(),
-        add_blockchain_genesis_state=False,
+        add_blockchain_genesis_state=add_blockchain_genesis_state,
         validate=False,
         treasury_account_key_pair=treasury_account_key_pair
     )

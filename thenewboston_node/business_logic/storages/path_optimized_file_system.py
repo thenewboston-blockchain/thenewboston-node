@@ -31,19 +31,19 @@ class PathOptimizedFileSystemStorage(FileSystemStorage):
         self.max_depth = max_depth
 
     def save(self, file_path, binary_data: bytes, is_final=False):
-        return super().save(self._get_optimized_path(file_path), binary_data, is_final=is_final)
+        return super().save(self.get_optimized_path(file_path), binary_data, is_final=is_final)
 
     def load(self, file_path) -> bytes:
-        return super().load(self._get_optimized_path(file_path))
+        return super().load(self.get_optimized_path(file_path))
 
     def append(self, file_path, binary_data: bytes, is_final=False):
-        return super().append(self._get_optimized_path(file_path), binary_data, is_final=is_final)
+        return super().append(self.get_optimized_path(file_path), binary_data, is_final=is_final)
 
     def finalize(self, file_path):
-        return super().finalize(self._get_optimized_path(file_path))
+        return super().finalize(self.get_optimized_path(file_path))
 
     def is_finalized(self, file_path):
-        return super().is_finalized(self._get_optimized_path(file_path))
+        return super().is_finalized(self.get_optimized_path(file_path))
 
     def list_directory(self, prefix=None, sort_direction=1):
         if sort_direction not in (1, -1, None):
@@ -57,8 +57,8 @@ class PathOptimizedFileSystemStorage(FileSystemStorage):
             yield from sorted(generator, reverse=sort_direction == -1)
 
     def move(self, source, destination):
-        optimized_destination = self._get_optimized_path(destination)
-        super().move(self._get_optimized_path(source), optimized_destination)
+        optimized_destination = self.get_optimized_path(destination)
+        super().move(self.get_optimized_path(source), optimized_destination)
 
     def _list_directory_generator(self, directory_path):
         directory_path = self._get_absolute_path(directory_path)
@@ -74,12 +74,12 @@ class PathOptimizedFileSystemStorage(FileSystemStorage):
                 file_path = os.path.join(dir_path, filename)
 
                 path = os.path.join(directory_path, filename)
-                expected_optimized_path = self._get_optimized_path(path)
+                expected_optimized_path = self.get_optimized_path(path)
                 if file_path != expected_optimized_path:
                     logger.warning('Expected %s optimized path, but got %s', expected_optimized_path, file_path)
                     continue
 
                 yield os.path.relpath(path, self.base_path)
 
-    def _get_optimized_path(self, file_path):
+    def get_optimized_path(self, file_path):
         return make_optimized_file_path(file_path, self.max_depth)

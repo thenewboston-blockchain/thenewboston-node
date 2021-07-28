@@ -2,7 +2,7 @@ import json
 import textwrap
 import typing
 from datetime import date, datetime
-from inspect import getdoc
+from inspect import getdoc, isclass
 
 import class_doc
 
@@ -67,9 +67,15 @@ class DocumentableMixin(BaseMixin):
                         known_models = item_type.get_nested_models(known_models, include_self=True)
                 elif origin and issubclass(origin, dict):
                     item_key_type, item_value_type = typing.get_args(field_type)
-                    if issubclass(item_key_type, DocumentableMixin) and item_key_type not in known_models:
+                    if (
+                        isclass(item_key_type) and issubclass(item_key_type, DocumentableMixin) and
+                        item_key_type not in known_models
+                    ):
                         known_models = item_key_type.get_nested_models(known_models, include_self=True)
-                    if issubclass(item_value_type, DocumentableMixin) and item_value_type not in known_models:
+                    if (
+                        isclass(item_value_type) and issubclass(item_value_type, DocumentableMixin) and
+                        item_value_type not in known_models
+                    ):
                         known_models = item_value_type.get_nested_models(known_models, include_self=True)
 
         return known_models

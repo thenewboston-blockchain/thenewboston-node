@@ -6,7 +6,7 @@ from thenewboston_node.business_logic.tests import baker_factories, factories
 
 
 def test_can_load_block_from_compacted_dict():
-    block = baker_factories.make_coin_transfer_block()
+    block = baker_factories.make_coin_transfer_block(meta=None)
 
     compacted = block.to_compact_dict()
     loaded_block = Block.from_compact_dict(compacted)

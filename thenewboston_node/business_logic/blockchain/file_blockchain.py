@@ -268,7 +268,7 @@ class FileBlockchain(BlockchainBase):
             yield from self._yield_blocks_from_file_cached(file_path, direction=1, start=max(meta.start, block_number))
 
     def get_block_by_number(self, block_number: int) -> Optional[Block]:
-        assert self.blocks_cache
+        assert self.blocks_cache is not None
         block = self.blocks_cache.get(block_number)
         if block is not None:
             return block
@@ -325,6 +325,8 @@ class FileBlockchain(BlockchainBase):
     def _yield_blocks_from_file(self, file_path, direction, start=None):
         assert direction in (1, -1)
         storage = self.block_storage
+        chunk_file_path = '/' + storage.get_optimized_path(file_path).lstrip('/')
+        meta = get_block_chunk_file_path_meta(file_path)
 
         unpacker = msgpack.Unpacker()
         unpacker.feed(storage.load(file_path))
@@ -341,7 +343,16 @@ class FileBlockchain(BlockchainBase):
                 elif direction == -1 and block_number > start:
                     continue
 
-            self.blocks_cache[block_number] = block
+            assert block.meta is None
+            block.meta = {
+                'chunk_start_block': meta.start,
+                'chunk_end_block': meta.end,
+                'chunk_compression': meta.compression,
+                'chunk_file_path': chunk_file_path
+            }
+
+            # TODO(dmu) CRITICAL: Enable caching after changing the way we put blocks in chunks
+            # self.blocks_cache[block_number] = block
             yield block
 
     def _yield_blocks_from_cache(self, start_block_number, end_block_number, direction):

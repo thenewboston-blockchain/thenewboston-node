@@ -21,5 +21,5 @@ def atomic_write_append(file_path, mode, create_perms=0o644, **kwargs):
             st_mode = os.stat(file_path).st_mode
         else:
             st_mode = stat.S_IMODE(create_perms)
-        os.fchmod(fo.fileno(), st_mode)
+        os.chmod(fo.name, st_mode)
         yield fo

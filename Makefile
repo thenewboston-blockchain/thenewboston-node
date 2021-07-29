@@ -91,5 +91,6 @@ docs-html: docs
 	THENEWBOSTON_NODE_SECRET_KEY=default poetry run python -m thenewboston_node.manage generate_documentation | poetry run rst2html.py > docs/thenewboston-blockchain-format.html
 
 .PHONY: docs-html-test
+docs-html-test: SHELL:=/bin/bash
 docs-html-test:
-	THENEWBOSTON_NODE_SECRET_KEY=default poetry run python -m thenewboston_node.manage generate_documentation | poetry run rst2html.py --strict > /dev/null
+	set -o pipefail && THENEWBOSTON_NODE_SECRET_KEY=default poetry run python -m thenewboston_node.manage generate_documentation | poetry run rst2html.py --strict > /dev/null

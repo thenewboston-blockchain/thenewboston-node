@@ -19,7 +19,8 @@ TYPE_NAME_MAP = {
     dict: 'object',
     list: 'array',
     tuple: 'array',
-    datetime: 'datetime'
+    datetime: 'datetime',
+    typing.Any: 'any type',
 }
 
 
@@ -33,8 +34,8 @@ def extract_attribute_docs(model):
 
 
 def normalize_type_representation(type_, jsonify=True, targetized_types=(hexstr, datetime)):
-    type_name = TYPE_NAME_MAP.get(type_, type_.__name__) if jsonify else type_.__name__
-    if issubclass(type_, targetized_types + (DocumentableMixin,)):
+    type_name = (TYPE_NAME_MAP.get(type_) or type_.__name__) if jsonify else type_.__name__
+    if isclass(type_) and issubclass(type_, targetized_types + (DocumentableMixin,)):
         type_name = f'`{type_name}`_'
 
     return type_name

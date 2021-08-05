@@ -168,11 +168,11 @@ class BlockMessage(MessageMixin, BaseDataclass):
                     raise ValidationError('Unexpected initial account root file found')
 
                 validate_exact_value(
-                    'Blockchain state last block number', blockchain_state.last_block_number, prev_block_number
+                    'Blockchain state last block number', blockchain_state.message.last_block_number, prev_block_number
                 )
 
-                assert blockchain_state.last_block_timestamp
-                min_timestamp = blockchain_state.last_block_timestamp
+                assert blockchain_state.message.last_block_timestamp
+                min_timestamp = blockchain_state.message.last_block_timestamp
             else:
                 min_timestamp = prev_block.message.timestamp
 

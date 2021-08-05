@@ -26,9 +26,9 @@ def blockchain_genesis_state_dict(blockchain_genesis_state: BlockchainState) -> 
 
 
 @pytest.fixture
-def blockchain_state_10(treasury_initial_balance, treasury_account, user_account):
+def blockchain_state_10(treasury_initial_balance, treasury_account, user_account, node_identifier):
     user_balance = 1000
-    return models.BlockchainState(
+    message = models.BlockchainStateMessage(
         last_block_number=10,
         account_states={
             treasury_account:
@@ -37,17 +37,19 @@ def blockchain_state_10(treasury_initial_balance, treasury_account, user_account
                 AccountState(balance=user_balance, balance_lock=user_account),
         },
     )
+    return models.BlockchainState(message=message, signer=node_identifier)
 
 
 @pytest.fixture
-def blockchain_state_20(treasury_initial_balance, treasury_account, user_account):
+def blockchain_state_20(treasury_initial_balance, treasury_account, user_account, node_identifier):
     user_balance = 2000
-    return models.BlockchainState(
+    message = models.BlockchainStateMessage(
         last_block_number=20,
         account_states={
             treasury_account:
-                AccountState(balance=treasury_initial_balance - user_balance, balance_lock=treasury_account),
+                models.AccountState(balance=treasury_initial_balance - user_balance, balance_lock=treasury_account),
             user_account:
-                AccountState(balance=user_balance, balance_lock=user_account),
+                models.AccountState(balance=user_balance, balance_lock=user_account),
         },
     )
+    return models.BlockchainState(message=message, signer=node_identifier)

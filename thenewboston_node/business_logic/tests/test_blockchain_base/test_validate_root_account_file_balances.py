@@ -14,8 +14,10 @@ USER_ACCOUNT_2 = '3' * 64
 def blockchain_genesis_state():
     # TODO(dmu) HIGH: Remove fixtures from test_* files.
     #                 This one clashes with general blockchain_genesis_state() fixture
-    return factories.InitialBlockchainStateFactory(
-        account_states={USER_ACCOUNT_1: factories.AccountStateFactory(balance=100, balance_lock=USER_ACCOUNT_1)},
+    return factories.BlockchainStateFactory(
+        message=factories.InitialBlockchainStateMessageFactory(
+            account_states={USER_ACCOUNT_1: factories.AccountStateFactory(balance=100, balance_lock=USER_ACCOUNT_1)}
+        ),
     )
 
 
@@ -46,7 +48,9 @@ def block_0():
 
 def test_validate_number_of_accounts_mismatch(blockchain_base, blockchain_genesis_state, block_0):
     arf_0 = factories.BlockchainStateFactory(
-        account_states={USER_ACCOUNT_1: factories.AccountStateFactory(balance=89, balance_lock=MESSAGE_HASH)}
+        message=factories.BlockchainStateMessageFactory(
+            account_states={USER_ACCOUNT_1: factories.AccountStateFactory(balance=89, balance_lock=MESSAGE_HASH)}
+        )
     )
     blockchain_state_patch = patch_blockchain_states(blockchain_base, [blockchain_genesis_state, arf_0])
     block_patch = patch_blocks(blockchain_base, [block_0])
@@ -58,10 +62,12 @@ def test_validate_number_of_accounts_mismatch(blockchain_base, blockchain_genesi
 def test_validate_non_existent_account(blockchain_base, blockchain_genesis_state, block_0):
     non_existent_account = 'f' * 64
     state_0 = factories.BlockchainStateFactory(
-        account_states={
-            USER_ACCOUNT_1: factories.AccountStateFactory(balance=89, balance_lock=MESSAGE_HASH),
-            non_existent_account: factories.AccountStateFactory(balance=11, balance_lock=non_existent_account),
-        }
+        message=factories.BlockchainStateMessageFactory(
+            account_states={
+                USER_ACCOUNT_1: factories.AccountStateFactory(balance=89, balance_lock=MESSAGE_HASH),
+                non_existent_account: factories.AccountStateFactory(balance=11, balance_lock=non_existent_account),
+            }
+        )
     )
     blockchain_state_patch = patch_blockchain_states(blockchain_base, [blockchain_genesis_state, state_0])
     block_patch = patch_blocks(blockchain_base, [block_0])
@@ -73,10 +79,12 @@ def test_validate_non_existent_account(blockchain_base, blockchain_genesis_state
 def test_validate_balance_value(blockchain_base, blockchain_genesis_state, block_0):
     wrong_balance = 0
     state_0 = factories.BlockchainStateFactory(
-        account_states={
-            USER_ACCOUNT_1: factories.AccountStateFactory(balance=wrong_balance, balance_lock=MESSAGE_HASH),
-            USER_ACCOUNT_2: factories.AccountStateFactory(balance=11, balance_lock=USER_ACCOUNT_2),
-        }
+        message=factories.BlockchainStateMessageFactory(
+            account_states={
+                USER_ACCOUNT_1: factories.AccountStateFactory(balance=wrong_balance, balance_lock=MESSAGE_HASH),
+                USER_ACCOUNT_2: factories.AccountStateFactory(balance=11, balance_lock=USER_ACCOUNT_2),
+            }
+        )
     )
     blockchain_state_patch = patch_blockchain_states(blockchain_base, [blockchain_genesis_state, state_0])
     block_patch = patch_blocks(blockchain_base, [block_0])
@@ -92,10 +100,12 @@ def test_validate_balance_value(blockchain_base, blockchain_genesis_state, block
 def test_validate_balance_lock(blockchain_base, blockchain_genesis_state, block_0):
     wrong_lock = 'e' * 64
     state_0 = factories.BlockchainStateFactory(
-        account_states={
-            USER_ACCOUNT_1: factories.AccountStateFactory(balance=89, balance_lock=wrong_lock),
-            USER_ACCOUNT_2: factories.AccountStateFactory(balance=11, balance_lock=USER_ACCOUNT_2),
-        }
+        message=factories.BlockchainStateMessageFactory(
+            account_states={
+                USER_ACCOUNT_1: factories.AccountStateFactory(balance=89, balance_lock=wrong_lock),
+                USER_ACCOUNT_2: factories.AccountStateFactory(balance=11, balance_lock=USER_ACCOUNT_2),
+            }
+        )
     )
     blockchain_state_patch = patch_blockchain_states(blockchain_base, [blockchain_genesis_state, state_0])
     block_patch = patch_blocks(blockchain_base, [block_0])

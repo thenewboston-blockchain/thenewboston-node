@@ -54,7 +54,7 @@ def test_yield_known_accounts(file_blockchain: FileBlockchain, treasury_account_
     assert treasury_account_balance is not None
     assert treasury_account_balance > 100000000
     add_blocks_to_blockchain(blockchain, 5, treasury_account_key_pair.private)
-    known_accounts = set(blockchain.get_first_blockchain_state().account_states.keys())
+    known_accounts = set(blockchain.get_first_blockchain_state().message.account_states.keys())
     for block in blockchain.yield_blocks():
         known_accounts.update(account for account, _ in block.yield_account_states())
 

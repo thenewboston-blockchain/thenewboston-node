@@ -1,15 +1,16 @@
 from datetime import datetime
 
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
-from thenewboston_node.business_logic.models import CoinTransferSignedChangeRequest
+from thenewboston_node.business_logic.models import BlockchainStateMessage, CoinTransferSignedChangeRequest, \
+    PrimaryValidatorSchedule
 from thenewboston_node.business_logic.models.account_state import AccountState
 from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
-from thenewboston_node.business_logic.models.signed_change_request_message.pv_schedule import PrimaryValidatorSchedule
 from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.core.utils.cryptography import generate_key_pair
+from thenewboston_node.core.utils.types import hexstr
 
 
-def test_partial_blockchain(primary_validator, preferred_node):
+def test_partial_blockchain(primary_validator, preferred_node, node_identifier):
     account1_key_pair = generate_key_pair()
     account2_key_pair = generate_key_pair()
     account3_key_pair = generate_key_pair()
@@ -20,23 +21,22 @@ def test_partial_blockchain(primary_validator, preferred_node):
     fake_lock3, _ = generate_key_pair()
 
     base_blockchain_state = BlockchainState(
-        account_states={
-            account1_key_pair.public:
-                AccountState(balance=1000, balance_lock=fake_lock1),
-            account2_key_pair.public:
-                AccountState(balance=2000, balance_lock=fake_lock2),
-            account3_key_pair.public:
-                AccountState(balance=3000, balance_lock=fake_lock3),
-            primary_validator.identifier:
-                AccountState(
+        message=BlockchainStateMessage(
+            account_states={
+                account1_key_pair.public: AccountState(balance=1000, balance_lock=fake_lock1),
+                account2_key_pair.public: AccountState(balance=2000, balance_lock=fake_lock2),
+                account3_key_pair.public: AccountState(balance=3000, balance_lock=fake_lock3),
+                primary_validator.identifier: AccountState(
                     node=primary_validator,
                     primary_validator_schedule=PrimaryValidatorSchedule(begin_block_number=0, end_block_number=9999)
                 ),
-        },
-        last_block_number=1234,
-        last_block_identifier='23203d245b5e128465669223b5220b3061af1e2e72b0429ef26b07ce3a2282e7',
-        last_block_timestamp=datetime.utcnow(),
-        next_block_identifier='626dea61c1a6480d6a4c9cd657c7d7be52ddc38e5f2ec590b609ac01edde62fd',
+            },
+            last_block_number=1234,
+            last_block_identifier=hexstr('23203d245b5e128465669223b5220b3061af1e2e72b0429ef26b07ce3a2282e7'),
+            last_block_timestamp=datetime.utcnow(),
+            next_block_identifier=hexstr('626dea61c1a6480d6a4c9cd657c7d7be52ddc38e5f2ec590b609ac01edde62fd'),
+        ),
+        signer=node_identifier,
     )
 
     blockchain = MemoryBlockchain()

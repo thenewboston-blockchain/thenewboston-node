@@ -1,7 +1,8 @@
 from datetime import datetime
 
 from thenewboston_node.business_logic.models import (
-    CoinTransferSignedChangeRequest, CoinTransferSignedChangeRequestMessage, CoinTransferTransaction
+    BlockchainStateMessage, CoinTransferSignedChangeRequest, CoinTransferSignedChangeRequestMessage,
+    CoinTransferTransaction
 )
 from thenewboston_node.business_logic.models.account_state import AccountState
 from thenewboston_node.business_logic.models.block import Block
@@ -85,8 +86,8 @@ class CoinTransferBlockFactory(Factory):
     signature = None
 
 
-@factory(BlockchainState)
-class InitialBlockchainStateFactory(Factory):
+@factory(BlockchainStateMessage)
+class InitialBlockchainStateMessageFactory(Factory):
     account_states = {DEFAULT_ACCOUNT: AccountStateFactory()}
     last_block_number = None
     last_block_identifier = None
@@ -95,9 +96,21 @@ class InitialBlockchainStateFactory(Factory):
 
 
 @factory(BlockchainState)
-class BlockchainStateFactory(Factory):
+class InitialBlockchainStateFactory(Factory):
+    message = InitialBlockchainStateMessageFactory()
+    signer = DEFAULT_ACCOUNT
+
+
+@factory(BlockchainStateMessage)
+class BlockchainStateMessageFactory(Factory):
     account_states = {DEFAULT_ACCOUNT: AccountStateFactory()}
     last_block_number = 0
     last_block_identifier = 'd606af9d1d769192813d71051148ef1896e3d85062c31ad3e62331e25d9c96bc'
     last_block_timestamp = datetime(2021, 1, 1)
     next_block_identifier = 'c5082e9985991b717c21acf5a94a4715e1a88c3d72d478deb3d764f186d59967'
+
+
+@factory(BlockchainState)
+class BlockchainStateFactory(Factory):
+    message = BlockchainStateMessageFactory()
+    signer = DEFAULT_ACCOUNT

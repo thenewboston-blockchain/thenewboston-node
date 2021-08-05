@@ -40,7 +40,7 @@ class ValidationMixin:
             is_initial = False  # only first iteration can be with initial
             is_first = False
 
-    @validates('account root file (last_block_number={account_root_file.last_block_number})')
+    @validates('account root file (last_block_number={account_root_file.message.last_block_number})')
     def validate_account_root_file(self, *, account_root_file, is_initial=False, is_first=False):
         account_root_file.validate(is_initial=is_initial)
         if is_initial:
@@ -56,47 +56,50 @@ class ValidationMixin:
         if not first_block:
             return
 
-        if first_block.message.block_number > account_root_file.last_block_number:
+        if first_block.message.block_number > account_root_file.message.last_block_number:
             logger.debug('First block is after the account root file')
-            if first_block.message.block_number > account_root_file.last_block_number + 1:
+            if first_block.message.block_number > account_root_file.message.last_block_number + 1:
                 logger.warning('Unnecessary old account root file detected')
 
             return
 
         # If account root file is after first known block then we can validate its attributes
-        account_root_file_last_block = self.get_block_by_number(account_root_file.last_block_number)  # type: ignore
+        account_root_file_last_block = self.get_block_by_number(  # type: ignore
+            account_root_file.message.last_block_number
+        )
         with validates('account root file last_block_number'):
             if account_root_file_last_block is None:
                 raise ValidationError('Account root file last_block_number points to non-existing block')
 
         with validates('account root file last_block_identifier'):
-            if account_root_file_last_block.message.block_identifier != account_root_file.last_block_identifier:
+            if account_root_file_last_block.message.block_identifier != account_root_file.message.last_block_identifier:
                 raise ValidationError('Account root file last_block_number does not match last_block_identifier')
 
         with validates('account root file next_block_identifier'):
-            if account_root_file_last_block.hash != account_root_file.next_block_identifier:
+            if account_root_file_last_block.hash != account_root_file.message.next_block_identifier:
                 raise ValidationError(
                     'Account root file next_block_identifier does not match last_block_number message hash'
                 )
 
     @validates(
-        'account root file balances (last_block_number={account_root_file.last_block_number})', is_plural_target=True
+        'account root file balances (last_block_number={account_root_file.message.last_block_number})',
+        is_plural_target=True
     )
     def validate_account_root_file_balances(self, *, account_root_file):
-        generated_account_root_file = self.generate_blockchain_state(
-            account_root_file.last_block_number
-        )  # type: ignore
+        generated_account_root_file = self.generate_blockchain_state(  # type: ignore
+            account_root_file.message.last_block_number
+        )
         with validates('number of account root file balances'):
-            expected_accounts_count = len(generated_account_root_file.account_states)
-            actual_accounts_count = len(account_root_file.account_states)
+            expected_accounts_count = len(generated_account_root_file.message.account_states)
+            actual_accounts_count = len(account_root_file.message.account_states)
             if expected_accounts_count != actual_accounts_count:
                 raise ValidationError(
                     f'Expected {expected_accounts_count} accounts, '
                     f'but got {actual_accounts_count} in the account root file'
                 )
 
-        actual_accounts = account_root_file.account_states
-        for account_number, account_state in generated_account_root_file.account_states.items():
+        actual_accounts = account_root_file.message.account_states
+        for account_number, account_state in generated_account_root_file.message.account_states.items():
             with validates(f'account {account_number} existence'):
                 actual_account_state = actual_accounts.get(account_number)
                 if actual_account_state is None:

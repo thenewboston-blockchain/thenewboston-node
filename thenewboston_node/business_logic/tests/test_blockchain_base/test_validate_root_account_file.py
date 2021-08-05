@@ -33,10 +33,9 @@ def test_blockchain_must_start_with_blockchain_genesis_state(blockchain_base):
             blockchain_base.validate_blockchain_states(is_partial_allowed=False)
 
 
-def test_validate_account_root_file_points_to_non_existing_block(blockchain_base):
-    blockchain_genesis_state = factories.InitialBlockchainStateFactory()
+def test_validate_account_root_file_points_to_non_existing_block(blockchain_base, blockchain_genesis_state):
     block_0 = factories.CoinTransferBlockFactory(message=factories.CoinTransferBlockMessageFactory(block_number=0))
-    state_5 = factories.BlockchainStateFactory(last_block_number=5)
+    state_5 = factories.BlockchainStateFactory(message=factories.BlockchainStateMessageFactory(last_block_number=5))
 
     blockchain_state_patch = patch_blockchain_states(blockchain_base, [blockchain_genesis_state, state_5])
     block_patch = patch_blocks(blockchain_base, [block_0])
@@ -45,7 +44,7 @@ def test_validate_account_root_file_points_to_non_existing_block(blockchain_base
             blockchain_base.validate_blockchain_states(is_partial_allowed=True)
 
 
-def test_validate_account_root_file_last_block_identifier_mismatch(blockchain_base):
+def test_validate_account_root_file_last_block_identifier_mismatch(blockchain_base, node_identifier):
     next_block_identifier = '0' * 64
     block_number = 0
     blockchain_genesis_state = factories.InitialBlockchainStateFactory()
@@ -54,9 +53,12 @@ def test_validate_account_root_file_last_block_identifier_mismatch(blockchain_ba
         hash=next_block_identifier,
     )
     state_0 = factories.BlockchainStateFactory(
-        last_block_number=block_number,
-        last_block_identifier='f' * 64,
-        next_block_identifier=next_block_identifier,
+        message=factories.BlockchainStateMessageFactory(
+            last_block_number=block_number,
+            last_block_identifier='f' * 64,
+            next_block_identifier=next_block_identifier,
+        ),
+        signer=node_identifier,
     )
 
     blockchain_state_patch = patch_blockchain_states(blockchain_base, [blockchain_genesis_state, state_0])
@@ -69,7 +71,7 @@ def test_validate_account_root_file_last_block_identifier_mismatch(blockchain_ba
             blockchain_base.validate_blockchain_states(is_partial_allowed=True)
 
 
-def test_validate_account_root_file_next_block_identifier_mismatch(blockchain_base):
+def test_validate_account_root_file_next_block_identifier_mismatch(blockchain_base, node_identifier):
     last_block_identifier = '0' * 64
     block_number = 0
     blockchain_genesis_state = factories.InitialBlockchainStateFactory()
@@ -80,9 +82,12 @@ def test_validate_account_root_file_next_block_identifier_mismatch(blockchain_ba
         hash='e' * 64,
     )
     state_1 = factories.BlockchainStateFactory(
-        last_block_number=block_number,
-        last_block_identifier=last_block_identifier,
-        next_block_identifier='f' * 64,
+        message=factories.BlockchainStateMessageFactory(
+            last_block_number=block_number,
+            last_block_identifier=last_block_identifier,
+            next_block_identifier='f' * 64,
+        ),
+        signer=node_identifier,
     )
 
     blockchain_state_patch = patch_blockchain_states(blockchain_base, [blockchain_genesis_state, state_1])

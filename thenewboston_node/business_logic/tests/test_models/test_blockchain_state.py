@@ -20,5 +20,5 @@ def test_get_next_block_identifier(blockchain_genesis_state):
         b'"primary_validator_schedule":{"begin_block_number":0,"end_block_number":99}}}}'
     ).digest().hex()
 
-    blockchain_genesis_state.next_block_identifier = 'next-block-identifier'
+    blockchain_genesis_state.message.next_block_identifier = 'next-block-identifier'
     assert blockchain_genesis_state.get_next_block_identifier() == 'next-block-identifier'

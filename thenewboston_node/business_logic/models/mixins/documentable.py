@@ -126,8 +126,8 @@ class DocumentableMixin(BaseMixin):
 
     @classmethod
     def get_field_example_value(cls, field_name, jsonify=True):
-        field = cls.get_field(field_name)
-        value = field.metadata.get('example_value', SENTINEL)
+        # We use `SENTINEL` here because theoretically `None` can be an example value (although it is unlikely)
+        value = cls.get_field_metadata(field_name).get('example_value', SENTINEL)
         if value is SENTINEL:
             return None
 
@@ -137,17 +137,11 @@ class DocumentableMixin(BaseMixin):
         return value
 
     @classmethod
-    def is_serializable_field(cls, field_name):
-        field = cls.get_field(field_name)
-        value = field.metadata.get('is_serializable', SENTINEL)
-
-        if value is SENTINEL:
-            return True
-
-        return value
-
-    @classmethod
     def is_serialized_optional_field(cls, field_name):
-        field = cls.get_field(field_name)
-        value = field.metadata.get('is_serialized_optional', SENTINEL)
-        return cls.is_optional_field(field_name) if value is SENTINEL else value
+        """
+        Some fields are optional for internal construction dataclass instance, but they are mandatory when serialized.
+        We need to reflect this in documentation.
+        """
+        # TODO(dmu) LOW: Consider using this method for validation
+        value = cls.get_field_metadata(field_name).get('is_serialized_optional')
+        return cls.is_optional_field(field_name) if value is None else value

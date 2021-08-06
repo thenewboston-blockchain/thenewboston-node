@@ -3,6 +3,8 @@ import pytest
 from thenewboston_node.business_logic import models
 from thenewboston_node.business_logic.models.account_state import AccountState
 from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
+from thenewboston_node.business_logic.models.signed_change_request_message.pv_schedule import PrimaryValidatorSchedule
+from thenewboston_node.business_logic.utils.network import make_own_node
 
 
 @pytest.fixture
@@ -11,8 +13,17 @@ def treasury_initial_balance():
 
 
 @pytest.fixture
-def blockchain_genesis_state(treasury_account, treasury_initial_balance) -> BlockchainState:
-    accounts = {treasury_account: AccountState(balance=treasury_initial_balance, balance_lock=treasury_account)}
+def blockchain_genesis_state(treasury_account, treasury_initial_balance, unittest_settings) -> BlockchainState:
+    node = make_own_node(network_addresses=['http://localhost'])
+    accounts = {
+        treasury_account:
+            AccountState(balance=treasury_initial_balance, balance_lock=treasury_account),
+        node.identifier:
+            AccountState(
+                node=node,
+                primary_validator_schedule=PrimaryValidatorSchedule(begin_block_number=0, end_block_number=99)
+            ),
+    }
     return BlockchainState(account_states=accounts)
 
 

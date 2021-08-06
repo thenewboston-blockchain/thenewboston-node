@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Type, TypeVar
+from typing import Any, Optional, Type, TypeVar
 
 from django.conf import settings
 
@@ -27,11 +27,18 @@ class BlockchainBase(ValidationMixin, BlockchainStateMixin, BlocksMixin, Account
         instance = cls._instance
         if not instance:
             blockchain_settings = settings.BLOCKCHAIN
-            class_ = import_from_string(blockchain_settings['class'])
-            instance = class_(**(blockchain_settings.get('kwargs') or {}))
-            cls._instance = instance
+            instance = cls.make_instance(blockchain_settings['class'], blockchain_settings.get('kwargs'))
+            cls.set_instance_cache(instance)
 
         return instance
+
+    @classmethod
+    def make_instance(cls: Type[T], class_: str, kwargs: Optional[dict[str, Any]] = None):
+        return import_from_string(class_)(**(kwargs or {}))
+
+    @classmethod
+    def set_instance_cache(cls: Type[T], instance: T):
+        cls._instance = instance
 
     @classmethod
     def clear_instance_cache(cls):

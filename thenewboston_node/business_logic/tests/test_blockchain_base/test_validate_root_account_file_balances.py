@@ -12,6 +12,8 @@ USER_ACCOUNT_2 = '3' * 64
 
 @pytest.fixture
 def blockchain_genesis_state():
+    # TODO(dmu) HIGH: Remove fixtures from test_* files.
+    #                 This one clashes with general blockchain_genesis_state() fixture
     return factories.InitialBlockchainStateFactory(
         account_states={USER_ACCOUNT_1: factories.AccountStateFactory(balance=100, balance_lock=USER_ACCOUNT_1)},
     )
@@ -50,7 +52,7 @@ def test_validate_number_of_accounts_mismatch(blockchain_base, blockchain_genesi
     block_patch = patch_blocks(blockchain_base, [block_0])
     with blockchain_state_patch, block_patch:
         with pytest.raises(ValidationError, match='Expected 2 accounts, but got 1 in the account root file'):
-            blockchain_base.validate_account_root_files()
+            blockchain_base.validate_blockchain_states()
 
 
 def test_validate_non_existent_account(blockchain_base, blockchain_genesis_state, block_0):
@@ -65,7 +67,7 @@ def test_validate_non_existent_account(blockchain_base, blockchain_genesis_state
     block_patch = patch_blocks(blockchain_base, [block_0])
     with blockchain_state_patch, block_patch:
         with pytest.raises(ValidationError, match=f'Could not find {USER_ACCOUNT_2} account in the account root file'):
-            blockchain_base.validate_account_root_files()
+            blockchain_base.validate_blockchain_states()
 
 
 def test_validate_balance_value(blockchain_base, blockchain_genesis_state, block_0):
@@ -84,7 +86,7 @@ def test_validate_balance_value(blockchain_base, blockchain_genesis_state, block
             match=f'Expected 89 balance value, but got 0 balance value for '
             f'account {USER_ACCOUNT_1}'
         ):
-            blockchain_base.validate_account_root_files()
+            blockchain_base.validate_blockchain_states()
 
 
 def test_validate_balance_lock(blockchain_base, blockchain_genesis_state, block_0):
@@ -103,4 +105,4 @@ def test_validate_balance_lock(blockchain_base, blockchain_genesis_state, block_
             match=f'Expected {MESSAGE_HASH} balance lock, but got {wrong_lock} '
             f'balance lock for account {USER_ACCOUNT_1}'
         ):
-            blockchain_base.validate_account_root_files()
+            blockchain_base.validate_blockchain_states()

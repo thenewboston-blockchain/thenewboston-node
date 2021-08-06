@@ -8,14 +8,14 @@ from thenewboston_node.core.utils.cryptography import KeyPair
 
 @pytest.mark.usefixtures('forced_mock_network', 'get_primary_validator_mock', 'get_preferred_node_mock')
 def test_can_validate_blockchain(
-    forced_memory_blockchain: MemoryBlockchain,
+    memory_blockchain: MemoryBlockchain,
     treasury_account_key_pair: KeyPair,
     user_account_key_pair: KeyPair,
 ):
     user_account = user_account_key_pair.public
     treasury_account = treasury_account_key_pair.public
 
-    blockchain = forced_memory_blockchain
+    blockchain = memory_blockchain
     blockchain.validate(is_partial_allowed=False)
 
     block0 = Block.create_from_main_transaction(

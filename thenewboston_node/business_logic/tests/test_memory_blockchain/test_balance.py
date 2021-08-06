@@ -8,23 +8,21 @@ from thenewboston_node.core.utils.cryptography import KeyPair
 
 
 def test_get_account_state_from_blockchain_genesis_state(
-    forced_memory_blockchain: MemoryBlockchain, treasury_account_key_pair: KeyPair,
-    blockchain_genesis_state: BlockchainState
+    memory_blockchain: MemoryBlockchain, treasury_account_key_pair: KeyPair, blockchain_genesis_state: BlockchainState
 ):
     account = treasury_account_key_pair.public
-    assert forced_memory_blockchain.get_account_current_balance(account) == 281474976710656
-    assert forced_memory_blockchain.get_account_current_balance(
-        account
-    ) == blockchain_genesis_state.get_account_balance(account)
+    assert memory_blockchain.get_account_current_balance(account) == 281474976710656
+    assert memory_blockchain.get_account_current_balance(account
+                                                         ) == blockchain_genesis_state.get_account_balance(account)
 
 
 @pytest.mark.usefixtures('forced_mock_network', 'get_primary_validator_mock', 'get_preferred_node_mock')
 def test_can_get_account_state_by_block_number(
-    forced_memory_blockchain: MemoryBlockchain, treasury_account_key_pair: KeyPair, user_account_key_pair: KeyPair,
+    memory_blockchain: MemoryBlockchain, treasury_account_key_pair: KeyPair, user_account_key_pair: KeyPair,
     primary_validator, preferred_node
 ):
 
-    blockchain = forced_memory_blockchain
+    blockchain = memory_blockchain
     sender = treasury_account_key_pair.public
     recipient = user_account_key_pair.public
     total_fees = primary_validator.fee_amount + preferred_node.fee_amount

@@ -130,30 +130,23 @@ def test_can_create_block_from_signed_change_request(
                                   ].balance_lock is None
 
 
-@pytest.mark.skip('fails')
-@pytest.mark.usefixtures(
-    'get_next_block_identifier_mock',
-    'get_next_block_number_mock',
-    'get_account_state_mock',
-    'get_account_lock_mock',
-)
 def test_can_create_block_from_main_transaction(
-    forced_mock_blockchain, treasury_account_key_pair: KeyPair, user_account_key_pair: KeyPair,
+    file_blockchain, treasury_account_key_pair: KeyPair, user_account_key_pair: KeyPair,
     primary_validator_key_pair: KeyPair, node_key_pair: KeyPair, preferred_node
 ):
 
-    def get_account_balance(self, account, on_block_number):
-        return 430 if account == treasury_account_key_pair.public else 0
+    blockchain = file_blockchain
 
-    with patch.object(MockBlockchain, 'get_account_balance', new=get_account_balance):
-        block = Block.create_from_main_transaction(
-            blockchain=forced_mock_blockchain,
-            recipient=user_account_key_pair.public,
-            amount=20,
-            request_signing_key=treasury_account_key_pair.private,
-            pv_signing_key=get_node_signing_key(),
-            preferred_node=preferred_node,
-        )
+    block = Block.create_from_main_transaction(
+        blockchain=blockchain,
+        recipient=user_account_key_pair.public,
+        amount=20,
+        request_signing_key=treasury_account_key_pair.private,
+        pv_signing_key=get_node_signing_key(),
+        preferred_node=preferred_node,
+    )
+
+    treasury_account_balance = blockchain.get_account_current_balance(treasury_account_key_pair.public)
 
     # Assert block
     assert block.message
@@ -172,13 +165,15 @@ def test_can_create_block_from_main_transaction(
     assert block_message.timestamp - datetime.utcnow() < timedelta(seconds=1)
 
     assert block_message.block_number == 0
-    assert block_message.block_identifier == 'next-block-identifier'
+
+    # TODO(dmu) HIGH: Implement a better assert for `block_identifier`
+    assert block_message.block_identifier
     updated_account_states = block_message.updated_account_states
 
     assert isinstance(updated_account_states, dict)
     assert len(updated_account_states) == 4
 
-    assert updated_account_states[treasury_account_key_pair.public].balance == 430 - 25
+    assert updated_account_states[treasury_account_key_pair.public].balance == treasury_account_balance - 25
     assert updated_account_states[treasury_account_key_pair.public].balance_lock
 
     assert updated_account_states[user_account_key_pair.public].balance == 20

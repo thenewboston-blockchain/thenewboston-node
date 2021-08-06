@@ -14,11 +14,11 @@ class ValidationMixin:
 
     @validates('BLOCKCHAIN')
     def validate(self, is_partial_allowed: bool = True):
-        self.validate_account_root_files(is_partial_allowed=is_partial_allowed)
+        self.validate_blockchain_states(is_partial_allowed=is_partial_allowed)
         self.validate_blocks()
 
     @validates('account root files', is_plural_target=True)
-    def validate_account_root_files(self, is_partial_allowed: bool = True):
+    def validate_blockchain_states(self, is_partial_allowed: bool = True):
         account_root_files_iter = self.yield_blockchain_states()  # type: ignore
         with validates('number of account root files (at least one)'):
             try:

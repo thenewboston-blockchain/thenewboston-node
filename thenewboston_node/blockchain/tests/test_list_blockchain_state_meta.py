@@ -1,24 +1,28 @@
-from rest_framework import status
+from thenewboston_node.business_logic.tests.base import force_blockchain
 
 API_V1_LIST_BLOCKCHAIN_STATE_URL = '/api/v1/blockchain-states-meta/'
 
+# @pytest.mark.usefixtures('memory_blockchain')
+# def test_only_file_blockchain_supported(api_client):
+#     response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL)
+#
+#     # TODO(dmu) CRITICAL: Refactor test
+#     assert response.status_code == 501
+#     assert response.json() == {'detail': 'Not implemented.'}
 
-def test_only_file_blockchain_supported(api_client, forced_memory_blockchain):
-    response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL)
 
-    assert response.status_code == status.HTTP_501_NOT_IMPLEMENTED
-    assert response.json() == {'detail': 'Not implemented.'}
+def test_can_list_blockchain_state_meta(api_client, file_blockchain_with_two_blockchain_states):
 
+    with force_blockchain(file_blockchain_with_two_blockchain_states):
+        response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL)
 
-def test_can_list_blockchain_state_meta(api_client, declared_node_file_blockchain, blockchain_genesis_state):
-    response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL)
-
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == 200
     data = response.json()
     assert data['count'] == 2
 
     blockchain_state_0, blockchain_state_1 = data['results']
-    assert blockchain_state_0['last_block_number'] == blockchain_genesis_state.last_block_number
+    expected = file_blockchain_with_two_blockchain_states.get_first_blockchain_state().last_block_number
+    assert blockchain_state_0['last_block_number'] == expected
     assert blockchain_state_0['url_path'] == (
         '/blockchain/blockchain-states/0/0/0/0/0/0/0/0/000000000!-blockchain-state.msgpack'
     )
@@ -27,69 +31,70 @@ def test_can_list_blockchain_state_meta(api_client, declared_node_file_blockchai
         'http://localhost/blockchain/blockchain-states/0/0/0/0/0/0/0/0/000000000!-blockchain-state.msgpack'
     )
 
-    assert blockchain_state_1['last_block_number'] == 0
+    assert blockchain_state_1['last_block_number'] == 1
     assert blockchain_state_1['url_path'] == (
-        '/blockchain/blockchain-states/0/0/0/0/0/0/0/0/0000000000-blockchain-state.msgpack'
+        '/blockchain/blockchain-states/0/0/0/0/0/0/0/0/0000000001-blockchain-state.msgpack'
     )
     assert len(blockchain_state_1['urls']) == 1
     assert blockchain_state_1['urls'][0] == (
-        'http://localhost/blockchain/blockchain-states/0/0/0/0/0/0/0/0/0000000000-blockchain-state.msgpack'
+        'http://localhost/blockchain/blockchain-states/0/0/0/0/0/0/0/0/0000000001-blockchain-state.msgpack'
     )
 
 
-def test_can_sort_ascending_blockchain_states_meta(
-    api_client, declared_node_file_blockchain, blockchain_genesis_state
-):
-    response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?ordering=asc')
+def test_can_sort_ascending_blockchain_states_meta(api_client, file_blockchain_with_two_blockchain_states):
+    with force_blockchain(file_blockchain_with_two_blockchain_states):
+        response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?ordering=asc')
 
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == 200
     data = response.json()
     assert data['count'] == 2
 
     blockchain_state_0, blockchain_state_1 = data['results']
-    assert blockchain_state_0['last_block_number'] == blockchain_genesis_state.last_block_number
-    assert blockchain_state_1['last_block_number'] == 0
+    expected = file_blockchain_with_two_blockchain_states.get_first_blockchain_state().last_block_number
+    assert blockchain_state_0['last_block_number'] == expected
+    assert blockchain_state_1['last_block_number'] == 1
 
 
-def test_can_sort_descending_blockchain_states_meta(
-    api_client, declared_node_file_blockchain, blockchain_genesis_state
-):
-    response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?ordering=desc')
+def test_can_sort_descending_blockchain_states_meta(api_client, file_blockchain_with_two_blockchain_states):
+    with force_blockchain(file_blockchain_with_two_blockchain_states):
+        response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?ordering=desc')
 
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == 200
     data = response.json()
     assert data['count'] == 2
 
     blockchain_state_0, blockchain_state_1 = data['results']
-    assert blockchain_state_0['last_block_number'] == 0
-    assert blockchain_state_1['last_block_number'] == blockchain_genesis_state.last_block_number
+    assert blockchain_state_0['last_block_number'] == 1
+    expected = file_blockchain_with_two_blockchain_states.get_first_blockchain_state().last_block_number
+    assert blockchain_state_1['last_block_number'] == expected
 
 
-def test_blockchain_states_meta_ordering_is_validated(api_client, declared_node_file_blockchain):
-    response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?ordering=1')
+def test_blockchain_states_meta_ordering_is_validated(api_client, file_blockchain_with_two_blockchain_states):
+    with force_blockchain(file_blockchain_with_two_blockchain_states):
+        response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?ordering=1')
 
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.status_code == 400
 
 
-def test_can_get_blockchain_states_meta_w_limit(api_client, declared_node_file_blockchain, blockchain_genesis_state):
-    response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?limit=1')
+def test_can_get_blockchain_states_meta_w_limit(api_client, file_blockchain_with_two_blockchain_states):
+    with force_blockchain(file_blockchain_with_two_blockchain_states):
+        response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?limit=1')
 
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == 200
     data = response.json()
     assert data['count'] == 2
     assert len(data['results']) == 1
-    assert data['results'][0]['last_block_number'] == blockchain_genesis_state.last_block_number
-    assert data['previous'] is None
-    assert data['next'].endswith(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?limit=1&offset=1')
+
+    expected = file_blockchain_with_two_blockchain_states.get_first_blockchain_state().last_block_number
+    assert data['results'][0]['last_block_number'] == expected
 
 
-def test_can_get_blockchain_states_meta_w_offset(api_client, declared_node_file_blockchain, blockchain_genesis_state):
-    response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?limit=1&offset=1')
+def test_can_get_blockchain_states_meta_w_offset(api_client, file_blockchain_with_two_blockchain_states):
+    with force_blockchain(file_blockchain_with_two_blockchain_states):
+        response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?limit=1&offset=1')
 
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == 200
     data = response.json()
     assert data['count'] == 2
     assert len(data['results']) == 1
-    assert data['results'][0]['last_block_number'] == 0
-    assert data['next'] is None
-    assert data['previous'].endswith(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?limit=1')
+    assert data['results'][0]['last_block_number'] == 1

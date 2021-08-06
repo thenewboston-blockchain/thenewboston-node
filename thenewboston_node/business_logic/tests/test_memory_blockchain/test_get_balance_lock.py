@@ -8,11 +8,11 @@ from thenewboston_node.core.utils.cryptography import KeyPair
 
 @pytest.mark.usefixtures('forced_mock_network', 'get_primary_validator_mock', 'get_preferred_node_mock')
 def test_get_account_lock(
-    forced_memory_blockchain: MemoryBlockchain,
+    memory_blockchain: MemoryBlockchain,
     treasury_account_key_pair: KeyPair,
     user_account_key_pair: KeyPair,
 ):
-    blockchain = forced_memory_blockchain
+    blockchain = memory_blockchain
 
     treasury_account = treasury_account_key_pair.public
     user_account = user_account_key_pair.public

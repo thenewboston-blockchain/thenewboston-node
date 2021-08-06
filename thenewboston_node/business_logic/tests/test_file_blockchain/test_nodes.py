@@ -5,27 +5,21 @@ from thenewboston_node.business_logic.tests.baker_factories import baker
 from thenewboston_node.core.utils.cryptography import generate_key_pair
 
 
-def test_can_get_nodes_empty_list(blockchain_directory, blockchain_genesis_state):
+def get_initial_node(blockchain_genesis_state):
+    for account_state in blockchain_genesis_state.account_states.values():
+        node = account_state.node
+        if node:
+            return node
+
+    assert True, 'No node found'
+
+
+def test_can_get_nodes_single_node_from_blockchain_genesis_state(blockchain_directory, blockchain_genesis_state):
     blockchain = FileBlockchain(base_directory=blockchain_directory)
     blockchain.add_blockchain_state(blockchain_genesis_state)
     blockchain.validate()
 
-    assert list(blockchain.yield_nodes()) == []
-
-
-def test_can_get_nodes_single_node_from_blockchain_genesis_state(
-    blockchain_directory, blockchain_genesis_state, user_account_key_pair
-):
-    blockchain = FileBlockchain(base_directory=blockchain_directory)
-
-    account_number = user_account_key_pair.public
-    node = baker.make(Node, identifier=account_number)
-    blockchain_genesis_state.account_states[account_number] = AccountState(node=node)
-
-    blockchain.add_blockchain_state(blockchain_genesis_state)
-    blockchain.validate()
-
-    assert list(blockchain.yield_nodes()) == [node]
+    assert list(blockchain.yield_nodes()) == [get_initial_node(blockchain_genesis_state)]
 
 
 def test_can_get_nodes_single_node_from_blocks(blockchain_directory, blockchain_genesis_state, user_account_key_pair):
@@ -42,20 +36,17 @@ def test_can_get_nodes_single_node_from_blocks(blockchain_directory, blockchain_
     block = Block.create_from_signed_change_request(blockchain, request, get_node_signing_key())
     blockchain.add_block(block)
 
-    assert list(blockchain.yield_nodes()) == [node]
+    assert [node_ for node_ in blockchain.yield_nodes() if node_.identifier == node.identifier] == [node]
 
 
 def test_can_get_nodes_from_genesis_state_and_blocks(
     blockchain_directory, blockchain_genesis_state, user_account_key_pair
 ):
     blockchain = FileBlockchain(base_directory=blockchain_directory)
-
-    key_pair = generate_key_pair()
-    blockchain_state_node = baker.make(Node, identifier=key_pair.public)
-    blockchain_genesis_state.account_states[key_pair.public] = AccountState(node=blockchain_state_node)
-
     blockchain.add_blockchain_state(blockchain_genesis_state)
     blockchain.validate()
+
+    blockchain_state_node = get_initial_node(blockchain_genesis_state)
 
     request = NodeDeclarationSignedChangeRequest.create(
         network_addresses=['https://127.0.0.1:8555/'], fee_amount=3, signing_key=user_account_key_pair.private
@@ -73,6 +64,9 @@ def test_can_get_nodes_blocks_node_overrides_genesis_state_node(
     blockchain_directory, blockchain_genesis_state, user_account_key_pair
 ):
     blockchain = FileBlockchain(base_directory=blockchain_directory)
+
+    node_to_remove = get_initial_node(blockchain_genesis_state)
+    del blockchain_genesis_state.account_states[node_to_remove.identifier]
 
     account_number = user_account_key_pair.public
     blockchain_state_node = baker.make(
@@ -102,6 +96,10 @@ def test_can_get_nodes_from_different_block_numbers(
     account_number = user_account_key_pair.public
 
     blockchain = FileBlockchain(base_directory=blockchain_directory)
+
+    node_to_remove = get_initial_node(blockchain_genesis_state)
+    del blockchain_genesis_state.account_states[node_to_remove.identifier]
+
     blockchain_state_node = baker.make(
         Node, network_addresses=['https://192.168.0.29:8555/'], identifier=account_number
     )
@@ -147,6 +145,10 @@ def test_can_get_nodes_from_complex_blockchain(blockchain_directory, blockchain_
     }) == 6
 
     blockchain = FileBlockchain(base_directory=blockchain_directory)
+
+    node_to_remove = get_initial_node(blockchain_genesis_state)
+    del blockchain_genesis_state.account_states[node_to_remove.identifier]
+
     node1 = baker.make(Node, network_addresses=['https://192.168.0.29:8555/'], identifier=key_pair1.public)
     blockchain_genesis_state.account_states[node1.identifier] = AccountState(node=node1)
     blockchain.add_blockchain_state(blockchain_genesis_state)

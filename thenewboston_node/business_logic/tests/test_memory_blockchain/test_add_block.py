@@ -9,13 +9,13 @@ from thenewboston_node.core.utils.cryptography import KeyPair
 
 @pytest.mark.usefixtures('forced_mock_network', 'get_primary_validator_mock', 'get_preferred_node_mock')
 def test_can_add_coin_transfer_block(
-    forced_memory_blockchain: MemoryBlockchain,
+    memory_blockchain: MemoryBlockchain,
     treasury_account_key_pair: KeyPair,
     user_account_key_pair: KeyPair,
     primary_validator_key_pair: KeyPair,
     node_key_pair: KeyPair,
 ):
-    blockchain = forced_memory_blockchain
+    blockchain = memory_blockchain
 
     treasury_account = treasury_account_key_pair.public
     treasury_initial_balance = blockchain.get_account_current_balance(treasury_account)
@@ -76,10 +76,10 @@ def test_can_add_coin_transfer_block(
 
 @pytest.mark.usefixtures('forced_mock_network', 'get_primary_validator_mock', 'get_preferred_node_mock')
 def test_can_add_node_declaration_block(
-    forced_memory_blockchain: MemoryBlockchain,
+    memory_blockchain: MemoryBlockchain,
     user_account_key_pair: KeyPair,
 ):
-    blockchain = forced_memory_blockchain
+    blockchain = memory_blockchain
     user_account = user_account_key_pair.public
 
     request0 = NodeDeclarationSignedChangeRequest.create(

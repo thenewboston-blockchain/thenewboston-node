@@ -42,10 +42,10 @@ def test_balances_are_correct(
     file_blockchain_w_memory_storage, treasury_account, user_account, primary_validator_identifier, node_identifier,
     treasury_initial_balance
 ):
-    account_root_file = file_blockchain_w_memory_storage.get_last_blockchain_state()
-    accounts = account_root_file.account_states
+    blockchain_state = file_blockchain_w_memory_storage.get_last_blockchain_state()
+    accounts = blockchain_state.account_states
 
-    assert len(accounts) == 4
+    assert len(accounts) == 5
     assert accounts[treasury_account].balance == treasury_initial_balance - primary_validator_fee - node_fee - 100
     assert accounts[user_account].balance == 100
     assert accounts[primary_validator_identifier].balance == primary_validator_fee

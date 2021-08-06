@@ -64,11 +64,12 @@ def generate_blockchain(
     node_fee = preferred_node.fee_amount
 
     balances = get_initial_balances(blockchain)
-    accounts = list(balances)
 
-    assert len(balances) == 1
+    assert len(balances) >= 1
     assert treasury_account in balances
     assert balances[treasury_account] >= MAX_AMOUNT
+    balances = {treasury_account: balances[treasury_account]}
+    accounts = list(balances)
 
     account_private_keys = {treasury_account: treasury_account_key_pair.private}
     sender_candidates = {treasury_account}

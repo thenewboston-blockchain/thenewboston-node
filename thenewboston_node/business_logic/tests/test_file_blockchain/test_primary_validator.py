@@ -8,8 +8,21 @@ from thenewboston_node.business_logic.tests.baker_factories import baker
 from thenewboston_node.core.utils.cryptography import generate_key_pair
 
 
+def get_initial_node(blockchain_genesis_state):
+    for account_state in blockchain_genesis_state.account_states.values():
+        node = account_state.node
+        if node:
+            return node
+
+    assert True, 'No node found'
+
+
 def test_no_pv_schedule(blockchain_directory, blockchain_genesis_state):
     blockchain = FileBlockchain(base_directory=blockchain_directory)
+
+    node_to_remove = get_initial_node(blockchain_genesis_state)
+    del blockchain_genesis_state.account_states[node_to_remove.identifier]
+
     blockchain.add_blockchain_state(blockchain_genesis_state)
     blockchain.validate()
     assert blockchain.get_primary_validator() is None
@@ -17,20 +30,12 @@ def test_no_pv_schedule(blockchain_directory, blockchain_genesis_state):
     assert blockchain.get_primary_validator(10) is None
 
 
-def test_can_get_pv_from_blockchain_genesis_state(
-    blockchain_directory, blockchain_genesis_state, user_account_key_pair
-):
+def test_can_get_pv_from_blockchain_genesis_state(blockchain_directory, blockchain_genesis_state):
     blockchain = FileBlockchain(base_directory=blockchain_directory)
-
-    account_number = user_account_key_pair.public
-    node = baker.make(Node, identifier=account_number)
-    pv_schedule = baker.make(PrimaryValidatorSchedule, begin_block_number=0, end_block_number=99)
-    blockchain_genesis_state.account_states[account_number] = AccountState(
-        node=node, primary_validator_schedule=pv_schedule
-    )
-
     blockchain.add_blockchain_state(blockchain_genesis_state)
     blockchain.validate()
+
+    node = get_initial_node(blockchain_genesis_state)
 
     assert blockchain.get_primary_validator() == node
     assert blockchain.get_primary_validator(0) == node
@@ -41,6 +46,10 @@ def test_can_get_pv_from_blockchain_genesis_state(
 
 def test_can_get_pv_from_from_blocks(blockchain_directory, blockchain_genesis_state, user_account_key_pair):
     blockchain = FileBlockchain(base_directory=blockchain_directory)
+
+    node_to_remove = get_initial_node(blockchain_genesis_state)
+    del blockchain_genesis_state.account_states[node_to_remove.identifier]
+
     blockchain.add_blockchain_state(blockchain_genesis_state)
     blockchain.validate()
 
@@ -70,6 +79,9 @@ def test_can_get_node_from_genesis_state_and_pv_from_blocks(
 ):
     blockchain = FileBlockchain(base_directory=blockchain_directory)
 
+    node_to_remove = get_initial_node(blockchain_genesis_state)
+    del blockchain_genesis_state.account_states[node_to_remove.identifier]
+
     account_number = user_account_key_pair.public
     node = baker.make(Node, identifier=account_number)
     pv_schedule = baker.make(PrimaryValidatorSchedule, begin_block_number=0, end_block_number=99)
@@ -93,6 +105,9 @@ def test_can_get_node_from_genesis_state_and_pv_from_blocks(
 
 def test_can_get_overridden_pv(blockchain_directory, blockchain_genesis_state, user_account_key_pair):
     blockchain = FileBlockchain(base_directory=blockchain_directory)
+
+    node_to_remove = get_initial_node(blockchain_genesis_state)
+    del blockchain_genesis_state.account_states[node_to_remove.identifier]
 
     account_number = user_account_key_pair.public
     node = baker.make(Node, identifier=account_number)

@@ -1,15 +1,13 @@
 import logging
 from unittest.mock import patch
 
-from django.test import override_settings
-
 import pytest
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
+from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
 from thenewboston_node.business_logic.blockchain.mock_blockchain import MockBlockchain
-from thenewboston_node.business_logic.models import Block, NodeDeclarationSignedChangeRequest
-from thenewboston_node.business_logic.node import get_node_signing_key
+from thenewboston_node.business_logic.tests.base import force_blockchain
 from thenewboston_node.business_logic.tests.factories import add_blocks_to_blockchain
 from thenewboston_node.business_logic.tests.mocks.storage_mock import StorageMock
 from thenewboston_node.business_logic.utils.iter import get_generator
@@ -53,21 +51,13 @@ def get_account_lock_mock():
         yield mock
 
 
-def yield_forced_blockchain(class_, class_kwargs=None):
-    blockchain_settings = {'class': class_, 'kwargs': class_kwargs or {}}
-
-    BlockchainBase.clear_instance_cache()
-    with override_settings(BLOCKCHAIN=blockchain_settings):
-        blockchain = BlockchainBase.get_instance()
-        yield blockchain
-    BlockchainBase.clear_instance_cache()
-
-
-def yield_and_init_forced_blockchain(class_, blockchain_genesis_state, class_kwargs=None):
-    blockchain = next(yield_forced_blockchain(class_, class_kwargs))
+def yield_initialized_forced_blockchain(class_, blockchain_genesis_state, class_kwargs=None):
+    blockchain = BlockchainBase.make_instance(class_, class_kwargs)
     blockchain.add_blockchain_state(blockchain_genesis_state)
     blockchain.validate()
-    yield blockchain
+
+    with force_blockchain(blockchain):
+        yield blockchain
 
 
 @pytest.fixture
@@ -79,20 +69,23 @@ def memory_blockchain(blockchain_genesis_state):
 
 
 @pytest.fixture
-def forced_memory_blockchain(blockchain_genesis_state):
-    yield from yield_and_init_forced_blockchain(MEMORY_BLOCKCHAIN_CLASS, blockchain_genesis_state)
+def file_blockchain(blockchain_genesis_state, blockchain_directory):
+    blockchain = FileBlockchain(base_directory=blockchain_directory)
+    blockchain.add_blockchain_state(blockchain_genesis_state)
+    blockchain.validate()
+    yield blockchain
 
 
 @pytest.fixture
 def forced_file_blockchain(blockchain_genesis_state, blockchain_directory):
-    yield from yield_and_init_forced_blockchain(
+    yield from yield_initialized_forced_blockchain(
         FILE_BLOCKCHAIN_CLASS, blockchain_genesis_state, class_kwargs={'base_directory': blockchain_directory}
     )
 
 
 @pytest.fixture(autouse=True)  # Autouse for safety reasons
 def forced_mock_blockchain(blockchain_genesis_state):
-    yield from yield_and_init_forced_blockchain(MOCK_BLOCKCHAIN_CLASS, blockchain_genesis_state)
+    yield from yield_initialized_forced_blockchain(MOCK_BLOCKCHAIN_CLASS, blockchain_genesis_state)
 
 
 @pytest.fixture
@@ -109,18 +102,20 @@ def large_blockchain(treasury_account_key_pair):
     yield blockchain
 
 
+# TODO(dmu) MEDIUM: Get rid of file_blockchain_w_memory_storage
+#                   (use plain file_blockchain for better integration testing)
 @pytest.fixture
 def file_blockchain_w_memory_storage(
-    forced_file_blockchain, blockchain_genesis_state, forced_mock_network, get_primary_validator_mock,
-    get_preferred_node_mock
+    file_blockchain, blockchain_genesis_state, forced_mock_network, get_primary_validator_mock, get_preferred_node_mock
 ):
-    block_storage_mock = patch.object(forced_file_blockchain, 'block_storage', StorageMock())
-    arf_storage_mock = patch.object(forced_file_blockchain, 'blockchain_states_storage', StorageMock())
+    file_blockchain.clear()
+    block_storage_mock = patch.object(file_blockchain, 'block_storage', StorageMock())
+    arf_storage_mock = patch.object(file_blockchain, 'blockchain_states_storage', StorageMock())
 
     with block_storage_mock, arf_storage_mock:
-        forced_file_blockchain.add_blockchain_state(blockchain_genesis_state)
-        forced_file_blockchain.validate()
-        yield forced_file_blockchain
+        file_blockchain.add_blockchain_state(blockchain_genesis_state)
+        file_blockchain.validate()
+        yield file_blockchain
 
 
 @pytest.fixture
@@ -131,15 +126,8 @@ def blockchain_base(blockchain_genesis_state):
 
 
 @pytest.fixture
-def declared_node_file_blockchain(forced_file_blockchain):
-    blockchain = forced_file_blockchain
-    node_signing_key = get_node_signing_key()
-
-    node_request = NodeDeclarationSignedChangeRequest.create(
-        network_addresses=['http://localhost/some/path'], fee_amount=3, signing_key=node_signing_key
-    )
-    block0 = Block.create_from_signed_change_request(blockchain, node_request, node_signing_key)
-    blockchain.add_block(block0)
+def file_blockchain_with_two_blockchain_states(file_blockchain, treasury_account_key_pair):
+    blockchain = file_blockchain
+    add_blocks_to_blockchain(blockchain, 2, treasury_account_key_pair.private)
     blockchain.snapshot_blockchain_state()
-
     return blockchain

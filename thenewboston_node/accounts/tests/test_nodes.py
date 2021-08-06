@@ -1,28 +1,25 @@
-from django.test import override_settings
-
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
-from thenewboston_node.business_logic.models import (
-    Block, NodeDeclarationSignedChangeRequest, PrimaryValidatorScheduleSignedChangeRequest
-)
-from thenewboston_node.business_logic.node import get_node_signing_key
+from thenewboston_node.business_logic.models import Block, NodeDeclarationSignedChangeRequest
 from thenewboston_node.business_logic.tests.base import force_blockchain
-from thenewboston_node.core.utils.cryptography import derive_public_key
 
 API_V1_NODES_PREFIX = '/api/v1/nodes'
 
 
-def test_node_not_found(memory_blockchain: MemoryBlockchain, api_client):
-    node_id = 'non_existing_id'
-
-    with force_blockchain(memory_blockchain):
-        response = api_client.get(f'{API_V1_NODES_PREFIX}/{node_id}/')
+def test_node_not_found(file_blockchain: MemoryBlockchain, api_client):
+    with force_blockchain(file_blockchain):
+        response = api_client.get(API_V1_NODES_PREFIX + '/non_existing_id/')
 
     assert response.status_code == 404
     assert response.json()['detail'] == 'Node not found'
 
 
-def test_can_get_node(memory_blockchain, api_client, user_account_key_pair):
-    blockchain = memory_blockchain
+def test_can_get_node(file_blockchain, api_client, user_account_key_pair):
+    blockchain = file_blockchain
+
+    nodes = list(blockchain.yield_nodes())
+    assert len(nodes) == 1
+    pv_node = nodes[0]
+
     node_declaration_request = NodeDeclarationSignedChangeRequest.create(
         network_addresses=['http://my.domain.com/'],
         fee_amount=3,
@@ -44,58 +41,43 @@ def test_can_get_node(memory_blockchain, api_client, user_account_key_pair):
     data = response.json()
     assert data['identifier'] == node.identifier
     assert data['fee_amount'] == 3
-
-
-@override_settings(SIGNING_KEY='4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732')
-def test_can_get_self_node(memory_blockchain, api_client):
-    blockchain = memory_blockchain
-    signing_key = get_node_signing_key()
-    node_id = derive_public_key(signing_key)
-    node_declaration_request = NodeDeclarationSignedChangeRequest.create(
-        network_addresses=['http://my.domain.com/'],
-        fee_amount=3,
-        signing_key=signing_key,
-    )
-    block = Block.create_from_signed_change_request(
-        blockchain,
-        signed_change_request=node_declaration_request,
-        pv_signing_key=signing_key,
-    )
-    blockchain.add_block(block)
+    assert data['network_addresses'] == ['http://my.domain.com/']
 
     with force_blockchain(blockchain):
-        response = api_client.get(f'{API_V1_NODES_PREFIX}/self/')
+        response = api_client.get(f'{API_V1_NODES_PREFIX}/{pv_node.identifier}/')
 
     assert response.status_code == 200
     data = response.json()
-    assert data['identifier'] == node_id
-    assert data['fee_amount'] == 3
+    assert data['identifier'] == pv_node.identifier
+    assert data['fee_amount'] == pv_node.fee_amount
+    assert pv_node.network_addresses
+    assert data['network_addresses'] == pv_node.network_addresses
 
 
-def test_can_get_primary_validator_node(memory_blockchain, api_client):
-    blockchain = memory_blockchain
-    signing_key = get_node_signing_key()
+def test_can_get_self_node(file_blockchain, api_client):
+    blockchain = file_blockchain
 
-    pv_node_declaration_request = NodeDeclarationSignedChangeRequest.create(
-        network_addresses=['http://my.domain.com/'],
-        fee_amount=3,
-        signing_key=signing_key,
-    )
-    block = Block.create_from_signed_change_request(
-        blockchain,
-        signed_change_request=pv_node_declaration_request,
-        pv_signing_key=signing_key,
-    )
-    blockchain.add_block(block)
-    pv_node = pv_node_declaration_request.message.node
+    nodes = list(blockchain.yield_nodes())
+    assert len(nodes) == 1
+    pv_node = nodes[0]
 
-    pv_schedule_request = PrimaryValidatorScheduleSignedChangeRequest.create(0, 99, signing_key=signing_key)
-    block = Block.create_from_signed_change_request(
-        blockchain,
-        signed_change_request=pv_schedule_request,
-        pv_signing_key=signing_key,
-    )
-    blockchain.add_block(block)
+    with force_blockchain(blockchain):
+        response = api_client.get(API_V1_NODES_PREFIX + '/self/')
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data['identifier'] == pv_node.identifier
+    assert data['fee_amount'] == pv_node.fee_amount
+    assert pv_node.network_addresses
+    assert data['network_addresses'] == pv_node.network_addresses
+
+
+def test_can_get_primary_validator_node(file_blockchain, api_client):
+    blockchain = file_blockchain
+
+    nodes = list(blockchain.yield_nodes())
+    assert len(nodes) == 1
+    pv_node = nodes[0]
 
     with force_blockchain(blockchain):
         response = api_client.get(f'{API_V1_NODES_PREFIX}/pv/')
@@ -103,4 +85,6 @@ def test_can_get_primary_validator_node(memory_blockchain, api_client):
     assert response.status_code == 200
     data = response.json()
     assert data['identifier'] == pv_node.identifier
-    assert data['fee_amount'] == 3
+    assert data['fee_amount'] == pv_node.fee_amount
+    assert pv_node.network_addresses
+    assert data['network_addresses'] == pv_node.network_addresses

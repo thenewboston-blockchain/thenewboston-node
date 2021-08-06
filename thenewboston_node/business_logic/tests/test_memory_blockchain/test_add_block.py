@@ -7,7 +7,6 @@ from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.core.utils.cryptography import KeyPair
 
 
-@pytest.mark.skip('fails')
 def test_can_add_coin_transfer_block(
     memory_blockchain: MemoryBlockchain,
     treasury_account_key_pair: KeyPair,

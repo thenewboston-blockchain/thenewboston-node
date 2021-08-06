@@ -76,30 +76,9 @@ def file_blockchain(blockchain_genesis_state, blockchain_directory):
     yield blockchain
 
 
-@pytest.fixture
-def forced_file_blockchain(blockchain_genesis_state, blockchain_directory):
-    yield from yield_initialized_forced_blockchain(
-        FILE_BLOCKCHAIN_CLASS, blockchain_genesis_state, class_kwargs={'base_directory': blockchain_directory}
-    )
-
-
 @pytest.fixture(autouse=True)  # Autouse for safety reasons
 def forced_mock_blockchain(blockchain_genesis_state):
     yield from yield_initialized_forced_blockchain(MOCK_BLOCKCHAIN_CLASS, blockchain_genesis_state)
-
-
-@pytest.fixture
-def large_blockchain(treasury_account_key_pair):
-    blockchain = BlockchainBase.get_instance()
-
-    accounts = blockchain.get_first_blockchain_state().account_states
-    assert len(accounts) == 1
-    treasury_account, account_state = list(accounts.items())[0]
-    assert treasury_account_key_pair.public == treasury_account
-    assert account_state.balance > 10000000000  # tons of money present
-
-    add_blocks_to_blockchain(blockchain, 100, treasury_account_key_pair.private)
-    yield blockchain
 
 
 # TODO(dmu) MEDIUM: Get rid of file_blockchain_w_memory_storage

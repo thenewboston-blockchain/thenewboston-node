@@ -1,5 +1,8 @@
 import logging
+import warnings
 from typing import Optional
+
+from more_itertools import ilen
 
 from thenewboston_node.business_logic.models import AccountState, PrimaryValidatorSchedule
 from thenewboston_node.core.logging import timeit_method
@@ -28,6 +31,10 @@ class AccountStateMixin(BaseMixin):
         known_accounts |= new_accounts
         for new_account in new_accounts:
             yield new_account
+
+    def get_number_of_accounts(self):
+        warnings.warn('Low performance implementation of get_number_of_accounts() is being used')
+        return ilen(self.yield_known_accounts())
 
     def yield_account_states(self, from_block_number: Optional[int] = None):
         # TODO(dmu) HIGH: Reuse this method where possible

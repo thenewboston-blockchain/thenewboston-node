@@ -18,7 +18,7 @@ def blockchain_genesis_state(treasury_account, treasury_initial_balance, primary
     assert pv_identifier != treasury_account
     accounts = {
         treasury_account:
-            AccountState(balance=treasury_initial_balance, balance_lock=treasury_account),
+            AccountState(balance=treasury_initial_balance),
         pv_identifier:
             AccountState(
                 node=primary_validator,

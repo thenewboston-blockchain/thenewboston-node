@@ -137,6 +137,16 @@ class DocumentableMixin(BaseMixin):
         return value
 
     @classmethod
+    def is_serializable_field(cls, field_name):
+        field = cls.get_field(field_name)
+        value = field.metadata.get('is_serializable', SENTINEL)
+
+        if value is SENTINEL:
+            return True
+
+        return value
+
+    @classmethod
     def is_serialized_optional_field(cls, field_name):
         field = cls.get_field(field_name)
         value = field.metadata.get('is_serialized_optional', SENTINEL)

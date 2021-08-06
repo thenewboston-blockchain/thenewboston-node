@@ -44,7 +44,11 @@ class Block(SignableMixin, MessagpackCompactableMixin, MetadataMixin, BaseDatacl
     )
     # We have to define `meta` here because otherwise we are getting
     # "non-default argument 'signer' follows default argument" error
-    meta: Optional[dict[str, Any]] = None
+    meta: Optional[dict[str, Any]] = field(  # noqa: A003
+        default=None, metadata={
+            'is_serializable': False,
+        }
+    )
 
     @classmethod
     def deserialize_from_dict(cls, dict_, complain_excessive_keys=True, exclude=()):

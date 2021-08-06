@@ -164,13 +164,13 @@ Format description
      - Example value
      - Is mandatory
 {% for field_name in model.get_field_names() %}
-  {% if model.is_serializable_field(field_name) %}
+    {% if model.is_serializable_field(field_name) %}
    * - {{ field_name }}
      - {{ model.get_field_docstring(field_name) }}
      - {{ model.get_field_type_representation(field_name) }}
      - {{ model.get_field_example_value(field_name)|default('', True) }}
      - {% if model.is_serialized_optional_field(field_name) %}No{% else %}Yes{% endif %}
-  {% endif %}
+    {%- endif %}
 {%- endfor %}
 {% endif %}
 {% endfor %}
@@ -237,13 +237,13 @@ Block types
      - Example value
      - Is mandatory
 {% for field_name in model.get_field_names() %}
-  {% if model.is_serializable_field(field_name) %}
+    {% if model.is_serializable_field(field_name) %}
    * - {{ field_name }}
      - {{ model.get_field_docstring(field_name) }}
      - {{ model.get_field_type_representation(field_name) }}
      - {{ model.get_field_example_value(field_name)|default('', True) }}
      - {% if model.is_serialized_optional_field(field_name) %}No{% else %}Yes{% endif %}
-  {% endif %}
+    {%- endif %}
 {%- endfor %}
 {% endif %}
 {% endfor %}
@@ -293,11 +293,13 @@ Byte arrays are shown as hexadecimals for representation purposes:
      - Example value
      - Is mandatory
 {% for field_name in model.get_field_names() %}
+    {% if model.is_serializable_field(field_name) %}
    * - {{ field_name }}
      - {{ model.get_field_docstring(field_name) }}
      - {{ model.get_field_type_representation(field_name) }}
      - {{ model.get_field_example_value(field_name)|default('', True) }}
      - {% if model.is_serialized_optional_field(field_name) %}No{% else %}Yes{% endif %}
+    {%- endif %}
 {%- endfor %}
 {% endif %}
 {% endfor %}
@@ -329,11 +331,13 @@ A string of `ISO formatted <https://en.wikipedia.org/wiki/ISO_8601>`_ UTC dateti
      - Example value
      - Is mandatory
 {% for field_name in model.get_field_names() %}
+    {% if model.is_serializable_field(field_name) %}
    * - {{ field_name }}
      - {{ model.get_field_docstring(field_name) }}
      - {{ model.get_field_type_representation(field_name) }}
      - {{ model.get_field_example_value(field_name)|default('', True) }}
      - {% if model.is_serialized_optional_field(field_name) %}No{% else %}Yes{% endif %}
+    {%- endif %}
 {%- endfor %}
 {% endif %}
 {% endfor %}

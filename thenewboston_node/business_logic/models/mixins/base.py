@@ -35,3 +35,11 @@ class BaseMixin:
     def is_optional_field(cls, field_name):
         type_ = cls.get_field(field_name).type
         return typing.get_origin(type_) is typing.Union and type(None) in typing.get_args(type_)
+
+    @classmethod
+    def get_field_metadata(cls, field_name):
+        return cls.get_field(field_name).metadata
+
+    @classmethod
+    def is_serializable_field(cls, field_name):
+        return cls.get_field_metadata(field_name).get('is_serializable', True)

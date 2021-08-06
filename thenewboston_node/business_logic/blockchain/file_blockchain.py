@@ -131,13 +131,13 @@ class FileBlockchain(BlockchainBase):
 
         self.block_chunk_size = block_chunk_size
 
-        account_root_files_directory = os.path.join(base_directory, account_root_files_subdir)
+        self.account_root_files_directory = os.path.join(base_directory, account_root_files_subdir)
         block_directory = os.path.join(base_directory, blocks_subdir)
         self.base_directory = base_directory
 
         self.block_storage = PathOptimizedFileSystemStorage(base_path=block_directory, **(blocks_storage_kwargs or {}))
         self.blockchain_states_storage = PathOptimizedFileSystemStorage(
-            base_path=account_root_files_directory, **(account_root_files_storage_kwargs or {})
+            base_path=self.account_root_files_directory, **(account_root_files_storage_kwargs or {})
         )
 
         self.account_root_files_cache_size = account_root_files_cache_size
@@ -190,14 +190,21 @@ class FileBlockchain(BlockchainBase):
 
     def _load_blockchain_states(self, file_path):
         cache = self.blockchain_states_cache
-        account_root_file = cache.get(file_path)
-        if account_root_file is None:
+        blockchain_state = cache.get(file_path)
+        if blockchain_state is None:
             storage = self.blockchain_states_storage
             assert storage.is_finalized(file_path)
-            account_root_file = BlockchainState.from_messagepack(storage.load(file_path))
-            cache[file_path] = account_root_file
+            blockchain_state = BlockchainState.from_messagepack(storage.load(file_path))
 
-        return account_root_file
+            meta = get_blockchain_state_filename_meta(file_path)
+            blockchain_state.meta = {
+                'file_path': self._get_blockchain_state_real_file_path(file_path),
+                'last_block_number': meta.last_block_number,
+                'compression': meta.compression,
+            }
+            cache[file_path] = blockchain_state
+
+        return blockchain_state
 
     def _yield_blockchain_states(self, direction) -> Generator[BlockchainState, None, None]:
         assert direction in (1, -1)
@@ -215,6 +222,11 @@ class FileBlockchain(BlockchainBase):
     def get_blockchain_states_count(self) -> int:
         storage = self.blockchain_states_storage
         return ilen(storage.list_directory())
+
+    def _get_blockchain_state_real_file_path(self, file_path):
+        optimized_path = self.blockchain_states_storage.get_optimized_path(file_path)
+        abs_optimized_path = os.path.join(self.account_root_files_directory, optimized_path)
+        return os.path.relpath(abs_optimized_path, self.base_directory)
 
     # Blocks methods
     @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)

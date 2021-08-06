@@ -8,6 +8,8 @@ import pytest
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
 from thenewboston_node.business_logic.blockchain.mock_blockchain import MockBlockchain
+from thenewboston_node.business_logic.models import Block, NodeDeclarationSignedChangeRequest
+from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.business_logic.tests.factories import add_blocks_to_blockchain
 from thenewboston_node.business_logic.tests.mocks.storage_mock import StorageMock
 from thenewboston_node.business_logic.utils.iter import get_generator
@@ -126,3 +128,18 @@ def blockchain_base(blockchain_genesis_state):
     blockchain = BlockchainBase()
     with patch.object(blockchain, 'yield_blockchain_states', get_generator([blockchain_genesis_state])):
         yield blockchain
+
+
+@pytest.fixture
+def declared_node_file_blockchain(forced_file_blockchain):
+    blockchain = forced_file_blockchain
+    node_signing_key = get_node_signing_key()
+
+    node_request = NodeDeclarationSignedChangeRequest.create(
+        network_addresses=['http://localhost/some/path'], fee_amount=3, signing_key=node_signing_key
+    )
+    block0 = Block.create_from_signed_change_request(blockchain, node_request, node_signing_key)
+    blockchain.add_block(block0)
+    blockchain.snapshot_blockchain_state()
+
+    return blockchain

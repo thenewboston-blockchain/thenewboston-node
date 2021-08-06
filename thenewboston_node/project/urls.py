@@ -19,6 +19,7 @@ from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 import thenewboston_node.accounts.urls
+import thenewboston_node.blockchain.urls
 import thenewboston_node.web.urls
 
 API_PREFIX = 'api/'
@@ -29,6 +30,7 @@ urlpatterns = [
 
     # local apps
     path(API_PREFIX + 'v1/', include(thenewboston_node.accounts.urls)),
+    path(API_PREFIX + 'v1/', include(thenewboston_node.blockchain.urls)),
     path(API_PREFIX + 'schema/', SpectacularAPIView.as_view(), name='schema'),
     path(API_PREFIX + 'doc/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger'),
 ]

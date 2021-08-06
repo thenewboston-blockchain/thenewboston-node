@@ -15,6 +15,7 @@ from thenewboston_node.core.utils.types import hexstr
 from .account_state import AccountState
 from .base import BaseDataclass
 from .mixins.compactable import MessagpackCompactableMixin
+from .mixins.metadata import MetadataMixin
 from .mixins.normalizable import NormalizableMixin
 
 T = TypeVar('T', bound='BlockchainState')
@@ -25,7 +26,7 @@ logger = logging.getLogger(__name__)
 @revert_docstring
 @dataclass
 @cover_docstring
-class BlockchainState(MessagpackCompactableMixin, NormalizableMixin, BaseDataclass):
+class BlockchainState(MetadataMixin, MessagpackCompactableMixin, NormalizableMixin, BaseDataclass):
 
     account_states: dict[hexstr, AccountState] = field(
         metadata={'example_value': {
@@ -54,6 +55,8 @@ class BlockchainState(MessagpackCompactableMixin, NormalizableMixin, BaseDatacla
     )
     """Identifier of the next block to be added on top of the blockchain state
     (optional for blockchain genesis state, blockchain state hash is used as next block identifier in this case)"""
+
+    meta: Optional[dict[str, Any]] = None
 
     @classmethod
     def create_from_account_root_file(cls: Type[T], account_root_file_dict) -> T:

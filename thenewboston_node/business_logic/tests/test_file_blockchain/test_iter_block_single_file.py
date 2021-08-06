@@ -5,7 +5,7 @@ from thenewboston_node.business_logic.node import get_node_signing_key
 
 
 @pytest.fixture(autouse=True)
-def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_signing_key):
+def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_signing_key, preferred_node):
     signing_key = treasury_account_signing_key
     blockchain = file_blockchain_w_memory_storage
     filename = '0000-0003-block-chunk.msgpack'
@@ -16,6 +16,7 @@ def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_sign
         amount=10,
         request_signing_key=signing_key,
         pv_signing_key=get_node_signing_key(),
+        preferred_node=preferred_node,
     )
     blockchain.block_storage.append(filename, block0.to_messagepack())
 
@@ -25,6 +26,7 @@ def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_sign
         amount=20,
         request_signing_key=signing_key,
         pv_signing_key=get_node_signing_key(),
+        preferred_node=preferred_node,
     )
     blockchain.block_storage.append(filename, block1.to_messagepack())
 
@@ -34,6 +36,7 @@ def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_sign
         amount=50,
         request_signing_key=signing_key,
         pv_signing_key=get_node_signing_key(),
+        preferred_node=preferred_node,
     )
     blockchain.block_storage.append(filename, block2.to_messagepack())
 
@@ -43,6 +46,7 @@ def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_sign
         amount=70,
         request_signing_key=signing_key,
         pv_signing_key=get_node_signing_key(),
+        preferred_node=preferred_node,
     )
     blockchain.block_storage.append(filename, block3.to_messagepack())
 

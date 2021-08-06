@@ -5,7 +5,7 @@ from thenewboston_node.business_logic.node import get_node_signing_key
 
 
 @pytest.fixture(autouse=True)
-def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_signing_key):
+def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_signing_key, preferred_node):
     signing_key = treasury_account_signing_key
     block = Block.create_from_main_transaction(
         blockchain=file_blockchain_w_memory_storage,
@@ -13,6 +13,7 @@ def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_sign
         amount=100,
         request_signing_key=signing_key,
         pv_signing_key=get_node_signing_key(),
+        preferred_node=preferred_node,
     )
     file_blockchain_w_memory_storage.add_block(block)
 

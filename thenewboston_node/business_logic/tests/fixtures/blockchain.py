@@ -80,9 +80,7 @@ def forced_mock_blockchain(blockchain_genesis_state):
 # TODO(dmu) MEDIUM: Get rid of file_blockchain_w_memory_storage
 #                   (use plain file_blockchain for better integration testing)
 @pytest.fixture
-def file_blockchain_w_memory_storage(
-    file_blockchain, blockchain_genesis_state, forced_mock_network, get_primary_validator_mock, get_preferred_node_mock
-):
+def file_blockchain_w_memory_storage(file_blockchain, blockchain_genesis_state):
     file_blockchain.clear()
     block_storage_mock = patch.object(file_blockchain, 'block_storage', StorageMock())
     arf_storage_mock = patch.object(file_blockchain, 'blockchain_states_storage', StorageMock())

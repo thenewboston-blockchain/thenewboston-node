@@ -1,10 +1,8 @@
 import logging
-import warnings
 from dataclasses import dataclass, field
 from typing import Any, Optional, Type, TypeVar
 
-from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
-from thenewboston_node.business_logic.network.base import NetworkBase
+from thenewboston_node.business_logic.models.node import Node
 from thenewboston_node.business_logic.validators import (
     validate_exact_value, validate_in, validate_not_empty, validate_not_none, validate_type
 )
@@ -102,17 +100,12 @@ class Block(SignableMixin, MessagpackCompactableMixin, MetadataMixin, BaseDatacl
         amount: int,
         request_signing_key: str,
         pv_signing_key: str,
-        primary_validator: Optional[PrimaryValidator] = None,
-        node: Optional[RegularNode] = None
+        preferred_node: Node,
     ) -> T:
         # TODO(dmu) HIGH: This method is only used in tests (mostly for test data creation). Business rules
         #                 do not suggest creation from main transaction. There this method must be removed
         #                 from Block interface
-        if primary_validator is None or node is None:
-            warnings.warn('Skipping primary_validator and node is deprecated', DeprecationWarning)
-            network = NetworkBase.get_instance()
-            primary_validator = primary_validator or network.get_primary_validator()
-            node = node or network.get_preferred_node()
+        primary_validator = blockchain.get_primary_validator()
 
         signed_change_request = CoinTransferSignedChangeRequest.from_main_transaction(
             blockchain=blockchain,
@@ -120,7 +113,7 @@ class Block(SignableMixin, MessagpackCompactableMixin, MetadataMixin, BaseDatacl
             amount=amount,
             signing_key=request_signing_key,
             primary_validator=primary_validator,
-            node=node,
+            node=preferred_node,
         )
         return cls.create_from_signed_change_request(blockchain, signed_change_request, pv_signing_key)
 

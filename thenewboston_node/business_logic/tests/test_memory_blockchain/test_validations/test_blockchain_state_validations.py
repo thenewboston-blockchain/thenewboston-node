@@ -5,7 +5,6 @@ from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.core.utils.types import hexstr
 
 
-@pytest.mark.usefixtures('forced_mock_network')
 def test_validate_account_root_files_raises(memory_blockchain: MemoryBlockchain,):
     blockchain = memory_blockchain
 

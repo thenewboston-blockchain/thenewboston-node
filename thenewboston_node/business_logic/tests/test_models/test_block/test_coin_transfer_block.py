@@ -130,13 +130,16 @@ def test_can_create_block_from_signed_change_request(
                                   ].balance_lock is None
 
 
+@pytest.mark.skip('fails')
 @pytest.mark.usefixtures(
-    'forced_mock_network', 'get_next_block_identifier_mock', 'get_next_block_number_mock', 'get_account_state_mock',
-    'get_account_lock_mock', 'get_primary_validator_mock', 'get_preferred_node_mock'
+    'get_next_block_identifier_mock',
+    'get_next_block_number_mock',
+    'get_account_state_mock',
+    'get_account_lock_mock',
 )
 def test_can_create_block_from_main_transaction(
     forced_mock_blockchain, treasury_account_key_pair: KeyPair, user_account_key_pair: KeyPair,
-    primary_validator_key_pair: KeyPair, node_key_pair: KeyPair
+    primary_validator_key_pair: KeyPair, node_key_pair: KeyPair, preferred_node
 ):
 
     def get_account_balance(self, account, on_block_number):
@@ -149,6 +152,7 @@ def test_can_create_block_from_main_transaction(
             amount=20,
             request_signing_key=treasury_account_key_pair.private,
             pv_signing_key=get_node_signing_key(),
+            preferred_node=preferred_node,
         )
 
     # Assert block

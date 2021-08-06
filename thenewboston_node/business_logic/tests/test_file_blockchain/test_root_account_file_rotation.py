@@ -7,7 +7,7 @@ from thenewboston_node.business_logic.node import get_node_signing_key
 
 
 @pytest.fixture(autouse=True)
-def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_signing_key):
+def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_signing_key, preferred_node):
     signing_key = treasury_account_signing_key
     with patch.object(file_blockchain_w_memory_storage, 'snapshot_period_in_blocks', 2):
         block0 = Block.create_from_main_transaction(
@@ -15,7 +15,8 @@ def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_sign
             recipient=user_account,
             amount=10,
             request_signing_key=signing_key,
-            pv_signing_key=get_node_signing_key()
+            pv_signing_key=get_node_signing_key(),
+            preferred_node=preferred_node,
         )
         file_blockchain_w_memory_storage.add_block(block0)
 
@@ -24,7 +25,8 @@ def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_sign
             recipient=user_account,
             amount=20,
             request_signing_key=signing_key,
-            pv_signing_key=get_node_signing_key()
+            pv_signing_key=get_node_signing_key(),
+            preferred_node=preferred_node,
         )
         file_blockchain_w_memory_storage.add_block(block1)
 

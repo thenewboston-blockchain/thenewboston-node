@@ -14,10 +14,6 @@ from thenewboston_node.business_logic.utils.iter import get_generator
 
 logger = logging.getLogger(__name__)
 
-LARGE_MEMORY_BLOCKCHAIN_SIZE = 100
-
-MEMORY_BLOCKCHAIN_CLASS = 'thenewboston_node.business_logic.blockchain.memory_blockchain.MemoryBlockchain'
-FILE_BLOCKCHAIN_CLASS = 'thenewboston_node.business_logic.blockchain.file_blockchain.FileBlockchain'
 MOCK_BLOCKCHAIN_CLASS = 'thenewboston_node.business_logic.blockchain.mock_blockchain.MockBlockchain'
 
 

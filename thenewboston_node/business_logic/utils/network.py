@@ -28,12 +28,13 @@ def get_own_network_addresses():
     return network_addresses
 
 
-def make_own_node(identifier=None, network_addresses=None, fee_amount=None, fee_account=None):
+def make_own_node():
+    identifier = derive_public_key(get_node_signing_key())
     return Node(
-        identifier=derive_public_key(get_node_signing_key()) if identifier is None else identifier,
-        network_addresses=get_own_network_addresses() if network_addresses is None else network_addresses,
-        fee_amount=settings.NODE_FEE_AMOUNT if fee_amount is None else fee_amount,
-        fee_account=settings.NODE_FEE_ACCOUNT if fee_account is None else fee_amount,
+        identifier=identifier,
+        network_addresses=get_own_network_addresses(),
+        fee_amount=settings.NODE_FEE_AMOUNT,
+        fee_account=settings.NODE_FEE_ACCOUNT,
     )
 
 

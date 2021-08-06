@@ -18,16 +18,12 @@ class MemoryBlockchain(BlockchainBase):
     def __init__(
         self,
         *,
-        account_root_files: list[BlockchainState] = None,
-        blocks: Optional[list[Block]] = None,
         drop_intermediate_account_root_files=True,
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self.blockchain_states: list[BlockchainState] = (
-            copy.deepcopy(account_root_files) if account_root_files else []
-        )
-        self.blocks: list[Block] = copy.deepcopy(blocks) if blocks else []
+        self.blockchain_states: list[BlockchainState] = []
+        self.blocks: list[Block] = []
         self.drop_intermediate_account_root_files = drop_intermediate_account_root_files
 
     # Account root files related implemented methods

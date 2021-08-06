@@ -1,7 +1,5 @@
 from datetime import datetime
 
-import pytest
-
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
 from thenewboston_node.business_logic.models import CoinTransferSignedChangeRequest
 from thenewboston_node.business_logic.models.account_state import AccountState
@@ -10,7 +8,6 @@ from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.core.utils.cryptography import generate_key_pair
 
 
-@pytest.mark.skip('fails')
 def test_partial_blockchain(primary_validator, preferred_node):
     account1_key_pair = generate_key_pair()
     account2_key_pair = generate_key_pair()
@@ -21,7 +18,7 @@ def test_partial_blockchain(primary_validator, preferred_node):
     fake_lock2, _ = generate_key_pair()
     fake_lock3, _ = generate_key_pair()
 
-    base_account_root_file = BlockchainState(
+    base_blockchain_state = BlockchainState(
         account_states={
             account1_key_pair.public: AccountState(balance=1000, balance_lock=fake_lock1),
             account2_key_pair.public: AccountState(balance=2000, balance_lock=fake_lock2),
@@ -33,7 +30,8 @@ def test_partial_blockchain(primary_validator, preferred_node):
         next_block_identifier='626dea61c1a6480d6a4c9cd657c7d7be52ddc38e5f2ec590b609ac01edde62fd',
     )
 
-    blockchain = MemoryBlockchain(account_root_files=[base_account_root_file])
+    blockchain = MemoryBlockchain()
+    blockchain.add_blockchain_state(base_blockchain_state)
     assert blockchain.get_block_count() == 0
     assert blockchain.get_account_current_balance(account1_key_pair.public) == 1000
     assert blockchain.get_account_current_balance(account2_key_pair.public) == 2000
@@ -53,8 +51,15 @@ def test_partial_blockchain(primary_validator, preferred_node):
     blockchain.add_block_from_signed_change_request(signed_change_request1, get_node_signing_key())
     blockchain.validate()
 
+    pv_fee = primary_validator.fee_amount
+    node_fee = preferred_node.fee_amount
+    assert pv_fee > 0
+    assert node_fee > 0
+    assert pv_fee != node_fee
+    total_fees = pv_fee + node_fee
+
     assert blockchain.get_block_count() == 1
-    assert blockchain.get_account_current_balance(account1_key_pair.public) == 1000 - 10 - 4 - 1
+    assert blockchain.get_account_current_balance(account1_key_pair.public) == 1000 - 10 - total_fees
     assert blockchain.get_account_current_balance(account2_key_pair.public) == 2000 + 10
     assert blockchain.get_account_current_balance(account3_key_pair.public) == 3000
     assert blockchain.get_account_current_balance(new_account_key_pair.public) == 0
@@ -72,16 +77,16 @@ def test_partial_blockchain(primary_validator, preferred_node):
     blockchain.validate()
 
     assert blockchain.get_block_count() == 2
-    assert blockchain.get_account_current_balance(account1_key_pair.public) == 1000 - 10 - 4 - 1
-    assert blockchain.get_account_current_balance(account2_key_pair.public) == 2000 + 10 - 20 - 4 - 1
+    assert blockchain.get_account_current_balance(account1_key_pair.public) == 1000 - 10 - total_fees
+    assert blockchain.get_account_current_balance(account2_key_pair.public) == 2000 + 10 - 20 - total_fees
     assert blockchain.get_account_current_balance(account3_key_pair.public) == 3000
     assert blockchain.get_account_current_balance(new_account_key_pair.public) == 20
 
     blockchain.snapshot_blockchain_state()
     blockchain.validate()
 
-    assert blockchain.get_account_current_balance(account1_key_pair.public) == 1000 - 10 - 4 - 1
-    assert blockchain.get_account_current_balance(account2_key_pair.public) == 2000 + 10 - 20 - 4 - 1
+    assert blockchain.get_account_current_balance(account1_key_pair.public) == 1000 - 10 - total_fees
+    assert blockchain.get_account_current_balance(account2_key_pair.public) == 2000 + 10 - 20 - total_fees
     assert blockchain.get_account_current_balance(account3_key_pair.public) == 3000
     assert blockchain.get_account_current_balance(new_account_key_pair.public) == 20
 
@@ -97,7 +102,7 @@ def test_partial_blockchain(primary_validator, preferred_node):
     blockchain.add_block_from_signed_change_request(signed_change_request3, get_node_signing_key())
     blockchain.validate()
 
-    assert blockchain.get_account_current_balance(account1_key_pair.public) == 1000 - 10 - 4 - 1
-    assert blockchain.get_account_current_balance(account2_key_pair.public) == 2000 + 10 - 20 - 4 - 1 + 30
-    assert blockchain.get_account_current_balance(account3_key_pair.public) == 3000 - 30 - 4 - 1
+    assert blockchain.get_account_current_balance(account1_key_pair.public) == 1000 - 10 - total_fees
+    assert blockchain.get_account_current_balance(account2_key_pair.public) == 2000 + 10 - 20 - total_fees + 30
+    assert blockchain.get_account_current_balance(account3_key_pair.public) == 3000 - 30 - total_fees
     assert blockchain.get_account_current_balance(new_account_key_pair.public) == 20

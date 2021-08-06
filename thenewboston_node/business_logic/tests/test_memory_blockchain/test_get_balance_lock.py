@@ -1,16 +1,14 @@
-import pytest
-
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.core.utils.cryptography import KeyPair
 
 
-@pytest.mark.usefixtures('forced_mock_network', 'get_primary_validator_mock', 'get_preferred_node_mock')
 def test_get_account_lock(
     memory_blockchain: MemoryBlockchain,
     treasury_account_key_pair: KeyPair,
     user_account_key_pair: KeyPair,
+    preferred_node,
 ):
     blockchain = memory_blockchain
 
@@ -27,6 +25,7 @@ def test_get_account_lock(
         amount=30,
         request_signing_key=treasury_account_key_pair.private,
         pv_signing_key=get_node_signing_key(),
+        preferred_node=preferred_node,
     )
     blockchain.add_block(block0)
     assert blockchain.get_next_block_number() == 1
@@ -44,6 +43,7 @@ def test_get_account_lock(
         amount=10,
         request_signing_key=treasury_account_key_pair.private,
         pv_signing_key=get_node_signing_key(),
+        preferred_node=preferred_node,
     )
     blockchain.add_block(block1)
     assert blockchain.get_next_block_number() == 2

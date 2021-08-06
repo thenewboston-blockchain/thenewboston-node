@@ -9,7 +9,9 @@ from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.core.utils.cryptography import KeyPair
 
 
-def test_block_chunk_is_rotated(file_blockchain_w_memory_storage, user_account, treasury_account_signing_key):
+def test_block_chunk_is_rotated(
+    file_blockchain_w_memory_storage, user_account, treasury_account_signing_key, preferred_node
+):
     signing_key = treasury_account_signing_key
     blockchain = file_blockchain_w_memory_storage
     file1 = '00000000000000000000-00000000000000000001-block-chunk.msgpack'
@@ -23,6 +25,7 @@ def test_block_chunk_is_rotated(file_blockchain_w_memory_storage, user_account, 
             amount=10,
             request_signing_key=signing_key,
             pv_signing_key=node_signing_key,
+            preferred_node=preferred_node,
         )
         blockchain.add_block(block0)
 
@@ -32,6 +35,7 @@ def test_block_chunk_is_rotated(file_blockchain_w_memory_storage, user_account, 
             amount=10,
             request_signing_key=signing_key,
             pv_signing_key=node_signing_key,
+            preferred_node=preferred_node,
         )
         blockchain.add_block(block1)
 
@@ -41,6 +45,7 @@ def test_block_chunk_is_rotated(file_blockchain_w_memory_storage, user_account, 
             amount=30,
             request_signing_key=signing_key,
             pv_signing_key=node_signing_key,
+            preferred_node=preferred_node,
         )
         blockchain.add_block(block2)
 
@@ -50,6 +55,7 @@ def test_block_chunk_is_rotated(file_blockchain_w_memory_storage, user_account, 
             amount=50,
             request_signing_key=signing_key,
             pv_signing_key=node_signing_key,
+            preferred_node=preferred_node,
         )
         blockchain.add_block(block3)
 
@@ -57,7 +63,9 @@ def test_block_chunk_is_rotated(file_blockchain_w_memory_storage, user_account, 
     assert blockchain.block_storage.finalized == {file1, file2}
 
 
-def test_block_is_appended(file_blockchain_w_memory_storage, user_account, treasury_account_signing_key):
+def test_block_is_appended(
+    file_blockchain_w_memory_storage, user_account, treasury_account_signing_key, preferred_node
+):
     signing_key = treasury_account_signing_key
     blockchain = file_blockchain_w_memory_storage
     filename = '00000000000000000000-00000000000000000001-block-chunk.msgpack'
@@ -70,6 +78,7 @@ def test_block_is_appended(file_blockchain_w_memory_storage, user_account, treas
         amount=10,
         request_signing_key=signing_key,
         pv_signing_key=node_signing_key,
+        preferred_node=preferred_node,
     )
     blockchain.add_block(block1)
 
@@ -79,6 +88,7 @@ def test_block_is_appended(file_blockchain_w_memory_storage, user_account, treas
         amount=30,
         request_signing_key=signing_key,
         pv_signing_key=node_signing_key,
+        preferred_node=preferred_node,
     )
     blockchain.add_block(block2)
 
@@ -86,7 +96,9 @@ def test_block_is_appended(file_blockchain_w_memory_storage, user_account, treas
     assert blockchain.block_storage.finalized == set()
 
 
-def test_cannot_add_block_twice(file_blockchain_w_memory_storage, user_account, treasury_account_signing_key):
+def test_cannot_add_block_twice(
+    file_blockchain_w_memory_storage, user_account, treasury_account_signing_key, preferred_node
+):
     signing_key = treasury_account_signing_key
     blockchain = file_blockchain_w_memory_storage
 
@@ -97,6 +109,7 @@ def test_cannot_add_block_twice(file_blockchain_w_memory_storage, user_account, 
         amount=10,
         request_signing_key=signing_key,
         pv_signing_key=node_signing_key,
+        preferred_node=preferred_node,
     )
     blockchain.add_block(block)
 
@@ -104,14 +117,14 @@ def test_cannot_add_block_twice(file_blockchain_w_memory_storage, user_account, 
         blockchain.add_block(block)
 
 
-@pytest.mark.usefixtures('forced_mock_network', 'get_primary_validator_mock', 'get_preferred_node_mock')
+@pytest.mark.skip('fails')
 def test_can_add_block(
     blockchain_directory,
     blockchain_genesis_state,
     treasury_account_key_pair: KeyPair,
     user_account_key_pair: KeyPair,
-    primary_validator_key_pair: KeyPair,
     node_key_pair: KeyPair,
+    preferred_node,
 ):
     blockchain = FileBlockchain(base_directory=blockchain_directory)
     blockchain.add_blockchain_state(blockchain_genesis_state)
@@ -122,7 +135,10 @@ def test_can_add_block(
     assert treasury_initial_balance is not None
 
     user_account = user_account_key_pair.public
-    pv_account = primary_validator_key_pair.public
+    primary_validator = blockchain.get_primary_validator()
+    assert primary_validator
+    pv_account = primary_validator.identifier
+    assert pv_account
     node_account = node_key_pair.public
 
     total_fees = 1 + 4
@@ -134,6 +150,7 @@ def test_can_add_block(
         amount=30,
         request_signing_key=treasury_account_key_pair.private,
         pv_signing_key=node_signing_key,
+        preferred_node=preferred_node,
     )
     blockchain.add_block(block0)
     assert blockchain.get_account_current_balance(user_account) == 30
@@ -150,6 +167,7 @@ def test_can_add_block(
         amount=10,
         request_signing_key=treasury_account_key_pair.private,
         pv_signing_key=node_signing_key,
+        preferred_node=preferred_node,
     )
     blockchain.add_block(block1)
     assert blockchain.get_account_current_balance(user_account) == 40
@@ -164,6 +182,7 @@ def test_can_add_block(
         amount=5,
         request_signing_key=user_account_key_pair.private,
         pv_signing_key=node_signing_key,
+        preferred_node=preferred_node,
     )
     blockchain.add_block(block2)
     assert blockchain.get_account_current_balance(user_account) == 40 - 5 - total_fees

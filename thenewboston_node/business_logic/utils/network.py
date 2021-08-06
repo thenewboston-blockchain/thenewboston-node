@@ -28,11 +28,9 @@ def get_own_network_addresses():
     return network_addresses
 
 
-def make_own_node(network_addresses=None):
-    signing_key = get_node_signing_key()
-    identifier = derive_public_key(signing_key)
+def make_own_node(identifier=None, network_addresses=None):
     return Node(
-        identifier=identifier,
+        identifier=derive_public_key(get_node_signing_key()) if identifier is None else identifier,
         network_addresses=get_own_network_addresses() if network_addresses is None else network_addresses,
         fee_amount=settings.NODE_FEE_AMOUNT,
         fee_account=settings.NODE_FEE_ACCOUNT,

@@ -1,5 +1,3 @@
-import pytest
-
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
@@ -16,7 +14,6 @@ def test_get_account_state_from_blockchain_genesis_state(
                                                          ) == blockchain_genesis_state.get_account_balance(account)
 
 
-@pytest.mark.usefixtures('forced_mock_network', 'get_primary_validator_mock', 'get_preferred_node_mock')
 def test_can_get_account_state_by_block_number(
     memory_blockchain: MemoryBlockchain, treasury_account_key_pair: KeyPair, user_account_key_pair: KeyPair,
     primary_validator, preferred_node
@@ -39,6 +36,7 @@ def test_can_get_account_state_by_block_number(
         amount=10,
         request_signing_key=treasury_account_key_pair.private,
         pv_signing_key=get_node_signing_key(),
+        preferred_node=preferred_node,
     )
     blockchain.add_block(block0)
     assert blockchain.get_account_balance(sender, -1) == sender_initial_balance
@@ -54,6 +52,7 @@ def test_can_get_account_state_by_block_number(
         amount=11,
         request_signing_key=treasury_account_key_pair.private,
         pv_signing_key=get_node_signing_key(),
+        preferred_node=preferred_node,
     )
     blockchain.add_block(block1)
     assert blockchain.get_account_balance(sender, -1) == sender_initial_balance
@@ -71,6 +70,7 @@ def test_can_get_account_state_by_block_number(
         amount=12,
         request_signing_key=treasury_account_key_pair.private,
         pv_signing_key=get_node_signing_key(),
+        preferred_node=preferred_node,
     )
     blockchain.add_block(block2)
     assert blockchain.get_account_balance(sender, -1) == sender_initial_balance

@@ -6,7 +6,7 @@ from thenewboston_node.core.utils.types import hexstr
 from ..blockchain.memory_blockchain import MemoryBlockchain
 from ..models import (
     AccountState, Block, BlockchainState, CoinTransferSignedChangeRequest, NodeDeclarationSignedChangeRequest,
-    PrimaryValidator, PrimaryValidatorScheduleSignedChangeRequest, RegularNode
+    PrimaryValidator, PrimaryValidatorSchedule, PrimaryValidatorScheduleSignedChangeRequest, RegularNode
 )
 
 TREASURY_KEY_PAIR = KeyPair(
@@ -29,6 +29,11 @@ PV_FIN_ACCOUNT_KEY_PAIR = KeyPair(
     private=hexstr('d41f52e67645aea0657e2c324efa88a7583310d1e8e7e616bb1233fffeba5151'),
 )
 
+PV2_KEY_PAIR = KeyPair(
+    public=hexstr('b8a2d519d5cfa5ecc28966f3a1cb222aca7e25a553a260e50255159364eb4ff7'),
+    private=hexstr('4f8df4b7d793d1b0719f653bfce58a67ce202bf1779153ba5fd77b3c22cf2dd6'),
+)
+
 USER_KEY_PAIR = KeyPair(
     public=hexstr('7584e5ad3f3d29f44179be133790dc94b52dd2e671b9b96694faa36bcc14c135'),
     private=hexstr('ba719a713651bf1a3ea07bd6eb9bc98721546df2425941d808c2a13c7966ab1f'),
@@ -46,8 +51,16 @@ def make_sample_blockchain():
     )
     blockchain_state = BlockchainState(
         account_states={
-            TREASURY_KEY_PAIR.public: AccountState(balance=281474976710656),
-            PV_KEY_PAIR.public: AccountState(node=pv),
+            TREASURY_KEY_PAIR.public:
+                AccountState(balance=281474976710656),
+            PV_KEY_PAIR.public:
+                AccountState(
+                    node=pv,
+                    primary_validator_schedule=PrimaryValidatorSchedule(
+                        begin_block_number=0,
+                        end_block_number=99,
+                    )
+                ),
         }
     )
     blockchain.add_blockchain_state(blockchain_state)
@@ -79,9 +92,9 @@ def make_sample_blockchain():
 
     blockchain.utcnow = lambda: datetime.fromisoformat('2021-06-19T23:20:00')
     pv_schedule_scr = PrimaryValidatorScheduleSignedChangeRequest.create(
-        0,
-        99,
-        signing_key=TREASURY_KEY_PAIR.private,
+        100,
+        199,
+        signing_key=PV2_KEY_PAIR.private,
     )
     blockchain.add_block(Block.create_from_signed_change_request(blockchain, pv_schedule_scr, PV_KEY_PAIR.private))
 

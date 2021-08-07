@@ -103,6 +103,13 @@ class BlockchainState(MetadataMixin, MessagpackCompactableMixin, NormalizableMix
     def yield_account_states(self) -> Generator[tuple[hexstr, AccountState], None, None]:
         yield from self.account_states.items()
 
+    def yield_nodes(self):
+        for account_number, account_state in self.yield_account_states():
+            node = account_state.node
+            if node:
+                assert node.identifier == account_number
+                yield node
+
     def get_account_state(self, account: hexstr) -> Optional[AccountState]:
         return self.account_states.get(account)
 

@@ -1,11 +1,10 @@
-from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
 from thenewboston_node.business_logic.models import Block, NodeDeclarationSignedChangeRequest
 from thenewboston_node.business_logic.tests.base import force_blockchain
 
 API_V1_NODES_PREFIX = '/api/v1/nodes'
 
 
-def test_node_not_found(file_blockchain: MemoryBlockchain, api_client):
+def test_node_not_found(file_blockchain, api_client):
     with force_blockchain(file_blockchain):
         response = api_client.get(API_V1_NODES_PREFIX + '/non_existing_id/')
 

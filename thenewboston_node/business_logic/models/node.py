@@ -27,6 +27,9 @@ class Node(BaseDataclass):
         default=None, metadata={'example_value': '7a5dc06babda703a7d2d8ea18d3309a0c5e6830a25bac03e69633d283244e001'}
     )
 
+    def __hash__(self):
+        return hash(self.identifier)
+
     def validate(self):
         self.validate_identifier()
         self.validate_fee_amount()

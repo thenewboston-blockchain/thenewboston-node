@@ -7,8 +7,7 @@ from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.models import CoinTransferSignedChangeRequest
 from thenewboston_node.business_logic.models.account_state import AccountState
 from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
-from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
-from thenewboston_node.business_logic.node import get_node_identifier
+from thenewboston_node.business_logic.models.node import RegularNode
 from thenewboston_node.core.utils.cryptography import generate_key_pair
 
 MAX_AMOUNT = 100
@@ -57,7 +56,8 @@ def generate_blockchain(
         )
         blockchain.add_blockchain_state(blockchain_genesis_state)
 
-    primary_validator = PrimaryValidator(identifier=get_node_identifier(), fee_amount=4, network_addresses=[])
+    primary_validator = blockchain.get_primary_validator()
+    assert primary_validator
     pv_fee = primary_validator.fee_amount
 
     preferred_node = RegularNode(identifier=generate_key_pair().public, fee_amount=1, network_addresses=[])
@@ -92,7 +92,6 @@ def generate_blockchain(
             recipient=recipient,
             amount=amount,
             signing_key=sender_private_key,
-            primary_validator=primary_validator,
             node=preferred_node
         )
 
@@ -105,6 +104,8 @@ def generate_blockchain(
         balances[recipient] = recipient_new_balance
         if recipient_new_balance >= min_sender_amount:
             sender_candidates.add(recipient)
+        pv = blockchain.get_primary_validator()
+        assert pv
 
         blockchain.add_block_from_signed_change_request(signed_change_request, signing_key, validate=validate)
 

@@ -2,7 +2,7 @@ import copy
 from dataclasses import dataclass, field
 from typing import Type, TypeVar
 
-from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
+from thenewboston_node.business_logic.models.node import RegularNode
 from thenewboston_node.business_logic.validators import validate_not_empty, validate_type
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.cryptography import normalize_dict
@@ -43,11 +43,11 @@ class CoinTransferSignedChangeRequestMessage(SignedChangeRequestMessage):
         coin_sender: hexstr,
         recipient: hexstr,
         amount: int,
-        primary_validator: PrimaryValidator,
         node: RegularNode,
         memo: str = None
     ) -> T:
-        assert primary_validator.identifier
+        primary_validator = blockchain.get_primary_validator()
+        assert primary_validator
         assert node.identifier
         txs = [
             CoinTransferTransaction(recipient=recipient, amount=amount, memo=memo),

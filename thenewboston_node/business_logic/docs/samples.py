@@ -72,7 +72,6 @@ def make_sample_blockchain():
         recipient=USER_KEY_PAIR.public,
         amount=1200,
         signing_key=TREASURY_KEY_PAIR.private,
-        primary_validator=pv,
         node=node,
         memo='For candy'
     )

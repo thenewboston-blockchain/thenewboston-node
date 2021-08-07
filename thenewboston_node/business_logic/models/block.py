@@ -105,14 +105,11 @@ class Block(SignableMixin, MessagpackCompactableMixin, MetadataMixin, BaseDatacl
         # TODO(dmu) HIGH: This method is only used in tests (mostly for test data creation). Business rules
         #                 do not suggest creation from main transaction. There this method must be removed
         #                 from Block interface
-        primary_validator = blockchain.get_primary_validator()
-
         signed_change_request = CoinTransferSignedChangeRequest.from_main_transaction(
             blockchain=blockchain,
             recipient=recipient,
             amount=amount,
             signing_key=request_signing_key,
-            primary_validator=primary_validator,
             node=preferred_node,
         )
         return cls.create_from_signed_change_request(blockchain, signed_change_request, pv_signing_key)

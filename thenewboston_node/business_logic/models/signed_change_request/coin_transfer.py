@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import ClassVar, Type, TypeVar
 
-from thenewboston_node.business_logic.models.node import PrimaryValidator, RegularNode
+from thenewboston_node.business_logic.models.node import RegularNode
 from thenewboston_node.business_logic.validators import (
     validate_exact_value, validate_greater_than_zero, validate_lte_value
 )
@@ -38,7 +38,6 @@ class CoinTransferSignedChangeRequest(SignedChangeRequest):
         recipient: hexstr,
         amount: int,
         signing_key: hexstr,
-        primary_validator: PrimaryValidator,
         node: RegularNode,
         memo: str = None
     ) -> T:
@@ -47,7 +46,6 @@ class CoinTransferSignedChangeRequest(SignedChangeRequest):
             coin_sender=derive_public_key(signing_key),
             recipient=recipient,
             amount=amount,
-            primary_validator=primary_validator,
             node=node,
             memo=memo,
         )

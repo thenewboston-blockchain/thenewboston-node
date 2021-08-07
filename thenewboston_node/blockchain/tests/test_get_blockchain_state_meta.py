@@ -25,7 +25,7 @@ def test_can_get_blockchain_genesis_state_meta(api_client, file_blockchain, bloc
     assert data['url_path'] == '/blockchain/blockchain-states/0/0/0/0/0/0/0/0/000000000!-blockchain-state.msgpack'
     assert len(data['urls']) == 1
     assert data['urls'][0] == (
-        'http://localhost/blockchain/blockchain-states/0/0/0/0/0/0/0/0/000000000!-blockchain-state.msgpack'
+        'http://localhost:8555/blockchain/blockchain-states/0/0/0/0/0/0/0/0/000000000!-blockchain-state.msgpack'
     )
 
 

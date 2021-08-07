@@ -14,7 +14,7 @@ def primary_validator(primary_validator_key_pair, pv_fee_amount):
     return baker.make(
         Node,
         identifier=primary_validator_key_pair.public,
-        network_addresses=['http://localhost'],
+        network_addresses=['http://localhost:8555/'],
         fee_amount=4,
         fee_account=None,
     )
@@ -25,7 +25,7 @@ def preferred_node(node_key_pair):
     return baker.make(
         Node,
         identifier=node_key_pair.public,
-        network_addresses=['http://pref.localhost'],
+        network_addresses=['http://pref.localhost:8555/'],
         fee_amount=1,
         fee_account=None
     )

@@ -62,7 +62,7 @@ generate-blockchain:
 
 .PHONY: run-server
 run-server:
-	poetry run python -m thenewboston_node.manage runserver 127.0.0.1:8001
+	poetry run python -m thenewboston_node.manage runserver 127.0.0.1:8555
 
 .PHONY: dev-initialize-blockchain
 dev-initialize-blockchain:

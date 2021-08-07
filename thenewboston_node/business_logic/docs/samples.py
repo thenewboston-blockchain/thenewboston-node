@@ -1,12 +1,13 @@
 from datetime import datetime
 
+from thenewboston_node.business_logic.utils.blockchain_state import make_blockchain_genesis_state
 from thenewboston_node.core.utils.cryptography import KeyPair
 from thenewboston_node.core.utils.types import hexstr
 
 from ..blockchain.memory_blockchain import MemoryBlockchain
 from ..models import (
-    AccountState, Block, BlockchainState, CoinTransferSignedChangeRequest, NodeDeclarationSignedChangeRequest,
-    PrimaryValidator, PrimaryValidatorSchedule, PrimaryValidatorScheduleSignedChangeRequest, RegularNode
+    Block, CoinTransferSignedChangeRequest, NodeDeclarationSignedChangeRequest,
+    PrimaryValidatorScheduleSignedChangeRequest, RegularNode
 )
 
 TREASURY_KEY_PAIR = KeyPair(
@@ -43,31 +44,21 @@ USER_KEY_PAIR = KeyPair(
 def make_sample_blockchain():
     blockchain = MemoryBlockchain()
 
-    pv = PrimaryValidator(
-        identifier=PV_KEY_PAIR.public,
-        network_addresses=['https://pv-non-existing.thenewboston.com:8000', 'http://78.107.238.40:8000'],
-        fee_amount=4,
-        fee_account=PV_FIN_ACCOUNT_KEY_PAIR.public
+    blockchain_state = make_blockchain_genesis_state(
+        primary_validator_identifier=PV_KEY_PAIR.public,
+        primary_validator_network_addresses=(
+            'https://pv-non-existing.thenewboston.com:8555/', 'http://78.107.238.40:8555/'
+        ),
+        primary_validator_fee_amount=4,
+        primary_validator_fee_account=PV_FIN_ACCOUNT_KEY_PAIR.public,
+        treasury_account_number=TREASURY_KEY_PAIR.public,
     )
-    blockchain_state = BlockchainState(
-        account_states={
-            TREASURY_KEY_PAIR.public:
-                AccountState(balance=281474976710656),
-            PV_KEY_PAIR.public:
-                AccountState(
-                    node=pv,
-                    primary_validator_schedule=PrimaryValidatorSchedule(
-                        begin_block_number=0,
-                        end_block_number=99,
-                    )
-                ),
-        }
-    )
+
     blockchain.add_blockchain_state(blockchain_state)
 
     node = RegularNode(
         identifier=REGULAR_NODE_KEY_PAIR.public,
-        network_addresses=['https://node42-non-existing.thenewboston.com:8000', 'http://78.107.238.42:8000'],
+        network_addresses=['https://node42-non-existing.thenewboston.com:8555/', 'http://78.107.238.42:8555/'],
         fee_amount=3,
     )
     regular_node_scr = NodeDeclarationSignedChangeRequest.create(

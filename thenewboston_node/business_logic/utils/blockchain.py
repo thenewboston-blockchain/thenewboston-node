@@ -5,9 +5,8 @@ from tqdm import tqdm
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.models import CoinTransferSignedChangeRequest
-from thenewboston_node.business_logic.models.account_state import AccountState
-from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
 from thenewboston_node.business_logic.models.node import RegularNode
+from thenewboston_node.business_logic.utils.blockchain_state import make_blockchain_genesis_state
 from thenewboston_node.core.utils.cryptography import generate_key_pair
 
 MAX_AMOUNT = 100
@@ -51,8 +50,8 @@ def generate_blockchain(
     logger.info('Using treasury account: %s', treasury_account_key_pair)
 
     if add_blockchain_genesis_state and blockchain.get_blockchain_states_count() == 0:
-        blockchain_genesis_state = BlockchainState(
-            account_states={treasury_account: AccountState(balance=281474976710656, balance_lock=treasury_account)}
+        blockchain_genesis_state = make_blockchain_genesis_state(
+            treasury_account_number=treasury_account, primary_validator_schedule_end_block_number=size + 99
         )
         blockchain.add_blockchain_state(blockchain_genesis_state)
 

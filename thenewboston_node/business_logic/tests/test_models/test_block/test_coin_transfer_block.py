@@ -1,9 +1,8 @@
 from datetime import datetime, timedelta
-from unittest.mock import patch
 
 import pytest
 
-from thenewboston_node.business_logic.blockchain.mock_blockchain import MockBlockchain
+from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.models import (
     Block, BlockMessage, CoinTransferSignedChangeRequest, CoinTransferSignedChangeRequestMessage,
     CoinTransferTransaction
@@ -74,21 +73,17 @@ def test_can_serialize_coin_transfer_block():
         assert isinstance(node['fee_account'], str)
 
 
-@pytest.mark.usefixtures('get_next_block_identifier_mock', 'get_next_block_number_mock')
 def test_can_create_block_from_signed_change_request(
-    forced_mock_blockchain, sample_signed_change_request: CoinTransferSignedChangeRequest
+    file_blockchain: BlockchainBase, treasury_account, sample_signed_change_request: CoinTransferSignedChangeRequest
 ):
+    blockchain = file_blockchain
+
+    treasury_account_balance = blockchain.get_account_current_balance(treasury_account)
 
     sender = sample_signed_change_request.signer
     assert sender
 
-    def get_account_balance(self, account, on_block_number):
-        return 450 if account == sender else 0
-
-    with patch.object(MockBlockchain, 'get_account_balance', new=get_account_balance):
-        block = Block.create_from_signed_change_request(
-            forced_mock_blockchain, sample_signed_change_request, get_node_signing_key()
-        )
+    block = Block.create_from_signed_change_request(blockchain, sample_signed_change_request, get_node_signing_key())
 
     assert block.message
     assert block.hash
@@ -108,13 +103,15 @@ def test_can_create_block_from_signed_change_request(
     assert block_message.timestamp - datetime.utcnow() < timedelta(seconds=1)
 
     assert block_message.block_number == 0
-    assert block_message.block_identifier == 'next-block-identifier'
+
+    # TODO(dmu) HIGH: Improve assert for block_identifier
+    assert block_message.block_identifier
     updated_account_states = block_message.updated_account_states
 
     assert isinstance(updated_account_states, dict)
     assert len(updated_account_states) == 4
 
-    assert updated_account_states[sender].balance == 450 - 425 - 4 - 1
+    assert updated_account_states[sender].balance == treasury_account_balance - 425 - 4 - 1
     assert updated_account_states[sender].balance_lock
 
     assert updated_account_states['484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc'].balance == 425
@@ -136,6 +133,7 @@ def test_can_create_block_from_main_transaction(
 ):
 
     blockchain = file_blockchain
+    treasury_account_balance = blockchain.get_account_current_balance(treasury_account_key_pair.public)
 
     block = Block.create_from_main_transaction(
         blockchain=blockchain,
@@ -145,8 +143,6 @@ def test_can_create_block_from_main_transaction(
         pv_signing_key=get_node_signing_key(),
         preferred_node=preferred_node,
     )
-
-    treasury_account_balance = blockchain.get_account_current_balance(treasury_account_key_pair.public)
 
     # Assert block
     assert block.message
@@ -210,45 +206,30 @@ def test_can_create_block_from_main_transaction(
     assert coin_transfer_signed_request_message.get_total_amount() == 25
 
 
-@pytest.mark.usefixtures('get_next_block_identifier_mock', 'get_next_block_number_mock', 'get_account_state_mock')
-def test_normalized_block_message(forced_mock_blockchain, sample_signed_change_request):
+def test_normalized_block_message(file_blockchain, sample_signed_change_request):
     expected_message_template = (
-        '{'
-        '"block_identifier":"next-block-identifier",'
-        '"block_number":0,'
-        '"block_type":"ct",'
-        '"signed_change_request":'
-        '{"message":{"balance_lock":'
-        '"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732",'
-        '"txs":'
-        '[{"amount":425,"recipient":"484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc"},'
-        '{"amount":1,"is_fee":true,"recipient":"5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8"},'
-        '{"amount":4,"is_fee":true,"recipient":'
-        '"ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314"}]},'
-        '"signature":"362dc47191d5d1a33308de1f036a5e93fbaf0b05fa971d9537f954f13cd22b5ed9bee56f4701bd'
-        'af9b995c47271806ba73e75d63f46084f5830cec5f5b7e9600",'
-        '"signer":"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732"},'
-        '"timestamp":"<replace-with-timestamp>",'
-        '"updated_account_states":{'
-        '"484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc":{"balance":425},'
-        '"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732":'
-        '{'
-        '"balance":20,'
-        '"balance_lock":"ff3127bdb408e5f3f4f07dd364ce719b2854dc28ee66aa7af839e46468761885"'
-        '},'
-        '"5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8":{"balance":1},'
-        '"ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314":{"balance":4}'
-        '}'
-        '}'
+        '{"block_identifier":"967192aab18132daf231a196b6b51f6766dc61f7a12f517fd8ccadc0b5a53542",'
+        '"block_number":0,"block_type":"ct","signed_change_request":{"message":'
+        '{"balance_lock":"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732",'
+        '"txs":[{"amount":425,"recipient":"484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc"}'
+        ',{"amount":1,"is_fee":true,"recipient":"5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8"}'
+        ',{"amount":4,"is_fee":true,"recipient":"ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314"}'
+        ']},"signature":'
+        '"362dc47191d5d1a33308de1f036a5e93fbaf0b05fa971d9537f954f13cd22b5ed9bee56f4701bdaf'
+        '9b995c47271806ba73e75d63f46084f5830cec5f5b7e9600","signer":'
+        '"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732"},'
+        '"timestamp":"<replace-with-timestamp>","updated_account_states":'
+        '{"484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc":'
+        '{"balance":425},"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732":'
+        '{"balance":281474976710226,"balance_lock":'
+        '"ff3127bdb408e5f3f4f07dd364ce719b2854dc28ee66aa7af839e46468761885"},'
+        '"5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8":'
+        '{"balance":1},"ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314":{"balance":4}}}'
     )
 
-    def get_account_balance(self, account, on_block_number):
-        return 450 if account == sample_signed_change_request.signer else 0
+    blockchain = file_blockchain
 
-    with patch.object(MockBlockchain, 'get_account_balance', new=get_account_balance):
-        block = Block.create_from_signed_change_request(
-            forced_mock_blockchain, sample_signed_change_request, get_node_signing_key()
-        )
+    block = Block.create_from_signed_change_request(blockchain, sample_signed_change_request, get_node_signing_key())
 
     expected_message = expected_message_template.replace(
         '<replace-with-timestamp>', block.message.timestamp.isoformat()
@@ -264,29 +245,36 @@ def test_can_serialize_deserialize_coin_transfer_signed_change_request_message()
     assert deserialized is not message
 
 
-@pytest.mark.usefixtures('get_next_block_identifier_mock', 'get_next_block_number_mock', 'get_account_state_mock')
-def test_can_serialize_deserialize(forced_mock_blockchain, sample_signed_change_request):
-    block = Block.create_from_signed_change_request(
-        forced_mock_blockchain, sample_signed_change_request, get_node_signing_key()
-    )
+def test_can_serialize_deserialize(file_blockchain, sample_signed_change_request):
+    blockchain = file_blockchain
+    block = Block.create_from_signed_change_request(blockchain, sample_signed_change_request, get_node_signing_key())
     serialized_dict = block.serialize_to_dict()
     deserialized_block = Block.deserialize_from_dict(serialized_dict)
     assert deserialized_block == block
     assert deserialized_block is not block
 
 
-@pytest.mark.usefixtures('get_next_block_identifier_mock', 'get_next_block_number_mock', 'get_account_lock_mock')
 def test_can_duplicate_recipients(
-    forced_mock_blockchain: MockBlockchain, treasury_account_key_pair: KeyPair, user_account_key_pair: KeyPair
+    file_blockchain: BlockchainBase, treasury_account_key_pair: KeyPair, user_account_key_pair: KeyPair, preferred_node
 ):
+    blockchain = file_blockchain
 
-    def get_account_balance(self, account, on_block_number):
-        return 430 if account == treasury_account_key_pair.public else 10
+    block = Block.create_from_main_transaction(
+        blockchain=blockchain,
+        recipient=user_account_key_pair.public,
+        amount=10,
+        request_signing_key=treasury_account_key_pair.private,
+        pv_signing_key=get_node_signing_key(),
+        preferred_node=preferred_node,
+    )
+    blockchain.add_block(block)
+
+    treasury_account_balance = blockchain.get_account_current_balance(treasury_account_key_pair.public)
 
     sender = treasury_account_key_pair.public
     recipient = user_account_key_pair.public
     message = CoinTransferSignedChangeRequestMessage(
-        balance_lock=forced_mock_blockchain.get_account_current_balance_lock(sender),
+        balance_lock=blockchain.get_account_current_balance_lock(sender),
         txs=[
             CoinTransferTransaction(recipient=recipient, amount=3),
             CoinTransferTransaction(recipient=recipient, amount=5),
@@ -296,18 +284,17 @@ def test_can_duplicate_recipients(
         message, treasury_account_key_pair.private
     )
 
-    with patch.object(MockBlockchain, 'get_account_balance', new=get_account_balance):
-        block = Block.create_from_signed_change_request(forced_mock_blockchain, request, get_node_signing_key())
+    block = Block.create_from_signed_change_request(blockchain, request, get_node_signing_key())
 
     updated_account_states = block.message.updated_account_states
     assert len(updated_account_states) == 2
 
     sender_account_state = block.message.get_account_state(treasury_account_key_pair.public)
     assert sender_account_state
-    assert sender_account_state.balance == 430 - 3 - 5
+    assert sender_account_state.balance == treasury_account_balance - 3 - 5
     assert sender_account_state.balance_lock
 
-    recipient_account_state = block.message.get_account_state(user_account_key_pair.public)
+    recipient_account_state = block.message.get_account_state(recipient)
     assert recipient_account_state
     assert recipient_account_state.balance == 10 + 3 + 5
 

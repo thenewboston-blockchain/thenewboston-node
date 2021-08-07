@@ -42,9 +42,9 @@ def test_validate_signature_raises(sample_signed_change_request):
         sample_signed_change_request_copy.validate_signature()
 
 
-def test_validate_amount(forced_mock_blockchain, sample_signed_change_request):
-    with patch.object(MockBlockchain, 'get_account_balance', return_value=425 + 1 + 4):
-        sample_signed_change_request.validate_amount(forced_mock_blockchain, 0)
+def test_validate_amount(file_blockchain, sample_signed_change_request):
+    # TODO(dmu) LOW: Is this unittest good enough?
+    sample_signed_change_request.validate_amount(file_blockchain, 0)
 
 
 def test_validate_amount_raises(forced_mock_blockchain, sample_signed_change_request):

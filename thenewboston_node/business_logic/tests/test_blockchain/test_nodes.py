@@ -6,20 +6,19 @@ from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.core.utils.cryptography import generate_key_pair
 
 
-@pytest.mark.parametrize('blockchain_parameter_name', ('file_blockchain', 'memory_blockchain'))
+@pytest.mark.parametrize('blockchain_argument_name', ('memory_blockchain', 'file_blockchain'))
 def test_can_get_single_node_from_blockchain_genesis_state(
-    file_blockchain: BlockchainBase, memory_blockchain: BlockchainBase, blockchain_parameter_name
+    file_blockchain: BlockchainBase, memory_blockchain: BlockchainBase, blockchain_argument_name
 ):
-    blockchain: BlockchainBase = locals()[blockchain_parameter_name]
+    blockchain: BlockchainBase = locals()[blockchain_argument_name]
     assert list(blockchain.yield_nodes()) == list(blockchain.get_first_blockchain_state().yield_nodes())
 
 
-@pytest.mark.parametrize('blockchain_parameter_name', ('file_blockchain', 'memory_blockchain'))
+@pytest.mark.parametrize('blockchain_argument_name', ('memory_blockchain', 'file_blockchain'))
 def test_can_get_nodes_from_genesis_state_and_blocks(
-    file_blockchain: BlockchainBase, memory_blockchain: BlockchainBase, user_account_key_pair,
-    blockchain_parameter_name
+    file_blockchain: BlockchainBase, memory_blockchain: BlockchainBase, user_account_key_pair, blockchain_argument_name
 ):
-    blockchain: BlockchainBase = locals()[blockchain_parameter_name]
+    blockchain: BlockchainBase = locals()[blockchain_argument_name]
 
     request = NodeDeclarationSignedChangeRequest.create(
         network_addresses=['https://127.0.0.1:8555/'], fee_amount=3, signing_key=user_account_key_pair.private
@@ -34,12 +33,12 @@ def test_can_get_nodes_from_genesis_state_and_blocks(
     assert list(blockchain.yield_nodes()) == [blocks_node] + blockchain_state_nodes
 
 
-@pytest.mark.parametrize('blockchain_parameter_name', ('file_blockchain', 'memory_blockchain'))
+@pytest.mark.parametrize('blockchain_argument_name', ('memory_blockchain', 'file_blockchain'))
 def test_can_get_nodes_blocks_node_overrides_genesis_state_node(
     file_blockchain: BlockchainBase, memory_blockchain: BlockchainBase, primary_validator_key_pair,
-    blockchain_parameter_name
+    blockchain_argument_name
 ):
-    blockchain: BlockchainBase = locals()[blockchain_parameter_name]
+    blockchain: BlockchainBase = locals()[blockchain_argument_name]
 
     blockchain_state_nodes = list(blockchain.get_first_blockchain_state().yield_nodes())
     assert len(blockchain_state_nodes) == 1
@@ -60,12 +59,12 @@ def test_can_get_nodes_blocks_node_overrides_genesis_state_node(
     assert list(blockchain.yield_nodes()) == [blocks_node]
 
 
-@pytest.mark.parametrize('blockchain_parameter_name', ('file_blockchain', 'memory_blockchain'))
+@pytest.mark.parametrize('blockchain_argument_name', ('memory_blockchain', 'file_blockchain'))
 def test_can_get_nodes_from_different_block_numbers(
     file_blockchain: BlockchainBase, memory_blockchain: BlockchainBase, primary_validator_key_pair,
-    blockchain_parameter_name
+    blockchain_argument_name
 ):
-    blockchain: BlockchainBase = locals()[blockchain_parameter_name]
+    blockchain: BlockchainBase = locals()[blockchain_argument_name]
     blockchain_state_nodes = list(blockchain.get_first_blockchain_state().yield_nodes())
     assert len(blockchain_state_nodes) == 1
     blockchain_state_node = blockchain_state_nodes[0]
@@ -97,9 +96,9 @@ def test_can_get_nodes_from_different_block_numbers(
     assert list(blockchain.yield_nodes(block_number=-1)) == [blockchain_state_node]
 
 
-@pytest.mark.parametrize('blockchain_parameter_name', ('file_blockchain', 'memory_blockchain'))
+@pytest.mark.parametrize('blockchain_argument_name', ('memory_blockchain', 'file_blockchain'))
 def test_can_get_nodes_from_complex_blockchain(
-    file_blockchain: BlockchainBase, memory_blockchain: BlockchainBase, blockchain_parameter_name
+    file_blockchain: BlockchainBase, memory_blockchain: BlockchainBase, blockchain_argument_name
 ):
     key_pair1 = generate_key_pair()
     key_pair2 = generate_key_pair()
@@ -111,7 +110,7 @@ def test_can_get_nodes_from_complex_blockchain(
         key_pair1.public, key_pair2.public, key_pair3.public, key_pair4.public, key_pair5.public, key_pair6.public
     }) == 6
 
-    blockchain: BlockchainBase = locals()[blockchain_parameter_name]
+    blockchain: BlockchainBase = locals()[blockchain_argument_name]
     blockchain_state_nodes = list(blockchain.get_first_blockchain_state().yield_nodes())
     assert len(blockchain_state_nodes) == 1
     node1 = blockchain_state_nodes[0]

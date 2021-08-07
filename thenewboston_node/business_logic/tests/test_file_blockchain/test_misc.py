@@ -1,5 +1,5 @@
 from thenewboston_node.business_logic.blockchain.file_blockchain import (
-    FileBlockchain, get_block_chunk_filename_meta, get_blockchain_state_filename_meta
+    get_block_chunk_filename_meta, get_blockchain_state_filename_meta
 )
 from thenewboston_node.business_logic.tests.factories import add_blocks_to_blockchain
 
@@ -25,9 +25,10 @@ def test_get_blockchain_filename_meta():
     assert get_blockchain_state_filename_meta('0000012-blockchain-state.msgpack.zip') is None
 
 
-def test_file_blockchain_blocks_contain_metadata(blockchain_directory, treasury_account_key_pair):
-    blockchain = FileBlockchain(base_directory=blockchain_directory, block_chunk_size=4)
-    add_blocks_to_blockchain(blockchain, 10, treasury_account_key_pair.private, add_blockchain_genesis_state=True)
+def test_file_blockchain_blocks_contain_metadata(file_blockchain, treasury_account_key_pair):
+    blockchain = file_blockchain
+    blockchain.block_chunk_size = 4
+    add_blocks_to_blockchain(blockchain, 10, treasury_account_key_pair.private)
     blocks = blockchain.yield_blocks()
     expected_meta = {
         'chunk_start_block': 0,

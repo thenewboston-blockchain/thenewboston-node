@@ -1,6 +1,6 @@
 from hashlib import sha3_256
 
-from thenewboston_node.business_logic.utils.blockchain import get_node_identifier
+from thenewboston_node.business_logic.node import get_node_identifier
 
 
 def test_normalized_blockchain_state(blockchain_genesis_state):

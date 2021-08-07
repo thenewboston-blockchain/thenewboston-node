@@ -41,15 +41,27 @@ class NetworkMixin(BaseMixin):
         blockchain_state = self.get_blockchain_state_by_block_number(
             last_block_number, inclusive=last_block_number > -1
         )
+        known_pv_schedule_accounts = set()
+
+        logger.debug('Traverse blocks until we find a PV schedule that includes the desired block_number')
         for block in self.yield_blocks_slice_reversed(last_block_number, blockchain_state.get_last_block_number()):
             for account_number, account_state in block.yield_account_states():
+                if account_number in known_pv_schedule_accounts:
+                    assert True, 'Should never get here'
+
                 pv_schedule = account_state.primary_validator_schedule
-                if pv_schedule and pv_schedule.is_block_number_included(block_number):
-                    return self.get_node_by_identifier(account_number)
+                if pv_schedule:
+                    known_pv_schedule_accounts.add(account_number)
+                    if pv_schedule.is_block_number_included(block_number):
+                        return self.get_node_by_identifier(account_number)
 
         # TODO(dmu) HIGH: Once we have more accounts this method will become slow. We need to optimize it
         #                 by caching
         for account_number, account_state in blockchain_state.yield_account_states():
+            if account_number in known_pv_schedule_accounts:
+                continue  # Schedule was overwritten with blocks
+
+            known_pv_schedule_accounts.add(account_number)
             pv_schedule = account_state.primary_validator_schedule
             if pv_schedule and pv_schedule.is_block_number_included(block_number):
                 return self.get_node_by_identifier(account_number)

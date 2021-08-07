@@ -7,16 +7,16 @@ from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.core.utils.cryptography import KeyPair, derive_public_key
 
 
-@pytest.mark.parametrize('blockchain_parameter_name', ('file_blockchain', 'memory_blockchain'))
+@pytest.mark.parametrize('blockchain_argument_name', ('memory_blockchain', 'file_blockchain'))
 def test_can_add_block(
     file_blockchain: BlockchainBase,
     memory_blockchain: BlockchainBase,
     treasury_account_key_pair: KeyPair,
     user_account_key_pair: KeyPair,
     preferred_node,
-    blockchain_parameter_name,
+    blockchain_argument_name,
 ):
-    blockchain: BlockchainBase = locals()[blockchain_parameter_name]
+    blockchain: BlockchainBase = locals()[blockchain_argument_name]
 
     treasury_account_number = treasury_account_key_pair.public
     treasury_initial_balance = blockchain.get_account_current_balance(treasury_account_number)
@@ -86,7 +86,7 @@ def test_can_add_block(
     assert blockchain.get_account_current_balance(pv_account_number) == primary_validator.fee_amount * 3
 
 
-@pytest.mark.parametrize('blockchain_parameter_name', ('file_blockchain', 'memory_blockchain'))
+@pytest.mark.parametrize('blockchain_argument_name', ('memory_blockchain', 'file_blockchain'))
 def test_can_add_coin_transfer_block(
     memory_blockchain: BlockchainBase,
     file_blockchain: BlockchainBase,
@@ -95,9 +95,9 @@ def test_can_add_coin_transfer_block(
     primary_validator_key_pair: KeyPair,
     node_key_pair: KeyPair,
     preferred_node,
-    blockchain_parameter_name,
+    blockchain_argument_name,
 ):
-    blockchain: BlockchainBase = locals()[blockchain_parameter_name]
+    blockchain: BlockchainBase = locals()[blockchain_argument_name]
 
     treasury_account = treasury_account_key_pair.public
     treasury_initial_balance = blockchain.get_account_current_balance(treasury_account)
@@ -159,14 +159,14 @@ def test_can_add_coin_transfer_block(
     assert blockchain.get_account_current_balance(pv_account) == 4 * 3
 
 
-@pytest.mark.parametrize('blockchain_parameter_name', ('file_blockchain', 'memory_blockchain'))
+@pytest.mark.parametrize('blockchain_argument_name', ('memory_blockchain', 'file_blockchain'))
 def test_can_add_node_declaration_block(
     memory_blockchain: BlockchainBase,
     file_blockchain: BlockchainBase,
     user_account_key_pair: KeyPair,
-    blockchain_parameter_name,
+    blockchain_argument_name,
 ):
-    blockchain: BlockchainBase = locals()[blockchain_parameter_name]
+    blockchain: BlockchainBase = locals()[blockchain_argument_name]
     user_account = user_account_key_pair.public
 
     request0 = NodeDeclarationSignedChangeRequest.create(

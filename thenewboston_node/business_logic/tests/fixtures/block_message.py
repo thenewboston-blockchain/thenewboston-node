@@ -10,7 +10,6 @@ def block_message(memory_blockchain, user_account, treasury_account_signing_key,
         recipient=user_account,
         amount=10,
         signing_key=treasury_account_signing_key,
-        primary_validator=primary_validator,
         node=preferred_node,
     )
     block_message = BlockMessage.from_signed_change_request(memory_blockchain, coin_transfer_signed_request)

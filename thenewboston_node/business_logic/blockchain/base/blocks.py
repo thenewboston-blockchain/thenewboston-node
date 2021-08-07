@@ -67,7 +67,6 @@ class BlocksMixin(BaseMixin):
             block.validate(self)
 
         # TODO(dmu) HIGH: Validate block_identifier
-
         self.persist_block(block)
 
         period = self.snapshot_period_in_blocks  # type: ignore

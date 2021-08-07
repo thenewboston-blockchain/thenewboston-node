@@ -14,11 +14,6 @@ to get the latest version for development.
     apt update
     apt install git
 
-#. [if you have not configured it globally] Configure git::
-
-    git config user.name 'Firstname Lastname'
-    git config user.email 'youremail@youremail_domain.com'
-
 #. Install prerequisites (
    as prescribed at https://github.com/pyenv/pyenv/wiki/Common-build-problems )::
 
@@ -26,7 +21,8 @@ to get the latest version for development.
     apt update && \
     apt install make build-essential libssl-dev zlib1g-dev libbz2-dev \
                 libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev \
-                libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl
+                libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev \
+                python-openssl libpq-dev
 
 #. Install Docker according to https://docs.docker.com/engine/install/
    (known working: Docker version 20.10.1, build 831ebea)
@@ -48,6 +44,11 @@ to get the latest version for development.
     cd thenewboston-node
     git remote add upstream git@github.com:thenewboston-developers/thenewboston-node.git
     git fetch upstream
+
+#. [if you have not configured it globally] Configure git::
+
+    git config user.name 'Firstname Lastname'
+    git config user.email 'youremail@youremail_domain.com'
 
 #. Install and configure `pyenv` according to https://github.com/pyenv/pyenv#basic-github-checkout
 #. Install lowest supported Python version::
@@ -80,6 +81,12 @@ to get the latest version for development.
     vim .env  # edit file if needed
 
 #. Install dependencies, run migrations, etc by doing `Update`_ section steps
+
+#. Generate node signing key::
+
+    # Edit file and configure `NODE_SIGNING_KEY` setting
+    vim ./local/settings.py
+
 #. Create superuser::
 
     make create-superuser

@@ -104,11 +104,10 @@ class BlockchainStateMixin(BaseMixin):
             last_blockchain_state_snapshot.last_block_number
         )
 
-        blockchain_state = deepcopy(last_blockchain_state_snapshot)
-        account_states = blockchain_state.account_states
+        account_states = deepcopy(last_blockchain_state_snapshot.account_states)
 
         block = None
-        for block in self.yield_blocks_from(blockchain_state.get_next_block_number()):  # type: ignore
+        for block in self.yield_blocks_from(last_blockchain_state_snapshot.get_next_block_number()):  # type: ignore
             if last_block_number is not None and block.message.block_number > last_block_number:
                 logger.debug('Traversed all blocks of interest')
                 break
@@ -127,6 +126,8 @@ class BlockchainStateMixin(BaseMixin):
                     value = getattr(block_account_state, attribute)
                     if value is not None:
                         setattr(blockchain_state_account_state, attribute, deepcopy(value))
+
+        blockchain_state = BlockchainState(account_states=account_states)
 
         if block is not None:
             blockchain_state.last_block_number = block.message.block_number

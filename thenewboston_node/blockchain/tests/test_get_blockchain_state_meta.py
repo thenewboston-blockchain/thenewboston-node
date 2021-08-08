@@ -19,14 +19,17 @@ def test_can_get_blockchain_genesis_state_meta(api_client, file_blockchain, bloc
         response = api_client.get(API_V1_BLOCKCHAIN_STATE_URL_PATTERN.format(block_number=-1))
 
     assert response.status_code == 200
-    data = response.json()
+    response_json = response.json()
 
-    assert data['last_block_number'] == blockchain_genesis_state.last_block_number
-    assert data['url_path'] == '/blockchain/blockchain-states/0/0/0/0/0/0/0/0/000000000!-blockchain-state.msgpack'
-    assert len(data['urls']) == 1
-    assert data['urls'][0] == (
-        'http://localhost:8555/blockchain/blockchain-states/0/0/0/0/0/0/0/0/000000000!-blockchain-state.msgpack'
-    )
+    assert response_json == {
+        'last_block_number':
+            blockchain_genesis_state.last_block_number,
+        'url_path':
+            '/blockchain/blockchain-states/0/0/0/0/0/0/0/0/000000000!-blockchain-state.msgpack',
+        'urls': [
+            'http://localhost:8555/blockchain/blockchain-states/0/0/0/0/0/0/0/0/000000000!-blockchain-state.msgpack'
+        ]
+    }
 
 
 def test_can_get_last_blockchain_state_meta(api_client, file_blockchain):

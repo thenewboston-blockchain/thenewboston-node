@@ -131,13 +131,13 @@ class FileBlockchain(BlockchainBase):
 
         self.block_chunk_size = block_chunk_size
 
-        self.account_root_files_directory = os.path.join(base_directory, account_root_files_subdir)
+        self.blockchain_states_directory = os.path.join(base_directory, account_root_files_subdir)
         block_directory = os.path.join(base_directory, blocks_subdir)
         self.base_directory = base_directory
 
         self.block_storage = PathOptimizedFileSystemStorage(base_path=block_directory, **(blocks_storage_kwargs or {}))
         self.blockchain_states_storage = PathOptimizedFileSystemStorage(
-            base_path=self.account_root_files_directory, **(account_root_files_storage_kwargs or {})
+            base_path=self.blockchain_states_directory, **(account_root_files_storage_kwargs or {})
         )
 
         self.account_root_files_cache_size = account_root_files_cache_size
@@ -201,6 +201,7 @@ class FileBlockchain(BlockchainBase):
                 'file_path': self._get_blockchain_state_real_file_path(file_path),
                 'last_block_number': meta.last_block_number,
                 'compression': meta.compression,
+                'blockchain': self,
             }
             cache[file_path] = blockchain_state
 
@@ -225,7 +226,7 @@ class FileBlockchain(BlockchainBase):
 
     def _get_blockchain_state_real_file_path(self, file_path):
         optimized_path = self.blockchain_states_storage.get_optimized_path(file_path)
-        abs_optimized_path = os.path.join(self.account_root_files_directory, optimized_path)
+        abs_optimized_path = os.path.join(self.blockchain_states_directory, optimized_path)
         return os.path.relpath(abs_optimized_path, self.base_directory)
 
     # Blocks methods

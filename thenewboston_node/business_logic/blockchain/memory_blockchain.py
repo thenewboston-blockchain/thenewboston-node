@@ -1,6 +1,6 @@
 import copy
 import logging
-from typing import Generator, Optional
+from typing import Any, Callable, Generator, Optional, Union
 
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
@@ -33,10 +33,14 @@ class MemoryBlockchain(BlockchainBase):
     def get_blockchain_states_count(self) -> int:
         return len(self.blockchain_states)
 
-    def yield_blockchain_states(self) -> Generator[BlockchainState, None, None]:
+    def yield_blockchain_states(self,
+                                lazy=False
+                                ) -> Generator[Union[BlockchainState, Callable[[Any], BlockchainState]], None, None]:
         yield from self.blockchain_states
 
-    def yield_blockchain_states_reversed(self) -> Generator[BlockchainState, None, None]:
+    def yield_blockchain_states_reversed(
+        self, lazy=False
+    ) -> Generator[Union[BlockchainState, Callable[[Any], BlockchainState]], None, None]:
         yield from reversed(self.blockchain_states)
 
     def snapshot_blockchain_state(self):

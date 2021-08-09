@@ -1,4 +1,5 @@
 from thenewboston_node.core.utils.collections import replace_keys
+from thenewboston_node.core.utils.itertools import SliceableCountableIterable
 
 
 def test_replace_keys():
@@ -69,3 +70,24 @@ def test_replace_keys():
             'd': [1, 2, 3]
         }, 2, 3]
     }
+
+
+def test_sliceable_countable_iterable():
+    generator = (_ for _ in range(10))
+    assert list(generator) == list(range(10))
+
+    generator = (_ for _ in range(10))
+    assert list(SliceableCountableIterable(generator)) == list(range(10))
+
+    generator = (_ for _ in range(10))
+    assert list(SliceableCountableIterable(generator)[2:5]) == [2, 3, 4]
+
+    generator = (_ for _ in range(10))
+    sliceable_countable_iterable = SliceableCountableIterable(generator, count=lambda: 10)[2:5]
+    assert sliceable_countable_iterable.count() == 10
+    assert list(sliceable_countable_iterable) == [2, 3, 4]
+
+    generator = (_ for _ in range(10))
+    sliceable_countable_iterable = SliceableCountableIterable(generator, count=lambda: 10)[2:5]
+    assert list(sliceable_countable_iterable) == [2, 3, 4]
+    assert sliceable_countable_iterable.count() == 10

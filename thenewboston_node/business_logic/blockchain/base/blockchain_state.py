@@ -2,7 +2,7 @@ import logging
 import warnings
 from copy import deepcopy
 from operator import le, lt
-from typing import Generator, Optional
+from typing import Any, Callable, Generator, Optional, Union, cast
 
 from more_itertools import always_reversible, ilen
 
@@ -19,7 +19,9 @@ class BlockchainStateMixin(BaseMixin):
     def persist_blockchain_state(self, account_root_file: BlockchainState):
         raise NotImplementedError('Must be implemented in a child class')
 
-    def yield_blockchain_states(self) -> Generator[BlockchainState, None, None]:
+    def yield_blockchain_states(self,
+                                lazy=False
+                                ) -> Generator[Union[BlockchainState, Callable[[Any], BlockchainState]], None, None]:
         raise NotImplementedError('Must be implemented in a child class')
 
     def get_blockchain_states_count(self) -> int:
@@ -28,7 +30,9 @@ class BlockchainStateMixin(BaseMixin):
         warnings.warn('Using low performance implementation of get_account_root_file_count() method (override it)')
         return ilen(self.yield_blockchain_states())
 
-    def yield_blockchain_states_reversed(self) -> Generator[BlockchainState, None, None]:
+    def yield_blockchain_states_reversed(
+        self, lazy=False
+    ) -> Generator[Union[BlockchainState, Callable[[Any], BlockchainState]], None, None]:
         # Highly recommended to override this method in the particular implementation of the blockchain for
         # performance reasons
         warnings.warn(
@@ -43,14 +47,14 @@ class BlockchainStateMixin(BaseMixin):
     def get_first_blockchain_state(self) -> BlockchainState:
         # Override this method if a particular blockchain implementation can provide a high performance
         try:
-            return next(self.yield_blockchain_states())
+            return cast(BlockchainState, next(self.yield_blockchain_states()))
         except StopIteration:
             raise InvalidBlockchain('Blockchain must contain a blockchain state')
 
     def get_last_blockchain_state(self) -> BlockchainState:
         # Override this method if a particular blockchain implementation can provide a high performance
         try:
-            return next(self.yield_blockchain_states_reversed())
+            return cast(BlockchainState, next(self.yield_blockchain_states_reversed()))
         except StopIteration:
             raise InvalidBlockchain('Blockchain must contain a blockchain state')
 
@@ -69,6 +73,7 @@ class BlockchainStateMixin(BaseMixin):
         op = le if inclusive else lt
         # TODO(dmu) MEDIUM: Optimize with binary search
         for blockchain_state in self.yield_blockchain_states_reversed():
+            assert isinstance(blockchain_state, BlockchainState)
             last_block_number = blockchain_state.get_last_block_number()
             if op(last_block_number, block_number):
                 return blockchain_state

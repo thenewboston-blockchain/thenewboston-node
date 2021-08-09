@@ -2,7 +2,7 @@ import logging
 import os.path
 import re
 from collections import namedtuple
-from typing import Generator, Optional
+from typing import Any, Callable, Generator, Optional, Union, cast
 
 import filelock
 import msgpack
@@ -188,7 +188,8 @@ class FileBlockchain(BlockchainBase):
         filename = make_blockchain_state_filename(last_block_number)
         storage.save(filename, blockchain_state.to_messagepack(), is_final=True)
 
-    def _load_blockchain_states(self, file_path):
+    def _load_blockchain_state(self, file_path):
+        logger.debug('Loading blockchain from %s', file_path)
         cache = self.blockchain_states_cache
         blockchain_state = cache.get(file_path)
         if blockchain_state is None:
@@ -204,25 +205,39 @@ class FileBlockchain(BlockchainBase):
                 'blockchain': self,
             }
             cache[file_path] = blockchain_state
+        else:
+            logger.debug('Cache hit for %s', file_path)
 
         return blockchain_state
 
-    def _yield_blockchain_states(self, direction) -> Generator[BlockchainState, None, None]:
+    def _yield_blockchain_states(
+        self,
+        direction,
+        lazy=False
+    ) -> Generator[Union[BlockchainState, Callable[[Any], BlockchainState]], None, None]:
         assert direction in (1, -1)
 
-        storage = self.blockchain_states_storage
-        for file_path in storage.list_directory(sort_direction=direction):
-            yield self._load_blockchain_states(file_path)
+        for file_path in self.blockchain_states_storage.list_directory(sort_direction=direction):
+            if lazy:
+                yield cast(
+                    Callable[[Any], BlockchainState],
+                    lambda file_path_=file_path: self._load_blockchain_state(file_path_)
+                )
+            else:
+                yield self._load_blockchain_state(file_path)
 
-    def yield_blockchain_states(self) -> Generator[BlockchainState, None, None]:
-        yield from self._yield_blockchain_states(1)
+    def yield_blockchain_states(self,
+                                lazy=False
+                                ) -> Generator[Union[BlockchainState, Callable[[Any], BlockchainState]], None, None]:
+        yield from self._yield_blockchain_states(1, lazy=lazy)
 
-    def yield_blockchain_states_reversed(self) -> Generator[BlockchainState, None, None]:
-        yield from self._yield_blockchain_states(-1)
+    def yield_blockchain_states_reversed(
+        self, lazy=False
+    ) -> Generator[Union[BlockchainState, Callable[[Any], BlockchainState]], None, None]:
+        yield from self._yield_blockchain_states(-1, lazy=lazy)
 
     def get_blockchain_states_count(self) -> int:
-        storage = self.blockchain_states_storage
-        return ilen(storage.list_directory())
+        return ilen(self.blockchain_states_storage.list_directory())
 
     def _get_blockchain_state_real_file_path(self, file_path):
         optimized_path = self.blockchain_states_storage.get_optimized_path(file_path)

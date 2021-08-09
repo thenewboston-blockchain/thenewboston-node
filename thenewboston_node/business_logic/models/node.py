@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-from thenewboston_node.business_logic.enums import NodeType
+from thenewboston_node.business_logic.enums import NodeRole
 from thenewboston_node.business_logic.validators import (
     validate_gte_value, validate_hexadecimal, validate_network_address, validate_not_empty, validate_not_none,
     validate_type
@@ -63,7 +63,7 @@ class PrimaryValidator(Node):
 
     @property
     def node_type(self):
-        return NodeType.PRIMARY_VALIDATOR.value
+        return NodeRole.PRIMARY_VALIDATOR.value
 
 
 @dataclass
@@ -71,4 +71,4 @@ class RegularNode(Node):
 
     @property
     def node_type(self):
-        return NodeType.REGULAR_NODE.value
+        return NodeRole.REGULAR_NODE.value

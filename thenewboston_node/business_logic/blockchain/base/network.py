@@ -1,6 +1,7 @@
 import logging
 from typing import Optional
 
+from thenewboston_node.business_logic.enums import NodeRole
 from thenewboston_node.business_logic.models import Node
 from thenewboston_node.core.utils.types import hexstr
 
@@ -65,5 +66,26 @@ class NetworkMixin(BaseMixin):
             pv_schedule = account_state.primary_validator_schedule
             if pv_schedule and pv_schedule.is_block_number_included(block_number):
                 return self.get_node_by_identifier(account_number)
+
+        return None
+
+    def get_node_role(self, identifier: hexstr) -> Optional[NodeRole]:
+        last_block_number = self.get_last_block_number()
+        node = self.get_node_by_identifier(identifier, last_block_number)
+
+        if node is None:
+            logger.warning(f'Getting node role of non-existent node: {identifier}')
+            return None
+
+        schedule = self.get_account_state_attribute_value(identifier, 'primary_validator_schedule', last_block_number)
+
+        if schedule is None or schedule.is_block_number_in_future(last_block_number):
+            return NodeRole.REGULAR_NODE
+
+        if schedule.is_block_number_included(last_block_number):
+            return NodeRole.PRIMARY_VALIDATOR
+
+        if schedule.is_block_number_in_past(last_block_number):
+            return NodeRole.CONFIRMATION_VALIDATOR
 
         return None

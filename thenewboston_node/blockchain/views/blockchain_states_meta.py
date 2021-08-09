@@ -5,6 +5,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from thenewboston_node.blockchain.serializers.blockchain_states_meta import BlockchainStatesMetaSerializer
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.core.pagination import CustomLimitOffsetPagination
+from thenewboston_node.core.utils.itertools import SliceableCountableIterable
 
 
 class BlockchainStatesMetaViewSet(ReadOnlyModelViewSet):
@@ -28,9 +29,13 @@ class BlockchainStatesMetaViewSet(ReadOnlyModelViewSet):
 
         ordering = self.request.query_params.get('ordering', 'asc')
         if ordering == 'asc':
-            return list(blockchain.yield_blockchain_states())
+            return SliceableCountableIterable(
+                blockchain.yield_blockchain_states(lazy=True), count=blockchain.get_blockchain_states_count
+            )
         elif ordering == 'desc':
-            return list(blockchain.yield_blockchain_states_reversed())
+            return SliceableCountableIterable(
+                blockchain.yield_blockchain_states_reversed(lazy=True), count=blockchain.get_blockchain_states_count
+            )
         else:
             raise ParseError("ordering query parameter must be 'asc' or 'desc'")
 

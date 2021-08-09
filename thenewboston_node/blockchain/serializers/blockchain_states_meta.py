@@ -3,10 +3,11 @@ from urllib.parse import urljoin
 
 from django.conf import settings
 
-from rest_framework import fields, serializers
+from rest_framework import fields
 from rest_framework.exceptions import APIException
 
 from thenewboston_node.business_logic.node import get_node_identifier
+from thenewboston_node.core.serializers import CustomSerializer
 
 
 def make_url_path(blockchain_state):
@@ -17,7 +18,7 @@ def make_url_path(blockchain_state):
     return None
 
 
-class BlockchainStatesMetaSerializer(serializers.Serializer):
+class BlockchainStatesMetaSerializer(CustomSerializer):
     last_block_number = fields.IntegerField()
     url_path = fields.SerializerMethodField()
     urls = fields.SerializerMethodField()

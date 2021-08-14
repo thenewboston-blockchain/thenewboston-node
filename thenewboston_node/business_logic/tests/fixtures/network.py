@@ -21,11 +21,29 @@ def primary_validator(primary_validator_key_pair, pv_fee_amount):
 
 
 @pytest.fixture
-def preferred_node(node_key_pair):
+def preferred_node(preferred_node_key_pair):
     return baker.make(
         Node,
-        identifier=node_key_pair.public,
+        identifier=preferred_node_key_pair.public,
         network_addresses=['http://pref.localhost:8555/'],
         fee_amount=1,
         fee_account=None
     )
+
+
+@pytest.fixture
+def another_node(another_node_key_pair):
+    return baker.make(
+        Node,
+        identifier=another_node_key_pair.public,
+        network_addresses=['http://another.localhost:8555/'],
+        fee_amount=1,
+        fee_account=None
+    )
+
+
+@pytest.fixture
+def another_node_network_address(another_node):
+    network_addresses = another_node.network_addresses
+    assert network_addresses
+    return network_addresses[0]

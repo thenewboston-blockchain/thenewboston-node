@@ -6,5 +6,6 @@ import os
 # Set on the earliest possible moment
 os.environ['PYTEST_RUNNING'] = 'true'
 
+from thenewboston_node.blockchain.tests.fixtures import *  # noqa: F401, F403, E402
 from thenewboston_node.business_logic.tests.fixtures import *  # noqa: F401, F403, E402
 from thenewboston_node.core.tests.fixtures import *  # noqa: F401, F403, E402

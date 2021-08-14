@@ -93,7 +93,7 @@ def test_can_add_coin_transfer_block(
     treasury_account_key_pair: KeyPair,
     user_account_key_pair: KeyPair,
     primary_validator_key_pair: KeyPair,
-    node_key_pair: KeyPair,
+    preferred_node_key_pair: KeyPair,
     preferred_node,
     blockchain_argument_name,
 ):
@@ -105,7 +105,7 @@ def test_can_add_coin_transfer_block(
 
     user_account = user_account_key_pair.public
     pv_account = primary_validator_key_pair.public
-    node_account = node_key_pair.public
+    node_account = preferred_node_key_pair.public
 
     total_fees = 1 + 4
 

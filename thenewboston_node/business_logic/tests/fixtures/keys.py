@@ -13,10 +13,18 @@ def user_account_key_pair() -> KeyPair:
 
 
 @pytest.fixture
-def node_key_pair() -> KeyPair:
+def preferred_node_key_pair() -> KeyPair:
     return KeyPair(
         public=hexstr('1c8e5f54a15b63a9f3d540ce505fd0799575ffeaac62ce625c917e6d915ea8bb'),
         private=hexstr('d0a03fea134f3f83901f36071f79026b2224a7f926546486f72104351dc23432'),
+    )
+
+
+@pytest.fixture
+def another_node_key_pair() -> KeyPair:
+    return KeyPair(
+        public=hexstr('e612bbaee57540dce9b17fd351fe7e4b1ad2bc916733171108dcac294886bcf5'),
+        private=hexstr('a2c182ff4a7ca2343d1197f079d29aa8bd77aa8b73294c38006f5a0968e00a4e'),
     )
 
 
@@ -47,8 +55,8 @@ def primary_validator_identifier(primary_validator_key_pair):
 
 
 @pytest.fixture
-def node_identifier(node_key_pair):
-    return node_key_pair.public
+def node_identifier(preferred_node_key_pair):
+    return preferred_node_key_pair.public
 
 
 @pytest.fixture

@@ -129,7 +129,7 @@ def test_can_create_block_from_signed_change_request(
 
 def test_can_create_block_from_main_transaction(
     file_blockchain, treasury_account_key_pair: KeyPair, user_account_key_pair: KeyPair,
-    primary_validator_key_pair: KeyPair, node_key_pair: KeyPair, preferred_node
+    primary_validator_key_pair: KeyPair, preferred_node_key_pair: KeyPair, preferred_node
 ):
 
     blockchain = file_blockchain
@@ -178,8 +178,8 @@ def test_can_create_block_from_main_transaction(
     assert updated_account_states[primary_validator_key_pair.public].balance == 4
     assert updated_account_states[primary_validator_key_pair.public].balance_lock is None
 
-    assert updated_account_states[node_key_pair.public].balance == 1
-    assert updated_account_states[node_key_pair.public].balance_lock is None
+    assert updated_account_states[preferred_node_key_pair.public].balance == 1
+    assert updated_account_states[preferred_node_key_pair.public].balance_lock is None
 
     # Assert block_message.signed_change_request
     signed_change_request = block_message.signed_change_request
@@ -200,8 +200,8 @@ def test_can_create_block_from_main_transaction(
     assert txs_dict[primary_validator_key_pair.public].amount == 4
     assert txs_dict[primary_validator_key_pair.public].is_fee
 
-    assert txs_dict[node_key_pair.public].amount == 1
-    assert txs_dict[node_key_pair.public].is_fee
+    assert txs_dict[preferred_node_key_pair.public].amount == 1
+    assert txs_dict[preferred_node_key_pair.public].is_fee
 
     assert coin_transfer_signed_request_message.get_total_amount() == 25
 

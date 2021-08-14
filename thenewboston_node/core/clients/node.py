@@ -1,6 +1,12 @@
+import json
 import logging
 from typing import Optional, Type, TypeVar
 from urllib.request import urlopen
+
+from django.utils.http import urlencode
+
+import requests
+from rest_framework.reverse import reverse
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.models import BlockchainState
@@ -24,18 +30,33 @@ class NodeClient:
         return instance
 
     def get_latest_blockchain_state_meta_by_network_address(self, network_address) -> Optional[dict]:
-        # TODO(dmu) CRITICAL: Unmock this method once this task is done:
-        #                     https://github.com/thenewboston-developers/thenewboston-node/issues/252
-        assert network_address.endswith('/')
-        return {
-            'last_block_number':
-                None,
-            'url_path':
-                '/blockchain/blockchain-states/0/0/0/0/0/0/0/0/000000000!-blockchain-state.msgpack.xz',
-            'urls': [
-                f'{network_address}blockchain/blockchain-states/0/0/0/0/0/0/0/0/000000000!-blockchain-state.msgpack.xz'
-            ]
-        }
+        url = '%s%s?%s' % (
+            network_address.rstrip('/'),
+            reverse('blockchain-states-meta-list'),
+            urlencode({
+                'limit': 1,
+                'ordering': 'desc'
+            }),
+        )
+        response = requests.get(url)
+
+        if response.status_code != requests.codes.ok:
+            logger.warning(
+                'Unable to read blockchain state meta from %s with status_code %s', url, response.status_code
+            )
+            return None
+
+        try:
+            data = response.json()
+        except json.decoder.JSONDecodeError:
+            logger.warning('Blockchain state meta response from %s is not JSON data', url, exc_info=True)
+            return None
+
+        if data.get('count') < 1:
+            logger.debug('Blockchain state meta response from %s is empty', url)
+            return None
+
+        return data['results'][0]
 
     def get_latest_blockchain_state_binary_by_network_address(self, network_address) -> Optional[tuple[bytes, str]]:
         meta = self.get_latest_blockchain_state_meta_by_network_address(network_address)

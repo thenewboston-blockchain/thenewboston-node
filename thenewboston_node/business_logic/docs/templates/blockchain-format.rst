@@ -190,13 +190,18 @@ Block chunk file structure
 Block chunk filename format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Filename template is "``{{ file_blockchain.block_chunk_template.format(start='x' *  file_blockchain.order_of_block, end='y' *  file_blockchain.order_of_block) }}[.compressor]``"
-where "``{{ 'x' *  file_blockchain.order_of_block }}``" is the first block number of the block chunk file,
-"``{{ 'y' *  file_blockchain.order_of_block }}``" is the last block number of the block chunk file,
-and "``.compressor``" represents compression algorithm, if present.
+Filename template is "``{{ file_blockchain.block_chunk_template.format(start='y' *  file_blockchain.order_of_block, end='z' *  file_blockchain.order_of_block) }}[.compressor]``"
+where "``{{ 'y' *  file_blockchain.order_of_block }}``" is the first block number of the block chunk file,
+"``{{ 'z' *  file_blockchain.order_of_block }}``" is the last block number of the block chunk file,
+and "``.compressor``" represents compression algorithm, if present. Special magic value for
+last block number equal to string '``{{ 'x' *  file_blockchain.order_of_block }}``' is used to
+denote incomplete block chunk file (not containing all blocks yet it supposed to hold). In this
+case actual last block in the file should be derived by examining the content of the file.
 
-Filename example of block chunk file for block from 100 to 199 compressed with LZMA compression: ``{{ file_blockchain.get_block_chunk_filename(100, 199) }}``
+Filename example of block chunk file for blocks from 100 to 199 compressed with LZMA compression: ``{{ file_blockchain.get_block_chunk_filename(199, 100)[1] }}.xz``.
 
+Filename example of incomplete block chunk file for blocks from 200 to 299: ``{{ file_blockchain.get_block_chunk_filename(200, 100)[1] }}``
+(it is not compressed yet, because new blocks to be appended to it).
 
 Block chunk file format
 ^^^^^^^^^^^^^^^^^^^^^^^

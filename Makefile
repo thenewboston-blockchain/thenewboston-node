@@ -58,7 +58,7 @@ generate-signing-key:
 .PHONY: generate-blockchain
 generate-blockchain:
 	mkdir -p local/blockchain
-	poetry run python -m thenewboston_node.manage generate_blockchain -f --path local/blockchain --do-not-validate 200 > local/blockchain-generation.log 2>&1
+	poetry run python -m thenewboston_node.manage generate_blockchain -f --path local/blockchain --do-not-validate 220 > local/blockchain-generation.log 2>&1
 
 .PHONY: run-server
 run-server:

@@ -38,7 +38,7 @@ BLOCKCHAIN_STATE_FILENAME_RE = re.compile(
 
 BLOCK_CHUNK_FILENAME_TEMPLATE = '{start}-{end}-block-chunk.msgpack'
 BLOCK_CHUNK_FILENAME_RE = re.compile(
-    BLOCK_CHUNK_FILENAME_TEMPLATE.format(start=r'(?P<start>\d+)', end=r'(?P<end>\d+)') +
+    BLOCK_CHUNK_FILENAME_TEMPLATE.format(start=r'(?P<start>\d+)', end=r'(?P<end>\d+|x+)') +
     r'(?:|\.(?P<compression>{}))$'.format('|'.join(COMPRESSION_FUNCTIONS.keys()))
 )
 
@@ -80,11 +80,26 @@ def get_blockchain_state_file_path_meta(file_path):
     return get_blockchain_state_filename_meta(os.path.basename(file_path))
 
 
-def make_block_chunk_filename(start: int, end: int):
-    start_block_str = str(start).zfill(ORDER_OF_BLOCK)
-    end_block_str = str(end).zfill(ORDER_OF_BLOCK)
+def make_block_chunk_filename(block_number, block_chunk_size):
+    max_offset = block_chunk_size - 1
+    chunk_number, offset = divmod(block_number, block_chunk_size)
 
-    return BLOCK_CHUNK_FILENAME_TEMPLATE.format(start=start_block_str, end=end_block_str)
+    chunk_block_number_start = chunk_number * block_chunk_size
+    chunk_block_number_end = chunk_block_number_start + max_offset
+
+    start_block_str = str(chunk_block_number_start).zfill(ORDER_OF_BLOCK)
+    end_block_str = 'x' * ORDER_OF_BLOCK
+
+    if offset == max_offset:
+        dest_end_block_str = str(chunk_block_number_end).zfill(ORDER_OF_BLOCK)
+    else:
+        assert offset < max_offset
+        dest_end_block_str = end_block_str
+
+    return (
+        BLOCK_CHUNK_FILENAME_TEMPLATE.format(start=start_block_str, end=end_block_str),
+        BLOCK_CHUNK_FILENAME_TEMPLATE.format(start=start_block_str, end=dest_end_block_str)
+    )
 
 
 def get_block_chunk_filename_meta(file_path):
@@ -92,8 +107,13 @@ def get_block_chunk_filename_meta(file_path):
     match = BLOCK_CHUNK_FILENAME_RE.match(filename)
     if match:
         start = int(match.group('start'))
-        end = int(match.group('end'))
-        assert start <= end
+        end_str = match.group('end')
+        if ''.join(set(end_str)) == 'x':
+            end = None
+        else:
+            end = int(end_str)
+            assert start <= end
+
         return BlockChunkFilenameMeta(start, end, match.group('compression') or None)
 
     return None
@@ -145,6 +165,7 @@ class FileBlockchain(BlockchainBase):
 
         self.blockchain_states_cache: Optional[LRUCache] = None
         self.blocks_cache: Optional[LRUCache] = None
+        self.block_chunk_last_block_number_cache: Optional[LRUCache] = None
         self.initialize_caches()
 
         self._file_lock = None
@@ -174,6 +195,7 @@ class FileBlockchain(BlockchainBase):
             # we use use account root file as a base
             self.snapshot_period_in_blocks * 2 if self.blocks_cache_size is None else self.blocks_cache_size
         )
+        self.block_chunk_last_block_number_cache = LRUCache(2)
 
     # Account root files methods
     @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
@@ -247,34 +269,43 @@ class FileBlockchain(BlockchainBase):
     # Blocks methods
     @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
     def add_block(self, block: Block, validate=True):
-        return super().add_block(block, validate)
+        block_number = block.get_block_number()
+
+        logger.debug('Adding block number %s to the blockchain', block_number)
+        rv = super().add_block(block, validate)
+
+        cache = self.block_chunk_last_block_number_cache
+        assert cache is not None
+
+        key = self._make_last_block_chunk_file_path_key()
+        cache[key] = block_number
+
+        return rv
 
     @ensure_locked(lock_attr='file_lock', exception=EXPECTED_LOCK_EXCEPTION)
     def persist_block(self, block: Block):
+        append_filename, destination_filename = make_block_chunk_filename(
+            block.get_block_number(), self.block_chunk_size
+        )
+
         storage = self.block_storage
-        block_chunk_size = self.block_chunk_size
-
-        block_number = block.message.block_number
-        chunk_number, offset = divmod(block_number, block_chunk_size)
-
-        chunk_block_number_start = chunk_number * block_chunk_size
-
-        if chunk_block_number_start == block_number:
-            append_end = block_number
-        else:
-            assert chunk_block_number_start < block_number
-            append_end = block_number - 1
-
-        append_filename = make_block_chunk_filename(start=chunk_block_number_start, end=append_end)
-        filename = make_block_chunk_filename(start=chunk_block_number_start, end=block_number)
-
         storage.append(append_filename, block.to_messagepack())
 
-        if append_filename != filename:
-            storage.move(append_filename, filename)
+        if append_filename != destination_filename:
+            storage.move(append_filename, destination_filename)
+            storage.finalize(destination_filename)
 
-        if offset == block_chunk_size - 1:
-            storage.finalize(filename)
+            chunk_file_path = storage.get_optimized_actual_path(destination_filename)
+            meta = get_block_chunk_file_path_meta(destination_filename)
+            end = meta.end
+            assert end is not None
+            for block_number in range(meta.start, end + 1):
+                block = self.blocks_cache.get(block_number)  # type: ignore
+                if block is None:
+                    continue
+
+                assert block.meta['chunk_file_path'].endswith(append_filename)  # type: ignore
+                self._set_block_meta(block, meta, chunk_file_path)
 
     def yield_blocks(self) -> Generator[Block, None, None]:
         yield from self._yield_blocks(1)
@@ -285,7 +316,7 @@ class FileBlockchain(BlockchainBase):
 
     def yield_blocks_from(self, block_number: int) -> Generator[Block, None, None]:
         for file_path in self._list_block_directory():
-            meta = get_block_chunk_file_path_meta(file_path)
+            meta = self._get_block_chunk_file_path_meta_enhanced(file_path)
             if meta is None:
                 logger.warning('File %s has invalid name format', file_path)
                 continue
@@ -309,7 +340,7 @@ class FileBlockchain(BlockchainBase):
     def get_block_count(self) -> int:
         count = 0
         for file_path in self._list_block_directory():
-            meta = get_block_chunk_file_path_meta(file_path)
+            meta = self._get_block_chunk_file_path_meta_enhanced(file_path)
             if meta is None:
                 logger.warning('File %s has invalid name format', file_path)
                 continue
@@ -317,6 +348,15 @@ class FileBlockchain(BlockchainBase):
             count += meta.end - meta.start + 1
 
         return count
+
+    def get_next_block_number(self) -> int:
+        last_block_chunk_file_path = self._get_last_block_chunk_file_path()
+        if last_block_chunk_file_path is None:
+            blockchain_state = self.get_last_blockchain_state()
+            assert blockchain_state
+            return blockchain_state.get_next_block_number()
+
+        return self._get_block_chunk_last_block_number(last_block_chunk_file_path) + 1
 
     @timeit(verbose_args=True, is_method=True)
     def _yield_blocks(self, direction) -> Generator[Block, None, None]:
@@ -328,9 +368,9 @@ class FileBlockchain(BlockchainBase):
     def _yield_blocks_from_file_cached(self, file_path, direction, start=None):
         assert direction in (1, -1)
 
-        meta = get_block_chunk_file_path_meta(file_path)
+        meta = self._get_block_chunk_file_path_meta_enhanced(file_path)
         if meta is None:
-            logger.warning('File %s has invalid name format', file_path)
+            logger.warning('File %s has invalid name fyield_blocks_fromormat', file_path)
             return
 
         file_start = meta.start
@@ -350,10 +390,19 @@ class FileBlockchain(BlockchainBase):
         if file_start <= next_block_number <= file_end:
             yield from self._yield_blocks_from_file(file_path, direction, start=next_block_number)
 
+    @staticmethod
+    def _set_block_meta(block, meta, chunk_file_path):
+        block.meta = {
+            'chunk_start_block': meta.start,
+            'chunk_end_block': meta.end,
+            'chunk_compression': meta.compression,
+            'chunk_file_path': chunk_file_path
+        }
+
     def _yield_blocks_from_file(self, file_path, direction, start=None):
         assert direction in (1, -1)
         storage = self.block_storage
-        chunk_file_path = '/' + storage.get_optimized_path(file_path).lstrip('/')
+        chunk_file_path = storage.get_optimized_actual_path(file_path)
         meta = get_block_chunk_file_path_meta(file_path)
 
         unpacker = msgpack.Unpacker()
@@ -372,15 +421,9 @@ class FileBlockchain(BlockchainBase):
                     continue
 
             assert block.meta is None
-            block.meta = {
-                'chunk_start_block': meta.start,
-                'chunk_end_block': meta.end,
-                'chunk_compression': meta.compression,
-                'chunk_file_path': chunk_file_path
-            }
+            self._set_block_meta(block, meta, chunk_file_path)
 
-            # TODO(dmu) CRITICAL: Enable caching after changing the way we put blocks in chunks
-            # self.blocks_cache[block_number] = block
+            self.blocks_cache[block_number] = block
             yield block
 
     def _yield_blocks_from_cache(self, start_block_number, end_block_number, direction):
@@ -399,3 +442,38 @@ class FileBlockchain(BlockchainBase):
 
     def _list_block_directory(self, direction=1):
         yield from self.block_storage.list_directory(sort_direction=direction)
+
+    def _get_last_block_chunk_file_path(self):
+        try:
+            return next(self._list_block_directory(-1))
+        except StopIteration:
+            return None
+
+    def _make_last_block_chunk_file_path_key(self):
+        return self._make_block_chunk_last_block_number_cache_key(self._get_last_block_chunk_file_path())
+
+    def _make_block_chunk_last_block_number_cache_key(self, file_path):
+        return file_path, self.block_storage.get_mtime(file_path)
+
+    def _get_block_chunk_last_block_number(self, file_path):
+        key = self._make_block_chunk_last_block_number_cache_key(file_path)
+        block_chunk_last_block_number_cache = self.block_chunk_last_block_number_cache
+        last_block_number = block_chunk_last_block_number_cache.get(key)
+        if last_block_number is not None:
+            return last_block_number
+
+        for block in self._yield_blocks_from_file(file_path, -1):
+            block_chunk_last_block_number_cache[key] = last_block_number = block.get_block_number()
+            break
+
+        return last_block_number
+
+    def _get_block_chunk_file_path_meta_enhanced(self, file_path):
+        meta = get_block_chunk_file_path_meta(file_path)
+        if meta is None:
+            return None
+
+        if meta.end is not None:
+            return meta
+
+        return meta._replace(end=self._get_block_chunk_last_block_number(file_path))

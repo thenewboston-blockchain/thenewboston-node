@@ -52,6 +52,7 @@ def timeit(
             callable_name = callable_.__name__
             if is_method:
                 obj = args[0]
+                # TODO(dmu) CRITICAL: It incorrectly detects class name if called as parent method: super().method()
                 if is_class_method:
                     callable_name = f'{obj.__name__}.{callable_name}'
                 else:

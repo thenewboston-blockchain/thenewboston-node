@@ -1,11 +1,87 @@
+import os
 import os.path
+import stat
 from unittest.mock import patch
 
 import pytest
 
+from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain, get_block_chunk_file_path_meta
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.node import get_node_signing_key
+
+STAT_WRITE_PERMS_ALL = stat.S_IWGRP | stat.S_IWUSR | stat.S_IWOTH
+
+
+def test_get_block_chunk_file_path_meta_enhanced(
+    file_blockchain: FileBlockchain, user_account, treasury_account_signing_key, preferred_node
+):
+    blockchain = file_blockchain
+
+    signing_key = treasury_account_signing_key
+    node_signing_key = get_node_signing_key()
+
+    block0 = Block.create_from_main_transaction(
+        blockchain=blockchain,
+        recipient=user_account,
+        amount=10,
+        request_signing_key=signing_key,
+        pv_signing_key=node_signing_key,
+        preferred_node=preferred_node,
+    )
+    blockchain.add_block(block0)
+
+    filename = '00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
+    block_chunk_file_path = os.path.join(blockchain.base_directory, 'blocks/0/0/0/0/0/0/0/0/', filename)
+    assert os.path.isfile(block_chunk_file_path)
+
+    meta = get_block_chunk_file_path_meta(filename)
+    assert meta.start == 0
+    assert meta.end is None
+
+    enhanced_meta = blockchain._get_block_chunk_file_path_meta_enhanced(filename)
+    assert enhanced_meta.start == 0
+    assert enhanced_meta.end == 0
+
+
+def test_last_block_chunk_is_properly_tracked(
+    file_blockchain: FileBlockchain, user_account, treasury_account_signing_key, preferred_node
+):
+    blockchain = file_blockchain
+
+    signing_key = treasury_account_signing_key
+    node_signing_key = get_node_signing_key()
+
+    assert blockchain.get_block_count() == 0
+
+    block0 = Block.create_from_main_transaction(
+        blockchain=blockchain,
+        recipient=user_account,
+        amount=10,
+        request_signing_key=signing_key,
+        pv_signing_key=node_signing_key,
+        preferred_node=preferred_node,
+    )
+    blockchain.add_block(block0)
+
+    block_chunk_file_path = os.path.join(
+        blockchain.base_directory,
+        'blocks/0/0/0/0/0/0/0/0/00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
+    )
+    assert os.path.isfile(block_chunk_file_path)
+    assert blockchain.get_block_count() == 1
+
+    block1 = Block.create_from_main_transaction(
+        blockchain=blockchain,
+        recipient=user_account,
+        amount=10,
+        request_signing_key=signing_key,
+        pv_signing_key=node_signing_key,
+        preferred_node=preferred_node,
+    )
+    blockchain.add_block(block1)
+    assert os.path.isfile(block_chunk_file_path)
+    assert blockchain.get_block_count() == 2
 
 
 def test_block_chunk_is_rotated(
@@ -59,7 +135,8 @@ def test_block_chunk_is_rotated(
         blockchain.add_block(block3)
 
     assert blockchain.block_storage.files.keys() == {file1, file2}
-    assert blockchain.block_storage.finalized == {file1, file2}
+    assert blockchain.block_storage.is_finalized(file1)
+    assert blockchain.block_storage.is_finalized(file2)
 
 
 def test_block_chunk_is_rotated_real_file_blockchain(
@@ -84,7 +161,7 @@ def test_block_chunk_is_rotated_real_file_blockchain(
         assert os.path.isfile(
             os.path.join(
                 blockchain.base_directory,
-                'blocks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000000-block-chunk.msgpack'
+                'blocks/0/0/0/0/0/0/0/0/00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
             )
         )
 
@@ -101,15 +178,15 @@ def test_block_chunk_is_rotated_real_file_blockchain(
         assert not os.path.isfile(
             os.path.join(
                 blockchain.base_directory,
-                'blocks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000000-block-chunk.msgpack'
+                'blocks/0/0/0/0/0/0/0/0/00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
             )
         )
-        assert os.path.isfile(
-            os.path.join(
-                blockchain.base_directory,
-                'blocks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000001-block-chunk.msgpack'
-            )
+        final_filename = os.path.join(
+            blockchain.base_directory,
+            'blocks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000001-block-chunk.msgpack'
         )
+        assert os.path.isfile(final_filename)
+        assert not bool(os.stat(final_filename).st_mode & STAT_WRITE_PERMS_ALL)
 
         block2 = Block.create_from_main_transaction(
             blockchain=blockchain,
@@ -124,7 +201,7 @@ def test_block_chunk_is_rotated_real_file_blockchain(
         assert not os.path.isfile(
             os.path.join(
                 blockchain.base_directory,
-                'blocks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000000-block-chunk.msgpack'
+                'blocks/0/0/0/0/0/0/0/0/00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
             )
         )
         assert os.path.isfile(
@@ -136,7 +213,7 @@ def test_block_chunk_is_rotated_real_file_blockchain(
         assert os.path.isfile(
             os.path.join(
                 blockchain.base_directory,
-                'blocks/0/0/0/0/0/0/0/0/00000000000000000002-00000000000000000002-block-chunk.msgpack'
+                'blocks/0/0/0/0/0/0/0/0/00000000000000000002-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
             )
         )
 
@@ -153,7 +230,7 @@ def test_block_chunk_is_rotated_real_file_blockchain(
         assert not os.path.isfile(
             os.path.join(
                 blockchain.base_directory,
-                'blocks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000000-block-chunk.msgpack'
+                'blocks/0/0/0/0/0/0/0/0/00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
             )
         )
         assert os.path.isfile(
@@ -165,7 +242,7 @@ def test_block_chunk_is_rotated_real_file_blockchain(
         assert not os.path.isfile(
             os.path.join(
                 blockchain.base_directory,
-                'blocks/0/0/0/0/0/0/0/0/00000000000000000002-00000000000000000002-block-chunk.msgpack'
+                'blocks/0/0/0/0/0/0/0/0/00000000000000000002-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
             )
         )
         assert os.path.isfile(
@@ -176,12 +253,10 @@ def test_block_chunk_is_rotated_real_file_blockchain(
         )
 
 
-def test_block_is_appended(
-    file_blockchain_w_memory_storage, user_account, treasury_account_signing_key, preferred_node
-):
+def test_block_appended(file_blockchain_w_memory_storage, user_account, treasury_account_signing_key, preferred_node):
     signing_key = treasury_account_signing_key
     blockchain = file_blockchain_w_memory_storage
-    filename = '00000000000000000000-00000000000000000001-block-chunk.msgpack'
+    filename = '00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
 
     node_signing_key = get_node_signing_key()
 
@@ -206,7 +281,7 @@ def test_block_is_appended(
     blockchain.add_block(block2)
 
     assert blockchain.block_storage.files.keys() == {filename}
-    assert blockchain.block_storage.finalized == set()
+    assert not blockchain.block_storage.is_finalized(filename)
 
 
 def test_cannot_add_block_twice(

@@ -31,14 +31,15 @@ def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_sign
         file_blockchain_w_memory_storage.add_block(block1)
 
 
-def test_account_root_file_is_rotated(file_blockchain_w_memory_storage):
+def test_blockchain_state_is_rotated(file_blockchain_w_memory_storage):
     blockchain = file_blockchain_w_memory_storage
     initial_arf_filename = '000000000!-blockchain-state.msgpack'
     new_blockchain_state = '0000000001-blockchain-state.msgpack'
 
     assert blockchain.get_blockchain_states_count() == 2
     assert blockchain.blockchain_states_storage.files.keys() == {initial_arf_filename, new_blockchain_state}
-    assert blockchain.blockchain_states_storage.finalized == {initial_arf_filename, new_blockchain_state}
+    assert blockchain.blockchain_states_storage.is_finalized(initial_arf_filename)
+    assert blockchain.blockchain_states_storage.is_finalized(new_blockchain_state)
 
 
 def test_yield_blockchain_states_is_sorted(file_blockchain_w_memory_storage):

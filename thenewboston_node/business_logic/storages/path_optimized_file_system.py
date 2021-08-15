@@ -57,12 +57,17 @@ class PathOptimizedFileSystemStorage(FileSystemStorage):
             yield from sorted(generator, reverse=sort_direction == -1)
 
     def move(self, source, destination):
+        optimized_source = self.get_optimized_path(source)
         optimized_destination = self.get_optimized_path(destination)
-        super().move(self.get_optimized_path(source), optimized_destination)
+        super().move(optimized_source, optimized_destination)
+
+    def get_mtime(self, file_path):
+        return super().get_mtime(self.get_optimized_path(file_path))
 
     def _list_directory_generator(self, directory_path):
         directory_path = self._get_absolute_path(directory_path)
         for dir_path, _, filenames in os.walk(directory_path):
+            # TODO(dmu) HIGH: Refactor: PathOptimizedFileSystemStorage should know nothing about compression
             original_filenames = map(strip_compression_extension, filenames)
             unique_filenames = set(original_filenames)  # remove duplicated files after strip
 
@@ -83,3 +88,6 @@ class PathOptimizedFileSystemStorage(FileSystemStorage):
 
     def get_optimized_path(self, file_path):
         return make_optimized_file_path(file_path, self.max_depth)
+
+    def get_optimized_actual_path(self, file_path):
+        return self.get_actual_file_path(self.get_optimized_path(file_path))

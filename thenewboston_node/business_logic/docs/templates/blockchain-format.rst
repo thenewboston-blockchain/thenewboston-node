@@ -1,6 +1,9 @@
 thenewboston blockchain format
 ******************************
 
+.. contents:: Table of contents
+   :depth: 5
+
 Directory structure
 ===================
 

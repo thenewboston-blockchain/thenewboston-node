@@ -1,6 +1,8 @@
 import logging
 from typing import Optional
 
+from more_itertools import ilen
+
 from thenewboston_node.business_logic.enums import NodeRole
 from thenewboston_node.business_logic.models import Node
 from thenewboston_node.core.utils.types import hexstr
@@ -16,6 +18,9 @@ class NetworkMixin(BaseMixin):
         if on_block_number is None:
             on_block_number = self.get_last_block_number()
         return self.get_account_state_attribute_value(identifier, 'node', on_block_number)
+
+    def get_nodes_count(self, block_number: Optional[int] = None) -> int:
+        return ilen(self.yield_nodes(block_number=block_number))
 
     def yield_nodes(self, block_number: Optional[int] = None):
         known_accounts = set()

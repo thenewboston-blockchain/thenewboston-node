@@ -122,5 +122,5 @@ def test_node_roles(
     with force_blockchain(blockchain):
         response = api_client.get(f'{API_V1_NODES_PREFIX}/self/')
 
-    data = response.json()
-    assert data['role'] == node_role.value
+    assert response.status_code == 200
+    assert response.json()['role'] == node_role.value

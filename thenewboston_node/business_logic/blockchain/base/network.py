@@ -83,13 +83,11 @@ class NetworkMixin(BaseMixin):
 
         schedule = self.get_primary_validator_schedule(identifier, last_block_number)
 
-        if schedule is None or schedule.is_block_number_in_future(last_block_number):
+        if schedule is None or schedule.is_schedule_in_past(last_block_number):
             return NodeRole.REGULAR_NODE
 
-        if schedule.is_block_number_included(last_block_number):
+        if schedule.is_schedule_at_present(last_block_number):
             return NodeRole.PRIMARY_VALIDATOR
 
-        if schedule.is_block_number_in_past(last_block_number):
-            return NodeRole.CONFIRMATION_VALIDATOR
-
-        return None
+        assert schedule.is_schedule_in_future(last_block_number)
+        return NodeRole.CONFIRMATION_VALIDATOR

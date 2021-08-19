@@ -13,13 +13,16 @@ class PrimaryValidatorSchedule(BaseDataclass):
     begin_block_number: int
     end_block_number: int
 
-    def is_block_number_in_past(self, block_number):
+    def is_schedule_in_future(self, block_number):
         return block_number < self.begin_block_number
 
     def is_block_number_included(self, block_number):
         return self.begin_block_number <= block_number <= self.end_block_number
 
-    def is_block_number_in_future(self, block_number):
+    def is_schedule_at_present(self, block_number):
+        return self.is_block_number_included(block_number)
+
+    def is_schedule_in_past(self, block_number):
         return self.end_block_number < block_number
 
 

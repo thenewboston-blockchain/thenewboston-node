@@ -1,6 +1,6 @@
 from typing import Optional
 
-from thenewboston_node.business_logic.models import Block, BlockchainState, Node
+from thenewboston_node.business_logic.models import Block, BlockchainState, Node, PrimaryValidatorSchedule
 from thenewboston_node.core.utils.types import hexstr
 
 
@@ -52,4 +52,7 @@ class BaseMixin:
         raise NotImplementedError('Must be implemented in a child class')
 
     def get_block_by_number(self, block_number: int) -> Optional[Block]:
+        raise NotImplementedError('Must be implemented in a child class')
+
+    def get_primary_validator_schedule(self, account: hexstr, on_block_number: int) -> PrimaryValidatorSchedule:
         raise NotImplementedError('Must be implemented in a child class')

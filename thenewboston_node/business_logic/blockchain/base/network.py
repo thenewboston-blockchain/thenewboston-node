@@ -79,10 +79,9 @@ class NetworkMixin(BaseMixin):
         node = self.get_node_by_identifier(identifier, last_block_number)
 
         if node is None:
-            logger.warning(f'Getting node role of non-existent node: {identifier}')
             return None
 
-        schedule = self.get_account_state_attribute_value(identifier, 'primary_validator_schedule', last_block_number)
+        schedule = self.get_primary_validator_schedule(identifier, last_block_number)
 
         if schedule is None or schedule.is_block_number_in_future(last_block_number):
             return NodeRole.REGULAR_NODE

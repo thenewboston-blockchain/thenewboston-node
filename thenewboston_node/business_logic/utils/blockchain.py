@@ -62,12 +62,11 @@ def generate_blockchain(
     preferred_node = RegularNode(identifier=generate_key_pair().public, fee_amount=1, network_addresses=[])
     node_fee = preferred_node.fee_amount
 
-    balances = get_initial_balances(blockchain)
+    initial_balances = get_initial_balances(blockchain)
 
-    assert len(balances) >= 1
-    assert treasury_account in balances
-    assert balances[treasury_account] >= MAX_AMOUNT
-    balances = {treasury_account: balances[treasury_account]}
+    assert treasury_account in initial_balances
+    assert initial_balances[treasury_account] >= MAX_AMOUNT
+    balances = {treasury_account: initial_balances[treasury_account]}
     accounts = list(balances)
 
     account_private_keys = {treasury_account: treasury_account_key_pair.private}

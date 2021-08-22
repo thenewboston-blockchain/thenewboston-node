@@ -4,7 +4,9 @@ from typing import Optional
 
 from more_itertools import ilen
 
-from thenewboston_node.business_logic.models import AccountState, PrimaryValidatorSchedule
+from thenewboston_node.business_logic.models import (
+    AccountState, CoinTransferSignedChangeRequest, PrimaryValidatorSchedule
+)
 from thenewboston_node.core.logging import timeit_method
 from thenewboston_node.core.utils.types import hexstr
 
@@ -129,3 +131,30 @@ class AccountStateMixin(BaseMixin):
         block = self.get_block_by_number(prev_block_number)
         assert block is not None
         return block.hash
+
+    # TODO: probably move to another new transaction related mixin
+    # TODO: add caching implementation
+    def yield_transactions(self, account_id, is_reversed=False):
+        blocks = self.yield_blocks_reversed() if is_reversed else self.yield_blocks()
+
+        first_block_number = None
+        for block in blocks:
+            message = block.message
+
+            if not is_reversed:
+                if first_block_number is None:
+                    first_block_number = message.block_number
+            else:
+                first_block_number = message.block_number
+
+            signed_change_request = message.signed_change_request
+            if isinstance(signed_change_request, CoinTransferSignedChangeRequest):
+                signer = signed_change_request.signer
+                for transaction in signed_change_request.message.txs:
+                    if account_id in (signer, transaction.recipient):
+                        yield transaction
+
+        if first_block_number != 0:
+            # TODO: implement sync initialization or otherwise redirection of client to get the entire
+            # list of transaction from somewhere else, for example from current PV
+            raise NotImplementedError('The blockchain is incomplete')

@@ -15,7 +15,7 @@ from thenewboston_node.core.logging import timeit
 from thenewboston_node.core.utils.file_lock import ensure_locked, lock_method
 
 from ..base import BlockchainBase
-from .block_chunk import ORDER_OF_BLOCK, get_block_chunk_file_path_meta, make_block_chunk_filename
+from .block_chunk import get_block_chunk_file_path_meta, make_block_chunk_filename
 from .blockchain_state import (
     LAST_BLOCK_NUMBER_NONE_SENTINEL, ORDER_OF_BLOCKCHAIN_STATE_FILE, get_blockchain_state_filename_meta,
     make_blockchain_state_filename
@@ -25,8 +25,6 @@ logger = logging.getLogger(__name__)
 
 # We need to zfill to maintain the nested structure of directories
 BLOCKCHAIN_GENESIS_STATE_PREFIX = LAST_BLOCK_NUMBER_NONE_SENTINEL.zfill(ORDER_OF_BLOCKCHAIN_STATE_FILE)
-
-INCOMPLETE_BLOCK_CHUNK_END_BLOCK_NUMBER_SENTINEL = 'x' * ORDER_OF_BLOCK
 
 DEFAULT_BLOCK_CHUNK_SIZE = 100
 
@@ -51,6 +49,9 @@ class FileBlockchain(BlockchainBase):
         block_chunk_size=DEFAULT_BLOCK_CHUNK_SIZE,
         blocks_cache_size=None,
         blocks_storage_kwargs=None,
+
+        # Misc
+        block_number_digits_count=20,
         lock_filename='file.lock',
         **kwargs
     ):
@@ -91,6 +92,8 @@ class FileBlockchain(BlockchainBase):
         self._file_lock = None
         self.lock_filename = lock_filename
 
+        self._block_number_digits_count = block_number_digits_count
+
     def get_base_directory(self):
         return self._base_directory
 
@@ -99,6 +102,12 @@ class FileBlockchain(BlockchainBase):
 
     def get_block_chunks_subdirectory(self):
         return self._block_chunks_subdirectory
+
+    def get_block_number_digits_count(self):
+        return self._block_number_digits_count
+
+    def get_block_chunk_size(self):
+        return self._block_chunk_size
 
     @property
     def file_lock(self):
@@ -213,9 +222,7 @@ class FileBlockchain(BlockchainBase):
 
     @ensure_locked(lock_attr='file_lock', exception=EXPECTED_LOCK_EXCEPTION)
     def persist_block(self, block: Block):
-        append_filename, destination_filename = make_block_chunk_filename(
-            block.get_block_number(), self._block_chunk_size
-        )
+        append_filename, destination_filename = self.make_block_chunk_filename(block.get_block_number())
 
         storage = self.block_storage
         storage.append(append_filename, block.to_messagepack())
@@ -238,8 +245,8 @@ class FileBlockchain(BlockchainBase):
             assert block.meta['chunk_file_path'].endswith(append_filename)  # type: ignore
             self._set_block_meta(block, meta, chunk_file_path)
 
-    def get_current_chunk_filename(self):
-        pass
+    def make_block_chunk_filename(self, block_number):
+        return make_block_chunk_filename(block_number, self._block_chunk_size, self._block_number_digits_count)
 
     def yield_blocks(self) -> Generator[Block, None, None]:
         yield from self._yield_blocks(1)

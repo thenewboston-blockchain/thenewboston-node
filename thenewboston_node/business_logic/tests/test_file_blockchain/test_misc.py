@@ -1,7 +1,7 @@
 import os.path
 from unittest.mock import patch
 
-from thenewboston_node.business_logic.blockchain.file_blockchain import (
+from thenewboston_node.business_logic.blockchain.file_blockchain.base import (
     FileBlockchain, get_block_chunk_filename_meta, get_blockchain_state_filename_meta
 )
 from thenewboston_node.business_logic.tests.factories import add_blocks_to_blockchain

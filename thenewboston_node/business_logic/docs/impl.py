@@ -5,7 +5,7 @@ import jinja2
 
 import thenewboston_node.business_logic.docs
 from thenewboston_node.business_logic import models
-from thenewboston_node.business_logic.blockchain import file_blockchain
+from thenewboston_node.business_logic.blockchain.file_blockchain import base as file_blockchain
 from thenewboston_node.business_logic.models import SignedChangeRequestMessage
 from thenewboston_node.business_logic.models.mixins.compactable import COMPACT_KEY_MAP
 from thenewboston_node.business_logic.models.signed_change_request import SIGNED_CHANGE_REQUEST_TYPE_MAP

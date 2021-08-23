@@ -1,4 +1,4 @@
-from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
+from thenewboston_node.business_logic.blockchain.file_blockchain.base import FileBlockchain
 from thenewboston_node.business_logic.tests.base import force_blockchain
 from thenewboston_node.business_logic.tests.factories import add_blocks_to_blockchain
 

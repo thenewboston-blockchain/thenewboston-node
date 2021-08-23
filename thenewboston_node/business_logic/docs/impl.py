@@ -82,8 +82,6 @@ def get_context(samples_factory):
         'block_types': {item.value: humanize_snake_case(item.name.lower()) for item in BlockType},
         'sample_file_blockchain': samples_factory.get_sample_blockchain(),
         'file_blockchain': {
-            'order_of_block':
-                thenewboston_node.business_logic.blockchain.file_blockchain.block_chunk.ORDER_OF_BLOCK,
             'order_of_account_root_file':
                 thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_state.
                 ORDER_OF_BLOCKCHAIN_STATE_FILE,
@@ -92,8 +90,6 @@ def get_context(samples_factory):
             'account_root_file_template':
                 thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_state.
                 BLOCKCHAIN_STATE_FILENAME_TEMPLATE,
-            'get_block_chunk_filename':
-                thenewboston_node.business_logic.blockchain.file_blockchain.block_chunk.make_block_chunk_filename,
             'get_account_root_filename':
                 thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_state.
                 make_blockchain_state_filename,

@@ -4,22 +4,21 @@ from collections import namedtuple
 
 from thenewboston_node.business_logic.storages.file_system import COMPRESSION_FUNCTIONS
 
-ORDER_OF_BLOCK = 20  # TODO(dmu) MEDIUM: Move to settings
 BLOCK_CHUNK_FILENAME_TEMPLATE = '{start}-{end}-block-chunk.msgpack'
 
 
-def make_block_chunk_filename(block_number, block_chunk_size):
+def make_block_chunk_filename(block_number, block_chunk_size, block_number_digits_count):
     max_offset = block_chunk_size - 1
     chunk_number, offset = divmod(block_number, block_chunk_size)
 
     chunk_block_number_start = chunk_number * block_chunk_size
     chunk_block_number_end = chunk_block_number_start + max_offset
 
-    start_block_str = str(chunk_block_number_start).zfill(ORDER_OF_BLOCK)
-    end_block_str = 'x' * ORDER_OF_BLOCK
+    start_block_str = str(chunk_block_number_start).zfill(block_number_digits_count)
+    end_block_str = 'x' * block_number_digits_count
 
     if offset == max_offset:
-        dest_end_block_str = str(chunk_block_number_end).zfill(ORDER_OF_BLOCK)
+        dest_end_block_str = str(chunk_block_number_end).zfill(block_number_digits_count)
     else:
         assert offset < max_offset
         dest_end_block_str = end_block_str

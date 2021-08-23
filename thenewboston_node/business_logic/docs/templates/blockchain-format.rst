@@ -193,17 +193,17 @@ Block chunk file structure
 Block chunk filename format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Filename template is "``{{ file_blockchain.block_chunk_template.format(start='y' *  file_blockchain.order_of_block, end='z' *  file_blockchain.order_of_block) }}[.compressor]``"
-where "``{{ 'y' *  file_blockchain.order_of_block }}``" is the first block number of the block chunk file,
-"``{{ 'z' *  file_blockchain.order_of_block }}``" is the last block number of the block chunk file,
+Filename template is "``{{ file_blockchain.block_chunk_template.format(start='y' * sample_file_blockchain.get_block_number_digits_count(), end='z' * sample_file_blockchain.get_block_number_digits_count()) }}[.compressor]``"
+where "``{{ 'y' * sample_file_blockchain.get_block_number_digits_count() }}``" is the first block number of the block chunk file,
+"``{{ 'z' * sample_file_blockchain.get_block_number_digits_count() }}``" is the last block number of the block chunk file,
 and "``.compressor``" represents compression algorithm, if present. Special magic value for
-last block number equal to string '``{{ 'x' *  file_blockchain.order_of_block }}``' is used to
+last block number equal to string '``{{ 'x' * sample_file_blockchain.get_block_number_digits_count() }}``' is used to
 denote incomplete block chunk file (not containing all blocks yet it supposed to hold). In this
 case actual last block in the file should be derived by examining the content of the file.
 
-Filename example of block chunk file for blocks from 100 to 199 compressed with LZMA compression: ``{{ file_blockchain.get_block_chunk_filename(199, 100)[1] }}.xz``.
+Filename example of block chunk file for blocks from {{ sample_file_blockchain.get_block_chunk_size() }} to {{ sample_file_blockchain.get_block_chunk_size() * 2 - 1 }} compressed with LZMA compression: ``{{ sample_file_blockchain.make_block_chunk_filename(sample_file_blockchain.get_block_chunk_size() * 2 - 1)[1] }}.xz``.
 
-Filename example of incomplete block chunk file for blocks from 200 to 299: ``{{ file_blockchain.get_block_chunk_filename(200, 100)[1] }}``
+Filename example of incomplete block chunk file for blocks from {{ sample_file_blockchain.get_block_chunk_size() * 2 }} to {{ sample_file_blockchain.get_block_chunk_size() * 3 - 1 }}: ``{{ sample_file_blockchain.make_block_chunk_filename(sample_file_blockchain.get_block_chunk_size() * 2)[1] }}``
 (it is not compressed yet, because new blocks to be appended to it).
 
 Block chunk file format

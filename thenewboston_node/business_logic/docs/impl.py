@@ -3,9 +3,11 @@ from collections import Counter
 
 import jinja2
 
+import thenewboston_node.business_logic.blockchain.file_blockchain.block_chunks
+import thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_states
 import thenewboston_node.business_logic.docs
 from thenewboston_node.business_logic import models
-from thenewboston_node.business_logic.blockchain.file_blockchain import base as file_blockchain
+from thenewboston_node.business_logic.blockchain import file_blockchain
 from thenewboston_node.business_logic.models import SignedChangeRequestMessage
 from thenewboston_node.business_logic.models.mixins.compactable import COMPACT_KEY_MAP
 from thenewboston_node.business_logic.models.signed_change_request import SIGNED_CHANGE_REQUEST_TYPE_MAP
@@ -79,18 +81,33 @@ def get_context():
         'sample_blockchain_state': samples_factory.get_sample_blockchain_state(),
         'block_types': {item.value: humanize_snake_case(item.name.lower()) for item in BlockType},
         'file_blockchain': {
-            'account_root_file_subdir': file_blockchain.DEFAULT_BLOCKCHAIN_STATES_SUBDIR,
-            'blocks_subdir': file_blockchain.DEFAULT_BLOCKS_SUBDIR,
-            'block_chunk_size': file_blockchain.DEFAULT_BLOCK_CHUNK_SIZE,
-            'order_of_block': file_blockchain.ORDER_OF_BLOCK,
-            'order_of_account_root_file': file_blockchain.ORDER_OF_BLOCKCHAIN_STATE_FILE,
-            'block_chunk_template': file_blockchain.BLOCK_CHUNK_FILENAME_TEMPLATE,
-            'account_root_file_template': file_blockchain.BLOCKCHAIN_STATE_FILENAME_TEMPLATE,
-            'get_block_chunk_filename': file_blockchain.make_block_chunk_filename,
-            'get_account_root_filename': file_blockchain.make_blockchain_state_filename,
-            'compressors': file_system.COMPRESSION_FUNCTIONS.keys(),
-            'file_optimization_max_depth': path_optimized_file_system.DEFAULT_MAX_DEPTH,
-            'make_optimized_file_path': path_optimized_file_system.make_optimized_file_path,
+            'account_root_file_subdir':
+                file_blockchain.DEFAULT_BLOCKCHAIN_STATES_SUBDIR,
+            'blocks_subdir':
+                file_blockchain.DEFAULT_BLOCKS_SUBDIR,
+            'block_chunk_size':
+                file_blockchain.DEFAULT_BLOCK_CHUNK_SIZE,
+            'order_of_block':
+                thenewboston_node.business_logic.blockchain.file_blockchain.block_chunks.ORDER_OF_BLOCK,
+            'order_of_account_root_file':
+                thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_states.
+                ORDER_OF_BLOCKCHAIN_STATE_FILE,
+            'block_chunk_template':
+                thenewboston_node.business_logic.blockchain.file_blockchain.block_chunks.BLOCK_CHUNK_FILENAME_TEMPLATE,
+            'account_root_file_template':
+                thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_states.
+                BLOCKCHAIN_STATE_FILENAME_TEMPLATE,
+            'get_block_chunk_filename':
+                thenewboston_node.business_logic.blockchain.file_blockchain.block_chunks.make_block_chunk_filename,
+            'get_account_root_filename':
+                thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_states.
+                make_blockchain_state_filename,
+            'compressors':
+                file_system.COMPRESSION_FUNCTIONS.keys(),
+            'file_optimization_max_depth':
+                path_optimized_file_system.DEFAULT_MAX_DEPTH,
+            'make_optimized_file_path':
+                path_optimized_file_system.make_optimized_file_path,
         },
         'compact_key_map': sorted(COMPACT_KEY_MAP.items()),
         'builtins': builtins,

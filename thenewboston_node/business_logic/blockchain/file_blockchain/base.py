@@ -17,7 +17,7 @@ from thenewboston_node.business_logic.storages.path_optimized_file_system import
 from thenewboston_node.core.logging import timeit
 from thenewboston_node.core.utils.file_lock import ensure_locked, lock_method
 
-from .base import BlockchainBase
+from ..base import BlockchainBase
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +41,7 @@ BLOCK_CHUNK_FILENAME_RE = re.compile(
     BLOCK_CHUNK_FILENAME_TEMPLATE.format(start=r'(?P<start>\d+)', end=r'(?P<end>\d+|x+)') +
     r'(?:|\.(?P<compression>{}))$'.format('|'.join(COMPRESSION_FUNCTIONS.keys()))
 )
+INCOMPLETE_BLOCK_CHUNK_END_BLOCK_NUMBER_SENTINEL = 'x' * ORDER_OF_BLOCK
 
 DEFAULT_BLOCKCHAIN_STATES_SUBDIR = 'blockchain-states'
 DEFAULT_BLOCKS_SUBDIR = 'blocks'
@@ -291,21 +292,26 @@ class FileBlockchain(BlockchainBase):
         storage = self.block_storage
         storage.append(append_filename, block.to_messagepack())
 
-        if append_filename != destination_filename:
-            storage.move(append_filename, destination_filename)
-            storage.finalize(destination_filename)
+        if append_filename == destination_filename:
+            return
 
-            chunk_file_path = storage.get_optimized_actual_path(destination_filename)
-            meta = get_block_chunk_file_path_meta(destination_filename)
-            end = meta.end
-            assert end is not None
-            for block_number in range(meta.start, end + 1):
-                block = self.blocks_cache.get(block_number)  # type: ignore
-                if block is None:
-                    continue
+        storage.move(append_filename, destination_filename)
+        storage.finalize(destination_filename)
 
-                assert block.meta['chunk_file_path'].endswith(append_filename)  # type: ignore
-                self._set_block_meta(block, meta, chunk_file_path)
+        chunk_file_path = storage.get_optimized_actual_path(destination_filename)
+        meta = get_block_chunk_file_path_meta(destination_filename)
+        end = meta.end
+        assert end is not None
+        for block_number in range(meta.start, end + 1):
+            block = self.blocks_cache.get(block_number)  # type: ignore
+            if block is None:
+                continue
+
+            assert block.meta['chunk_file_path'].endswith(append_filename)  # type: ignore
+            self._set_block_meta(block, meta, chunk_file_path)
+
+    def get_current_chunk_filename(self):
+        pass
 
     def yield_blocks(self) -> Generator[Block, None, None]:
         yield from self._yield_blocks(1)

@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pytest
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
-from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
+from thenewboston_node.business_logic.blockchain.file_blockchain.base import FileBlockchain
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
 from thenewboston_node.business_logic.blockchain.mock_blockchain import MockBlockchain
 from thenewboston_node.business_logic.tests.base import force_blockchain

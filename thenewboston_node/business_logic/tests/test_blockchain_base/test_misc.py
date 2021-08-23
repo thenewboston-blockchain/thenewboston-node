@@ -1,7 +1,7 @@
 from django.test import override_settings
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
-from thenewboston_node.business_logic.blockchain.file_blockchain.base import FileBlockchain
+from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
 
 MEMORY_BLOCKCHAIN_CLASS = 'thenewboston_node.business_logic.blockchain.memory_blockchain.MemoryBlockchain'

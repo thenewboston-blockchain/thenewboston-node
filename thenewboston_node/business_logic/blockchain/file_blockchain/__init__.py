@@ -15,8 +15,8 @@ from thenewboston_node.core.logging import timeit
 from thenewboston_node.core.utils.file_lock import ensure_locked, lock_method
 
 from ..base import BlockchainBase
-from .block_chunks import ORDER_OF_BLOCK, get_block_chunk_file_path_meta, make_block_chunk_filename
-from .blockchain_states import (
+from .block_chunk import ORDER_OF_BLOCK, get_block_chunk_file_path_meta, make_block_chunk_filename
+from .blockchain_state import (
     LAST_BLOCK_NUMBER_NONE_SENTINEL, ORDER_OF_BLOCKCHAIN_STATE_FILE, get_blockchain_state_filename_meta,
     make_blockchain_state_filename
 )
@@ -27,9 +27,6 @@ logger = logging.getLogger(__name__)
 BLOCKCHAIN_GENESIS_STATE_PREFIX = LAST_BLOCK_NUMBER_NONE_SENTINEL.zfill(ORDER_OF_BLOCKCHAIN_STATE_FILE)
 
 INCOMPLETE_BLOCK_CHUNK_END_BLOCK_NUMBER_SENTINEL = 'x' * ORDER_OF_BLOCK
-
-DEFAULT_BLOCKCHAIN_STATES_SUBDIR = 'blockchain-states'
-DEFAULT_BLOCKS_SUBDIR = 'blocks'
 
 DEFAULT_BLOCK_CHUNK_SIZE = 100
 
@@ -44,13 +41,13 @@ class FileBlockchain(BlockchainBase):
         *,
         base_directory,
 
-        # Account root files
-        account_root_files_subdir=DEFAULT_BLOCKCHAIN_STATES_SUBDIR,
+        # Blockchain states
+        blockchain_states_subdirectory='blockchain-states',
         account_root_files_cache_size=128,
         account_root_files_storage_kwargs=None,
 
         # Blocks
-        blocks_subdir=DEFAULT_BLOCKS_SUBDIR,
+        block_chunks_subdirectory='block-chunks',
         block_chunk_size=DEFAULT_BLOCK_CHUNK_SIZE,
         blocks_cache_size=None,
         blocks_storage_kwargs=None,
@@ -63,19 +60,28 @@ class FileBlockchain(BlockchainBase):
         kwargs.setdefault('snapshot_period_in_blocks', block_chunk_size)
         super().__init__(**kwargs)
 
-        self.block_chunk_size = block_chunk_size
-
-        self.blockchain_states_directory = os.path.join(base_directory, account_root_files_subdir)
-        block_directory = os.path.join(base_directory, blocks_subdir)
-        self.base_directory = base_directory
-
-        self.block_storage = PathOptimizedFileSystemStorage(base_path=block_directory, **(blocks_storage_kwargs or {}))
+        # Blockchain states
+        blockchain_states_directory = os.path.join(base_directory, blockchain_states_subdirectory)
         self.blockchain_states_storage = PathOptimizedFileSystemStorage(
-            base_path=self.blockchain_states_directory, **(account_root_files_storage_kwargs or {})
+            base_path=blockchain_states_directory, **(account_root_files_storage_kwargs or {})
         )
+        self._blockchain_states_subdirectory = blockchain_states_subdirectory
+        self._blockchain_states_directory = blockchain_states_directory
+
+        # Block chunks
+        block_chunks_directory = os.path.join(base_directory, block_chunks_subdirectory)
+        self.block_storage = PathOptimizedFileSystemStorage(
+            base_path=block_chunks_directory, **(blocks_storage_kwargs or {})
+        )
+        self._block_chunks_subdirectory = block_chunks_subdirectory
+        self._block_chunks_directory = block_chunks_directory
+
+        # Misc
+        self._base_directory = base_directory
 
         self.account_root_files_cache_size = account_root_files_cache_size
         self.blocks_cache_size = blocks_cache_size
+        self._block_chunk_size = block_chunk_size
 
         self.blockchain_states_cache: Optional[LRUCache] = None
         self.blocks_cache: Optional[LRUCache] = None
@@ -85,11 +91,20 @@ class FileBlockchain(BlockchainBase):
         self._file_lock = None
         self.lock_filename = lock_filename
 
+    def get_base_directory(self):
+        return self._base_directory
+
+    def get_blockchain_states_subdirectory(self):
+        return self._blockchain_states_subdirectory
+
+    def get_block_chunks_subdirectory(self):
+        return self._block_chunks_subdirectory
+
     @property
     def file_lock(self):
         file_lock = self._file_lock
         if file_lock is None:
-            base_directory = self.base_directory
+            base_directory = self.get_base_directory()
             os.makedirs(base_directory, exist_ok=True)
             lock_file_path = os.path.join(base_directory, self.lock_filename)
             self._file_lock = file_lock = filelock.FileLock(lock_file_path, timeout=0)
@@ -177,8 +192,8 @@ class FileBlockchain(BlockchainBase):
 
     def _get_blockchain_state_real_file_path(self, file_path):
         optimized_path = self.blockchain_states_storage.get_optimized_path(file_path)
-        abs_optimized_path = os.path.join(self.blockchain_states_directory, optimized_path)
-        return os.path.relpath(abs_optimized_path, self.base_directory)
+        abs_optimized_path = os.path.join(self._blockchain_states_directory, optimized_path)
+        return os.path.relpath(abs_optimized_path, self.get_base_directory())
 
     # Blocks methods
     @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
@@ -199,7 +214,7 @@ class FileBlockchain(BlockchainBase):
     @ensure_locked(lock_attr='file_lock', exception=EXPECTED_LOCK_EXCEPTION)
     def persist_block(self, block: Block):
         append_filename, destination_filename = make_block_chunk_filename(
-            block.get_block_number(), self.block_chunk_size
+            block.get_block_number(), self._block_chunk_size
         )
 
         storage = self.block_storage

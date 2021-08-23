@@ -1,13 +1,13 @@
 import builtins
 from collections import Counter
+from contextlib import closing
 
 import jinja2
 
-import thenewboston_node.business_logic.blockchain.file_blockchain.block_chunks
-import thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_states
+import thenewboston_node.business_logic.blockchain.file_blockchain.block_chunk
+import thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_state
 import thenewboston_node.business_logic.docs
 from thenewboston_node.business_logic import models
-from thenewboston_node.business_logic.blockchain import file_blockchain
 from thenewboston_node.business_logic.models import SignedChangeRequestMessage
 from thenewboston_node.business_logic.models.mixins.compactable import COMPACT_KEY_MAP
 from thenewboston_node.business_logic.models.signed_change_request import SIGNED_CHANGE_REQUEST_TYPE_MAP
@@ -53,7 +53,7 @@ def get_common_models():
     return [model for model, count in Counter(models).items() if count > 1]
 
 
-def get_context():
+def get_context(samples_factory):
     # TODO(dmu) MEDIUM: Is there a way to avoid duplicate traversable that does not hurt code readability?
     common_models = get_common_models()
 
@@ -69,38 +69,33 @@ def get_context():
         type_ for type_ in signed_change_request_message_models if issubclass(type_, SignedChangeRequestMessage)
     ]
 
-    samples_factory = SamplesFactory()
-
     return {
-        'block_models': block_models,
-        'blockchain_state_models': blockchain_state_models,
-        'common_models': common_models,
-        'signed_change_request_message_models': signed_change_request_message_models,
-        'signed_change_request_message_subtypes': signed_change_request_message_subtypes,
+        'models': {
+            'block': block_models,
+            'blockchain_state': blockchain_state_models,
+            'common': common_models,
+            'signed_change_request_message': signed_change_request_message_models,
+            'signed_change_request_message_subtypes': signed_change_request_message_subtypes,
+        },
         'sample_block_map': samples_factory.get_sample_block_map(),
         'sample_blockchain_state': samples_factory.get_sample_blockchain_state(),
         'block_types': {item.value: humanize_snake_case(item.name.lower()) for item in BlockType},
+        'sample_file_blockchain': samples_factory.get_sample_blockchain(),
         'file_blockchain': {
-            'account_root_file_subdir':
-                file_blockchain.DEFAULT_BLOCKCHAIN_STATES_SUBDIR,
-            'blocks_subdir':
-                file_blockchain.DEFAULT_BLOCKS_SUBDIR,
-            'block_chunk_size':
-                file_blockchain.DEFAULT_BLOCK_CHUNK_SIZE,
             'order_of_block':
-                thenewboston_node.business_logic.blockchain.file_blockchain.block_chunks.ORDER_OF_BLOCK,
+                thenewboston_node.business_logic.blockchain.file_blockchain.block_chunk.ORDER_OF_BLOCK,
             'order_of_account_root_file':
-                thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_states.
+                thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_state.
                 ORDER_OF_BLOCKCHAIN_STATE_FILE,
             'block_chunk_template':
-                thenewboston_node.business_logic.blockchain.file_blockchain.block_chunks.BLOCK_CHUNK_FILENAME_TEMPLATE,
+                thenewboston_node.business_logic.blockchain.file_blockchain.block_chunk.BLOCK_CHUNK_FILENAME_TEMPLATE,
             'account_root_file_template':
-                thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_states.
+                thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_state.
                 BLOCKCHAIN_STATE_FILENAME_TEMPLATE,
             'get_block_chunk_filename':
-                thenewboston_node.business_logic.blockchain.file_blockchain.block_chunks.make_block_chunk_filename,
+                thenewboston_node.business_logic.blockchain.file_blockchain.block_chunk.make_block_chunk_filename,
             'get_account_root_filename':
-                thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_states.
+                thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_state.
                 make_blockchain_state_filename,
             'compressors':
                 file_system.COMPRESSION_FUNCTIONS.keys(),
@@ -121,5 +116,7 @@ def render(context):
 
 
 def main():
-    rendered = render(get_context())
+    with closing(SamplesFactory()) as samples_factory:
+        rendered = render(get_context(samples_factory))
+
     print(rendered)

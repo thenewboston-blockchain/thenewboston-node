@@ -1,10 +1,12 @@
+import tempfile
 from datetime import datetime
+from typing import Optional
 
 from thenewboston_node.business_logic.utils.blockchain_state import make_blockchain_genesis_state
 from thenewboston_node.core.utils.cryptography import KeyPair
 from thenewboston_node.core.utils.types import hexstr
 
-from ..blockchain.memory_blockchain import MemoryBlockchain
+from ..blockchain.file_blockchain import FileBlockchain
 from ..models import (
     Block, CoinTransferSignedChangeRequest, NodeDeclarationSignedChangeRequest,
     PrimaryValidatorScheduleSignedChangeRequest, RegularNode
@@ -41,8 +43,8 @@ USER_KEY_PAIR = KeyPair(
 )
 
 
-def make_sample_blockchain():
-    blockchain = MemoryBlockchain()
+def make_sample_blockchain(base_directory) -> FileBlockchain:
+    blockchain = FileBlockchain(base_directory=base_directory)
 
     blockchain_state = make_blockchain_genesis_state(
         primary_validator_identifier=PV_KEY_PAIR.public,
@@ -67,10 +69,10 @@ def make_sample_blockchain():
         signing_key=REGULAR_NODE_KEY_PAIR.private
     )
     original_utcnow = blockchain.utcnow
-    blockchain.utcnow = lambda: datetime.fromisoformat('2021-06-19T23:13:22.003468')
+    blockchain.utcnow = lambda: datetime.fromisoformat('2021-06-19T23:13:22.003468')  # type: ignore
     blockchain.add_block(Block.create_from_signed_change_request(blockchain, regular_node_scr, PV_KEY_PAIR.private))
 
-    blockchain.utcnow = lambda: datetime.fromisoformat('2021-06-19T23:15:45.575678')
+    blockchain.utcnow = lambda: datetime.fromisoformat('2021-06-19T23:15:45.575678')  # type: ignore
     coin_transfer_scr = CoinTransferSignedChangeRequest.from_main_transaction(
         blockchain=blockchain,
         recipient=USER_KEY_PAIR.public,
@@ -81,7 +83,7 @@ def make_sample_blockchain():
     )
     blockchain.add_block(Block.create_from_signed_change_request(blockchain, coin_transfer_scr, PV_KEY_PAIR.private))
 
-    blockchain.utcnow = lambda: datetime.fromisoformat('2021-06-19T23:20:00')
+    blockchain.utcnow = lambda: datetime.fromisoformat('2021-06-19T23:20:00')  # type: ignore
     pv_schedule_scr = PrimaryValidatorScheduleSignedChangeRequest.create(
         100,
         199,
@@ -90,21 +92,25 @@ def make_sample_blockchain():
     blockchain.add_block(Block.create_from_signed_change_request(blockchain, pv_schedule_scr, PV_KEY_PAIR.private))
 
     blockchain.snapshot_blockchain_state()
-    blockchain.utcnow = original_utcnow
+    blockchain.utcnow = original_utcnow  # type: ignore
     return blockchain
 
 
 class SamplesFactory:
 
     def __init__(self):
-        self._blockchain = None
+        self._blockchain: Optional[FileBlockchain] = None
+        self.temp_directory = tempfile.TemporaryDirectory()
 
     @property
     def blockchain(self):
         if (blockchain := self._blockchain) is None:
-            self._blockchain = blockchain = make_sample_blockchain()
+            self._blockchain = blockchain = make_sample_blockchain(self.temp_directory.name)
 
         return blockchain
+
+    def get_sample_blockchain(self) -> FileBlockchain:
+        return self.blockchain
 
     def get_sample_blockchain_state(self):
         return self.blockchain.get_last_blockchain_state()
@@ -116,3 +122,6 @@ class SamplesFactory:
             block_map.setdefault(field_type, block)
 
         return block_map
+
+    def close(self):
+        self.temp_directory.cleanup()

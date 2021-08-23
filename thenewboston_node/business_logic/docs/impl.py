@@ -56,19 +56,17 @@ def get_common_models():
 def get_context(samples_factory):
     # TODO(dmu) MEDIUM: Is there a way to avoid duplicate traversable that does not hurt code readability?
     common_models = get_common_models()
-
     exclude = set(common_models) | {models.SignedChangeRequestMessage}
 
-    block_models = get_block_models(exclude=exclude)
-    blockchain_state_models = get_blockchain_state_models(exclude=exclude)
     signed_change_request_message_models = get_signed_change_request_message_models(exclude=exclude)
-
     # we need it a list to keep the same order with `signed_change_request_message_subtypes`
     assert isinstance(signed_change_request_message_models, list)
     signed_change_request_message_subtypes = [
         type_ for type_ in signed_change_request_message_models if issubclass(type_, SignedChangeRequestMessage)
     ]
 
+    block_models = get_block_models(exclude=exclude)
+    blockchain_state_models = get_blockchain_state_models(exclude=exclude)
     return {
         'models': {
             'block': block_models,
@@ -82,17 +80,11 @@ def get_context(samples_factory):
         'block_types': {item.value: humanize_snake_case(item.name.lower()) for item in BlockType},
         'sample_file_blockchain': samples_factory.get_sample_blockchain(),
         'file_blockchain': {
-            'order_of_account_root_file':
-                thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_state.
-                ORDER_OF_BLOCKCHAIN_STATE_FILE,
             'block_chunk_template':
                 thenewboston_node.business_logic.blockchain.file_blockchain.block_chunk.BLOCK_CHUNK_FILENAME_TEMPLATE,
             'account_root_file_template':
                 thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_state.
                 BLOCKCHAIN_STATE_FILENAME_TEMPLATE,
-            'get_account_root_filename':
-                thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_state.
-                make_blockchain_state_filename,
             'compressors':
                 file_system.COMPRESSION_FUNCTIONS.keys(),
             'file_optimization_max_depth':

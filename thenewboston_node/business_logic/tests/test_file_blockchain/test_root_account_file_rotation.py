@@ -33,8 +33,8 @@ def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_sign
 
 def test_blockchain_state_is_rotated(file_blockchain_w_memory_storage):
     blockchain = file_blockchain_w_memory_storage
-    initial_arf_filename = '000000000!-blockchain-state.msgpack'
-    new_blockchain_state = '0000000001-blockchain-state.msgpack'
+    initial_arf_filename = '0000000000000000000!-blockchain-state.msgpack'
+    new_blockchain_state = '00000000000000000001-blockchain-state.msgpack'
 
     assert blockchain.get_blockchain_states_count() == 2
     assert blockchain.blockchain_states_storage.files.keys() == {initial_arf_filename, new_blockchain_state}

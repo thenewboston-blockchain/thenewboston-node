@@ -16,15 +16,9 @@ from thenewboston_node.core.utils.file_lock import ensure_locked, lock_method
 
 from ..base import BlockchainBase
 from .block_chunk import get_block_chunk_file_path_meta, make_block_chunk_filename
-from .blockchain_state import (
-    LAST_BLOCK_NUMBER_NONE_SENTINEL, ORDER_OF_BLOCKCHAIN_STATE_FILE, get_blockchain_state_filename_meta,
-    make_blockchain_state_filename
-)
+from .blockchain_state import get_blockchain_state_filename_meta, make_blockchain_state_filename
 
 logger = logging.getLogger(__name__)
-
-# We need to zfill to maintain the nested structure of directories
-BLOCKCHAIN_GENESIS_STATE_PREFIX = LAST_BLOCK_NUMBER_NONE_SENTINEL.zfill(ORDER_OF_BLOCKCHAIN_STATE_FILE)
 
 DEFAULT_BLOCK_CHUNK_SIZE = 100
 
@@ -92,16 +86,12 @@ class FileBlockchain(BlockchainBase):
         self._file_lock = None
         self.lock_filename = lock_filename
 
+        # self._blockchain_states_storage_directory_max_depth = block_chunk_size
         self._block_number_digits_count = block_number_digits_count
 
+    # Common
     def get_base_directory(self):
         return self._base_directory
-
-    def get_blockchain_states_subdirectory(self):
-        return self._blockchain_states_subdirectory
-
-    def get_block_chunks_subdirectory(self):
-        return self._block_chunks_subdirectory
 
     def get_block_number_digits_count(self):
         return self._block_number_digits_count
@@ -135,18 +125,21 @@ class FileBlockchain(BlockchainBase):
         )
         self.block_chunk_last_block_number_cache = LRUCache(2)
 
-    # Account root files methods
+    # Blockchain state methods
+    def get_blockchain_states_subdirectory(self):
+        return self._blockchain_states_subdirectory
+
+    def make_blockchain_state_filename(self, last_block_number):
+        return make_blockchain_state_filename(last_block_number, self.get_block_number_digits_count())
+
     @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
     def add_blockchain_state(self, blockchain_state: BlockchainState):
         return super().add_blockchain_state(blockchain_state)
 
     @ensure_locked(lock_attr='file_lock', exception=EXPECTED_LOCK_EXCEPTION)
     def persist_blockchain_state(self, blockchain_state: BlockchainState):
-        storage = self.blockchain_states_storage
-        last_block_number = blockchain_state.last_block_number
-
-        filename = make_blockchain_state_filename(last_block_number)
-        storage.save(filename, blockchain_state.to_messagepack(), is_final=True)
+        filename = self.make_blockchain_state_filename(blockchain_state.get_last_block_number())
+        self.blockchain_states_storage.save(filename, blockchain_state.to_messagepack(), is_final=True)
 
     def _load_blockchain_state(self, file_path):
         logger.debug('Loading blockchain from %s', file_path)
@@ -205,6 +198,14 @@ class FileBlockchain(BlockchainBase):
         return os.path.relpath(abs_optimized_path, self.get_base_directory())
 
     # Blocks methods
+    def get_block_chunks_subdirectory(self):
+        return self._block_chunks_subdirectory
+
+    def make_block_chunk_filename(self, block_number):
+        return make_block_chunk_filename(
+            block_number, self.get_block_chunk_size(), self.get_block_number_digits_count()
+        )
+
     @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
     def add_block(self, block: Block, validate=True):
         block_number = block.get_block_number()
@@ -244,9 +245,6 @@ class FileBlockchain(BlockchainBase):
 
             assert block.meta['chunk_file_path'].endswith(append_filename)  # type: ignore
             self._set_block_meta(block, meta, chunk_file_path)
-
-    def make_block_chunk_filename(self, block_number):
-        return make_block_chunk_filename(block_number, self._block_chunk_size, self._block_number_digits_count)
 
     def yield_blocks(self) -> Generator[Block, None, None]:
         yield from self._yield_blocks(1)

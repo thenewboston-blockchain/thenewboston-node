@@ -4,21 +4,19 @@ from collections import namedtuple
 
 from thenewboston_node.business_logic.storages.file_system import COMPRESSION_FUNCTIONS
 
-ORDER_OF_BLOCKCHAIN_STATE_FILE = 10  # TODO(dmu) MEDIUM: Move to settings
 LAST_BLOCK_NUMBER_NONE_SENTINEL = '!'
 BLOCKCHAIN_STATE_FILENAME_TEMPLATE = '{last_block_number}-blockchain-state.msgpack'
 BLOCKCHAIN_STATE_FILENAME_RE = re.compile(
-    BLOCKCHAIN_STATE_FILENAME_TEMPLATE.
-    format(last_block_number=r'(?P<last_block_number>\d{,' + str(ORDER_OF_BLOCKCHAIN_STATE_FILE - 1) + r'}(?:!|\d))') +
+    BLOCKCHAIN_STATE_FILENAME_TEMPLATE.format(last_block_number=r'(?P<last_block_number>\d*(?:!|\d))') +
     r'(?:|\.(?P<compression>{}))$'.format('|'.join(COMPRESSION_FUNCTIONS.keys()))
 )
 BlockchainFilenameMeta = namedtuple('BlockchainFilenameMeta', 'last_block_number compression')
 
 
-def make_blockchain_state_filename(last_block_number=None):
+def make_blockchain_state_filename(last_block_number, block_number_digits_count):
     # We need to zfill LAST_BLOCK_NUMBER_NONE_SENTINEL to maintain the nested structure of directories
     prefix = (LAST_BLOCK_NUMBER_NONE_SENTINEL
-              if last_block_number is None else str(last_block_number)).zfill(ORDER_OF_BLOCKCHAIN_STATE_FILE)
+              if last_block_number in (None, -1) else str(last_block_number)).zfill(block_number_digits_count)
     return BLOCKCHAIN_STATE_FILENAME_TEMPLATE.format(last_block_number=prefix)
 
 

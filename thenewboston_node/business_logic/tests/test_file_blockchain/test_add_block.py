@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
-from thenewboston_node.business_logic.blockchain.file_blockchain.block_chunks import get_block_chunk_file_path_meta
+from thenewboston_node.business_logic.blockchain.file_blockchain.block_chunk import get_block_chunk_file_path_meta
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.node import get_node_signing_key
@@ -33,7 +33,7 @@ def test_get_block_chunk_file_path_meta_enhanced(
     blockchain.add_block(block0)
 
     filename = '00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
-    block_chunk_file_path = os.path.join(blockchain.base_directory, 'blocks/0/0/0/0/0/0/0/0/', filename)
+    block_chunk_file_path = os.path.join(blockchain.get_base_directory(), 'block-chunks/0/0/0/0/0/0/0/0/', filename)
     assert os.path.isfile(block_chunk_file_path)
 
     meta = get_block_chunk_file_path_meta(filename)
@@ -66,8 +66,8 @@ def test_last_block_chunk_is_properly_tracked(
     blockchain.add_block(block0)
 
     block_chunk_file_path = os.path.join(
-        blockchain.base_directory,
-        'blocks/0/0/0/0/0/0/0/0/00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
+        blockchain.get_base_directory(),
+        'block-chunks/0/0/0/0/0/0/0/0/00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
     )
     assert os.path.isfile(block_chunk_file_path)
     assert blockchain.get_block_count() == 1
@@ -94,7 +94,7 @@ def test_block_chunk_is_rotated(
     file2 = '00000000000000000002-00000000000000000003-block-chunk.msgpack'
     node_signing_key = get_node_signing_key()
 
-    with patch.object(blockchain, 'block_chunk_size', 2):
+    with patch.object(blockchain, '_block_chunk_size', 2):
         block0 = Block.create_from_main_transaction(
             blockchain=blockchain,
             recipient=user_account,
@@ -148,7 +148,7 @@ def test_block_chunk_is_rotated_real_file_blockchain(
     signing_key = treasury_account_signing_key
     node_signing_key = get_node_signing_key()
 
-    with patch.object(blockchain, 'block_chunk_size', 2), patch.object(blockchain.block_storage, 'compressors', ()):
+    with patch.object(blockchain, '_block_chunk_size', 2), patch.object(blockchain.block_storage, 'compressors', ()):
         block0 = Block.create_from_main_transaction(
             blockchain=blockchain,
             recipient=user_account,
@@ -161,8 +161,8 @@ def test_block_chunk_is_rotated_real_file_blockchain(
 
         assert os.path.isfile(
             os.path.join(
-                blockchain.base_directory,
-                'blocks/0/0/0/0/0/0/0/0/00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
+                blockchain.get_base_directory(),
+                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
             )
         )
 
@@ -178,13 +178,13 @@ def test_block_chunk_is_rotated_real_file_blockchain(
 
         assert not os.path.isfile(
             os.path.join(
-                blockchain.base_directory,
-                'blocks/0/0/0/0/0/0/0/0/00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
+                blockchain.get_base_directory(),
+                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
             )
         )
         final_filename = os.path.join(
-            blockchain.base_directory,
-            'blocks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000001-block-chunk.msgpack'
+            blockchain.get_base_directory(),
+            'block-chunks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000001-block-chunk.msgpack'
         )
         assert os.path.isfile(final_filename)
         assert not bool(os.stat(final_filename).st_mode & STAT_WRITE_PERMS_ALL)
@@ -201,20 +201,20 @@ def test_block_chunk_is_rotated_real_file_blockchain(
 
         assert not os.path.isfile(
             os.path.join(
-                blockchain.base_directory,
-                'blocks/0/0/0/0/0/0/0/0/00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
+                blockchain.get_base_directory(),
+                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
             )
         )
         assert os.path.isfile(
             os.path.join(
-                blockchain.base_directory,
-                'blocks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000001-block-chunk.msgpack'
+                blockchain.get_base_directory(),
+                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000001-block-chunk.msgpack'
             )
         )
         assert os.path.isfile(
             os.path.join(
-                blockchain.base_directory,
-                'blocks/0/0/0/0/0/0/0/0/00000000000000000002-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
+                blockchain.get_base_directory(),
+                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000002-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
             )
         )
 
@@ -230,26 +230,26 @@ def test_block_chunk_is_rotated_real_file_blockchain(
 
         assert not os.path.isfile(
             os.path.join(
-                blockchain.base_directory,
-                'blocks/0/0/0/0/0/0/0/0/00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
+                blockchain.get_base_directory(),
+                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
             )
         )
         assert os.path.isfile(
             os.path.join(
-                blockchain.base_directory,
-                'blocks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000001-block-chunk.msgpack'
+                blockchain.get_base_directory(),
+                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000001-block-chunk.msgpack'
             )
         )
         assert not os.path.isfile(
             os.path.join(
-                blockchain.base_directory,
-                'blocks/0/0/0/0/0/0/0/0/00000000000000000002-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
+                blockchain.get_base_directory(),
+                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000002-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
             )
         )
         assert os.path.isfile(
             os.path.join(
-                blockchain.base_directory,
-                'blocks/0/0/0/0/0/0/0/0/00000000000000000002-00000000000000000003-block-chunk.msgpack'
+                blockchain.get_base_directory(),
+                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000002-00000000000000000003-block-chunk.msgpack'
             )
         )
 

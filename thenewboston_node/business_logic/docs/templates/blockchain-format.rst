@@ -12,9 +12,9 @@ Directory structure
 +=====================================+====================================+
 | Blockchain root directory           | ``/path/to/blockchain/root/``      |
 +-------------------------------------+------------------------------------+
-| `Blockchain state files`_ directory | ``+---{{ (file_blockchain.account_root_file_subdir + '/``').ljust(28) }} |
+| `Blockchain state files`_ directory | ``+---{{ (sample_file_blockchain.get_blockchain_states_subdirectory() + '/``').ljust(28) }} |
 +-------------------------------------+------------------------------------+
-| `Block chunk files`_ directory      | ``+---{{ (file_blockchain.blocks_subdir + '/``').ljust(28) }} |
+| `Block chunk files`_ directory      | ``+---{{ (sample_file_blockchain.get_block_chunks_subdirectory() + '/``').ljust(28) }} |
 +-------------------------------------+------------------------------------+
 
 Directory nesting
@@ -111,7 +111,7 @@ Blockchain state files
 Blockchain state files directory
 --------------------------------
 
-Blockchain states are saved to ``/path/to/blockchain/root/{{ file_blockchain.account_root_file_subdir }}/``
+Blockchain states are saved to ``/path/to/blockchain/root/{{ sample_file_blockchain.get_blockchain_states_subdirectory() }}/``
 in a nested directory structure, as described in section `Directory nesting`_.
 
 For example, a file named ``0000100199-arf.msgpack.xz`` will be saved to
@@ -151,7 +151,7 @@ Compacted blockchain state example
 Format description
 """"""""""""""""""
 
-{% for model in blockchain_state_models %}
+{% for model in models['blockchain_state'] %}
 {{ model.__name__ }}
 {{ '"' * model.__name__.__len__() }}
 
@@ -181,7 +181,7 @@ Format description
 Block chunk files
 =================
 
-Blockchain state files are saved to ``/path/to/blockchain/root/{{ file_blockchain.blocks_subdir }}/``
+Blockchain state files are saved to ``/path/to/blockchain/root/{{ sample_file_blockchain.get_block_chunks_subdirectory() }}/``
 in a nested directory structure, as described in section `Directory nesting`_.
 
 For example, a file named ``00012300000000000100-00012300000000000199-block-chunk.msgpack.xz`` will be saved to
@@ -229,7 +229,7 @@ Block types
      - "{{ key }}"
 {% endfor %}
 
-{% for model in block_models %}
+{% for model in models['block'] %}
 {{ model.__name__ }}
 {{ '"' * model.__name__.__len__() }}
 
@@ -261,11 +261,11 @@ SignedChangeRequestMessage
 
 SignedChangeRequestMessage is a base type for the following subtypes:
 
-{% for model in signed_change_request_message_subtypes %}
+{% for model in models['signed_change_request_message_subtypes'] %}
 - `{{ model.__name__ }}`_
 {% endfor %}
 
-{% for model in signed_change_request_message_models %}
+{% for model in models['signed_change_request_message'] %}
 {{ model.__name__ }}
 {{ "'" * model.__name__.__len__() }}
 
@@ -323,7 +323,7 @@ datetime
 --------
 A string of `ISO formatted <https://en.wikipedia.org/wiki/ISO_8601>`_ UTC datetime without timezone part.
 
-{% for model in common_models %}
+{% for model in models['common'] %}
 {{ model.__name__ }}
 {{ "-" * model.__name__.__len__() }}
 

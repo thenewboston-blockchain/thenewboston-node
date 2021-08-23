@@ -2,8 +2,8 @@ import os.path
 from unittest.mock import patch
 
 from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
-from thenewboston_node.business_logic.blockchain.file_blockchain.block_chunks import get_block_chunk_filename_meta
-from thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_states import (
+from thenewboston_node.business_logic.blockchain.file_blockchain.block_chunk import get_block_chunk_filename_meta
+from thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_state import (
     get_blockchain_state_filename_meta
 )
 from thenewboston_node.business_logic.tests.factories import add_blocks_to_blockchain
@@ -33,10 +33,10 @@ def test_get_blockchain_filename_meta():
 
 def test_file_blockchain_blocks_contain_metadata(file_blockchain: FileBlockchain, treasury_account_key_pair):
     blockchain = file_blockchain
-    with patch.object(blockchain, 'block_chunk_size', 4), patch.object(blockchain.block_storage, 'compressors', ()):
+    with patch.object(blockchain, '_block_chunk_size', 4), patch.object(blockchain.block_storage, 'compressors', ()):
         add_blocks_to_blockchain(blockchain, 10, treasury_account_key_pair.private)
 
-    base_directory = os.path.join(blockchain.base_directory, 'blocks')
+    block_chunks_directory = os.path.join(blockchain.get_base_directory(), 'block-chunks')
 
     blocks = blockchain.yield_blocks()
     expected_meta = {
@@ -46,7 +46,7 @@ def test_file_blockchain_blocks_contain_metadata(file_blockchain: FileBlockchain
             3,
         'chunk_file_path':
             os.path.join(
-                base_directory, '0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000003-block-chunk.msgpack'
+                block_chunks_directory, '0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000003-block-chunk.msgpack'
             )
     }
     for _ in range(4):
@@ -62,7 +62,7 @@ def test_file_blockchain_blocks_contain_metadata(file_blockchain: FileBlockchain
             7,
         'chunk_file_path':
             os.path.join(
-                base_directory, '0/0/0/0/0/0/0/0/00000000000000000004-00000000000000000007-block-chunk.msgpack'
+                block_chunks_directory, '0/0/0/0/0/0/0/0/00000000000000000004-00000000000000000007-block-chunk.msgpack'
             )
     }
     for _ in range(4):
@@ -78,7 +78,7 @@ def test_file_blockchain_blocks_contain_metadata(file_blockchain: FileBlockchain
             None,
         'chunk_file_path':
             os.path.join(
-                base_directory, '0/0/0/0/0/0/0/0/00000000000000000008-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
+                block_chunks_directory, '0/0/0/0/0/0/0/0/00000000000000000008-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
             )
     }
     for _ in range(2):

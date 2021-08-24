@@ -71,16 +71,16 @@ def get_block_chunk_file_path_meta(file_path):
 
 class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
 
-    def get_block_chunks_subdirectory(self) -> str:
+    def get_block_chunk_subdirectory(self) -> str:
         raise NotImplementedError('Must be implemented in child class')
 
     def get_block_chunk_last_block_number_cache(self):
         raise NotImplementedError('Must be implemented in child class')
 
-    def get_block_cache(self):
+    def get_block_chunk_storage(self):
         raise NotImplementedError('Must be implemented in child class')
 
-    def get_block_chunk_storage(self):
+    def get_block_cache(self):
         raise NotImplementedError('Must be implemented in child class')
 
     def make_block_chunk_filename(self, block_number):

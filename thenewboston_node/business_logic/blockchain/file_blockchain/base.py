@@ -6,6 +6,9 @@ EXPECTED_LOCK_EXCEPTION = BlockchainUnlockedError('Blockchain was expected to be
 
 class FileBlockchainBaseMixin:
 
+    def get_base_directory(self) -> str:
+        raise NotImplementedError('Must be implemented in child class')
+
     def get_block_number_digits_count(self) -> int:
         raise NotImplementedError('Must be implemented in child class')
 

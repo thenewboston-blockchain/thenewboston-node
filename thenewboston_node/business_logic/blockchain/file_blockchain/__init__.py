@@ -1,26 +1,26 @@
 import logging
 import os.path
-from typing import Any, Callable, Generator, Optional, Union, cast
+from typing import Optional
 
 import filelock
 from cachetools import LRUCache
-from more_itertools import ilen
 
-from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
 from thenewboston_node.business_logic.storages.path_optimized_file_system import PathOptimizedFileSystemStorage
-from thenewboston_node.core.utils.file_lock import ensure_locked, lock_method
+from thenewboston_node.core.utils.file_lock import lock_method
 
 from ..base import BlockchainBase
-from .base import EXPECTED_LOCK_EXCEPTION, LOCKED_EXCEPTION, FileBlockchainBaseMixin  # noqa: I101
+from .base import LOCKED_EXCEPTION, FileBlockchainBaseMixin  # noqa: I101
 from .block_chunk import BlockChunkFileBlockchainMixin
-from .blockchain_state import get_blockchain_state_filename_meta, make_blockchain_state_filename
+from .blockchain_state import BlochainStateFileBlockchainMixin
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_BLOCK_CHUNK_SIZE = 100
 
 
-class FileBlockchain(BlockChunkFileBlockchainMixin, FileBlockchainBaseMixin, BlockchainBase):
+class FileBlockchain(
+    BlockChunkFileBlockchainMixin, BlochainStateFileBlockchainMixin, FileBlockchainBaseMixin, BlockchainBase
+):
 
     def __init__(
         self,
@@ -28,9 +28,9 @@ class FileBlockchain(BlockChunkFileBlockchainMixin, FileBlockchainBaseMixin, Blo
         base_directory,
 
         # Blockchain states
-        blockchain_states_subdirectory='blockchain-states',
+        blockchain_state_subdirectory='blockchain-states',
         account_root_files_cache_size=128,
-        account_root_files_storage_kwargs=None,
+        blockchain_state_storage_kwargs=None,
 
         # Blocks
         block_chunk_subdirectory='block-chunks',
@@ -50,35 +50,29 @@ class FileBlockchain(BlockChunkFileBlockchainMixin, FileBlockchainBaseMixin, Blo
         super().__init__(**kwargs)
 
         # Blockchain states
-        blockchain_states_directory = os.path.join(base_directory, blockchain_states_subdirectory)
-        self.blockchain_states_storage = PathOptimizedFileSystemStorage(
-            base_path=blockchain_states_directory, **(account_root_files_storage_kwargs or {})
-        )
-        self._blockchain_states_subdirectory = blockchain_states_subdirectory
-        self._blockchain_states_directory = blockchain_states_directory
+        self._blockchain_state_directory = os.path.join(base_directory, blockchain_state_subdirectory)
+        self._blockchain_state_subdirectory = blockchain_state_subdirectory
+        self._blockchain_state_storage = None
+        self._blockchain_state_storage_kwargs = blockchain_state_storage_kwargs
+        self._blockchain_state_cache_size = account_root_files_cache_size
+        self._blockchain_state_cache: Optional[LRUCache] = None
 
         # Block chunks (blocks)
         self._block_chunk_directory = os.path.join(base_directory, block_chunk_subdirectory)
         self._block_chunk_subdirectory = block_chunk_subdirectory
         self._block_chunk_storage = None
         self._block_chunk_storage_kwargs = block_chunk_storage_kwargs
-        self._block_chunk_size = block_chunk_size
         self._block_cache_size = block_cache_size
         self._block_cache: Optional[LRUCache] = None
 
-        # Misc
-        self._base_directory = base_directory
-
-        self.account_root_files_cache_size = account_root_files_cache_size
-
-        self.blockchain_states_cache: Optional[LRUCache] = None
+        self._block_chunk_size = block_chunk_size
         self.block_chunk_last_block_number_cache: Optional[LRUCache] = None
-        self.initialize_caches()
 
+        # Common
+        self._base_directory = base_directory
+        self.initialize_caches()
         self._file_lock = None
         self.lock_filename = lock_filename
-
-        # self._blockchain_states_storage_directory_max_depth = block_chunk_size
         self._block_number_digits_count = block_number_digits_count
 
     # Common
@@ -105,89 +99,42 @@ class FileBlockchain(BlockChunkFileBlockchainMixin, FileBlockchainBaseMixin, Blo
     @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
     def clear(self):
         self.initialize_caches()
+        # Clear blocks
         self.get_block_cache().clear()
         self.get_block_chunk_storage().clear()
-        self.blockchain_states_storage.clear()
+
+        # Clear blockchain states
+        self.get_blockchain_state_cache().clear()
+        self.get_blockchain_state_storage().clear()
+
         # TODO(dmu) HIGH: Clear lock file
 
     def initialize_caches(self):
-        self.blockchain_states_cache = LRUCache(self.account_root_files_cache_size)
         self.block_chunk_last_block_number_cache = LRUCache(2)
 
     # Blockchain state methods
     def get_blockchain_states_subdirectory(self):
-        return self._blockchain_states_subdirectory
+        return self._blockchain_state_subdirectory
 
-    def make_blockchain_state_filename(self, last_block_number):
-        return make_blockchain_state_filename(last_block_number, self.get_block_number_digits_count())
+    def get_blockchain_state_directory(self):
+        return self._blockchain_state_directory
 
-    @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
-    def add_blockchain_state(self, blockchain_state: BlockchainState):
-        return super().add_blockchain_state(blockchain_state)
+    def get_blockchain_state_storage(self):
+        if (blockchain_state_storage := self._blockchain_state_storage) is None:
+            self._blockchain_state_storage = blockchain_state_storage = PathOptimizedFileSystemStorage(
+                base_path=self._blockchain_state_directory, **(self._blockchain_state_storage_kwargs or {})
+            )
 
-    @ensure_locked(lock_attr='file_lock', exception=EXPECTED_LOCK_EXCEPTION)
-    def persist_blockchain_state(self, blockchain_state: BlockchainState):
-        filename = self.make_blockchain_state_filename(blockchain_state.get_last_block_number())
-        self.blockchain_states_storage.save(filename, blockchain_state.to_messagepack(), is_final=True)
+        return blockchain_state_storage
 
-    def _load_blockchain_state(self, file_path):
-        logger.debug('Loading blockchain from %s', file_path)
-        cache = self.blockchain_states_cache
-        blockchain_state = cache.get(file_path)
-        if blockchain_state is None:
-            storage = self.blockchain_states_storage
-            assert storage.is_finalized(file_path)
-            blockchain_state = BlockchainState.from_messagepack(storage.load(file_path))
+    def get_blockchain_state_cache(self):
+        if (blockchain_state_cache := self._blockchain_state_cache) is None:
+            self._blockchain_state_cache = blockchain_state_cache = LRUCache(self._blockchain_state_cache_size)
 
-            meta = get_blockchain_state_filename_meta(file_path)
-            blockchain_state.meta = {
-                'file_path': self._get_blockchain_state_real_file_path(file_path),
-                'last_block_number': meta.last_block_number,
-                'compression': meta.compression,
-                'blockchain': self,
-            }
-            cache[file_path] = blockchain_state
-        else:
-            logger.debug('Cache hit for %s', file_path)
-
-        return blockchain_state
-
-    def _yield_blockchain_states(
-        self,
-        direction,
-        lazy=False
-    ) -> Generator[Union[BlockchainState, Callable[[Any], BlockchainState]], None, None]:
-        assert direction in (1, -1)
-
-        for file_path in self.blockchain_states_storage.list_directory(sort_direction=direction):
-            if lazy:
-                yield cast(
-                    Callable[[Any], BlockchainState],
-                    lambda file_path_=file_path: self._load_blockchain_state(file_path_)
-                )
-            else:
-                yield self._load_blockchain_state(file_path)
-
-    def yield_blockchain_states(self,
-                                lazy=False
-                                ) -> Generator[Union[BlockchainState, Callable[[Any], BlockchainState]], None, None]:
-        yield from self._yield_blockchain_states(1, lazy=lazy)
-
-    def yield_blockchain_states_reversed(
-        self, lazy=False
-    ) -> Generator[Union[BlockchainState, Callable[[Any], BlockchainState]], None, None]:
-        yield from self._yield_blockchain_states(-1, lazy=lazy)
-
-    def get_blockchain_states_count(self) -> int:
-        return ilen(self.blockchain_states_storage.list_directory())
-
-    def _get_blockchain_state_real_file_path(self, file_path):
-        optimized_path = self.blockchain_states_storage.get_optimized_path(file_path)
-        abs_optimized_path = os.path.join(self._blockchain_states_directory, optimized_path)
-        return os.path.relpath(abs_optimized_path, self.get_base_directory())
+        return blockchain_state_cache
 
     # Blocks methods
-    def get_block_chunks_subdirectory(self):
+    def get_block_chunk_subdirectory(self):
         return self._block_chunk_subdirectory
 
     def get_block_chunk_last_block_number_cache(self):

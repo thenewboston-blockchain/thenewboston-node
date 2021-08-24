@@ -116,7 +116,7 @@ Blockchain state structure
 Blockchain state filename format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Filename template is "``{{ file_blockchain.account_root_file_template.format(last_block_number='x' * sample_file_blockchain.get_block_number_digits_count()) }}[.compressor]``"
+Filename template is "``{{ sample_file_blockchain.make_blockchain_state_filename('x' * sample_file_blockchain.get_block_number_digits_count()) }}[.compressor]``"
 where "``{{ 'x' * sample_file_blockchain.get_block_number_digits_count() }}``" is the last block number of the blockchain state file and "``.compressor``" represents compression algorithm, if present.
 
 Filename example of last block number 199 compressed with LZMA compression: ``{{ sample_file_blockchain.make_blockchain_state_filename(199) }}.xz``.

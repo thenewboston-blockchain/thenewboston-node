@@ -23,13 +23,6 @@ BlockchainFilenameMeta = namedtuple('BlockchainFilenameMeta', 'last_block_number
 logger = logging.getLogger(__name__)
 
 
-def make_blockchain_state_filename(last_block_number, block_number_digits_count):
-    # We need to zfill LAST_BLOCK_NUMBER_NONE_SENTINEL to maintain the nested structure of directories
-    prefix = (LAST_BLOCK_NUMBER_NONE_SENTINEL
-              if last_block_number in (None, -1) else str(last_block_number)).zfill(block_number_digits_count)
-    return BLOCKCHAIN_STATE_FILENAME_TEMPLATE.format(last_block_number=prefix)
-
-
 def get_blockchain_state_filename_meta(filename):
     match = BLOCKCHAIN_STATE_FILENAME_RE.match(filename)
     if match:
@@ -61,7 +54,11 @@ class BlochainStateFileBlockchainMixin(FileBlockchainBaseMixin):
         raise NotImplementedError('Must be implemented in child class')
 
     def make_blockchain_state_filename(self, last_block_number):
-        return make_blockchain_state_filename(last_block_number, self.get_block_number_digits_count())
+        # We need to zfill LAST_BLOCK_NUMBER_NONE_SENTINEL to maintain the nested structure of directories
+        prefix_base = LAST_BLOCK_NUMBER_NONE_SENTINEL if last_block_number in (None, -1) else str(last_block_number)
+        return BLOCKCHAIN_STATE_FILENAME_TEMPLATE.format(
+            last_block_number=prefix_base.zfill(self.get_block_number_digits_count())
+        )
 
     @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
     def add_blockchain_state(self, blockchain_state: BlockchainState):

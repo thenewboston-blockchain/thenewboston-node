@@ -33,10 +33,10 @@ class FileBlockchain(BlockChunkFileBlockchainMixin, FileBlockchainBaseMixin, Blo
         account_root_files_storage_kwargs=None,
 
         # Blocks
-        block_chunks_subdirectory='block-chunks',
+        block_chunk_subdirectory='block-chunks',
+        block_chunk_storage_kwargs=None,
         block_chunk_size=DEFAULT_BLOCK_CHUNK_SIZE,
-        blocks_cache_size=None,
-        block_chunks_storage_kwargs=None,
+        block_cache_size=None,
 
         # Misc
         block_number_digits_count=20,
@@ -58,20 +58,20 @@ class FileBlockchain(BlockChunkFileBlockchainMixin, FileBlockchainBaseMixin, Blo
         self._blockchain_states_directory = blockchain_states_directory
 
         # Block chunks (blocks)
+        self._block_chunk_directory = os.path.join(base_directory, block_chunk_subdirectory)
+        self._block_chunk_subdirectory = block_chunk_subdirectory
         self._block_chunk_storage = None
-        self._block_chunk_storage_kwargs = block_chunks_storage_kwargs
-        self._block_chunk_directory = os.path.join(base_directory, block_chunks_subdirectory)
-        self._block_chunk_subdirectory = block_chunks_subdirectory
+        self._block_chunk_storage_kwargs = block_chunk_storage_kwargs
         self._block_chunk_size = block_chunk_size
+        self._block_cache_size = block_cache_size
+        self._block_cache: Optional[LRUCache] = None
 
         # Misc
         self._base_directory = base_directory
 
         self.account_root_files_cache_size = account_root_files_cache_size
-        self.blocks_cache_size = blocks_cache_size
 
         self.blockchain_states_cache: Optional[LRUCache] = None
-        self.blocks_cache: Optional[LRUCache] = None
         self.block_chunk_last_block_number_cache: Optional[LRUCache] = None
         self.initialize_caches()
 
@@ -105,16 +105,13 @@ class FileBlockchain(BlockChunkFileBlockchainMixin, FileBlockchainBaseMixin, Blo
     @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
     def clear(self):
         self.initialize_caches()
+        self.get_block_cache().clear()
         self.get_block_chunk_storage().clear()
         self.blockchain_states_storage.clear()
+        # TODO(dmu) HIGH: Clear lock file
 
     def initialize_caches(self):
         self.blockchain_states_cache = LRUCache(self.account_root_files_cache_size)
-        self.blocks_cache = LRUCache(
-            # We do not really need to cache more than `snapshot_period_in_blocks` blocks since
-            # we use use account root file as a base
-            self.snapshot_period_in_blocks * 2 if self.blocks_cache_size is None else self.blocks_cache_size
-        )
         self.block_chunk_last_block_number_cache = LRUCache(2)
 
     # Blockchain state methods
@@ -204,5 +201,12 @@ class FileBlockchain(BlockChunkFileBlockchainMixin, FileBlockchainBaseMixin, Blo
 
         return block_chunk_storage
 
-    def get_blocks_cache(self):
-        return self.blocks_cache
+    def get_block_cache(self):
+        if (block_cache := self._block_cache) is None:
+            self._block_cache = block_cache = LRUCache(
+                # We do not really need to cache more than `snapshot_period_in_blocks` blocks since
+                # we use use account root file as a base
+                self.snapshot_period_in_blocks * 2 if self._block_cache_size is None else self._block_cache_size
+            )
+
+        return block_cache

@@ -6,9 +6,6 @@ import jinja2
 
 import thenewboston_node.business_logic.docs
 from thenewboston_node.business_logic import models
-from thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_state import (
-    BLOCKCHAIN_STATE_FILENAME_TEMPLATE
-)
 from thenewboston_node.business_logic.models import SignedChangeRequestMessage
 from thenewboston_node.business_logic.models.mixins.compactable import COMPACT_KEY_MAP
 from thenewboston_node.business_logic.models.signed_change_request import SIGNED_CHANGE_REQUEST_TYPE_MAP
@@ -86,9 +83,6 @@ def get_context(samples_factory):
         'block_types': {item.value: humanize_snake_case(item.name.lower()) for item in BlockType},
         'sample_file_blockchain': samples_factory.get_sample_blockchain(),
         'known_compressors': known_compressors,
-        'file_blockchain': {
-            'account_root_file_template': BLOCKCHAIN_STATE_FILENAME_TEMPLATE,
-        },
         'compact_key_map': sorted(COMPACT_KEY_MAP.items()),
         'builtins': builtins,
     }

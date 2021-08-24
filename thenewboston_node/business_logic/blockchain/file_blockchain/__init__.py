@@ -15,8 +15,6 @@ from .blockchain_state import BlochainStateFileBlockchainMixin
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_BLOCK_CHUNK_SIZE = 100
-
 
 class FileBlockchain(
     BlockChunkFileBlockchainMixin, BlochainStateFileBlockchainMixin, FileBlockchainBaseMixin, BlockchainBase
@@ -29,13 +27,13 @@ class FileBlockchain(
 
         # Blockchain states
         blockchain_state_subdirectory='blockchain-states',
-        account_root_files_cache_size=128,
         blockchain_state_storage_kwargs=None,
+        blockchain_state_cache_size=128,
 
         # Blocks
         block_chunk_subdirectory='block-chunks',
         block_chunk_storage_kwargs=None,
-        block_chunk_size=DEFAULT_BLOCK_CHUNK_SIZE,
+        block_chunk_size=100,
         block_cache_size=None,
 
         # Misc
@@ -54,7 +52,7 @@ class FileBlockchain(
         self._blockchain_state_subdirectory = blockchain_state_subdirectory
         self._blockchain_state_storage = None
         self._blockchain_state_storage_kwargs = blockchain_state_storage_kwargs
-        self._blockchain_state_cache_size = account_root_files_cache_size
+        self._blockchain_state_cache_size = blockchain_state_cache_size
         self._blockchain_state_cache: Optional[LRUCache] = None
 
         # Block chunks (blocks)
@@ -66,14 +64,13 @@ class FileBlockchain(
         self._block_cache: Optional[LRUCache] = None
 
         self._block_chunk_size = block_chunk_size
-        self.block_chunk_last_block_number_cache: Optional[LRUCache] = None
+        self._block_chunk_last_block_number_cache: Optional[LRUCache] = None
+        self._block_number_digits_count = block_number_digits_count
 
         # Common
         self._base_directory = base_directory
-        self.initialize_caches()
         self._file_lock = None
-        self.lock_filename = lock_filename
-        self._block_number_digits_count = block_number_digits_count
+        self._lock_filename = lock_filename
 
     # Common
     def get_base_directory(self):
@@ -91,26 +88,23 @@ class FileBlockchain(
         if file_lock is None:
             base_directory = self.get_base_directory()
             os.makedirs(base_directory, exist_ok=True)
-            lock_file_path = os.path.join(base_directory, self.lock_filename)
+            lock_file_path = os.path.join(base_directory, self._lock_filename)
             self._file_lock = file_lock = filelock.FileLock(lock_file_path, timeout=0)
 
         return file_lock
 
     @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
     def clear(self):
-        self.initialize_caches()
         # Clear blocks
         self.get_block_cache().clear()
         self.get_block_chunk_storage().clear()
+        self.get_block_chunk_last_block_number_cache().clear()
 
         # Clear blockchain states
         self.get_blockchain_state_cache().clear()
         self.get_blockchain_state_storage().clear()
 
         # TODO(dmu) HIGH: Clear lock file
-
-    def initialize_caches(self):
-        self.block_chunk_last_block_number_cache = LRUCache(2)
 
     # Blockchain state methods
     def get_blockchain_states_subdirectory(self):
@@ -120,40 +114,43 @@ class FileBlockchain(
         return self._blockchain_state_directory
 
     def get_blockchain_state_storage(self):
-        if (blockchain_state_storage := self._blockchain_state_storage) is None:
-            self._blockchain_state_storage = blockchain_state_storage = PathOptimizedFileSystemStorage(
+        if (storage := self._blockchain_state_storage) is None:
+            self._blockchain_state_storage = storage = PathOptimizedFileSystemStorage(
                 base_path=self._blockchain_state_directory, **(self._blockchain_state_storage_kwargs or {})
             )
 
-        return blockchain_state_storage
+        return storage
 
     def get_blockchain_state_cache(self):
-        if (blockchain_state_cache := self._blockchain_state_cache) is None:
-            self._blockchain_state_cache = blockchain_state_cache = LRUCache(self._blockchain_state_cache_size)
+        if (cache := self._blockchain_state_cache) is None:
+            self._blockchain_state_cache = cache = LRUCache(self._blockchain_state_cache_size)
 
-        return blockchain_state_cache
+        return cache
 
     # Blocks methods
     def get_block_chunk_subdirectory(self):
         return self._block_chunk_subdirectory
 
     def get_block_chunk_last_block_number_cache(self):
-        return self.block_chunk_last_block_number_cache
+        if (cache := self._block_chunk_last_block_number_cache) is None:
+            self._block_chunk_last_block_number_cache = cache = LRUCache(2)
+
+        return cache
 
     def get_block_chunk_storage(self):
-        if (block_chunk_storage := self._block_chunk_storage) is None:
-            self._block_chunk_storage = block_chunk_storage = PathOptimizedFileSystemStorage(
+        if (storage := self._block_chunk_storage) is None:
+            self._block_chunk_storage = storage = PathOptimizedFileSystemStorage(
                 base_path=self._block_chunk_directory, **(self._block_chunk_storage_kwargs or {})
             )
 
-        return block_chunk_storage
+        return storage
 
     def get_block_cache(self):
-        if (block_cache := self._block_cache) is None:
-            self._block_cache = block_cache = LRUCache(
+        if (cache := self._block_cache) is None:
+            self._block_cache = cache = LRUCache(
                 # We do not really need to cache more than `snapshot_period_in_blocks` blocks since
                 # we use use account root file as a base
                 self.snapshot_period_in_blocks * 2 if self._block_cache_size is None else self._block_cache_size
             )
 
-        return block_cache
+        return cache

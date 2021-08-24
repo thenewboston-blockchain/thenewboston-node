@@ -202,7 +202,7 @@ Block chunk file structure
 Block chunk filename format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Filename template is "``{{ file_blockchain.block_chunk_template.format(start='y' * sample_file_blockchain.get_block_number_digits_count(), end='z' * sample_file_blockchain.get_block_number_digits_count()) }}[.compressor]``"
+Filename template is "``{{ sample_file_blockchain.make_block_chunk_filename_from_start_end('y' * sample_file_blockchain.get_block_number_digits_count(), 'z' * sample_file_blockchain.get_block_number_digits_count()) }}[.compressor]``"
 where "``{{ 'y' * sample_file_blockchain.get_block_number_digits_count() }}``" is the first block number of the block chunk file,
 "``{{ 'z' * sample_file_blockchain.get_block_number_digits_count() }}``" is the last block number of the block chunk file,
 and "``.compressor``" represents compression algorithm, if present. Special magic value for

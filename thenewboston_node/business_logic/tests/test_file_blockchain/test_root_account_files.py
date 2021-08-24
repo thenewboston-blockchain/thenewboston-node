@@ -19,8 +19,8 @@ def test_blockchain_state_is_created_every_x_block(
     blockchain = FileBlockchain(
         base_directory=str(blockchain_path),
         snapshot_period_in_blocks=5,
-        blockchain_states_subdirectory='blockchain-states',
-        account_root_files_storage_kwargs={'compressors': ()}
+        blockchain_state_subdirectory='blockchain-states',
+        blockchain_state_storage_kwargs={'compressors': ()}
     )
     blockchain.add_blockchain_state(blockchain_genesis_state)
     assert os.path.isfile(

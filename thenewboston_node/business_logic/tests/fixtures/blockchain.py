@@ -83,7 +83,7 @@ def forced_mock_blockchain(blockchain_genesis_state):
 def file_blockchain_w_memory_storage(file_blockchain, blockchain_genesis_state):
     file_blockchain.clear()
     block_storage_mock = patch.object(file_blockchain, '_block_chunk_storage', StorageMock())
-    arf_storage_mock = patch.object(file_blockchain, 'blockchain_states_storage', StorageMock())
+    arf_storage_mock = patch.object(file_blockchain, '_blockchain_state_storage', StorageMock())
 
     with block_storage_mock, arf_storage_mock:
         file_blockchain.add_blockchain_state(blockchain_genesis_state)

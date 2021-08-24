@@ -14,7 +14,7 @@ Directory structure
 +-------------------------------------+------------------------------------+
 | `Blockchain state files`_ directory | ``+---{{ (sample_file_blockchain.get_blockchain_states_subdirectory() + '/``').ljust(28) }} |
 +-------------------------------------+------------------------------------+
-| `Block chunk files`_ directory      | ``+---{{ (sample_file_blockchain.get_block_chunks_subdirectory() + '/``').ljust(28) }} |
+| `Block chunk files`_ directory      | ``+---{{ (sample_file_blockchain.get_block_chunk_subdirectory() + '/``').ljust(28) }} |
 +-------------------------------------+------------------------------------+
 
 Directory nesting
@@ -181,7 +181,7 @@ Format description
 Block chunk files
 =================
 
-Blockchain state files are saved to ``/path/to/blockchain/root/{{ sample_file_blockchain.get_block_chunks_subdirectory() }}/``
+Blockchain state files are saved to ``/path/to/blockchain/root/{{ sample_file_blockchain.get_block_chunk_subdirectory() }}/``
 in a nested directory structure, as described in section `Directory nesting`_.
 
 For example, a file named ``00012300000000000100-00012300000000000199-block-chunk.msgpack.xz`` will be saved to

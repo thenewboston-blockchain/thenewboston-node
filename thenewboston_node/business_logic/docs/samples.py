@@ -100,12 +100,12 @@ class SamplesFactory:
 
     def __init__(self):
         self._blockchain: Optional[FileBlockchain] = None
-        self.temp_directory = tempfile.TemporaryDirectory()
+        self.temporary_directory = tempfile.TemporaryDirectory()
 
     @property
     def blockchain(self):
         if (blockchain := self._blockchain) is None:
-            self._blockchain = blockchain = make_sample_blockchain(self.temp_directory.name)
+            self._blockchain = blockchain = make_sample_blockchain(self.temporary_directory.name)
 
         return blockchain
 
@@ -124,4 +124,4 @@ class SamplesFactory:
         return block_map
 
     def close(self):
-        self.temp_directory.cleanup()
+        self.temporary_directory.cleanup()

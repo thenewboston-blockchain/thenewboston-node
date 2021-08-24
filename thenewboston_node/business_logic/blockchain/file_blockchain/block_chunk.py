@@ -15,37 +15,14 @@ from thenewboston_node.core.utils.file_lock import ensure_locked, lock_method
 from .base import EXPECTED_LOCK_EXCEPTION, LOCKED_EXCEPTION, FileBlockchainBaseMixin  # noqa: I101
 
 BLOCK_CHUNK_FILENAME_TEMPLATE = '{start}-{end}-block-chunk.msgpack'
-
-logger = logging.getLogger(__name__)
-
-
-def make_block_chunk_filename(block_number, block_chunk_size, block_number_digits_count):
-    max_offset = block_chunk_size - 1
-    chunk_number, offset = divmod(block_number, block_chunk_size)
-
-    chunk_block_number_start = chunk_number * block_chunk_size
-    chunk_block_number_end = chunk_block_number_start + max_offset
-
-    start_block_str = str(chunk_block_number_start).zfill(block_number_digits_count)
-    end_block_str = 'x' * block_number_digits_count
-
-    if offset == max_offset:
-        dest_end_block_str = str(chunk_block_number_end).zfill(block_number_digits_count)
-    else:
-        assert offset < max_offset
-        dest_end_block_str = end_block_str
-
-    return (
-        BLOCK_CHUNK_FILENAME_TEMPLATE.format(start=start_block_str, end=end_block_str),
-        BLOCK_CHUNK_FILENAME_TEMPLATE.format(start=start_block_str, end=dest_end_block_str)
-    )
-
-
 BLOCK_CHUNK_FILENAME_RE = re.compile(
     BLOCK_CHUNK_FILENAME_TEMPLATE.format(start=r'(?P<start>\d+)', end=r'(?P<end>\d+|x+)') +
     r'(?:|\.(?P<compression>{}))$'.format('|'.join(COMPRESSION_FUNCTIONS.keys()))
 )
+
 BlockChunkFilenameMeta = namedtuple('BlockChunkFilenameMeta', 'start end compression')
+
+logger = logging.getLogger(__name__)
 
 
 def get_block_chunk_filename_meta(file_path):
@@ -83,9 +60,32 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
     def get_block_cache(self):
         raise NotImplementedError('Must be implemented in child class')
 
+    @staticmethod
+    def make_block_chunk_filename_from_start_end(start_block_str, end_block_str):
+        return BLOCK_CHUNK_FILENAME_TEMPLATE.format(start=start_block_str, end=end_block_str)
+
     def make_block_chunk_filename(self, block_number):
-        return make_block_chunk_filename(
-            block_number, self.get_block_chunk_size(), self.get_block_number_digits_count()
+        block_chunk_size = self.get_block_chunk_size()
+        block_number_digits_count = self.get_block_number_digits_count()
+
+        max_offset = block_chunk_size - 1
+        chunk_number, offset = divmod(block_number, block_chunk_size)
+
+        chunk_block_number_start = chunk_number * block_chunk_size
+        chunk_block_number_end = chunk_block_number_start + max_offset
+
+        start_block_str = str(chunk_block_number_start).zfill(block_number_digits_count)
+        end_block_str = 'x' * block_number_digits_count
+
+        if offset == max_offset:
+            dest_end_block_str = str(chunk_block_number_end).zfill(block_number_digits_count)
+        else:
+            assert offset < max_offset
+            dest_end_block_str = end_block_str
+
+        return (
+            self.make_block_chunk_filename_from_start_end(start_block_str, end_block_str),
+            self.make_block_chunk_filename_from_start_end(start_block_str, dest_end_block_str)
         )
 
     def _get_block_chunk_last_block_number(self, file_path):

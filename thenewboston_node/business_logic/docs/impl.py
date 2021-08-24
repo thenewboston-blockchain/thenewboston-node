@@ -4,11 +4,8 @@ from contextlib import closing
 
 import jinja2
 
-import thenewboston_node.business_logic.blockchain.file_blockchain.block_chunk
-import thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_state
 import thenewboston_node.business_logic.docs
 from thenewboston_node.business_logic import models
-from thenewboston_node.business_logic.blockchain.file_blockchain.block_chunk import BLOCK_CHUNK_FILENAME_TEMPLATE
 from thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_state import (
     BLOCKCHAIN_STATE_FILENAME_TEMPLATE
 )
@@ -90,7 +87,6 @@ def get_context(samples_factory):
         'sample_file_blockchain': samples_factory.get_sample_blockchain(),
         'known_compressors': known_compressors,
         'file_blockchain': {
-            'block_chunk_template': BLOCK_CHUNK_FILENAME_TEMPLATE,
             'account_root_file_template': BLOCKCHAIN_STATE_FILENAME_TEMPLATE,
         },
         'compact_key_map': sorted(COMPACT_KEY_MAP.items()),

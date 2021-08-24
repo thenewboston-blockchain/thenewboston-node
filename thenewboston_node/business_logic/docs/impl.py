@@ -8,11 +8,15 @@ import thenewboston_node.business_logic.blockchain.file_blockchain.block_chunk
 import thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_state
 import thenewboston_node.business_logic.docs
 from thenewboston_node.business_logic import models
+from thenewboston_node.business_logic.blockchain.file_blockchain.block_chunk import BLOCK_CHUNK_FILENAME_TEMPLATE
+from thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_state import (
+    BLOCKCHAIN_STATE_FILENAME_TEMPLATE
+)
 from thenewboston_node.business_logic.models import SignedChangeRequestMessage
 from thenewboston_node.business_logic.models.mixins.compactable import COMPACT_KEY_MAP
 from thenewboston_node.business_logic.models.signed_change_request import SIGNED_CHANGE_REQUEST_TYPE_MAP
 from thenewboston_node.business_logic.models.signed_change_request.constants import BlockType
-from thenewboston_node.business_logic.storages import file_system, path_optimized_file_system
+from thenewboston_node.business_logic.storages import path_optimized_file_system
 from thenewboston_node.core.utils.misc import humanize_snake_case
 
 from .samples import SamplesFactory  # noqa: I101
@@ -67,6 +71,12 @@ def get_context(samples_factory):
 
     block_models = get_block_models(exclude=exclude)
     blockchain_state_models = get_blockchain_state_models(exclude=exclude)
+
+    sample_file_blockchain = samples_factory.get_sample_blockchain()
+    known_compressors = sorted(
+        set(sample_file_blockchain.get_block_chunk_storage().compressors) |
+        set(sample_file_blockchain.get_blockchain_state_storage().compressors)
+    )
     return {
         'models': {
             'block': block_models,
@@ -79,18 +89,12 @@ def get_context(samples_factory):
         'sample_blockchain_state': samples_factory.get_sample_blockchain_state(),
         'block_types': {item.value: humanize_snake_case(item.name.lower()) for item in BlockType},
         'sample_file_blockchain': samples_factory.get_sample_blockchain(),
+        'known_compressors': known_compressors,
         'file_blockchain': {
-            'block_chunk_template':
-                thenewboston_node.business_logic.blockchain.file_blockchain.block_chunk.BLOCK_CHUNK_FILENAME_TEMPLATE,
-            'account_root_file_template':
-                thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_state.
-                BLOCKCHAIN_STATE_FILENAME_TEMPLATE,
-            'compressors':
-                file_system.COMPRESSION_FUNCTIONS.keys(),
-            'file_optimization_max_depth':
-                path_optimized_file_system.DEFAULT_MAX_DEPTH,
-            'make_optimized_file_path':
-                path_optimized_file_system.make_optimized_file_path,
+            'block_chunk_template': BLOCK_CHUNK_FILENAME_TEMPLATE,
+            'account_root_file_template': BLOCKCHAIN_STATE_FILENAME_TEMPLATE,
+            'file_optimization_max_depth': path_optimized_file_system.DEFAULT_MAX_DEPTH,
+            'make_optimized_file_path': path_optimized_file_system.make_optimized_file_path,
         },
         'compact_key_map': sorted(COMPACT_KEY_MAP.items()),
         'builtins': builtins,

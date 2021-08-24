@@ -93,7 +93,6 @@ def get_context(samples_factory):
         'file_blockchain': {
             'block_chunk_template': BLOCK_CHUNK_FILENAME_TEMPLATE,
             'account_root_file_template': BLOCKCHAIN_STATE_FILENAME_TEMPLATE,
-            'file_optimization_max_depth': path_optimized_file_system.DEFAULT_MAX_DEPTH,
             'make_optimized_file_path': path_optimized_file_system.make_optimized_file_path,
         },
         'compact_key_map': sorted(COMPACT_KEY_MAP.items()),

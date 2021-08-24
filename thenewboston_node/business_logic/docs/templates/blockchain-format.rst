@@ -107,8 +107,8 @@ levels of nested directories.
      - ``{{ ((('.  ' + '   ' * (level - 1)) if level else '') + '+---' + level.__str__() + '-th character of filename``').ljust(59) }}
 {% endfor %}
 
-For example, a file named ``0000100199-arf.msgpack.xz`` will be saved to
-``/path/to/blockchain/root/{{ file_blockchain.make_optimized_file_path('0000100199-arf.msgpack.xz', sample_file_blockchain.get_blockchain_state_storage().max_depth) }}``
+For example, a file named ``00000000000000100199-arf.msgpack.xz`` will be saved to
+``/path/to/blockchain/root/{{ sample_file_blockchain.get_blockchain_state_storage().get_optimized_path('00000000000000100199-arf.msgpack.xz') }}``
 
 Blockchain state structure
 --------------------------
@@ -194,7 +194,7 @@ levels of nested directories.
 
 
 For example, a file named ``00012300000000000100-00012300000000000199-block-chunk.msgpack.xz`` will be saved to
-``/path/to/blockchain/root/{{ file_blockchain.make_optimized_file_path('00012300000000000100-00012300000000000199-block-chunk.msgpack.xz', sample_file_blockchain.get_block_chunk_storage().max_depth) }}``
+``/path/to/blockchain/root/{{ sample_file_blockchain.get_block_chunk_storage().get_optimized_path('00012300000000000100-00012300000000000199-block-chunk.msgpack.xz') }}``
 
 Block chunk file structure
 --------------------------

@@ -12,9 +12,9 @@ Directory structure
 +=====================================+====================================+
 | Blockchain root directory           | ``/path/to/blockchain/root/``      |
 +-------------------------------------+------------------------------------+
-| `Blockchain state files`_ directory | ``+---{{ (sample_file_blockchain.get_blockchain_states_subdirectory() + '/``').ljust(28) }} |
+| `Blockchain state files`_ directory | ``+---{{ (file_blockchain.get_blockchain_states_subdirectory() + '/``').ljust(28) }} |
 +-------------------------------------+------------------------------------+
-| `Block chunk files`_ directory      | ``+---{{ (sample_file_blockchain.get_block_chunk_subdirectory() + '/``').ljust(28) }} |
+| `Block chunk files`_ directory      | ``+---{{ (file_blockchain.get_block_chunk_subdirectory() + '/``').ljust(28) }} |
 +-------------------------------------+------------------------------------+
 
 Files format
@@ -89,10 +89,10 @@ Blockchain state files
 Blockchain state files directory
 --------------------------------
 
-Blockchain states are saved to ``/path/to/blockchain/root/{{ sample_file_blockchain.get_blockchain_states_subdirectory() }}/``
+Blockchain states are saved to ``/path/to/blockchain/root/{{ file_blockchain.get_blockchain_states_subdirectory() }}/``
 in a nested directory structure.
 
-For filesystem access optimization files are saved to ``{{ sample_file_blockchain.get_blockchain_state_storage().max_depth }}``
+For filesystem access optimization files are saved to ``{{ file_blockchain.get_blockchain_state_storage().max_depth }}``
 levels of nested directories.
 
 .. list-table::
@@ -101,14 +101,14 @@ levels of nested directories.
    * - Content
      - Path
    * - A root directory
-     - ``/path/to/blockchain/root/{{ sample_file_blockchain.get_blockchain_states_subdirectory() }}/``
-{% for level in range(sample_file_blockchain.get_blockchain_state_storage().max_depth) %}
+     - ``/path/to/blockchain/root/{{ file_blockchain.get_blockchain_states_subdirectory() }}/``
+{% for level in range(file_blockchain.get_blockchain_state_storage().max_depth) %}
    * - {{ level }} level subdirectory
      - ``{{ ((('.  ' + '   ' * (level - 1)) if level else '') + '+---' + level.__str__() + '-th character of filename``').ljust(59) }}
 {% endfor %}
 
 For example, a file named ``00000000000000100199-arf.msgpack.xz`` will be saved to
-``/path/to/blockchain/root/{{ sample_file_blockchain.get_blockchain_state_storage().get_optimized_path('00000000000000100199-arf.msgpack.xz') }}``
+``/path/to/blockchain/root/{{ file_blockchain.get_blockchain_state_storage().get_optimized_path('00000000000000100199-arf.msgpack.xz') }}``
 
 Blockchain state structure
 --------------------------
@@ -116,12 +116,12 @@ Blockchain state structure
 Blockchain state filename format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Filename template is "``{{ sample_file_blockchain.make_blockchain_state_filename('x' * sample_file_blockchain.get_block_number_digits_count()) }}[.compressor]``"
-where "``{{ 'x' * sample_file_blockchain.get_block_number_digits_count() }}``" is the last block number of the blockchain state file and "``.compressor``" represents compression algorithm, if present.
+Filename template is "``{{ file_blockchain.make_blockchain_state_filename('x' * file_blockchain.get_block_number_digits_count()) }}[.compressor]``"
+where "``{{ 'x' * file_blockchain.get_block_number_digits_count() }}``" is the last block number of the blockchain state file and "``.compressor``" represents compression algorithm, if present.
 
-Filename example of last block number 199 compressed with LZMA compression: ``{{ sample_file_blockchain.make_blockchain_state_filename(199) }}.xz``.
+Filename example of last block number 199 compressed with LZMA compression: ``{{ file_blockchain.make_blockchain_state_filename(199) }}.xz``.
 
-**Note:** Initial root account file filename is ``{{ sample_file_blockchain.make_blockchain_state_filename(None) }}``.
+**Note:** Initial root account file filename is ``{{ file_blockchain.make_blockchain_state_filename(None) }}``.
 
 Blockchain state format
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -131,14 +131,14 @@ Blockchain state example
 
 .. code-block:: JSON
 
-    {{ sample_blockchain_state.serialize_to_dict() | tojson(indent=4) | indent }}
+    {{ blockchain_state.serialize_to_dict() | tojson(indent=4) | indent }}
 
 Compacted blockchain state example
 """"""""""""""""""""""""""""""""""
 
 .. code-block:: JSON
 
-    {{ sample_blockchain_state.to_compact_dict(compact_keys=True, compact_values=False) |
+    {{ blockchain_state.to_compact_dict(compact_keys=True, compact_values=False) |
        tojson(indent=4) | indent }}
 
 Format description
@@ -174,10 +174,10 @@ Format description
 Block chunk files
 =================
 
-Blockchain state files are saved to ``/path/to/blockchain/root/{{ sample_file_blockchain.get_block_chunk_subdirectory() }}/``
+Blockchain state files are saved to ``/path/to/blockchain/root/{{ file_blockchain.get_block_chunk_subdirectory() }}/``
 in a nested directory structure.
 
-For filesystem access optimization files are saved to ``{{ sample_file_blockchain.get_block_chunk_storage().max_depth }}``
+For filesystem access optimization files are saved to ``{{ file_blockchain.get_block_chunk_storage().max_depth }}``
 levels of nested directories.
 
 .. list-table::
@@ -186,15 +186,15 @@ levels of nested directories.
    * - Content
      - Path
    * - A root directory
-     - ``/path/to/blockchain/root/{{ sample_file_blockchain.get_block_chunk_subdirectory() }}/``
-{% for level in range(sample_file_blockchain.get_block_chunk_storage().max_depth) %}
+     - ``/path/to/blockchain/root/{{ file_blockchain.get_block_chunk_subdirectory() }}/``
+{% for level in range(file_blockchain.get_block_chunk_storage().max_depth) %}
    * - {{ level }} level subdirectory
      - ``{{ ((('.  ' + '   ' * (level - 1)) if level else '') + '+---' + level.__str__() + '-th character of filename``').ljust(59) }}
 {% endfor %}
 
 
 For example, a file named ``00012300000000000100-00012300000000000199-block-chunk.msgpack.xz`` will be saved to
-``/path/to/blockchain/root/{{ sample_file_blockchain.get_block_chunk_storage().get_optimized_path('00012300000000000100-00012300000000000199-block-chunk.msgpack.xz') }}``
+``/path/to/blockchain/root/{{ file_blockchain.get_block_chunk_storage().get_optimized_path('00012300000000000100-00012300000000000199-block-chunk.msgpack.xz') }}``
 
 Block chunk file structure
 --------------------------
@@ -202,17 +202,17 @@ Block chunk file structure
 Block chunk filename format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Filename template is "``{{ sample_file_blockchain.make_block_chunk_filename_from_start_end('y' * sample_file_blockchain.get_block_number_digits_count(), 'z' * sample_file_blockchain.get_block_number_digits_count()) }}[.compressor]``"
-where "``{{ 'y' * sample_file_blockchain.get_block_number_digits_count() }}``" is the first block number of the block chunk file,
-"``{{ 'z' * sample_file_blockchain.get_block_number_digits_count() }}``" is the last block number of the block chunk file,
+Filename template is "``{{ file_blockchain.make_block_chunk_filename_from_start_end('y' * file_blockchain.get_block_number_digits_count(), 'z' * file_blockchain.get_block_number_digits_count()) }}[.compressor]``"
+where "``{{ 'y' * file_blockchain.get_block_number_digits_count() }}``" is the first block number of the block chunk file,
+"``{{ 'z' * file_blockchain.get_block_number_digits_count() }}``" is the last block number of the block chunk file,
 and "``.compressor``" represents compression algorithm, if present. Special magic value for
-last block number equal to string '``{{ 'x' * sample_file_blockchain.get_block_number_digits_count() }}``' is used to
+last block number equal to string '``{{ 'x' * file_blockchain.get_block_number_digits_count() }}``' is used to
 denote incomplete block chunk file (not containing all blocks yet it supposed to hold). In this
 case actual last block in the file should be derived by examining the content of the file.
 
-Filename example of block chunk file for blocks from {{ sample_file_blockchain.get_block_chunk_size() }} to {{ sample_file_blockchain.get_block_chunk_size() * 2 - 1 }} compressed with LZMA compression: ``{{ sample_file_blockchain.make_block_chunk_filename(sample_file_blockchain.get_block_chunk_size() * 2 - 1)[1] }}.xz``.
+Filename example of block chunk file for blocks from {{ file_blockchain.get_block_chunk_size() }} to {{ file_blockchain.get_block_chunk_size() * 2 - 1 }} compressed with LZMA compression: ``{{ file_blockchain.make_block_chunk_filename(file_blockchain.get_block_chunk_size() * 2 - 1)[1] }}.xz``.
 
-Filename example of incomplete block chunk file for blocks from {{ sample_file_blockchain.get_block_chunk_size() * 2 }} to {{ sample_file_blockchain.get_block_chunk_size() * 3 - 1 }}: ``{{ sample_file_blockchain.make_block_chunk_filename(sample_file_blockchain.get_block_chunk_size() * 2)[1] }}``
+Filename example of incomplete block chunk file for blocks from {{ file_blockchain.get_block_chunk_size() * 2 }} to {{ file_blockchain.get_block_chunk_size() * 3 - 1 }}: ``{{ file_blockchain.make_block_chunk_filename(file_blockchain.get_block_chunk_size() * 2)[1] }}``
 (it is not compressed yet, because new blocks to be appended to it).
 
 Block chunk file format
@@ -280,12 +280,12 @@ SignedChangeRequestMessage is a base type for the following subtypes:
 
 {{ model.get_docstring() }}
 
-{% if model in sample_block_map %}
+{% if model in blocks %}
 **Block example**
 
 .. code-block:: JSON
 
-    {{ sample_block_map[model].serialize_to_dict() | tojson(indent=4) | indent }}
+    {{ blocks[model].serialize_to_dict() | tojson(indent=4) | indent }}
 
 **Compacted block example**
 
@@ -293,7 +293,7 @@ Byte arrays are shown as hexadecimals for representation purposes:
 
 .. code-block:: JSON
 
-    {{ sample_block_map[model].to_compact_dict(compact_keys=True, compact_values=False) |
+    {{ blocks[model].to_compact_dict(compact_keys=True, compact_values=False) |
        tojson(indent=4) | indent }}
 
 {% endif %}

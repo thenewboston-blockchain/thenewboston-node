@@ -1,24 +1,26 @@
 import pytest
 from rest_framework import status
 
+from thenewboston_node.business_logic.models import Block, NodeDeclarationSignedChangeRequest
 from thenewboston_node.business_logic.tests.base import force_blockchain
 
 API_V1_BLOCKCHAIN_STATE_URL_PATTERN = '/api/v1/blockchain-states-meta/{block_number}/'
 
 
-@pytest.mark.parametrize('block_number', (-2,))
-def test_invalid_block_number_returns_400(api_client, file_blockchain, block_number):
+@pytest.mark.parametrize('block_number', (-2, 'invalid_id', 0, 999))
+def test_invalid_block_number_returns_404(api_client, file_blockchain, block_number):
     with force_blockchain(file_blockchain):
         response = api_client.get(API_V1_BLOCKCHAIN_STATE_URL_PATTERN.format(block_number=block_number))
 
-    assert response.status_code == 400
+    assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test_can_get_blockchain_genesis_state_meta(api_client, file_blockchain, blockchain_genesis_state):
+@pytest.mark.parametrize('block_number', ('-1', 'null', 'genesis', ' null '))
+def test_can_get_blockchain_genesis_state_meta(api_client, file_blockchain, blockchain_genesis_state, block_number):
     with force_blockchain(file_blockchain):
-        response = api_client.get(API_V1_BLOCKCHAIN_STATE_URL_PATTERN.format(block_number=-1))
+        response = api_client.get(API_V1_BLOCKCHAIN_STATE_URL_PATTERN.format(block_number=block_number))
 
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
     response_json = response.json()
 
     assert response_json == {
@@ -32,26 +34,24 @@ def test_can_get_blockchain_genesis_state_meta(api_client, file_blockchain, bloc
     }
 
 
-def test_can_get_last_blockchain_state_meta(api_client, file_blockchain):
+def test_blockchain_state_meta_block_number_is_inclusive(api_client, file_blockchain, preferred_node_key_pair):
     with force_blockchain(file_blockchain):
-        response = api_client.get(API_V1_BLOCKCHAIN_STATE_URL_PATTERN.format(block_number=999))
+        request = NodeDeclarationSignedChangeRequest.create(
+            network_addresses=[], fee_amount=3, signing_key=preferred_node_key_pair.private
+        )
+        block = Block.create_from_signed_change_request(
+            file_blockchain,
+            signed_change_request=request,
+            pv_signing_key=preferred_node_key_pair.private,
+        )
+        file_blockchain.add_block(block)
+        file_blockchain.snapshot_blockchain_state()
 
-    # TODO(dmu) HIGH: Respond with 404
-    assert response.status_code == 200
-    data = response.json()
+        block_number = file_blockchain.get_last_block_number()
+        response = api_client.get(API_V1_BLOCKCHAIN_STATE_URL_PATTERN.format(block_number=block_number))
 
-    assert data['last_block_number'] is None
-
-
-def test_blockchain_state_meta_block_number_is_noninclusive(api_client, file_blockchain, blockchain_genesis_state):
-    with force_blockchain(file_blockchain):
-        response = api_client.get(API_V1_BLOCKCHAIN_STATE_URL_PATTERN.format(block_number=0))
-
-    # TODO(dmu) HIGH: Respond with 404
     assert response.status_code == status.HTTP_200_OK
-    data = response.json()
-
-    assert data['last_block_number'] == blockchain_genesis_state.last_block_number
+    assert response.json()['last_block_number'] == block_number
 
 
 # def test_blockchain_state_meta_urls_returns_500_if_node_undeclared(

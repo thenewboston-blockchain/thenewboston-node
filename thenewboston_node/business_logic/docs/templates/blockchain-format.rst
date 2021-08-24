@@ -55,21 +55,21 @@ The general filename template is ``base-name.msgpack[.compressor]``:
 
 Supported compression algorithms:
 
-{% for compressor in file_blockchain.compressors -%}
+{% for compressor in known_compressors -%}
 - {{ compressor }}
 {% endfor %}
 
 Deserialization
 ---------------
 
-``base-name.msgpack[.({{ '|'.join(file_blockchain.compressors) }})]`` === `Decompress`_ ==>
+``base-name.msgpack[.({{ '|'.join(known_compressors) }})]`` === `Decompress`_ ==>
 MessagePack_ binary: ``base-name.msgpack`` === `Deserialize from MessagePack`_ ==>
 In-memory MessagePack_ compacted object === `Uncompact`_ ==> In-memory MessagePack_ object
 
 Decompress
 ^^^^^^^^^^
 
-Use corresponding decompression algorithm. For example, in Python use::
+Use corresponding decompression algorithm. For example, in Python uses::
 
     DECOMPRESSION_FUNCTIONS = {
         'gz': gzip.decompress,

@@ -17,28 +17,6 @@ Directory structure
 | `Block chunk files`_ directory      | ``+---{{ (sample_file_blockchain.get_block_chunk_subdirectory() + '/``').ljust(28) }} |
 +-------------------------------------+------------------------------------+
 
-Directory nesting
-=================
-
-For filesystem access optimization, files are saved to ``{{ file_blockchain.file_optimization_max_depth }}``
-levels of nested directories. These store both blockchain state files and block chunk files.
-
-+---------------------------------+---------------------------------------------------------------+
-| Content                         | Path                                                          |
-+=================================+===============================================================+
-| A root directory                | ``/path/to/blockchain/root/file-type-specific-directory``     |
-+---------------------------------+---------------------------------------------------------------+
-{% for level in range(file_blockchain.file_optimization_max_depth) -%}
-| {{ level }} level subdirectory            | ``{{ ((('.  ' + '   ' * (level - 1)) if level else '') + '+---' + level.__str__() + '-th character of filename``').ljust(59) }} |
-+---------------------------------+---------------------------------------------------------------+
-{% endfor %}
-
-Examples:
-
-- ``0000100199-arf.msgpack.xz`` to be saved to ``/path/to/blockchain/root/{{ file_blockchain.make_optimized_file_path('0000100199-arf.msgpack.xz', file_blockchain.file_optimization_max_depth) }}``
-- ``00012300000000000100-00012300000000000199-block-chunk.msgpack.xz`` to be saved to
-  ``/path/to/blockchain/root/{{ file_blockchain.make_optimized_file_path('00012300000000000100-00012300000000000199-block-chunk.msgpack.xz', file_blockchain.file_optimization_max_depth) }}``
-
 Files format
 ============
 Although blockchain state files and block chunk files have the same format, their
@@ -112,10 +90,25 @@ Blockchain state files directory
 --------------------------------
 
 Blockchain states are saved to ``/path/to/blockchain/root/{{ sample_file_blockchain.get_blockchain_states_subdirectory() }}/``
-in a nested directory structure, as described in section `Directory nesting`_.
+in a nested directory structure.
+
+For filesystem access optimization files are saved to ``{{ sample_file_blockchain.get_blockchain_state_storage().max_depth }}``
+levels of nested directories.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Content
+     - Path
+   * - A root directory
+     - ``/path/to/blockchain/root/{{ sample_file_blockchain.get_blockchain_states_subdirectory() }}/``
+{% for level in range(sample_file_blockchain.get_blockchain_state_storage().max_depth) %}
+   * - {{ level }} level subdirectory
+     - ``{{ ((('.  ' + '   ' * (level - 1)) if level else '') + '+---' + level.__str__() + '-th character of filename``').ljust(59) }}
+{% endfor %}
 
 For example, a file named ``0000100199-arf.msgpack.xz`` will be saved to
-``/path/to/blockchain/root/{{ file_blockchain.make_optimized_file_path('0000100199-arf.msgpack.xz', file_blockchain.file_optimization_max_depth) }}``
+``/path/to/blockchain/root/{{ file_blockchain.make_optimized_file_path('0000100199-arf.msgpack.xz', sample_file_blockchain.get_blockchain_state_storage().max_depth) }}``
 
 Blockchain state structure
 --------------------------
@@ -182,10 +175,26 @@ Block chunk files
 =================
 
 Blockchain state files are saved to ``/path/to/blockchain/root/{{ sample_file_blockchain.get_block_chunk_subdirectory() }}/``
-in a nested directory structure, as described in section `Directory nesting`_.
+in a nested directory structure.
+
+For filesystem access optimization files are saved to ``{{ sample_file_blockchain.get_block_chunk_storage().max_depth }}``
+levels of nested directories.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Content
+     - Path
+   * - A root directory
+     - ``/path/to/blockchain/root/{{ sample_file_blockchain.get_block_chunk_subdirectory() }}/``
+{% for level in range(sample_file_blockchain.get_block_chunk_storage().max_depth) %}
+   * - {{ level }} level subdirectory
+     - ``{{ ((('.  ' + '   ' * (level - 1)) if level else '') + '+---' + level.__str__() + '-th character of filename``').ljust(59) }}
+{% endfor %}
+
 
 For example, a file named ``00012300000000000100-00012300000000000199-block-chunk.msgpack.xz`` will be saved to
-``/path/to/blockchain/root/{{ file_blockchain.make_optimized_file_path('00012300000000000100-00012300000000000199-block-chunk.msgpack.xz', file_blockchain.file_optimization_max_depth) }}``
+``/path/to/blockchain/root/{{ file_blockchain.make_optimized_file_path('00012300000000000100-00012300000000000199-block-chunk.msgpack.xz', sample_file_blockchain.get_block_chunk_storage().max_depth) }}``
 
 Block chunk file structure
 --------------------------

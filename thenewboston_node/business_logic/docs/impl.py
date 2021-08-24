@@ -16,7 +16,6 @@ from thenewboston_node.business_logic.models import SignedChangeRequestMessage
 from thenewboston_node.business_logic.models.mixins.compactable import COMPACT_KEY_MAP
 from thenewboston_node.business_logic.models.signed_change_request import SIGNED_CHANGE_REQUEST_TYPE_MAP
 from thenewboston_node.business_logic.models.signed_change_request.constants import BlockType
-from thenewboston_node.business_logic.storages import path_optimized_file_system
 from thenewboston_node.core.utils.misc import humanize_snake_case
 
 from .samples import SamplesFactory  # noqa: I101
@@ -93,7 +92,6 @@ def get_context(samples_factory):
         'file_blockchain': {
             'block_chunk_template': BLOCK_CHUNK_FILENAME_TEMPLATE,
             'account_root_file_template': BLOCKCHAIN_STATE_FILENAME_TEMPLATE,
-            'make_optimized_file_path': path_optimized_file_system.make_optimized_file_path,
         },
         'compact_key_map': sorted(COMPACT_KEY_MAP.items()),
         'builtins': builtins,

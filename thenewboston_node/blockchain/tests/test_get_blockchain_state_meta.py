@@ -25,9 +25,9 @@ def test_can_get_blockchain_genesis_state_meta(api_client, file_blockchain, bloc
         'last_block_number':
             blockchain_genesis_state.last_block_number,
         'url_path':
-            '/blockchain/blockchain-states/0/0/0/0/0/0/0/0/000000000!-blockchain-state.msgpack',
+            '/blockchain/blockchain-states/0/0/0/0/0/0/0/0/0000000000000000000!-blockchain-state.msgpack',
         'urls': [
-            'http://localhost:8555/blockchain/blockchain-states/0/0/0/0/0/0/0/0/000000000!-blockchain-state.msgpack'
+            'http://localhost:8555/blockchain/blockchain-states/0/0/0/0/0/0/0/0/0000000000000000000!-blockchain-state.msgpack'
         ]
     }
 

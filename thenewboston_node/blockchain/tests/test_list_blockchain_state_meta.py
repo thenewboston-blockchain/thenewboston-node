@@ -24,20 +24,22 @@ def test_can_list_blockchain_state_meta(api_client, file_blockchain_with_two_blo
     expected = file_blockchain_with_two_blockchain_states.get_first_blockchain_state().last_block_number
     assert blockchain_state_0['last_block_number'] == expected
     assert blockchain_state_0['url_path'] == (
-        '/blockchain/blockchain-states/0/0/0/0/0/0/0/0/000000000!-blockchain-state.msgpack'
+        '/blockchain/blockchain-states/0/0/0/0/0/0/0/0/0000000000000000000!-blockchain-state.msgpack'
     )
     assert len(blockchain_state_0['urls']) == 1
     assert blockchain_state_0['urls'][0] == (
-        'http://localhost:8555/blockchain/blockchain-states/0/0/0/0/0/0/0/0/000000000!-blockchain-state.msgpack'
+        'http://localhost:8555/blockchain/blockchain-states'
+        '/0/0/0/0/0/0/0/0/0000000000000000000!-blockchain-state.msgpack'
     )
 
     assert blockchain_state_1['last_block_number'] == 1
     assert blockchain_state_1['url_path'] == (
-        '/blockchain/blockchain-states/0/0/0/0/0/0/0/0/0000000001-blockchain-state.msgpack'
+        '/blockchain/blockchain-states/0/0/0/0/0/0/0/0/00000000000000000001-blockchain-state.msgpack'
     )
     assert len(blockchain_state_1['urls']) == 1
     assert blockchain_state_1['urls'][0] == (
-        'http://localhost:8555/blockchain/blockchain-states/0/0/0/0/0/0/0/0/0000000001-blockchain-state.msgpack'
+        'http://localhost:8555/blockchain/blockchain-states'
+        '/0/0/0/0/0/0/0/0/00000000000000000001-blockchain-state.msgpack'
     )
 
 

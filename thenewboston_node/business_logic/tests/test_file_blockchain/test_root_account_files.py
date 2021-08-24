@@ -24,7 +24,7 @@ def test_blockchain_state_is_created_every_x_block(
     )
     blockchain.add_blockchain_state(blockchain_genesis_state)
     assert os.path.isfile(
-        str(blockchain_path / 'blockchain-states/0/0/0/0/0/0/0/0/000000000!-blockchain-state.msgpack')
+        str(blockchain_path / 'blockchain-states/0/0/0/0/0/0/0/0/0000000000000000000!-blockchain-state.msgpack')
     )
     blockchain.validate()
 
@@ -41,8 +41,8 @@ def test_blockchain_state_is_created_every_x_block(
         )
         assert not os.path.isfile(
             str(
-                blockchain_path /
-                f'blockchain-states/0/0/0/0/0/0/0/0/000000000{block.message.block_number}-blockchain-state.msgpack'
+                blockchain_path / f'blockchain-states'
+                f'/0/0/0/0/0/0/0/0/000000000000000000{block.message.block_number}-blockchain-state.msgpack'
             )
         )
         blockchain.add_block(block)
@@ -58,8 +58,8 @@ def test_blockchain_state_is_created_every_x_block(
     blockchain.add_block(block)
     assert os.path.isfile(
         str(
-            blockchain_path /
-            f'blockchain-states/0/0/0/0/0/0/0/0/000000000{block.message.block_number}-blockchain-state.msgpack'
+            blockchain_path / f'blockchain-states'
+            f'/0/0/0/0/0/0/0/0/0000000000000000000{block.message.block_number}-blockchain-state.msgpack'
         )
     )
 
@@ -74,8 +74,8 @@ def test_blockchain_state_is_created_every_x_block(
         )
         assert not os.path.isfile(
             str(
-                blockchain_path /
-                f'blockchain-states/0/0/0/0/0/0/0/0/000000000{block.message.block_number}-blockchain-state.msgpack'
+                blockchain_path / f'blockchain-states'
+                f'/0/0/0/0/0/0/0/0/000000000000000000{block.message.block_number}-blockchain-state.msgpack'
             )
         )
         blockchain.add_block(block)
@@ -91,7 +91,7 @@ def test_blockchain_state_is_created_every_x_block(
     blockchain.add_block(block)
     assert os.path.isfile(
         str(
-            blockchain_path /
-            f'blockchain-states/0/0/0/0/0/0/0/0/000000000{block.message.block_number}-blockchain-state.msgpack'
+            blockchain_path / f'blockchain-states'
+            f'/0/0/0/0/0/0/0/0/0000000000000000000{block.message.block_number}-blockchain-state.msgpack'
         )
     )

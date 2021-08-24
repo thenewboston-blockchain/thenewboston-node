@@ -151,7 +151,7 @@ Compacted blockchain state example
 Format description
 """"""""""""""""""
 
-{% for model in models['blockchain_state'] %}
+{% for model in models.blockchain_state %}
 {{ model.__name__ }}
 {{ '"' * model.__name__.__len__() }}
 
@@ -229,7 +229,7 @@ Block types
      - "{{ key }}"
 {% endfor %}
 
-{% for model in models['block'] %}
+{% for model in models.block %}
 {{ model.__name__ }}
 {{ '"' * model.__name__.__len__() }}
 
@@ -261,11 +261,11 @@ SignedChangeRequestMessage
 
 SignedChangeRequestMessage is a base type for the following subtypes:
 
-{% for model in models['signed_change_request_message_subtypes'] %}
+{% for model in models.signed_change_request_message_subtypes %}
 - `{{ model.__name__ }}`_
 {% endfor %}
 
-{% for model in models['signed_change_request_message'] %}
+{% for model in models.signed_change_request_message %}
 {{ model.__name__ }}
 {{ "'" * model.__name__.__len__() }}
 
@@ -323,7 +323,7 @@ datetime
 --------
 A string of `ISO formatted <https://en.wikipedia.org/wiki/ISO_8601>`_ UTC datetime without timezone part.
 
-{% for model in models['common'] %}
+{% for model in models.common %}
 {{ model.__name__ }}
 {{ "-" * model.__name__.__len__() }}
 

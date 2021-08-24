@@ -33,7 +33,10 @@ def test_get_blockchain_filename_meta():
 
 def test_file_blockchain_blocks_contain_metadata(file_blockchain: FileBlockchain, treasury_account_key_pair):
     blockchain = file_blockchain
-    with patch.object(blockchain, '_block_chunk_size', 4), patch.object(blockchain.block_storage, 'compressors', ()):
+    with (
+        patch.object(blockchain, '_block_chunk_size',
+                     4), patch.object(blockchain.get_block_chunk_storage(), 'compressors', ())
+    ):
         add_blocks_to_blockchain(blockchain, 10, treasury_account_key_pair.private)
 
     block_chunks_directory = os.path.join(blockchain.get_base_directory(), 'block-chunks')

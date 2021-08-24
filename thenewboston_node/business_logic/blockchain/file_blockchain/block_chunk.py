@@ -77,7 +77,7 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
     def get_block_chunk_last_block_number_cache(self):
         raise NotImplementedError('Must be implemented in child class')
 
-    def get_blocks_cache(self):
+    def get_block_cache(self):
         raise NotImplementedError('Must be implemented in child class')
 
     def get_block_chunk_storage(self):
@@ -149,8 +149,9 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
         meta = get_block_chunk_file_path_meta(destination_filename)
         end = meta.end
         assert end is not None
+        block_cache = self.get_block_cache()
         for block_number in range(meta.start, end + 1):
-            block = self.blocks_cache.get(block_number)  # type: ignore
+            block = block_cache.get(block_number)
             if block is None:
                 continue
 
@@ -177,7 +178,7 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
             yield from self._yield_blocks_from_file_cached(file_path, direction=1, start=max(meta.start, block_number))
 
     def get_block_by_number(self, block_number: int) -> Optional[Block]:
-        blocks_cache = self.get_blocks_cache()
+        blocks_cache = self.get_block_cache()
         assert blocks_cache is not None
         block = blocks_cache.get(block_number)
         if block is not None:
@@ -262,7 +263,7 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
         if direction == -1:
             unpacker = always_reversible(unpacker)
 
-        blocks_cache = self.get_blocks_cache()
+        blocks_cache = self.get_block_cache()
         for block_compact_dict in unpacker:
             block = Block.from_compact_dict(block_compact_dict)
             block_number = block.message.block_number
@@ -286,7 +287,7 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
         if direction == -1:
             iter_ = always_reversible(iter_)
 
-        blocks_cache = self.get_blocks_cache()
+        blocks_cache = self.get_block_cache()
         for block_number in iter_:
             block = blocks_cache.get(block_number)
             if block is None:

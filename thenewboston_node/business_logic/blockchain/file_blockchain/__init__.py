@@ -36,7 +36,7 @@ class FileBlockchain(BlockChunkFileBlockchainMixin, FileBlockchainBaseMixin, Blo
         block_chunks_subdirectory='block-chunks',
         block_chunk_size=DEFAULT_BLOCK_CHUNK_SIZE,
         blocks_cache_size=None,
-        blocks_storage_kwargs=None,
+        block_chunks_storage_kwargs=None,
 
         # Misc
         block_number_digits_count=20,
@@ -57,20 +57,18 @@ class FileBlockchain(BlockChunkFileBlockchainMixin, FileBlockchainBaseMixin, Blo
         self._blockchain_states_subdirectory = blockchain_states_subdirectory
         self._blockchain_states_directory = blockchain_states_directory
 
-        # Block chunks
-        block_chunks_directory = os.path.join(base_directory, block_chunks_subdirectory)
-        self.block_storage = PathOptimizedFileSystemStorage(
-            base_path=block_chunks_directory, **(blocks_storage_kwargs or {})
-        )
-        self._block_chunks_subdirectory = block_chunks_subdirectory
-        self._block_chunks_directory = block_chunks_directory
+        # Block chunks (blocks)
+        self._block_chunk_storage = None
+        self._block_chunk_storage_kwargs = block_chunks_storage_kwargs
+        self._block_chunk_directory = os.path.join(base_directory, block_chunks_subdirectory)
+        self._block_chunk_subdirectory = block_chunks_subdirectory
+        self._block_chunk_size = block_chunk_size
 
         # Misc
         self._base_directory = base_directory
 
         self.account_root_files_cache_size = account_root_files_cache_size
         self.blocks_cache_size = blocks_cache_size
-        self._block_chunk_size = block_chunk_size
 
         self.blockchain_states_cache: Optional[LRUCache] = None
         self.blocks_cache: Optional[LRUCache] = None
@@ -107,7 +105,7 @@ class FileBlockchain(BlockChunkFileBlockchainMixin, FileBlockchainBaseMixin, Blo
     @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
     def clear(self):
         self.initialize_caches()
-        self.block_storage.clear()
+        self.get_block_chunk_storage().clear()
         self.blockchain_states_storage.clear()
 
     def initialize_caches(self):
@@ -193,13 +191,18 @@ class FileBlockchain(BlockChunkFileBlockchainMixin, FileBlockchainBaseMixin, Blo
 
     # Blocks methods
     def get_block_chunks_subdirectory(self):
-        return self._block_chunks_subdirectory
+        return self._block_chunk_subdirectory
 
     def get_block_chunk_last_block_number_cache(self):
         return self.block_chunk_last_block_number_cache
 
     def get_block_chunk_storage(self):
-        return self.block_storage
+        if (block_chunk_storage := self._block_chunk_storage) is None:
+            self._block_chunk_storage = block_chunk_storage = PathOptimizedFileSystemStorage(
+                base_path=self._block_chunk_directory, **(self._block_chunk_storage_kwargs or {})
+            )
+
+        return block_chunk_storage
 
     def get_blocks_cache(self):
         return self.blocks_cache

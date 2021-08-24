@@ -252,7 +252,8 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
 
     def _yield_blocks_from_file(self, file_path, direction, start=None):
         assert direction in (1, -1)
-        storage = self.block_storage
+
+        storage = self.get_block_chunk_storage()
         chunk_file_path = storage.get_optimized_actual_path(file_path)
         meta = get_block_chunk_file_path_meta(file_path)
 
@@ -261,6 +262,7 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
         if direction == -1:
             unpacker = always_reversible(unpacker)
 
+        blocks_cache = self.get_blocks_cache()
         for block_compact_dict in unpacker:
             block = Block.from_compact_dict(block_compact_dict)
             block_number = block.message.block_number
@@ -274,7 +276,7 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
             assert block.meta is None
             self._set_block_meta(block, meta, chunk_file_path)
 
-            self.blocks_cache[block_number] = block
+            blocks_cache[block_number] = block
             yield block
 
     def _yield_blocks_from_cache(self, start_block_number, end_block_number, direction):
@@ -284,15 +286,16 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
         if direction == -1:
             iter_ = always_reversible(iter_)
 
+        blocks_cache = self.get_blocks_cache()
         for block_number in iter_:
-            block = self.blocks_cache.get(block_number)
+            block = blocks_cache.get(block_number)
             if block is None:
                 break
 
             yield block
 
     def _list_block_directory(self, direction=1):
-        yield from self.block_storage.list_directory(sort_direction=direction)
+        yield from self.get_block_chunk_storage().list_directory(sort_direction=direction)
 
     def _get_last_block_chunk_file_path(self):
         try:

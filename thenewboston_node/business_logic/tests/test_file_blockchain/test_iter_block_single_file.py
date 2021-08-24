@@ -18,7 +18,7 @@ def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_sign
         pv_signing_key=get_node_signing_key(),
         preferred_node=preferred_node,
     )
-    blockchain.block_storage.append(filename, block0.to_messagepack())
+    blockchain.get_block_chunk_storage().append(filename, block0.to_messagepack())
 
     block1 = Block.create_from_main_transaction(
         blockchain=blockchain,
@@ -28,7 +28,7 @@ def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_sign
         pv_signing_key=get_node_signing_key(),
         preferred_node=preferred_node,
     )
-    blockchain.block_storage.append(filename, block1.to_messagepack())
+    blockchain.get_block_chunk_storage().append(filename, block1.to_messagepack())
 
     block2 = Block.create_from_main_transaction(
         blockchain=blockchain,
@@ -38,7 +38,7 @@ def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_sign
         pv_signing_key=get_node_signing_key(),
         preferred_node=preferred_node,
     )
-    blockchain.block_storage.append(filename, block2.to_messagepack())
+    blockchain.get_block_chunk_storage().append(filename, block2.to_messagepack())
 
     block3 = Block.create_from_main_transaction(
         blockchain=blockchain,
@@ -48,7 +48,7 @@ def set_up(file_blockchain_w_memory_storage, user_account, treasury_account_sign
         pv_signing_key=get_node_signing_key(),
         preferred_node=preferred_node,
     )
-    blockchain.block_storage.append(filename, block3.to_messagepack())
+    blockchain.get_block_chunk_storage().append(filename, block3.to_messagepack())
 
 
 def get_block_numbers(blocks):

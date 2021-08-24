@@ -135,9 +135,10 @@ def test_block_chunk_is_rotated(
         )
         blockchain.add_block(block3)
 
-    assert blockchain.block_storage.files.keys() == {file1, file2}
-    assert blockchain.block_storage.is_finalized(file1)
-    assert blockchain.block_storage.is_finalized(file2)
+    storage = blockchain.get_block_chunk_storage()
+    assert storage.files.keys() == {file1, file2}
+    assert storage.is_finalized(file1)
+    assert storage.is_finalized(file2)
 
 
 def test_block_chunk_is_rotated_real_file_blockchain(
@@ -148,7 +149,10 @@ def test_block_chunk_is_rotated_real_file_blockchain(
     signing_key = treasury_account_signing_key
     node_signing_key = get_node_signing_key()
 
-    with patch.object(blockchain, '_block_chunk_size', 2), patch.object(blockchain.block_storage, 'compressors', ()):
+    with (
+        patch.object(blockchain, '_block_chunk_size',
+                     2), patch.object(blockchain.get_block_chunk_storage(), 'compressors', ())
+    ):
         block0 = Block.create_from_main_transaction(
             blockchain=blockchain,
             recipient=user_account,
@@ -281,8 +285,9 @@ def test_block_appended(file_blockchain_w_memory_storage, user_account, treasury
     )
     blockchain.add_block(block2)
 
-    assert blockchain.block_storage.files.keys() == {filename}
-    assert not blockchain.block_storage.is_finalized(filename)
+    storage = blockchain.get_block_chunk_storage()
+    assert storage.files.keys() == {filename}
+    assert not storage.is_finalized(filename)
 
 
 def test_cannot_add_block_twice(

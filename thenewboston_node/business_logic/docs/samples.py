@@ -115,13 +115,13 @@ class SamplesFactory:
     def get_sample_blockchain_state(self):
         return self.blockchain.get_last_blockchain_state()
 
-    def get_sample_block_map(self):
-        block_map = {}
+    def get_sample_blocks(self):
+        blocks = {}
         for block in self.blockchain.yield_blocks():
             field_type = block.message.signed_change_request.get_field_type('message')
-            block_map.setdefault(field_type, block)
+            blocks.setdefault(field_type, block)
 
-        return block_map
+        return blocks
 
     def close(self):
         self.temporary_directory.cleanup()

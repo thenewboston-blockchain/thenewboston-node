@@ -3,6 +3,7 @@ from rest_framework import status
 
 from thenewboston_node.business_logic.models import Block, NodeDeclarationSignedChangeRequest
 from thenewboston_node.business_logic.tests.base import force_blockchain
+from thenewboston_node.business_logic.utils.blockchain_state import make_blockchain_genesis_state
 
 API_V1_BLOCKCHAIN_STATE_URL_PATTERN = '/api/v1/blockchain-states-meta/{block_number}/'
 
@@ -54,13 +55,21 @@ def test_blockchain_state_meta_block_number_is_inclusive(api_client, file_blockc
     assert response.json()['last_block_number'] == block_number
 
 
-# def test_blockchain_state_meta_urls_returns_500_if_node_undeclared(
-#     api_client, file_blockchain,
-# ):
-#     with force_blockchain(file_blockchain):
-#         response = api_client.get(API_V1_BLOCKCHAIN_STATE_URL_PATTERN.format(block_number=-1))
-#
-#     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-#     data = response.json()
-#
-#     assert data['detail'] == 'Requested node is unregistered in the blockchain'
+def test_blockchain_state_meta_urls_returns_400_if_node_undeclared(
+    api_client, file_blockchain, treasury_account, treasury_initial_balance, another_node
+):
+    file_blockchain.clear()
+    genesis_blockchain_state = make_blockchain_genesis_state(
+        primary_validator=another_node,
+        treasury_account_number=treasury_account,
+        treasury_account_initial_balance=treasury_initial_balance,
+    )
+    file_blockchain.add_blockchain_state(genesis_blockchain_state)
+
+    with force_blockchain(file_blockchain):
+        response = api_client.get(API_V1_BLOCKCHAIN_STATE_URL_PATTERN.format(block_number=-1))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    data = response.json()
+
+    assert data['detail'] == 'Requested node is unregistered in the blockchain'

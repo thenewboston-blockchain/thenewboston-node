@@ -8,8 +8,15 @@ from thenewboston_node.business_logic.utils.blockchain_state import make_blockch
 API_V1_BLOCKCHAIN_STATE_URL_PATTERN = '/api/v1/blockchain-states-meta/{block_number}/'
 
 
+def test_memory_blockchain_supported(api_client, memory_blockchain):
+    with force_blockchain(memory_blockchain):
+        response = api_client.get(API_V1_BLOCKCHAIN_STATE_URL_PATTERN.format(block_number=-1))
+
+    assert response.status_code == status.HTTP_200_OK
+
+
 @pytest.mark.parametrize('block_number', (-2, 'invalid_id', 0, 999))
-def test_invalid_block_number_returns_404(api_client, file_blockchain, block_number):
+def test_invalid_block_number_returns_400(api_client, file_blockchain, block_number):
     with force_blockchain(file_blockchain):
         response = api_client.get(API_V1_BLOCKCHAIN_STATE_URL_PATTERN.format(block_number=block_number))
 

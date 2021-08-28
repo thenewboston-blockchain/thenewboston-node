@@ -1,11 +1,12 @@
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from rest_framework.exceptions import NotFound, ParseError
+from rest_framework.exceptions import NotFound
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
+from thenewboston_node.blockchain.filters import BlockchainStateMetaOrderingFilter
 from thenewboston_node.blockchain.serializers.blockchain_states_meta import BlockchainStatesMetaSerializer
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.core.pagination import CustomLimitOffsetPagination
-from thenewboston_node.core.utils.itertools import SliceableCountableIterable
+from thenewboston_node.core.utils.itertools import SliceableReversableCountableIterable
 
 GENESIS_BLOCKCHAIN_STATE_IDS = ('null', 'genesis')
 
@@ -13,6 +14,7 @@ GENESIS_BLOCKCHAIN_STATE_IDS = ('null', 'genesis')
 class BlockchainStatesMetaViewSet(ReadOnlyModelViewSet):
     serializer_class = BlockchainStatesMetaSerializer
     pagination_class = CustomLimitOffsetPagination
+    filter_backends = (BlockchainStateMetaOrderingFilter,)
 
     @extend_schema(
         parameters=[
@@ -22,28 +24,13 @@ class BlockchainStatesMetaViewSet(ReadOnlyModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter('ordering', location=OpenApiParameter.QUERY, description='asc/desc', default='asc'),
-        ]
-    )
-    def list(self, request):  # noqa: A003
-        return super().list(request)
-
     def get_queryset(self):
         blockchain = BlockchainBase.get_instance()
-
-        ordering = self.request.query_params.get('ordering', 'asc')
-        if ordering == 'asc':
-            return SliceableCountableIterable(
-                blockchain.yield_blockchain_states(lazy=True), count=blockchain.get_blockchain_states_count
-            )
-        elif ordering == 'desc':
-            return SliceableCountableIterable(
-                blockchain.yield_blockchain_states_reversed(lazy=True), count=blockchain.get_blockchain_states_count
-            )
-        else:
-            raise ParseError("ordering query parameter must be 'asc' or 'desc'")
+        return SliceableReversableCountableIterable(
+            source=blockchain.yield_blockchain_states(lazy=True),
+            reversed_source=blockchain.yield_blockchain_states_reversed(lazy=True),
+            count=blockchain.get_blockchain_states_count
+        )
 
     def get_object(self):
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field

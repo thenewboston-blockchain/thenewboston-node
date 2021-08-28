@@ -46,7 +46,7 @@ def test_can_list_blockchain_state_meta(api_client, file_blockchain_with_two_blo
 
 def test_can_sort_ascending_blockchain_states_meta(api_client, file_blockchain_with_two_blockchain_states):
     with force_blockchain(file_blockchain_with_two_blockchain_states):
-        response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?ordering=asc')
+        response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?ordering=last_block_number')
 
     assert response.status_code == 200
     data = response.json()
@@ -60,7 +60,7 @@ def test_can_sort_ascending_blockchain_states_meta(api_client, file_blockchain_w
 
 def test_can_sort_descending_blockchain_states_meta(api_client, file_blockchain_with_two_blockchain_states):
     with force_blockchain(file_blockchain_with_two_blockchain_states):
-        response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?ordering=desc')
+        response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?ordering=-last_block_number')
 
     assert response.status_code == 200
     data = response.json()
@@ -70,13 +70,6 @@ def test_can_sort_descending_blockchain_states_meta(api_client, file_blockchain_
     assert blockchain_state_0['last_block_number'] == 1
     expected = file_blockchain_with_two_blockchain_states.get_first_blockchain_state().last_block_number
     assert blockchain_state_1['last_block_number'] == expected
-
-
-def test_blockchain_states_meta_ordering_is_validated(api_client, file_blockchain_with_two_blockchain_states):
-    with force_blockchain(file_blockchain_with_two_blockchain_states):
-        response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?ordering=1')
-
-    assert response.status_code == 400
 
 
 def test_can_get_blockchain_states_meta_w_limit(api_client, file_blockchain_with_two_blockchain_states):
@@ -101,3 +94,14 @@ def test_can_get_blockchain_states_meta_w_offset(api_client, file_blockchain_wit
     assert data['count'] == 2
     assert len(data['results']) == 1
     assert data['results'][0]['last_block_number'] == 1
+
+
+def test_pagination_is_applied_after_ordering(api_client, file_blockchain_with_two_blockchain_states):
+    with force_blockchain(file_blockchain_with_two_blockchain_states):
+        response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?offset=1&ordering=-last_block_number')
+
+    assert response.status_code == status.HTTP_200_OK
+    data = response.json()
+    assert data['count'] == 2
+    assert len(data['results']) == 1
+    assert data['results'][0]['last_block_number'] is None

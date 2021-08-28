@@ -4,20 +4,15 @@ from urllib.parse import urljoin
 from django.conf import settings
 
 from rest_framework import fields
-from rest_framework.exceptions import ParseError
 
 from thenewboston_node.business_logic.node import get_node_identifier
+from thenewboston_node.core.exceptions import ClientSideAPIError
 from thenewboston_node.core.serializers import CustomSerializer
-
-ClientAPIError = ParseError
 
 
 def make_url_path(blockchain_state):
     file_path = (blockchain_state.meta or {}).get('file_path')
-    if file_path:
-        return os.path.join(settings.BLOCKCHAIN_URL_PATH_PREFIX, file_path)
-
-    return None
+    return os.path.join(settings.BLOCKCHAIN_URL_PATH_PREFIX, file_path) if file_path else None
 
 
 class BlockchainStatesMetaSerializer(CustomSerializer):
@@ -39,6 +34,6 @@ class BlockchainStatesMetaSerializer(CustomSerializer):
 
         this_node = blockchain.get_node_by_identifier(get_node_identifier())
         if this_node is None:
-            raise ClientAPIError('Requested node is unregistered in the blockchain')
+            raise ClientSideAPIError('Requested node is unregistered in the blockchain')
 
         return [urljoin(net_address, url_path) for net_address in this_node.network_addresses]

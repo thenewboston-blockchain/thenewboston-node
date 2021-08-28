@@ -53,7 +53,7 @@ class NetworkMixin(BaseMixin):
         for block in self.yield_blocks_slice_reversed(last_block_number, blockchain_state.get_last_block_number()):
             for account_number, account_state in block.yield_account_states():
                 if account_number in known_pv_schedule_accounts:
-                    assert True, 'Should never get here'
+                    raise AssertionError('Should never get here')
 
                 pv_schedule = account_state.primary_validator_schedule
                 if pv_schedule:

@@ -10,7 +10,7 @@ from thenewboston_node.business_logic.blockchain.mock_blockchain import MockBloc
 from thenewboston_node.business_logic.tests.base import force_blockchain
 from thenewboston_node.business_logic.tests.factories import add_blocks_to_blockchain
 from thenewboston_node.business_logic.tests.mocks.storage_mock import StorageMock
-from thenewboston_node.business_logic.utils.iter import get_generator
+from thenewboston_node.business_logic.tests.mocks.utils import patch_blockchain_states, patch_blocks
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +94,7 @@ def file_blockchain_w_memory_storage(file_blockchain, blockchain_genesis_state):
 @pytest.fixture
 def blockchain_base(blockchain_genesis_state):
     blockchain = BlockchainBase()
-    with patch.object(blockchain, 'yield_blockchain_states', get_generator([blockchain_genesis_state])):
+    with patch_blockchain_states(blockchain, [blockchain_genesis_state]), patch_blocks(blockchain, []):
         yield blockchain
 
 

@@ -23,7 +23,7 @@ def test_can_validate_blockchain_in_chunks(memory_blockchain, treasury_account_k
 def test_can_validate_blockchain_in_chunks_for_file_blockchain(file_blockchain, treasury_account_key_pair):
     blockchain = file_blockchain
 
-    make_large_blockchain(blockchain, treasury_account_key_pair)
+    make_large_blockchain(blockchain, treasury_account_key_pair, blocks_count=99)
     blockchain.validate_blockchain_states()
 
     CHUNK_SIZE = 20

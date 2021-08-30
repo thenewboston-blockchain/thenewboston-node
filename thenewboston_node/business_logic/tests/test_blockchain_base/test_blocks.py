@@ -93,7 +93,9 @@ def test_can_yield_blocks_till_snapshot(
     blockchain_state_patch = patch_blockchain_states(
         blockchain_base, [
             blockchain_genesis_state,
-            factories.BlockchainStateFactory(last_block_number=account_root_file_block_number),
+            factories.BlockchainStateFactory(
+                message=factories.BlockchainStateMessageFactory(last_block_number=account_root_file_block_number)
+            ),
         ]
     )
     blocks_patch = patch_blocks(blockchain_base, [block_0, block_1, block_2])
@@ -125,7 +127,7 @@ def test_get_expected_block_identifier_with_blockchain_genesis_state(blockchain_
     with patch_blockchain_states(blockchain_base, [blockchain_genesis_state]):
         block_identifier = blockchain_base.get_expected_block_identifier(block_number=0)
 
-    assert block_identifier == blockchain_genesis_state.get_hash()
+    assert block_identifier == blockchain_genesis_state.message.get_hash()
 
 
 def test_get_expected_block_identifier_from_last_block(

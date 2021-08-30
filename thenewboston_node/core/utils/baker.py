@@ -17,6 +17,12 @@ class RandomDatetimeGenerator(RandomGenerator):
         return datetime.now(timezone.utc)
 
 
+class RandomNoTzDatetimeGenerator(RandomGenerator):
+
+    def generate(self, *args, **kwargs) -> datetime:
+        return datetime.now(tz=None)
+
+
 class RandomHexGenerator(RandomGenerator):
     """
     Implemetation is based on

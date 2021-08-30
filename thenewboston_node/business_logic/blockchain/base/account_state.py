@@ -29,7 +29,7 @@ class AccountStateMixin(BaseMixin):
                 yield new_account
 
         last_account_root_file = self.get_last_blockchain_state()  # type: ignore
-        account_root_file_accounts = last_account_root_file.account_states.keys()
+        account_root_file_accounts = last_account_root_file.message.account_states.keys()
         new_accounts = account_root_file_accounts - known_accounts
         known_accounts |= new_accounts
         for new_account in new_accounts:

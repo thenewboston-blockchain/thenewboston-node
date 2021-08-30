@@ -154,8 +154,10 @@ def test_block_messagepack_with_compact_values_is_smaller():
 
 def test_account_root_file_accounts_are_stored_in_bytes():
     account = 'cb0467e380e032881e3f5c26878da3584f1dc1f2262ef77ba5e1fa7ef4b2821c'
-    account_root_file = factories.BlockchainStateFactory(account_states={account: factories.AccountStateFactory()})
+    account_root_file = factories.BlockchainStateFactory(
+        message=factories.BlockchainStateMessageFactory(account_states={account: factories.AccountStateFactory()})
+    )
 
-    compact_dict = account_root_file.to_compact_dict(compact_keys=False)['account_states']
+    compact_dict = account_root_file.to_compact_dict(compact_keys=False)['message']['account_states']
 
     assert set(compact_dict.keys()) == {bytes.fromhex(account)}

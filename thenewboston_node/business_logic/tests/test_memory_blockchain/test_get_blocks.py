@@ -23,7 +23,7 @@ def test_yield_blocks_till_snapshot(memory_blockchain: MemoryBlockchain, blockch
     assert [block.message.block_number for block in memory_blockchain.yield_blocks_till_snapshot(0)] == [0]
 
     account_root_file1 = copy.deepcopy(blockchain_genesis_state)
-    account_root_file1.last_block_number = 3
+    account_root_file1.message.last_block_number = 3
     memory_blockchain.blockchain_states.append(account_root_file1)
 
     assert len(account_root_files) == 2
@@ -43,7 +43,7 @@ def test_yield_blocks_till_snapshot(memory_blockchain: MemoryBlockchain, blockch
     assert [block.message.block_number for block in memory_blockchain.yield_blocks_till_snapshot(0)] == [0]
 
     account_root_file2 = copy.deepcopy(blockchain_genesis_state)
-    account_root_file2.last_block_number = 5
+    account_root_file2.message.last_block_number = 5
     memory_blockchain.blockchain_states.append(account_root_file2)
 
     assert len(account_root_files) == 3

@@ -2,6 +2,7 @@ from thenewboston_node.business_logic.models import (
     AccountState, Block, BlockchainState, Node, NodeDeclarationSignedChangeRequest
 )
 from thenewboston_node.business_logic.node import get_node_signing_key
+from thenewboston_node.business_logic.tests import factories
 from thenewboston_node.business_logic.tests.baker_factories import baker
 
 
@@ -28,13 +29,15 @@ def test_node_serializes_without_identifier_in_blockchain_state():
     account_number = node.identifier
     assert account_number
     account_state = AccountState(node=node)
-    blockchain_state = BlockchainState(account_states={account_number: account_state})
+    blockchain_state = factories.BlockchainStateFactory(
+        message=factories.BlockchainStateMessageFactory(account_states={account_number: account_state})
+    )
 
     serialized = blockchain_state.serialize_to_dict()
-    assert 'identifier' not in serialized['account_states'][account_number]['node']
+    assert 'identifier' not in serialized['message']['account_states'][account_number]['node']
 
     deserialized = BlockchainState.deserialize_from_dict(serialized)
-    deserialized_node = deserialized.account_states[account_number].node
+    deserialized_node = deserialized.message.account_states[account_number].node
     assert deserialized_node is not node
     assert deserialized_node.identifier == account_number
 

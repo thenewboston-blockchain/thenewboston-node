@@ -6,7 +6,7 @@ from thenewboston_node.business_logic.blockchain.file_blockchain.block_chunk imp
 from thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_state import (
     get_blockchain_state_filename_meta
 )
-from thenewboston_node.business_logic.tests.factories import add_blocks_to_blockchain
+from thenewboston_node.business_logic.tests.factories import add_blocks
 
 
 def test_get_block_chunk_filename_meta():
@@ -34,10 +34,10 @@ def test_get_blockchain_filename_meta():
 def test_file_blockchain_blocks_contain_metadata(file_blockchain: FileBlockchain, treasury_account_key_pair):
     blockchain = file_blockchain
     with (
-        patch.object(blockchain, '_block_chunk_size',
+        patch.object(blockchain, 'snapshot_period_in_blocks',
                      4), patch.object(blockchain.get_block_chunk_storage(), 'compressors', ())
     ):
-        add_blocks_to_blockchain(blockchain, 10, treasury_account_key_pair.private)
+        add_blocks(blockchain, 10, treasury_account_key_pair.private)
 
     block_chunks_directory = os.path.join(blockchain.get_base_directory(), 'block-chunks')
 

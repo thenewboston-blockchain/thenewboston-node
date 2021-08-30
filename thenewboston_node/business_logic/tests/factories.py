@@ -20,12 +20,15 @@ PV_ACCOUNT = hexstr('dbc82ca874ae06ea39ea40f6f12dcca9c28aa88df989d9723338d7c9b94
 # TODO(dmu) HIGH: Replace these factories with `baker`-based factories
 
 
-def add_blocks_to_blockchain(
-    blockchain, block_count, treasury_account_private_key, add_blockchain_genesis_state=False
-):
-    treasury_account_key_pair = KeyPair(
-        public=derive_public_key(treasury_account_private_key), private=treasury_account_private_key
-    )
+def add_blocks(blockchain, block_count, treasury_account_private_key=None, add_blockchain_genesis_state=False):
+    if treasury_account_private_key:
+        treasury_account_key_pair = KeyPair(
+            public=derive_public_key(treasury_account_private_key), private=treasury_account_private_key
+        )
+    else:
+        treasury_account_key_pair = blockchain._test_treasury_account_key_pair
+
+    # TODO(dmu) HIGH: generate_blockchain() must call add blocks, not vice versa
     generate_blockchain(
         blockchain,
         block_count,
@@ -41,7 +44,7 @@ def make_large_blockchain(blockchain, treasury_account_key_pair, blocks_count=10
     account_state = accounts[treasury_account_key_pair.public]
     assert account_state.balance > 10000000000  # tons of money present
 
-    add_blocks_to_blockchain(blockchain, blocks_count, treasury_account_key_pair.private)
+    add_blocks(blockchain, blocks_count, treasury_account_key_pair.private)
 
 
 @factory(CoinTransferTransaction)

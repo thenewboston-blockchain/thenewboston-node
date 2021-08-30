@@ -29,7 +29,7 @@ class BlockchainStatesMetaViewSet(ReadOnlyModelViewSet):
         return SliceableReversableCountableIterable(
             source=blockchain.yield_blockchain_states(lazy=True),
             reversed_source=blockchain.yield_blockchain_states_reversed(lazy=True),
-            count=blockchain.get_blockchain_states_count
+            count=blockchain.get_blockchain_state_count
         )
 
     def get_object(self):

@@ -1,12 +1,12 @@
 import pytest
 
-from thenewboston_node.business_logic.exceptions import InvalidBlockchain
+from thenewboston_node.business_logic.exceptions import InvalidBlockchainError
 from thenewboston_node.business_logic.tests.mocks.utils import patch_blockchain_states
 
 
 def test_can_get_account_root_file_count(blockchain_base, blockchain_state_10, blockchain_state_20):
     with patch_blockchain_states(blockchain_base, [blockchain_state_10, blockchain_state_20]):
-        arf_count = blockchain_base.get_blockchain_states_count()
+        arf_count = blockchain_base.get_blockchain_state_count()
 
     assert arf_count == 2
 
@@ -27,7 +27,7 @@ def test_can_get_last_blockchain_state(blockchain_base, blockchain_state_10, blo
 
 def test_last_account_root_file_is_none(blockchain_base, blockchain_state_10, blockchain_state_20):
     with patch_blockchain_states(blockchain_base, []):
-        with pytest.raises(InvalidBlockchain, match='Blockchain must contain a blockchain state'):
+        with pytest.raises(InvalidBlockchainError, match='Blockchain must contain a blockchain state'):
             blockchain_base.get_last_blockchain_state()
 
 
@@ -40,7 +40,7 @@ def test_can_get_first_blockchain_state(blockchain_base, blockchain_state_10, bl
 
 def test_first_account_root_file_is_none(blockchain_base):
     with patch_blockchain_states(blockchain_base, []):
-        with pytest.raises(InvalidBlockchain, match='Blockchain must contain a blockchain state'):
+        with pytest.raises(InvalidBlockchainError, match='Blockchain must contain a blockchain state'):
             blockchain_base.get_first_blockchain_state()
 
 
@@ -51,7 +51,7 @@ def test_get_closest_blockchain_state_snapshot_validates_excludes_block_number(b
 
 def test_blockchain_genesis_state_not_found(blockchain_base):
     with patch_blockchain_states(blockchain_base, []):
-        with pytest.raises(InvalidBlockchain, match='Blockchain must contain a blockchain state'):
+        with pytest.raises(InvalidBlockchainError, match='Blockchain must contain a blockchain state'):
             blockchain_base.get_blockchain_state_by_block_number(-1)
 
 
@@ -86,5 +86,5 @@ def test_closest_account_root_file_not_found(
     blockchain_base, excludes_block_number, blockchain_state_10, blockchain_state_20
 ):
     with patch_blockchain_states(blockchain_base, [blockchain_state_10, blockchain_state_20]):
-        with pytest.raises(InvalidBlockchain, match=r'Blockchain state before block number \d+ is not found'):
+        with pytest.raises(InvalidBlockchainError, match=r'Blockchain state before block number \d+ is not found'):
             blockchain_base.get_blockchain_state_by_block_number(excludes_block_number)

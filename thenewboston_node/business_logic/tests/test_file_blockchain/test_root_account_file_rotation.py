@@ -36,7 +36,7 @@ def test_blockchain_state_is_rotated(file_blockchain_w_memory_storage):
     initial_arf_filename = '0000000000000000000!-blockchain-state.msgpack'
     new_blockchain_state = '00000000000000000001-blockchain-state.msgpack'
 
-    assert blockchain.get_blockchain_states_count() == 2
+    assert blockchain.get_blockchain_state_count() == 2
     assert blockchain._blockchain_state_storage.files.keys() == {initial_arf_filename, new_blockchain_state}
     assert blockchain._blockchain_state_storage.is_finalized(initial_arf_filename)
     assert blockchain._blockchain_state_storage.is_finalized(new_blockchain_state)

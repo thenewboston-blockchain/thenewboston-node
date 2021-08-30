@@ -118,10 +118,20 @@ class BlochainStateFileBlockchainMixin(FileBlockchainBaseMixin):
     ) -> Generator[Union[BlockchainState, Callable[[Any], BlockchainState]], None, None]:
         yield from self._yield_blockchain_states(-1, lazy=lazy)
 
-    def get_blockchain_states_count(self) -> int:
+    def get_blockchain_state_count(self) -> int:
         return ilen(self.get_blockchain_state_storage().list_directory())
 
     def _get_blockchain_state_real_file_path(self, file_path):
         optimized_path = self.get_blockchain_state_storage().get_optimized_path(file_path)
         abs_optimized_path = os.path.join(self.get_blockchain_state_directory(), optimized_path)
         return os.path.relpath(abs_optimized_path, self.get_base_directory())
+
+    @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
+    def snapshot_blockchain_state(self):
+        block_chunk_filename = self.get_current_block_chunk_filename()
+        last_block_number = self.get_last_block_number()
+        blockchain_state = super().snapshot_blockchain_state()
+        if blockchain_state:
+            self.finalize_block_chunk(block_chunk_filename, last_block_number)
+
+        self.finalize_all_block_chunks()

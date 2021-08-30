@@ -40,5 +40,5 @@ class FinalizedFileWriteError(StorageError):
     pass
 
 
-class InvalidBlockchain(BlockchainError):
+class InvalidBlockchainError(BlockchainError):
     pass

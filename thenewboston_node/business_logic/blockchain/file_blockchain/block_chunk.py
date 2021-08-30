@@ -7,6 +7,7 @@ from typing import Generator, Optional
 import msgpack
 from more_itertools import always_reversible
 
+from thenewboston_node.business_logic.exceptions import InvalidBlockchainError
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.storages.file_system import COMPRESSION_FUNCTIONS
 from thenewboston_node.core.logging import timeit
@@ -25,8 +26,7 @@ BlockChunkFilenameMeta = namedtuple('BlockChunkFilenameMeta', 'start end compres
 logger = logging.getLogger(__name__)
 
 
-def get_block_chunk_filename_meta(file_path):
-    filename = os.path.basename(file_path)
+def get_block_chunk_filename_meta(filename):
     match = BLOCK_CHUNK_FILENAME_RE.match(filename)
     if match:
         start = int(match.group('start'))
@@ -61,32 +61,18 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
         raise NotImplementedError('Must be implemented in child class')
 
     @staticmethod
-    def make_block_chunk_filename_from_start_end(start_block_str, end_block_str):
+    def make_block_chunk_filename_from_start_end_str(start_block_str, end_block_str):
         return BLOCK_CHUNK_FILENAME_TEMPLATE.format(start=start_block_str, end=end_block_str)
 
-    def make_block_chunk_filename(self, block_number):
-        block_chunk_size = self.get_block_chunk_size()
+    def make_block_chunk_filename_from_start_end(self, start_block, end_block=None):
         block_number_digits_count = self.get_block_number_digits_count()
-
-        max_offset = block_chunk_size - 1
-        chunk_number, offset = divmod(block_number, block_chunk_size)
-
-        chunk_block_number_start = chunk_number * block_chunk_size
-        chunk_block_number_end = chunk_block_number_start + max_offset
-
-        start_block_str = str(chunk_block_number_start).zfill(block_number_digits_count)
-        end_block_str = 'x' * block_number_digits_count
-
-        if offset == max_offset:
-            dest_end_block_str = str(chunk_block_number_end).zfill(block_number_digits_count)
+        start_block_str = str(start_block).zfill(block_number_digits_count)
+        if end_block is None:
+            end_block_str = 'x' * block_number_digits_count
         else:
-            assert offset < max_offset
-            dest_end_block_str = end_block_str
+            end_block_str = str(end_block).zfill(block_number_digits_count)
 
-        return (
-            self.make_block_chunk_filename_from_start_end(start_block_str, end_block_str),
-            self.make_block_chunk_filename_from_start_end(start_block_str, dest_end_block_str)
-        )
+        return BLOCK_CHUNK_FILENAME_TEMPLATE.format(start=start_block_str, end=end_block_str)
 
     def _get_block_chunk_last_block_number(self, file_path):
         key = self._make_block_chunk_last_block_number_cache_key(file_path)
@@ -132,17 +118,38 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
 
         return rv
 
+    def make_block_chunk_filename(self, start_block, end_block=None):
+        block_number_digits_count = self.get_block_number_digits_count()
+        start_block_str = str(start_block).zfill(block_number_digits_count)
+        if end_block is None:
+            end_block_str = 'x' * block_number_digits_count
+        else:
+            end_block_str = str(end_block).zfill(block_number_digits_count)
+
+        return self.make_block_chunk_filename_from_start_end_str(start_block_str, end_block_str)
+
+    def get_current_block_chunk_filename(self) -> str:
+        chunk_block_number_start = self.get_last_blockchain_state().last_block_number + 1  # type: ignore
+        return self.make_block_chunk_filename(chunk_block_number_start)
+
     @ensure_locked(lock_attr='file_lock', exception=EXPECTED_LOCK_EXCEPTION)
-    def persist_block(self, block: Block):
-        append_filename, destination_filename = self.make_block_chunk_filename(block.get_block_number())
-
+    def finalize_block_chunk(self, block_chunk_filename, last_block_number=None):
         storage = self.get_block_chunk_storage()
-        storage.append(append_filename, block.to_messagepack())
+        assert not storage.is_finalized(block_chunk_filename)
 
-        if append_filename == destination_filename:
-            return
+        meta = get_block_chunk_filename_meta(block_chunk_filename)
+        assert meta.end is None
+        if last_block_number is None:
+            try:
+                block = next(self._yield_blocks_from_file_simple(block_chunk_filename, -1))
+            except StopIteration:
+                raise InvalidBlockchainError(f'File {block_chunk_filename} does not appear to contain blocks')
 
-        storage.move(append_filename, destination_filename)
+            last_block_number = block.get_block_number()
+
+        end = last_block_number
+        destination_filename = self.make_block_chunk_filename_from_start_end(meta.start, end)
+        storage.move(block_chunk_filename, destination_filename)
         storage.finalize(destination_filename)
 
         chunk_file_path = storage.get_optimized_actual_path(destination_filename)
@@ -155,8 +162,25 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
             if block is None:
                 continue
 
-            assert block.meta['chunk_file_path'].endswith(append_filename)  # type: ignore
+            assert block.meta['chunk_file_path'].endswith(block_chunk_filename)  # type: ignore
             self._set_block_meta(block, meta, chunk_file_path)
+
+    def finalize_all_block_chunks(self):
+        # This method is used to clean for super rare case when something goes wrong between blockchain state
+        # generation and block chunk finalization
+
+        # TODO(dmu) HIGH: Implemenet a higher performance algorithm for this. Options: 1) cache finalized names
+        #                 to avoid filename parsing 2) list directory by glob pattern 3) cache the last known
+        #                 finalized name to reduce traversal
+        for filename in self.get_block_chunk_storage().list_directory():
+            meta = get_block_chunk_filename_meta(filename)
+            if meta.end is None:
+                logger.warning('Found not finalized block chunk: %s', filename)
+                self.finalize_block_chunk(filename)
+
+    @ensure_locked(lock_attr='file_lock', exception=EXPECTED_LOCK_EXCEPTION)
+    def persist_block(self, block: Block):
+        self.get_block_chunk_storage().append(self.get_current_block_chunk_filename(), block.to_messagepack())
 
     def yield_blocks(self) -> Generator[Block, None, None]:
         yield from self._yield_blocks(1)
@@ -251,22 +275,28 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
             'chunk_file_path': chunk_file_path
         }
 
-    def _yield_blocks_from_file(self, file_path, direction, start=None):
+    def _yield_blocks_from_file_simple(self, file_path, direction):
         assert direction in (1, -1)
 
         storage = self.get_block_chunk_storage()
-        chunk_file_path = storage.get_optimized_actual_path(file_path)
-        meta = get_block_chunk_file_path_meta(file_path)
 
         unpacker = msgpack.Unpacker()
         unpacker.feed(storage.load(file_path))
         if direction == -1:
             unpacker = always_reversible(unpacker)
 
-        blocks_cache = self.get_block_cache()
         for block_compact_dict in unpacker:
-            block = Block.from_compact_dict(block_compact_dict)
-            block_number = block.message.block_number
+            yield Block.from_compact_dict(block_compact_dict)
+
+    def _yield_blocks_from_file(self, file_path, direction, start=None):
+        assert direction in (1, -1)
+
+        chunk_file_path = self.get_block_chunk_storage().get_optimized_actual_path(file_path)
+        meta = get_block_chunk_file_path_meta(file_path)
+
+        blocks_cache = self.get_block_cache()
+        for block in self._yield_blocks_from_file_simple(file_path, direction):
+            block_number = block.get_block_number()
             # TODO(dmu) HIGH: Implement a better skip
             if start is not None:
                 if direction == 1 and block_number < start:

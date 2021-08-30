@@ -1,6 +1,6 @@
 from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
 from thenewboston_node.business_logic.tests.base import force_blockchain
-from thenewboston_node.business_logic.tests.factories import add_blocks_to_blockchain
+from thenewboston_node.business_logic.tests.factories import add_blocks
 
 
 def test_can_get_account_states(file_blockchain: FileBlockchain, treasury_account_key_pair, api_client):
@@ -13,7 +13,7 @@ def test_can_get_account_states(file_blockchain: FileBlockchain, treasury_accoun
 
     assert treasury_account_balance is not None
     assert treasury_account_balance > 100000000
-    add_blocks_to_blockchain(blockchain, 5, treasury_account_key_pair.private)
+    add_blocks(blockchain, 5, treasury_account_key_pair.private)
 
     with force_blockchain(blockchain):
         for account_number in blockchain.yield_known_accounts():
@@ -53,7 +53,7 @@ def test_yield_known_accounts(file_blockchain: FileBlockchain, treasury_account_
     treasury_account_balance = blockchain.get_account_current_balance(treasury_account_key_pair.public)
     assert treasury_account_balance is not None
     assert treasury_account_balance > 100000000
-    add_blocks_to_blockchain(blockchain, 5, treasury_account_key_pair.private)
+    add_blocks(blockchain, 5, treasury_account_key_pair.private)
     known_accounts = set(blockchain.get_first_blockchain_state().account_states.keys())
     for block in blockchain.yield_blocks():
         known_accounts.update(account for account, _ in block.yield_account_states())

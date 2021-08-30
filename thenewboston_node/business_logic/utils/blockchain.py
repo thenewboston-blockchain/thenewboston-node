@@ -50,7 +50,7 @@ def generate_blockchain(
     treasury_account = treasury_account_key_pair.public
     logger.info('Using treasury account: %s', treasury_account_key_pair)
 
-    if add_blockchain_genesis_state and blockchain.get_blockchain_states_count() == 0:
+    if add_blockchain_genesis_state and blockchain.get_blockchain_state_count() == 0:
         blockchain_genesis_state = make_blockchain_genesis_state(
             treasury_account_number=treasury_account, primary_validator_schedule_end_block_number=size + 99
         )

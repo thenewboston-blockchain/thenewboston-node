@@ -7,7 +7,7 @@ from typing import Any, Callable, Generator, Optional, Union, cast
 from more_itertools import always_reversible, ilen
 
 from thenewboston_node.business_logic.exceptions import InvalidBlockchain
-from thenewboston_node.business_logic.models import AccountState, BlockchainState
+from thenewboston_node.business_logic.models import AccountState, BlockchainState, BlockchainStateMessage
 
 from .base import BaseMixin
 
@@ -90,8 +90,8 @@ class BlockchainStateMixin(BaseMixin):
         assert last_account_root_file is not None
 
         if not last_account_root_file.is_initial():
-            assert last_account_root_file.last_block_number is not None
-            if last_block.message.block_number <= last_account_root_file.last_block_number:
+            assert last_account_root_file.message.last_block_number is not None
+            if last_block.message.block_number <= last_account_root_file.message.last_block_number:
                 logger.debug('The last block is already included in the last account root file')
                 return None
 
@@ -106,10 +106,10 @@ class BlockchainStateMixin(BaseMixin):
         assert last_blockchain_state_snapshot is not None
         logger.debug(
             'Generating blockchain state snapshot based on blockchain state with last_block_number=%s',
-            last_blockchain_state_snapshot.last_block_number
+            last_blockchain_state_snapshot.message.last_block_number
         )
 
-        account_states = deepcopy(last_blockchain_state_snapshot.account_states)
+        account_states = deepcopy(last_blockchain_state_snapshot.message.account_states)
 
         block = None
         for block in self.yield_blocks_from(last_blockchain_state_snapshot.get_next_block_number()):  # type: ignore
@@ -132,12 +132,17 @@ class BlockchainStateMixin(BaseMixin):
                     if value is not None:
                         setattr(blockchain_state_account_state, attribute, deepcopy(value))
 
-        blockchain_state = BlockchainState(account_states=account_states)
+        primary_validator = self.get_primary_validator()  # type: ignore
+        if primary_validator is None:
+            raise InvalidBlockchain('Primary validator is required to generate blockchain state')
+        blockchain_state = BlockchainState(
+            message=BlockchainStateMessage(account_states=account_states), signer=primary_validator.identifier
+        )
 
         if block is not None:
-            blockchain_state.last_block_number = block.message.block_number
-            blockchain_state.last_block_identifier = block.message.block_identifier
-            blockchain_state.last_block_timestamp = block.message.timestamp
-            blockchain_state.next_block_identifier = block.hash
+            blockchain_state.message.last_block_number = block.message.block_number
+            blockchain_state.message.last_block_identifier = block.message.block_identifier
+            blockchain_state.message.last_block_timestamp = block.message.timestamp
+            blockchain_state.message.next_block_identifier = block.hash
 
         return blockchain_state

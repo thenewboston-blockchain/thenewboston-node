@@ -1,7 +1,8 @@
 from datetime import datetime
 
 from thenewboston_node.business_logic.models import (
-    CoinTransferSignedChangeRequest, CoinTransferSignedChangeRequestMessage, CoinTransferTransaction
+    BlockchainStateMessage, CoinTransferSignedChangeRequest, CoinTransferSignedChangeRequestMessage,
+    CoinTransferTransaction
 )
 from thenewboston_node.business_logic.models.account_state import AccountState
 from thenewboston_node.business_logic.models.block import Block
@@ -11,8 +12,10 @@ from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.business_logic.utils.blockchain import generate_blockchain
 from thenewboston_node.core.utils.cryptography import KeyPair, derive_public_key
 from thenewboston_node.core.utils.factory import Factory, factory
+from thenewboston_node.core.utils.types import hexstr
 
-DEFAULT_ACCOUNT = 'd5356888dc9303e44ce52b1e06c3165a7759b9df1e6a6dfbd33ee1c3df1ab4d1'
+DEFAULT_ACCOUNT = hexstr('d5356888dc9303e44ce52b1e06c3165a7759b9df1e6a6dfbd33ee1c3df1ab4d1')
+PV_ACCOUNT = hexstr('dbc82ca874ae06ea39ea40f6f12dcca9c28aa88df989d9723338d7c9b941c0b1')
 
 # TODO(dmu) HIGH: Replace these factories with `baker`-based factories
 
@@ -34,7 +37,7 @@ def add_blocks_to_blockchain(
 
 
 def make_large_blockchain(blockchain, treasury_account_key_pair, blocks_count=100):
-    accounts = blockchain.get_first_blockchain_state().account_states
+    accounts = blockchain.get_first_blockchain_state().message.account_states
     account_state = accounts[treasury_account_key_pair.public]
     assert account_state.balance > 10000000000  # tons of money present
 
@@ -85,8 +88,8 @@ class CoinTransferBlockFactory(Factory):
     signature = None
 
 
-@factory(BlockchainState)
-class InitialBlockchainStateFactory(Factory):
+@factory(BlockchainStateMessage)
+class InitialBlockchainStateMessageFactory(Factory):
     account_states = {DEFAULT_ACCOUNT: AccountStateFactory()}
     last_block_number = None
     last_block_identifier = None
@@ -95,9 +98,21 @@ class InitialBlockchainStateFactory(Factory):
 
 
 @factory(BlockchainState)
-class BlockchainStateFactory(Factory):
-    account_states = {DEFAULT_ACCOUNT: AccountStateFactory()}
+class InitialBlockchainStateFactory(Factory):
+    message = InitialBlockchainStateMessageFactory()
+    signer = PV_ACCOUNT
+
+
+@factory(BlockchainStateMessage)
+class BlockchainStateMessageFactory(Factory):
+    account_states = InitialBlockchainStateMessageFactory().account_states
     last_block_number = 0
     last_block_identifier = 'd606af9d1d769192813d71051148ef1896e3d85062c31ad3e62331e25d9c96bc'
     last_block_timestamp = datetime(2021, 1, 1)
     next_block_identifier = 'c5082e9985991b717c21acf5a94a4715e1a88c3d72d478deb3d764f186d59967'
+
+
+@factory(BlockchainState)
+class BlockchainStateFactory(Factory):
+    message = BlockchainStateMessageFactory()
+    signer = PV_ACCOUNT

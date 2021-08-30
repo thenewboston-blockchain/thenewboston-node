@@ -6,7 +6,9 @@ from urllib.request import urlopen
 
 from django.conf import settings
 
-from thenewboston_node.business_logic.models import AccountState, BlockchainState, PrimaryValidator
+from thenewboston_node.business_logic.models import (
+    AccountState, BlockchainState, BlockchainStateMessage, PrimaryValidator
+)
 from thenewboston_node.business_logic.models.signed_change_request_message.pv_schedule import PrimaryValidatorSchedule
 from thenewboston_node.business_logic.node import get_node_identifier
 from thenewboston_node.business_logic.storages.file_system import read_compressed_file
@@ -45,7 +47,7 @@ def add_blockchain_state_from_account_root_file(blockchain, source):
     logger.info('DONE: %s', message)
 
     logger.info('Converting')
-    blockchain_state = BlockchainState.create_from_account_root_file(account_root_file)
+    blockchain_state = BlockchainState.create_from_account_root_file(account_root_file, signer=get_node_identifier())
     logger.info('DONE: Converting')
 
     node = make_own_node()
@@ -98,6 +100,7 @@ def make_blockchain_genesis_state(
     treasury_account_initial_balance=settings.DEFAULT_TREASURY_ACCOUNT_INITIAL_BALANCE,
     primary_validator_schedule_begin_block_number=0,
     primary_validator_schedule_end_block_number=99,
+    primary_validator_signing_key=None,
 ):
     if primary_validator is None:
         primary_validator = PrimaryValidator(
@@ -122,4 +125,9 @@ def make_blockchain_genesis_state(
                 )
             ),
     }
-    return BlockchainState(account_states=accounts)
+    blockchain_state = BlockchainState(
+        message=BlockchainStateMessage(account_states=accounts), signer=primary_validator.identifier
+    )
+    if primary_validator_signing_key:
+        blockchain_state.sign(signing_key=primary_validator_signing_key)
+    return blockchain_state

@@ -1,5 +1,6 @@
 import logging
 import warnings
+from itertools import chain
 from typing import Optional
 
 from more_itertools import ilen
@@ -135,26 +136,34 @@ class AccountStateMixin(BaseMixin):
     # TODO: probably move to another new transaction related mixin
     # TODO: add caching implementation
     def yield_transactions(self, account_id, is_reversed=False):
-        blocks = self.yield_blocks_reversed() if is_reversed else self.yield_blocks()
-
-        first_block_number = None
-        for block in blocks:
-            message = block.message
-
-            if not is_reversed:
-                if first_block_number is None:
-                    first_block_number = message.block_number
-            else:
-                first_block_number = message.block_number
-
-            signed_change_request = message.signed_change_request
-            if isinstance(signed_change_request, CoinTransferSignedChangeRequest):
-                signer = signed_change_request.signer
-                for transaction in signed_change_request.message.txs:
-                    if account_id in (signer, transaction.recipient):
-                        yield transaction
-
-        if first_block_number != 0:
+        if is_reversed:
+            blocks = self.yield_blocks_reversed()
+        else:
+            blocks = self.yield_blocks()
             # TODO: implement sync initialization or otherwise redirection of client to get the entire
             # list of transaction from somewhere else, for example from current PV
-            raise NotImplementedError('The blockchain is incomplete')
+            try:
+                first_block = next(blocks)
+            except StopIteration:
+                return
+
+            if first_block.get_block_number() != 0:
+                raise NotImplementedError('Yielding transactions from incomplete blockchain is not implemented')
+
+            blocks = chain((first_block,), blocks)
+
+        block = None
+        for block in blocks:
+            signed_change_request = block.message.signed_change_request
+            if not isinstance(signed_change_request, CoinTransferSignedChangeRequest):
+                continue
+
+            signer = signed_change_request.signer
+            for transaction in signed_change_request.message.txs:
+                if account_id == signer or account_id == transaction.recipient:
+                    yield transaction
+
+        if is_reversed and block and block.get_block_number() != 0:
+            # TODO: implement sync initialization or otherwise redirection of client to get the entire
+            # list of transaction from somewhere else, for example from current PV
+            raise NotImplementedError('Yielding transactions from incomplete blockchain is not implemented')

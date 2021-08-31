@@ -10,7 +10,7 @@ API_V1_LIST_TRANSACTIONS_URL_PATTERN = '/api/v1/accounts/{id}/transactions/'
 
 def test_can_list_transactions(
     api_client, file_blockchain, treasury_account_key_pair, user_account_key_pair, primary_validator_key_pair,
-    preferred_node
+    preferred_node, preferred_node_key_pair
 ):
     blockchain = file_blockchain
     user_account_number = user_account_key_pair.public
@@ -23,7 +23,7 @@ def test_can_list_transactions(
     for _ in range(recieve_transactions_count):
         block = Block.create_from_main_transaction(
             blockchain=blockchain,
-            recipient=user_account_key_pair.public,
+            recipient=user_account_number,
             amount=100,
             request_signing_key=treasury_account_key_pair.private,
             pv_signing_key=pv_signing_key,
@@ -49,4 +49,29 @@ def test_can_list_transactions(
     assert response.status_code == 200
     data = response.json()
 
-    assert len(data['results']) == total_transactions_count
+    results = data['results']
+    assert len(results) == total_transactions_count
+
+    for n in range(recieve_transactions_count):
+        assert results[n].items() >= {
+            'recipient': user_account_number,
+            'amount': 100,
+            'is_fee': False,
+        }.items()
+
+    for n in range(recieve_transactions_count, recieve_transactions_count + send_transactions_count, 3):
+        assert results[n].items() >= {
+            'recipient': primary_validator_key_pair.public,
+            'amount': 5,
+            'is_fee': False,
+        }.items()
+        assert results[n + 1].items() >= {
+            'recipient': primary_validator_key_pair.public,
+            'amount': 4,
+            'is_fee': True,
+        }.items()
+        assert results[n + 2].items() >= {
+            'recipient': preferred_node_key_pair.public,
+            'amount': 1,
+            'is_fee': True,
+        }.items()

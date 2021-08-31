@@ -11,7 +11,7 @@ services:
       target: node
     image: thenewboston-node:current
     ports:
-      - 127.0.0.1:8555:8555
+      - 127.0.0.1:8000:8555
 
   reverse-proxy:
     build:

@@ -13,6 +13,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
@@ -33,4 +35,4 @@ urlpatterns = [
     path(API_PREFIX + 'v1/', include(thenewboston_node.blockchain.urls)),
     path(API_PREFIX + 'schema/', SpectacularAPIView.as_view(), name='schema'),
     path(API_PREFIX + 'doc/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger'),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

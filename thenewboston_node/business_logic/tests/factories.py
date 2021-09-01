@@ -37,7 +37,7 @@ def add_blocks_to_blockchain(
 
 
 def make_large_blockchain(blockchain, treasury_account_key_pair, blocks_count=100):
-    accounts = blockchain.get_first_blockchain_state().message.account_states
+    accounts = blockchain.get_first_blockchain_state().account_states
     account_state = accounts[treasury_account_key_pair.public]
     assert account_state.balance > 10000000000  # tons of money present
 

@@ -66,7 +66,7 @@ class BlochainStateFileBlockchainMixin(FileBlockchainBaseMixin):
 
     @ensure_locked(lock_attr='file_lock', exception=EXPECTED_LOCK_EXCEPTION)
     def persist_blockchain_state(self, blockchain_state: BlockchainState):
-        filename = self.make_blockchain_state_filename(blockchain_state.get_last_block_number())
+        filename = self.make_blockchain_state_filename(blockchain_state.last_block_number)
         self.get_blockchain_state_storage().save(filename, blockchain_state.to_messagepack(), is_final=True)
 
     def _load_blockchain_state(self, file_path):

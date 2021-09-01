@@ -51,6 +51,6 @@ class BlockchainStatesMetaViewSet(ReadOnlyModelViewSet):
         except ValueError:
             raise NotFound()
 
-        if blockchain_state.get_last_block_number() == block_number:
+        if blockchain_state.last_block_number == block_number:
             return blockchain_state
         raise NotFound()

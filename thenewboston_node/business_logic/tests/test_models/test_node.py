@@ -37,7 +37,7 @@ def test_node_serializes_without_identifier_in_blockchain_state():
     assert 'identifier' not in serialized['message']['account_states'][account_number]['node']
 
     deserialized = BlockchainState.deserialize_from_dict(serialized)
-    deserialized_node = deserialized.message.account_states[account_number].node
+    deserialized_node = deserialized.account_states[account_number].node
     assert deserialized_node is not node
     assert deserialized_node.identifier == account_number
 

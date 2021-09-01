@@ -4,7 +4,7 @@ from thenewboston_node.business_logic.node import get_node_signing_key
 
 def test_last_block_data_is_correct(file_blockchain):
     blockchain_state = file_blockchain.get_last_blockchain_state()
-    assert blockchain_state.message.last_block_number is None
+    assert blockchain_state.last_block_number == -1
 
 
 def test_balances_are_correct(
@@ -32,7 +32,7 @@ def test_balances_are_correct(
 
     blockchain_state = file_blockchain.get_last_blockchain_state()
     assert blockchain_state
-    accounts = blockchain_state.message.account_states
+    accounts = blockchain_state.account_states
 
     assert len(accounts) == 4
     assert accounts[treasury_account_key_pair.public].balance == treasury_initial_balance - pv_fee - node_fee - 100

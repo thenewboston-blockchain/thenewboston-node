@@ -9,13 +9,13 @@ def test_validate_account_root_files_raises(memory_blockchain: MemoryBlockchain,
     blockchain = memory_blockchain
 
     assert blockchain.blockchain_states
-    for balance in blockchain.blockchain_states[0].message.account_states.values():
+    for balance in blockchain.blockchain_states[0].account_states.values():
         balance.balance_lock = hexstr()
     with pytest.raises(ValidationError, match='Account state balance_lock must be not empty'):
         blockchain.validate_blockchain_states()
 
     blockchain.blockchain_states = []
-    with pytest.raises(ValidationError, match='Blockchain must contain at least one account root file'):
+    with pytest.raises(ValidationError, match='Blockchain must contain at least one blockchain state'):
         blockchain.validate_blockchain_states()
 
 

@@ -106,7 +106,7 @@ class BlocksMixin(BaseMixin):
 
         blockchain_state = self.get_last_blockchain_state()
         assert blockchain_state
-        return blockchain_state.get_next_block_number()
+        return blockchain_state.next_block_number
 
     def get_last_block_number(self) -> int:
         return self.get_next_block_number() - 1
@@ -168,7 +168,7 @@ class BlocksMixin(BaseMixin):
             return
 
         blockchain_state = self.get_blockchain_state_by_block_number(block_number, inclusive=True)  # type: ignore
-        yield from self.yield_blocks_slice_reversed(block_number, blockchain_state.get_last_block_number())
+        yield from self.yield_blocks_slice_reversed(block_number, blockchain_state.last_block_number)
 
     def has_blocks(self):
         # Override this method if a particular blockchain implementation can provide a high performance

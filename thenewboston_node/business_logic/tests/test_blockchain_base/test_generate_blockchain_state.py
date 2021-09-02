@@ -20,5 +20,5 @@ def test_can_generate_blockchain_state(
 
     blockchain_state = blockchain.generate_blockchain_state()
 
-    assert blockchain_state.message.account_states[user_account].balance == 99
-    assert blockchain_state.message.account_states[treasury_account].balance == treasury_initial_balance - 99 - 4 - 1
+    assert blockchain_state.account_states[user_account].balance == 99
+    assert blockchain_state.account_states[treasury_account].balance == treasury_initial_balance - 99 - 4 - 1

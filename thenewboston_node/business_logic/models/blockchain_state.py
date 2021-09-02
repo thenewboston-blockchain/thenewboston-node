@@ -70,18 +70,53 @@ class BlockchainState(SignableMixin, MetadataMixin, MessagpackCompactableMixin, 
     def get_node(self, account: hexstr):
         return self.get_account_state_attribute_value(account, 'node')
 
-    def get_last_block_number(self) -> int:
+    @property
+    def last_block_number(self) -> int:
         return if_none(self.message.last_block_number, -1)
 
-    def get_next_block_number(self) -> int:
-        return self.get_last_block_number() + 1
+    @last_block_number.setter
+    def last_block_number(self, value):
+        self.message.last_block_number = value
 
-    def get_next_block_identifier(self) -> hexstr:
+    @property
+    def last_block_identifier(self):
+        return self.message.last_block_identifier
+
+    @last_block_identifier.setter
+    def last_block_identifier(self, value):
+        self.message.last_block_identifier = value
+
+    @property
+    def last_block_timestamp(self):
+        return self.message.last_block_timestamp
+
+    @last_block_timestamp.setter
+    def last_block_timestamp(self, value):
+        self.message.last_block_timestamp = value
+
+    @property
+    def account_states(self):
+        return self.message.account_states
+
+    @account_states.setter
+    def account_states(self, value):
+        self.message.account_states = value
+
+    @property
+    def next_block_number(self) -> int:
+        return self.last_block_number + 1
+
+    @property
+    def next_block_identifier(self):
         next_block_identifier = self.message.next_block_identifier
         if next_block_identifier:
             return next_block_identifier
 
         return self.message.get_hash()  # initial blockchain state case
+
+    @next_block_identifier.setter
+    def next_block_identifier(self, value):
+        self.message.next_block_identifier = value
 
     def is_initial(self) -> bool:
         return (

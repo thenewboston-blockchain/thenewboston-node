@@ -74,8 +74,7 @@ class BlockchainStateMixin(BaseMixin):
         # TODO(dmu) MEDIUM: Optimize with binary search
         for blockchain_state in self.yield_blockchain_states_reversed():
             assert isinstance(blockchain_state, BlockchainState)
-            last_block_number = blockchain_state.get_last_block_number()
-            if op(last_block_number, block_number):
+            if op(blockchain_state.last_block_number, block_number):
                 return blockchain_state
 
         raise InvalidBlockchain(f'Blockchain state before block number {block_number} is not found')
@@ -86,12 +85,12 @@ class BlockchainStateMixin(BaseMixin):
             logger.warning('Blocks are not found: making account root file does not make sense')
             return None
 
-        last_account_root_file = self.get_last_blockchain_state()  # type: ignore
-        assert last_account_root_file is not None
+        last_blockchain_state = self.get_last_blockchain_state()  # type: ignore
+        assert last_blockchain_state is not None
 
-        if not last_account_root_file.is_initial():
-            assert last_account_root_file.message.last_block_number is not None
-            if last_block.message.block_number <= last_account_root_file.message.last_block_number:
+        if not last_blockchain_state.is_initial():
+            assert last_blockchain_state.last_block_number is not None
+            if last_block.message.block_number <= last_blockchain_state.last_block_number:
                 logger.debug('The last block is already included in the last account root file')
                 return None
 
@@ -106,13 +105,13 @@ class BlockchainStateMixin(BaseMixin):
         assert last_blockchain_state_snapshot is not None
         logger.debug(
             'Generating blockchain state snapshot based on blockchain state with last_block_number=%s',
-            last_blockchain_state_snapshot.message.last_block_number
+            last_blockchain_state_snapshot.last_block_number
         )
 
-        account_states = deepcopy(last_blockchain_state_snapshot.message.account_states)
+        account_states = deepcopy(last_blockchain_state_snapshot.account_states)
 
         block = None
-        for block in self.yield_blocks_from(last_blockchain_state_snapshot.get_next_block_number()):  # type: ignore
+        for block in self.yield_blocks_from(last_blockchain_state_snapshot.next_block_number):  # type: ignore
             if last_block_number is not None and block.message.block_number > last_block_number:
                 logger.debug('Traversed all blocks of interest')
                 break
@@ -140,9 +139,9 @@ class BlockchainStateMixin(BaseMixin):
         )
 
         if block is not None:
-            blockchain_state.message.last_block_number = block.message.block_number
-            blockchain_state.message.last_block_identifier = block.message.block_identifier
-            blockchain_state.message.last_block_timestamp = block.message.timestamp
-            blockchain_state.message.next_block_identifier = block.hash
+            blockchain_state.last_block_number = block.message.block_number
+            blockchain_state.last_block_identifier = block.message.block_identifier
+            blockchain_state.last_block_timestamp = block.message.timestamp
+            blockchain_state.next_block_identifier = block.hash
 
         return blockchain_state

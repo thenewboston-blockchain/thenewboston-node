@@ -50,7 +50,7 @@ class NetworkMixin(BaseMixin):
         known_pv_schedule_accounts = set()
 
         logger.debug('Traverse blocks until we find a PV schedule that includes the desired block_number')
-        for block in self.yield_blocks_slice_reversed(last_block_number, blockchain_state.get_last_block_number()):
+        for block in self.yield_blocks_slice_reversed(last_block_number, blockchain_state.last_block_number):
             for account_number, account_state in block.yield_account_states():
                 if account_number in known_pv_schedule_accounts:
                     assert True, 'Should never get here'

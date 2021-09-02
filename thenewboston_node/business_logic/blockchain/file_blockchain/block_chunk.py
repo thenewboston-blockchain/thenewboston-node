@@ -206,7 +206,7 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
         if last_block_chunk_file_path is None:
             blockchain_state = self.get_last_blockchain_state()  # type: ignore
             assert blockchain_state
-            return blockchain_state.get_next_block_number()
+            return blockchain_state.next_block_number
 
         return self._get_block_chunk_last_block_number(last_block_chunk_file_path) + 1
 

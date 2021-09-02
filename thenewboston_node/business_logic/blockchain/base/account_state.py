@@ -29,7 +29,7 @@ class AccountStateMixin(BaseMixin):
                 yield new_account
 
         last_account_root_file = self.get_last_blockchain_state()  # type: ignore
-        account_root_file_accounts = last_account_root_file.message.account_states.keys()
+        account_root_file_accounts = last_account_root_file.account_states.keys()
         new_accounts = account_root_file_accounts - known_accounts
         known_accounts |= new_accounts
         for new_account in new_accounts:
@@ -47,7 +47,7 @@ class AccountStateMixin(BaseMixin):
             return
 
         blockchain_state = self.get_blockchain_state_by_block_number(block_number, inclusive=True)
-        for block in self.yield_blocks_slice_reversed(block_number, blockchain_state.get_last_block_number()):
+        for block in self.yield_blocks_slice_reversed(block_number, blockchain_state.last_block_number):
             yield from block.yield_account_states()
 
         yield from blockchain_state.yield_account_states()
@@ -123,11 +123,11 @@ class AccountStateMixin(BaseMixin):
         # We should try to find blockchain state first to support partial blockchains
         prev_block_number = block_number - 1
         if prev_block_number == -1:
-            return self.get_first_blockchain_state().get_next_block_identifier()
+            return self.get_first_blockchain_state().next_block_identifier
 
         blockchain_state = self.get_blockchain_state_by_block_number(prev_block_number, inclusive=True)
-        if blockchain_state.get_last_block_number() == prev_block_number:
-            return blockchain_state.get_next_block_identifier()
+        if blockchain_state.last_block_number == prev_block_number:
+            return blockchain_state.next_block_identifier
 
         block = self.get_block_by_number(prev_block_number)
         assert block is not None

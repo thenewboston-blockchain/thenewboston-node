@@ -12,22 +12,22 @@ NON_EXISTENT_ACCOUNT = hexstr('f' * 64)
 def test_validate_number_of_accounts_mismatch(blockchain_base, blockchain_genesis_state, block_0):
     with patch_blocks(blockchain_base, [block_0]):
         blockchain_state_0 = blockchain_base.generate_blockchain_state()
-        blockchain_state_0.message.account_states |= {NON_EXISTENT_ACCOUNT: baker.make(models.AccountState, node=None)}
+        blockchain_state_0.account_states |= {NON_EXISTENT_ACCOUNT: baker.make(models.AccountState, node=None)}
 
         with patch_blockchain_states(blockchain_base, [blockchain_genesis_state, blockchain_state_0]):
-            with pytest.raises(ValidationError, match='Expected 4 accounts, but got 5 in the account root file'):
+            with pytest.raises(ValidationError, match='Expected 4 accounts, but got 5 in the blockchain state'):
                 blockchain_base.validate_blockchain_states()
 
 
 def test_validate_non_existent_account(blockchain_base, blockchain_genesis_state, block_0, treasury_account):
     with patch_blocks(blockchain_base, [block_0]):
         blockchain_state_0 = blockchain_base.generate_blockchain_state()
-        treasury_account_state = blockchain_state_0.message.account_states.pop(treasury_account)
-        blockchain_state_0.message.account_states[NON_EXISTENT_ACCOUNT] = treasury_account_state
+        treasury_account_state = blockchain_state_0.account_states.pop(treasury_account)
+        blockchain_state_0.account_states[NON_EXISTENT_ACCOUNT] = treasury_account_state
 
         with patch_blockchain_states(blockchain_base, [blockchain_genesis_state, blockchain_state_0]):
             with pytest.raises(
-                ValidationError, match=f'Could not find {treasury_account} account in the account root file'
+                ValidationError, match=f'Could not find {treasury_account} account in the blockchain state'
             ):
                 blockchain_base.validate_blockchain_states()
 
@@ -35,7 +35,7 @@ def test_validate_non_existent_account(blockchain_base, blockchain_genesis_state
 def test_validate_balance_value(blockchain_base, blockchain_genesis_state, block_0, user_account):
     with patch_blocks(blockchain_base, [block_0]):
         blockchain_state_0 = blockchain_base.generate_blockchain_state()
-        blockchain_state_0.message.account_states[user_account].balance = 999
+        blockchain_state_0.account_states[user_account].balance = 999
 
         with patch_blockchain_states(blockchain_base, [blockchain_genesis_state, blockchain_state_0]):
             with pytest.raises(
@@ -48,8 +48,8 @@ def test_validate_balance_value(blockchain_base, blockchain_genesis_state, block
 def test_validate_balance_lock(blockchain_base, blockchain_genesis_state, block_0, user_account):
     with patch_blocks(blockchain_base, [block_0]):
         blockchain_state_0 = blockchain_base.generate_blockchain_state()
-        orig_balance_lock = blockchain_state_0.message.account_states[user_account].balance_lock
-        blockchain_state_0.message.account_states[user_account].balance_lock = 'wrong-lock'
+        orig_balance_lock = blockchain_state_0.account_states[user_account].balance_lock
+        blockchain_state_0.account_states[user_account].balance_lock = 'wrong-lock'
 
         with patch_blockchain_states(blockchain_base, [blockchain_genesis_state, blockchain_state_0]):
             with pytest.raises(

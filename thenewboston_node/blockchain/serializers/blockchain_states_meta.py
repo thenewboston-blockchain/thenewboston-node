@@ -16,7 +16,7 @@ def make_url_path(blockchain_state):
 
 
 class BlockchainStatesMetaSerializer(CustomSerializer):
-    last_block_number = fields.IntegerField(source='message.last_block_number')
+    last_block_number = fields.IntegerField()
     url_path = fields.SerializerMethodField()
     urls = fields.SerializerMethodField()
 

@@ -24,7 +24,7 @@ def test_can_make_blockchain_state_on_last_block(
     retrieved_blockchain_state.meta = None
     assert blockchain.get_blockchain_state_by_block_number(-1) == blockchain_genesis_state
 
-    assert blockchain_genesis_state.message.account_states[treasury_account].get_balance_lock(
+    assert blockchain_genesis_state.account_states[treasury_account].get_balance_lock(
         treasury_account
     ) == treasury_account
     assert blockchain.get_blockchain_states_count() == 1
@@ -51,30 +51,31 @@ def test_can_make_blockchain_state_on_last_block(
 
     blockchain_state = blockchain.get_last_blockchain_state()
     assert blockchain_state is not None
-    assert blockchain_state.message.last_block_number == 0
-    assert blockchain_state.message.last_block_identifier == block0.message.block_identifier
-    assert blockchain_state.message.next_block_identifier == block0.hash
+    assert blockchain_state.last_block_number == 0
+    assert blockchain_state.last_block_identifier == block0.message.block_identifier
+    assert blockchain_state.next_block_identifier == block0.hash
 
-    assert len(blockchain_state.message.account_states) == 4
-    assert blockchain_state.message.account_states.keys() == {
+    account_states = blockchain_state.account_states
+    assert len(account_states) == 4
+    assert account_states.keys() == {
         user_account, treasury_account, primary_validator.identifier, preferred_node.identifier
     }
-    assert blockchain_state.message.account_states[user_account].balance == 30
-    assert blockchain_state.message.account_states[user_account].balance_lock is None
-    assert blockchain_state.message.account_states[user_account].get_balance_lock(user_account) == user_account
+    assert account_states[user_account].balance == 30
+    assert account_states[user_account].balance_lock is None
+    assert account_states[user_account].get_balance_lock(user_account) == user_account
 
-    assert blockchain_state.message.account_states[treasury_account].balance == treasury_initial_balance - 30 - 4 - 1
-    assert blockchain_state.message.account_states[treasury_account].balance_lock != treasury_account
+    assert account_states[treasury_account].balance == treasury_initial_balance - 30 - 4 - 1
+    assert account_states[treasury_account].balance_lock != treasury_account
 
-    assert blockchain_state.message.account_states[primary_validator.identifier].balance == 4
-    assert blockchain_state.message.account_states[primary_validator.identifier].balance_lock is None
-    assert blockchain_state.message.account_states[primary_validator.identifier].get_balance_lock(
+    assert account_states[primary_validator.identifier].balance == 4
+    assert account_states[primary_validator.identifier].balance_lock is None
+    assert account_states[primary_validator.identifier].get_balance_lock(
         primary_validator.identifier
     ) == primary_validator.identifier
 
-    assert blockchain_state.message.account_states[preferred_node.identifier].balance == 1
-    assert blockchain_state.message.account_states[preferred_node.identifier].balance_lock is None
-    assert blockchain_state.message.account_states[preferred_node.identifier].get_balance_lock(
+    assert account_states[preferred_node.identifier].balance == 1
+    assert account_states[preferred_node.identifier].balance_lock is None
+    assert account_states[preferred_node.identifier].get_balance_lock(
         preferred_node.identifier
     ) == preferred_node.identifier
 
@@ -102,29 +103,29 @@ def test_can_make_blockchain_state_on_last_block(
     blockchain_state = blockchain.get_last_blockchain_state()
 
     assert blockchain_state is not None
-    assert blockchain_state.message.last_block_number == 2
-    assert blockchain_state.message.last_block_identifier == block2.message.block_identifier
-    assert blockchain_state.message.next_block_identifier == block2.hash
+    assert blockchain_state.last_block_number == 2
+    assert blockchain_state.last_block_identifier == block2.message.block_identifier
+    assert blockchain_state.next_block_identifier == block2.hash
 
-    assert len(blockchain_state.message.account_states) == 4
-    assert blockchain_state.message.account_states.keys() == {
+    account_states = blockchain_state.account_states
+    assert len(account_states) == 4
+    assert account_states.keys() == {
         user_account, treasury_account, primary_validator.identifier, preferred_node.identifier
     }
-    assert blockchain_state.message.account_states[user_account].balance == 5
-    assert blockchain_state.message.account_states[user_account].balance_lock != user_account
+    assert account_states[user_account].balance == 5
+    assert account_states[user_account].balance_lock != user_account
 
-    assert blockchain_state.message.account_states[treasury_account
-                                                   ].balance == treasury_initial_balance - 30 - 4 - 1 + 20 - 2 - 4 - 1
-    assert blockchain_state.message.account_states[treasury_account].balance_lock != treasury_account
+    assert account_states[treasury_account].balance == treasury_initial_balance - 30 - 4 - 1 + 20 - 2 - 4 - 1
+    assert account_states[treasury_account].balance_lock != treasury_account
 
-    assert blockchain_state.message.account_states[primary_validator.identifier].balance == 4 + 4 + 4 + 2
-    assert blockchain_state.message.account_states[primary_validator.identifier].balance_lock is None
-    assert blockchain_state.message.account_states[primary_validator.identifier].get_balance_lock(
+    assert account_states[primary_validator.identifier].balance == 4 + 4 + 4 + 2
+    assert account_states[primary_validator.identifier].balance_lock is None
+    assert account_states[primary_validator.identifier].get_balance_lock(
         primary_validator.identifier
     ) == primary_validator.identifier
 
-    assert blockchain_state.message.account_states[preferred_node.identifier].balance == 1 + 1 + 1
-    assert blockchain_state.message.account_states[preferred_node.identifier].balance_lock is None
-    assert blockchain_state.message.account_states[preferred_node.identifier].get_balance_lock(
+    assert account_states[preferred_node.identifier].balance == 1 + 1 + 1
+    assert account_states[preferred_node.identifier].balance_lock is None
+    assert account_states[preferred_node.identifier].get_balance_lock(
         preferred_node.identifier
     ) == preferred_node.identifier

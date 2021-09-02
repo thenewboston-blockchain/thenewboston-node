@@ -33,10 +33,10 @@ class FileBlockchain(
         # Blocks
         block_chunk_subdirectory='block-chunks',
         block_chunk_storage_kwargs=None,
-        block_chunk_size=100,
         block_cache_size=None,
 
         # Misc
+        snapshot_period_in_blocks=100,
         block_number_digits_count=20,
         lock_filename='file.lock',
         **kwargs
@@ -44,8 +44,7 @@ class FileBlockchain(
         if not os.path.isabs(base_directory):
             raise ValueError('base_directory must be an absolute path')
 
-        kwargs.setdefault('snapshot_period_in_blocks', block_chunk_size)
-        super().__init__(**kwargs)
+        super().__init__(**dict(kwargs, snapshot_period_in_blocks=snapshot_period_in_blocks))
 
         # Blockchain states
         self._blockchain_state_directory = os.path.join(base_directory, blockchain_state_subdirectory)
@@ -63,7 +62,6 @@ class FileBlockchain(
         self._block_cache_size = block_cache_size
         self._block_cache: Optional[LRUCache] = None
 
-        self._block_chunk_size = block_chunk_size
         self._block_chunk_last_block_number_cache: Optional[LRUCache] = None
         self._block_number_digits_count = block_number_digits_count
 
@@ -79,9 +77,6 @@ class FileBlockchain(
     def get_block_number_digits_count(self):
         return self._block_number_digits_count
 
-    def get_block_chunk_size(self):
-        return self._block_chunk_size
-
     @property
     def file_lock(self):
         file_lock = self._file_lock
@@ -95,16 +90,20 @@ class FileBlockchain(
 
     @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
     def clear(self):
+        self.clear_caches()
+
         # Clear blocks
-        self.get_block_cache().clear()
         self.get_block_chunk_storage().clear()
         self.get_block_chunk_last_block_number_cache().clear()
 
         # Clear blockchain states
-        self.get_blockchain_state_cache().clear()
         self.get_blockchain_state_storage().clear()
 
         # TODO(dmu) HIGH: Clear lock file
+
+    def clear_caches(self):
+        self.get_block_cache().clear()
+        self.get_blockchain_state_cache().clear()
 
     # Blockchain state methods
     def get_blockchain_states_subdirectory(self):

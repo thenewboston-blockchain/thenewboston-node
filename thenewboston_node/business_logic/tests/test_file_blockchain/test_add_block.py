@@ -94,7 +94,7 @@ def test_block_chunk_is_rotated(
     file2 = '00000000000000000002-00000000000000000003-block-chunk.msgpack'
     node_signing_key = get_node_signing_key()
 
-    with patch.object(blockchain, '_block_chunk_size', 2):
+    with patch.object(blockchain, 'snapshot_period_in_blocks', 2):
         block0 = Block.create_from_main_transaction(
             blockchain=blockchain,
             recipient=user_account,
@@ -150,7 +150,7 @@ def test_block_chunk_is_rotated_real_file_blockchain(
     node_signing_key = get_node_signing_key()
 
     with (
-        patch.object(blockchain, '_block_chunk_size',
+        patch.object(blockchain, 'snapshot_period_in_blocks',
                      2), patch.object(blockchain.get_block_chunk_storage(), 'compressors', ())
     ):
         block0 = Block.create_from_main_transaction(

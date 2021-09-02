@@ -6,7 +6,7 @@ from thenewboston_node.business_logic.models import (
 )
 from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.business_logic.tests.base import force_blockchain
-from thenewboston_node.business_logic.tests.factories import add_blocks_to_blockchain
+from thenewboston_node.business_logic.tests.factories import add_blocks
 
 API_V1_NODES_PREFIX = '/api/v1/nodes'
 
@@ -108,7 +108,7 @@ def test_node_roles(
     file_blockchain, api_client, treasury_account_key_pair, blocks, node_role, user_account_key_pair, add_pv
 ):
     blockchain = file_blockchain
-    add_blocks_to_blockchain(blockchain, blocks, treasury_account_key_pair.private)
+    add_blocks(blockchain, blocks, treasury_account_key_pair.private)
 
     pvs_request = PrimaryValidatorScheduleSignedChangeRequest.create(1, 5, get_node_signing_key())
     block = Block.create_from_signed_change_request(blockchain, pvs_request, get_node_signing_key())

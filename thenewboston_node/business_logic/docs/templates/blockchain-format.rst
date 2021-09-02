@@ -202,7 +202,7 @@ Block chunk file structure
 Block chunk filename format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Filename template is "``{{ file_blockchain.make_block_chunk_filename_from_start_end('y' * file_blockchain.get_block_number_digits_count(), 'z' * file_blockchain.get_block_number_digits_count()) }}[.compressor]``"
+Filename template is "``{{ file_blockchain.make_block_chunk_filename_from_start_end_str('y' * file_blockchain.get_block_number_digits_count(), 'z' * file_blockchain.get_block_number_digits_count()) }}[.compressor]``"
 where "``{{ 'y' * file_blockchain.get_block_number_digits_count() }}``" is the first block number of the block chunk file,
 "``{{ 'z' * file_blockchain.get_block_number_digits_count() }}``" is the last block number of the block chunk file,
 and "``.compressor``" represents compression algorithm, if present. Special magic value for
@@ -210,9 +210,9 @@ last block number equal to string '``{{ 'x' * file_blockchain.get_block_number_d
 denote incomplete block chunk file (not containing all blocks yet it supposed to hold). In this
 case actual last block in the file should be derived by examining the content of the file.
 
-Filename example of block chunk file for blocks from {{ file_blockchain.get_block_chunk_size() }} to {{ file_blockchain.get_block_chunk_size() * 2 - 1 }} compressed with LZMA compression: ``{{ file_blockchain.make_block_chunk_filename(file_blockchain.get_block_chunk_size() * 2 - 1)[1] }}.xz``.
+Filename example of block chunk file for blocks from {{ file_blockchain.snapshot_period_in_blocks }} to {{ file_blockchain.snapshot_period_in_blocks * 2 - 1 }} compressed with LZMA compression: ``{{ file_blockchain.make_block_chunk_filename(file_blockchain.snapshot_period_in_blocks, file_blockchain.snapshot_period_in_blocks * 2 - 1) }}.xz``.
 
-Filename example of incomplete block chunk file for blocks from {{ file_blockchain.get_block_chunk_size() * 2 }} to {{ file_blockchain.get_block_chunk_size() * 3 - 1 }}: ``{{ file_blockchain.make_block_chunk_filename(file_blockchain.get_block_chunk_size() * 2)[1] }}``
+Filename example of incomplete block chunk file for blocks from {{ file_blockchain.snapshot_period_in_blocks * 2 }} to {{ file_blockchain.snapshot_period_in_blocks * 3 - 1 }}: ``{{ file_blockchain.make_block_chunk_filename(file_blockchain.snapshot_period_in_blocks * 2) }}``
 (it is not compressed yet, because new blocks to be appended to it).
 
 Block chunk file format

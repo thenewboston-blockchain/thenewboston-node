@@ -6,7 +6,7 @@ from typing import Any, Callable, Generator, Optional, Union, cast
 
 from more_itertools import always_reversible, ilen
 
-from thenewboston_node.business_logic.exceptions import InvalidBlockchain
+from thenewboston_node.business_logic.exceptions import InvalidBlockchainError
 from thenewboston_node.business_logic.models import AccountState, BlockchainState, BlockchainStateMessage
 
 from .base import BaseMixin
@@ -24,7 +24,7 @@ class BlockchainStateMixin(BaseMixin):
                                 ) -> Generator[Union[BlockchainState, Callable[[Any], BlockchainState]], None, None]:
         raise NotImplementedError('Must be implemented in a child class')
 
-    def get_blockchain_states_count(self) -> int:
+    def get_blockchain_state_count(self) -> int:
         # Highly recommended to override this method in the particular implementation of the blockchain for
         # performance reasons
         warnings.warn('Using low performance implementation of get_account_root_file_count() method (override it)')
@@ -49,14 +49,14 @@ class BlockchainStateMixin(BaseMixin):
         try:
             return cast(BlockchainState, next(self.yield_blockchain_states()))
         except StopIteration:
-            raise InvalidBlockchain('Blockchain must contain a blockchain state')
+            raise InvalidBlockchainError('Blockchain must contain a blockchain state')
 
     def get_last_blockchain_state(self) -> BlockchainState:
         # Override this method if a particular blockchain implementation can provide a high performance
         try:
             return cast(BlockchainState, next(self.yield_blockchain_states_reversed()))
         except StopIteration:
-            raise InvalidBlockchain('Blockchain must contain a blockchain state')
+            raise InvalidBlockchainError('Blockchain must contain a blockchain state')
 
     def has_blockchain_states(self):
         # Override this method if a particular blockchain implementation can provide a high performance
@@ -77,7 +77,7 @@ class BlockchainStateMixin(BaseMixin):
             if op(blockchain_state.last_block_number, block_number):
                 return blockchain_state
 
-        raise InvalidBlockchain(f'Blockchain state before block number {block_number} is not found')
+        raise InvalidBlockchainError(f'Blockchain state before block number {block_number} is not found')
 
     def snapshot_blockchain_state(self):
         last_block = self.get_last_block()  # type: ignore
@@ -91,11 +91,12 @@ class BlockchainStateMixin(BaseMixin):
         if not last_blockchain_state.is_initial():
             assert last_blockchain_state.last_block_number is not None
             if last_block.message.block_number <= last_blockchain_state.last_block_number:
-                logger.debug('The last block is already included in the last account root file')
+                logger.debug('The last block is already included in the last blockchain state')
                 return None
 
-        account_root_file = self.generate_blockchain_state()
-        self.add_blockchain_state(account_root_file)
+        blockchain_state = self.generate_blockchain_state()
+        self.add_blockchain_state(blockchain_state)
+        return blockchain_state
 
     def generate_blockchain_state(self, last_block_number: Optional[int] = None) -> BlockchainState:
         if last_block_number is None:
@@ -133,7 +134,7 @@ class BlockchainStateMixin(BaseMixin):
 
         primary_validator = self.get_primary_validator()  # type: ignore
         if primary_validator is None:
-            raise InvalidBlockchain('Primary validator is required to generate blockchain state')
+            raise InvalidBlockchainError('Primary validator is required to generate blockchain state')
         blockchain_state = BlockchainState(
             message=BlockchainStateMessage(account_states=account_states), signer=primary_validator.identifier
         )

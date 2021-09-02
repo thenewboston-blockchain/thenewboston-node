@@ -2,7 +2,7 @@ from operator import attrgetter
 
 import pytest
 
-from thenewboston_node.business_logic.exceptions import InvalidBlockchain
+from thenewboston_node.business_logic.exceptions import InvalidBlockchainError
 from thenewboston_node.business_logic.tests import factories
 from thenewboston_node.business_logic.tests.mocks.utils import patch_blockchain_states, patch_blocks
 
@@ -108,7 +108,7 @@ def test_can_yield_blocks_till_snapshot(
 
 def test_yield_blocks_till_snapshot_with_no_account_root_file(blockchain_base, block_0, block_1, block_2):
     with patch_blocks(blockchain_base, [block_0, block_1, block_2]), patch_blockchain_states(blockchain_base, []):
-        with pytest.raises(InvalidBlockchain):
+        with pytest.raises(InvalidBlockchainError):
             list(blockchain_base.yield_blocks_till_snapshot())
 
 
@@ -119,7 +119,7 @@ def test_get_expected_block_identifier_validation_of_block_number(blockchain_bas
 
 def test_get_expected_block_identifier_without_blockchain_genesis_state(blockchain_base):
     with patch_blockchain_states(blockchain_base, []):
-        with pytest.raises(InvalidBlockchain, match='Blockchain must contain a blockchain state'):
+        with pytest.raises(InvalidBlockchainError, match='Blockchain must contain a blockchain state'):
             blockchain_base.get_expected_block_identifier(block_number=0)
 
 

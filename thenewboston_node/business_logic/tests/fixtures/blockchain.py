@@ -8,7 +8,7 @@ from thenewboston_node.business_logic.blockchain.file_blockchain import FileBloc
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
 from thenewboston_node.business_logic.blockchain.mock_blockchain import MockBlockchain
 from thenewboston_node.business_logic.tests.base import force_blockchain
-from thenewboston_node.business_logic.tests.factories import add_blocks_to_blockchain
+from thenewboston_node.business_logic.tests.factories import add_blocks
 from thenewboston_node.business_logic.tests.mocks.storage_mock import StorageMock
 from thenewboston_node.business_logic.tests.mocks.utils import patch_blockchain_states, patch_blocks
 
@@ -60,6 +60,7 @@ def yield_initialized_forced_blockchain(class_, blockchain_genesis_state, class_
 def memory_blockchain(blockchain_genesis_state):
     blockchain = MemoryBlockchain()
     blockchain.add_blockchain_state(blockchain_genesis_state)
+    blockchain._test_treasury_account_key_pair = blockchain_genesis_state._test_treasury_account_key_pair
     blockchain.validate()
     yield blockchain
 
@@ -68,6 +69,7 @@ def memory_blockchain(blockchain_genesis_state):
 def file_blockchain(blockchain_genesis_state, blockchain_directory):
     blockchain = FileBlockchain(base_directory=blockchain_directory)
     blockchain.add_blockchain_state(blockchain_genesis_state)
+    blockchain._test_treasury_account_key_pair = blockchain_genesis_state._test_treasury_account_key_pair
     blockchain.validate()
     yield blockchain
 
@@ -101,6 +103,6 @@ def blockchain_base(blockchain_genesis_state):
 @pytest.fixture
 def file_blockchain_with_two_blockchain_states(file_blockchain, treasury_account_key_pair):
     blockchain = file_blockchain
-    add_blocks_to_blockchain(blockchain, 2, treasury_account_key_pair.private)
+    add_blocks(blockchain, 2, treasury_account_key_pair.private)
     blockchain.snapshot_blockchain_state()
     return blockchain

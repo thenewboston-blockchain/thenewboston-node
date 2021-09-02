@@ -12,12 +12,16 @@ def treasury_initial_balance():
 
 
 @pytest.fixture
-def blockchain_genesis_state(treasury_account, treasury_initial_balance, primary_validator) -> BlockchainState:
-    return make_blockchain_genesis_state(
+def blockchain_genesis_state(
+    treasury_account_key_pair, treasury_initial_balance, primary_validator
+) -> BlockchainState:
+    state = make_blockchain_genesis_state(
         primary_validator=primary_validator,
-        treasury_account_number=treasury_account,
+        treasury_account_number=treasury_account_key_pair.public,
         treasury_account_initial_balance=treasury_initial_balance,
     )
+    state._test_treasury_account_key_pair = treasury_account_key_pair
+    return state
 
 
 @pytest.fixture

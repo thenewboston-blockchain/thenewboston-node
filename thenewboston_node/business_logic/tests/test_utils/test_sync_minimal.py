@@ -94,6 +94,10 @@ def test_insync_source_and_target_with_one_blockchain_state_and_no_blocks(
     assert_blockchain_tail_match(source, target)
     assert_blockchains_equal(source, target)
 
+    assert list(target.get_blockchain_state_storage().list_directory()
+                ) == ['0000000000000000000!-blockchain-state.msgpack']
+    assert list(target.get_block_chunk_storage().list_directory()) == []
+
 
 def test_source_one_block_different_than_target(
     blockchain_directory, blockchain_directory2, treasury_account_key_pair
@@ -120,6 +124,11 @@ def test_source_one_block_different_than_target(
     assert_blockchain_tail_match(source, target)
     assert_blockchains_equal(source, target)
 
+    assert list(target.get_blockchain_state_storage().list_directory()
+                ) == ['0000000000000000000!-blockchain-state.msgpack']
+    assert list(target.get_block_chunk_storage().list_directory()
+                ) == ['00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack']
+
 
 def test_source_has_more_blocks_than_target(blockchain_directory, blockchain_directory2, treasury_account_key_pair):
     # Prepare source and target blockchains: genesis state(-1) + 3 blocks(0, 1, 2)
@@ -144,6 +153,11 @@ def test_source_has_more_blocks_than_target(blockchain_directory, blockchain_dir
     assert_blockchain_content(target, (-1,), (0, 1, 2, 3, 4))
     assert_blockchain_tail_match(source, target)
     assert_blockchains_equal(source, target)
+
+    assert list(target.get_blockchain_state_storage().list_directory()
+                ) == ['0000000000000000000!-blockchain-state.msgpack']
+    assert list(target.get_block_chunk_storage().list_directory()
+                ) == ['00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack']
 
 
 def test_source_one_block_and_blockchain_state_different_than_target(
@@ -171,6 +185,10 @@ def test_source_one_block_and_blockchain_state_different_than_target(
     # Expect target blockchain: blockchain state(0)
     assert_blockchain_content(target, (0,), ())
     assert_blockchain_tail_match(source, target)
+
+    assert list(target.get_blockchain_state_storage().list_directory()
+                ) == ['00000000000000000000-blockchain-state.msgpack']
+    assert list(target.get_block_chunk_storage().list_directory()) == []
 
 
 def test_insync_blockchains_ending_with_blockchain_state(
@@ -200,6 +218,12 @@ def test_insync_blockchains_ending_with_blockchain_state(
     assert_blockchain_content(target, (-1, 14), (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14))
     assert_blockchain_tail_match(source, target)
     assert_blockchains_equal(source, target)
+
+    assert list(target.get_blockchain_state_storage().list_directory()) == [
+        '0000000000000000000!-blockchain-state.msgpack', '00000000000000000014-blockchain-state.msgpack'
+    ]
+    assert list(target.get_block_chunk_storage().list_directory()
+                ) == ['00000000000000000000-00000000000000000014-block-chunk.msgpack']
 
 
 def test_insync_blockchains_ending_with_blocks(blockchain_directory, blockchain_directory2, treasury_account_key_pair):
@@ -235,6 +259,14 @@ def test_insync_blockchains_ending_with_blocks(blockchain_directory, blockchain_
     assert_blockchain_tail_match(source, target)
     assert_blockchains_equal(source, target)
 
+    assert list(target.get_blockchain_state_storage().list_directory()) == [
+        '0000000000000000000!-blockchain-state.msgpack', '00000000000000000014-blockchain-state.msgpack'
+    ]
+    assert list(target.get_block_chunk_storage().list_directory()) == [
+        '00000000000000000000-00000000000000000014-block-chunk.msgpack',
+        '00000000000000000015-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
+    ]
+
 
 def test_sync_source_has_blocks_after_blockchain_state_with_gap(
     blockchain_directory, blockchain_directory2, treasury_account_key_pair
@@ -263,3 +295,8 @@ def test_sync_source_has_blocks_after_blockchain_state_with_gap(
     # Expect target blockchain: blockchain state(1) | 3 blocks(15-17)
     assert_blockchain_content(target, (14,), (15, 16, 17))
     assert_blockchain_tail_match(source, target)
+
+    assert list(target.get_blockchain_state_storage().list_directory()
+                ) == ['00000000000000000014-blockchain-state.msgpack']
+    assert list(target.get_block_chunk_storage().list_directory()
+                ) == ['00000000000000000015-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack']

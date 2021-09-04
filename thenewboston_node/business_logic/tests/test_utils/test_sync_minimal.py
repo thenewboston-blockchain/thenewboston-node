@@ -1,53 +1,9 @@
-import copy
-
-from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
+from thenewboston_node.business_logic.tests.base import (
+    assert_blockchain_content, assert_blockchain_tail_match, assert_blockchains_equal
+)
 from thenewboston_node.business_logic.tests.factories import add_blocks
 from thenewboston_node.business_logic.utils.blockchain import sync_minimal
-
-
-def remove_meta(obj):
-    obj_copy = copy.copy(obj)
-    obj_copy.meta = None
-    return obj_copy
-
-
-def assert_blockchain_content(blockchain: BlockchainBase, blockchain_state_block_numbers, blockchain_block_numbers):
-    assert tuple(
-        bs.last_block_number for bs in blockchain.yield_blockchain_states()  # type: ignore
-    ) == blockchain_state_block_numbers
-    assert tuple(bl.get_block_number() for bl in blockchain.yield_blocks()) == blockchain_block_numbers
-
-
-def assert_iter_equal_except_meta(iter1, iter2):
-    assert tuple(remove_meta(obj1) for obj1 in iter1) == tuple(remove_meta(obj2) for obj2 in iter2)
-
-
-def assert_blockchain_tail_match(blockchain1: BlockchainBase, blockchain2: BlockchainBase):
-    assert remove_meta(blockchain1.get_last_blockchain_state()) == remove_meta(blockchain2.get_last_blockchain_state())
-
-    blockchain1_tail_blocks = tuple(blockchain1.yield_blocks_till_snapshot())
-    blockchain2_tail_blocks = tuple(blockchain2.yield_blocks_till_snapshot())
-
-    assert tuple(bl.get_block_number() for bl in blockchain1_tail_blocks
-                 ) == tuple(bl.get_block_number() for bl in blockchain2_tail_blocks)
-    assert_iter_equal_except_meta(blockchain1_tail_blocks, blockchain2_tail_blocks)
-
-
-def assert_blockchains_equal(blockchain1: BlockchainBase, blockchain2: BlockchainBase):
-    blockchain1_block_states = tuple(blockchain1.yield_blockchain_states())
-    blockchain2_block_states = tuple(blockchain2.yield_blockchain_states())
-
-    assert tuple(bs.last_block_number for bs in blockchain1_block_states  # type: ignore
-                 ) == tuple(bs.last_block_number for bs in blockchain2_block_states)  # type: ignore
-    assert_iter_equal_except_meta(blockchain1_block_states, blockchain2_block_states)
-
-    blockchain1_blocks = tuple(blockchain1.yield_blocks())
-    blockchain2_blocks = tuple(blockchain2.yield_blocks())
-
-    assert tuple(bl.get_block_number() for bl in blockchain1_blocks
-                 ) == tuple(bl.get_block_number() for bl in blockchain2_blocks)
-    assert_iter_equal_except_meta(blockchain1_blocks, blockchain2_blocks)
 
 
 def make_synced_blockchains(

@@ -1,15 +1,17 @@
 import logging
 import os.path
+import shutil
 from typing import Optional
 
 import filelock
 from cachetools import LRUCache
 
 from thenewboston_node.business_logic.storages.path_optimized_file_system import PathOptimizedFileSystemStorage
+from thenewboston_node.core.logging import timeit_method
 from thenewboston_node.core.utils.file_lock import lock_method
 
 from ..base import BlockchainBase
-from .base import LOCKED_EXCEPTION, FileBlockchainBaseMixin  # noqa: I101
+from .base import EXPECTED_LOCK_EXCEPTION, LOCKED_EXCEPTION, FileBlockchainBaseMixin  # noqa: I101
 from .block_chunk import BlockChunkFileBlockchainMixin
 from .blockchain_state import BlochainStateFileBlockchainMixin
 
@@ -90,6 +92,10 @@ class FileBlockchain(
 
     @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
     def clear(self):
+        self._clear_locked()
+
+    @lock_method(lock_attr='file_lock', exception=EXPECTED_LOCK_EXCEPTION)
+    def _clear_locked(self):
         self.clear_caches()
 
         # Clear blocks
@@ -153,3 +159,18 @@ class FileBlockchain(
             )
 
         return cache
+
+    @timeit_method(logger=logger, level=logging.INFO)
+    @lock_method(lock_attr='file_lock', exception=LOCKED_EXCEPTION)
+    def copy_from(self, blockchain: BlockchainBase):
+        if not isinstance(blockchain, FileBlockchain):
+            super().copy_from(blockchain)
+            return
+
+        with blockchain.file_lock:
+            self._clear_locked()
+            shutil.copytree(
+                blockchain.get_blockchain_state_storage().base_path,
+                self.get_blockchain_state_storage().base_path
+            )
+            shutil.copytree(blockchain.get_block_chunk_storage().base_path, self.get_block_chunk_storage().base_path)

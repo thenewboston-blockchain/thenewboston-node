@@ -53,3 +53,7 @@ class BlockchainBase(ValidationMixin, BlockchainStateMixin, BlocksMixin, Account
 
     def is_empty(self):
         return not (self.has_blockchain_states() or self.has_blocks())
+
+    def copy_from(self, blockchain: T):
+        # TODO(dmu) MEDIUM: Provide a naive implementation for this method
+        raise NotImplementedError('Naive implementation is not ready yet')

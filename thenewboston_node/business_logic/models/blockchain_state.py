@@ -1,5 +1,5 @@
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Generator, Optional, Type, TypeVar
 
 from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
@@ -25,7 +25,11 @@ logger = logging.getLogger(__name__)
 class BlockchainState(SignableMixin, MetadataMixin, MessagpackCompactableMixin, NormalizableMixin, BaseDataclass):
     message: BlockchainStateMessage
 
-    meta: Optional[dict[str, Any]] = None
+    meta: Optional[dict[str, Any]] = field(  # noqa: A003
+        default=None, metadata={
+            'is_serializable': False,
+        }
+    )
 
     @classmethod
     def create_from_account_root_file(cls: Type[T], account_root_file_dict, signer) -> T:

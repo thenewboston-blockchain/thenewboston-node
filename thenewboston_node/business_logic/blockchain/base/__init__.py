@@ -44,8 +44,9 @@ class BlockchainBase(ValidationMixin, BlockchainStateMixin, BlocksMixin, Account
     def clear_instance_cache(cls):
         cls._instance = None
 
-    def clear(self):
-        raise NotImplementedError('Must be implemented in a child class')
+    def clear(self, block_number_range=None):
+        self.clear_blockchain_states(block_number_range=block_number_range)
+        self.clear_blocks(block_number_range=block_number_range)
 
     def utcnow(self):
         return datetime.utcnow()

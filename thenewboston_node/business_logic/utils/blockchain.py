@@ -116,3 +116,41 @@ def get_attribute_default_value(attribute, account):
         return account
 
     return None
+
+
+def sync_minimal(source_blockchain: BlockchainBase, target_blockchain: BlockchainBase):
+    """
+    Make `target_blockchain` contain `source_blockchain` last blockchain state and all blocks after it.
+    Do it in optimize way, so if `target_blockchain` already contains the last blockchain state and / or some / all
+    blocks after it then copy only missing data.
+    """
+    # TODO(dmu) CRICIAL: Take about blockchain forks: if blockchain states are on the same block number,
+    #                    but the blockchain states actually differ with their content
+
+    source_bs_last_block_number = source_blockchain.get_last_blockchain_state_last_block_number()
+    target_bs_last_block_number = target_blockchain.get_last_blockchain_state_last_block_number()
+    if source_bs_last_block_number > target_bs_last_block_number:
+        # Source blockchain contains a more recent blockchain state. For simplicity we just clear target blockchain
+        # entirely to replace with source blockchain data.
+
+        # TODO(dmu) HIGH: Do not just clear target blockchain because we might need the entire blockchain and
+        #                 just fill the gaps later
+
+        source_blockchain_state = source_blockchain.get_last_blockchain_state()
+        # TODO(dmu) CRITICAL: Take care about situation where blockchain is cleared, but source blockchain
+        #                     could not be added because of an error
+        #                     (make it transactional - do not leave blockchain broken)
+        target_blockchain.clear()
+        target_blockchain.add_blockchain_state(source_blockchain_state)
+
+        from_block_number = target_blockchain.get_last_blockchain_state_last_block_number() + 1
+    else:
+        from_block_number = target_blockchain.get_last_block_number() + 1
+
+    source_last_block_number = source_blockchain.get_last_block_number()
+    if source_last_block_number < from_block_number:
+        return  # the target blockchain already contains all blocks after last blockchain state of source blockchain
+
+    # Just add each block one-by-one to target blockchain
+    for block in source_blockchain.yield_blocks_slice(from_block_number, source_last_block_number):
+        target_blockchain.add_block(block)

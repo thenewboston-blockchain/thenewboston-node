@@ -25,9 +25,7 @@ def base_file_path(blockchain_path, base_filename):
     return str(blockchain_path / base_filename)
 
 
-@pytest.fixture
-def blockchain_directory():
-    directory = f'/tmp/for-thenewboston-blockchain-testing-{os.getpid()}'
+def yield_blockchain_directory(directory):
     try:
         os.makedirs(directory, exist_ok=True)
         yield directory
@@ -41,6 +39,16 @@ def blockchain_directory():
 
         if os.path.isdir(directory):
             shutil.rmtree(directory)
+
+
+@pytest.fixture
+def blockchain_directory():
+    yield from yield_blockchain_directory(f'/tmp/for-thenewboston-blockchain-testing-{os.getpid()}')
+
+
+@pytest.fixture
+def blockchain_directory2():
+    yield from yield_blockchain_directory(f'/tmp/for-thenewboston-blockchain-testing-{os.getpid()}-2')
 
 
 @pytest.fixture

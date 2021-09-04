@@ -26,11 +26,11 @@ LOGGING = {
     },
     'loggers': {
         logger_name: {
-            'level': 'INFO',
+            'level': 'WARNING',
             'propagate': True,
         } for logger_name in (
             'django', 'django.request', 'django.db.backends', 'django.template', 'thenewboston_node',
-            'thenewboston_node.core.logging', 'urllib3', 'asyncio'
+            'thenewboston_node.core.logging', 'urllib3', 'asyncio', 'filelock'
         )
     },
     'root': {

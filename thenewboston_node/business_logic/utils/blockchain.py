@@ -1,9 +1,13 @@
 import logging
+import os
 import random
+import shutil
+import time
 
 from tqdm import tqdm
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
+from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
 from thenewboston_node.business_logic.models import CoinTransferSignedChangeRequest
 from thenewboston_node.business_logic.models.node import RegularNode
 from thenewboston_node.business_logic.utils.blockchain_state import make_blockchain_genesis_state
@@ -121,7 +125,7 @@ def get_attribute_default_value(attribute, account):
 def sync_minimal(source_blockchain: BlockchainBase, target_blockchain: BlockchainBase):
     """
     Make `target_blockchain` contain `source_blockchain` last blockchain state and all blocks after it.
-    Do it in optimize way, so if `target_blockchain` already contains the last blockchain state and / or some / all
+    Do it in optimized way, so if `target_blockchain` already contains the last blockchain state and / or some / all
     blocks after it then copy only missing data.
     """
     # TODO(dmu) CRICIAL: Take about blockchain forks: if blockchain states are on the same block number,
@@ -154,3 +158,27 @@ def sync_minimal(source_blockchain: BlockchainBase, target_blockchain: Blockchai
     # Just add each block one-by-one to target blockchain
     for block in source_blockchain.yield_blocks_slice(from_block_number, source_last_block_number):
         target_blockchain.add_block(block)
+
+
+def sync_minimal_to_file_blockchain(source: BlockchainBase, target: FileBlockchain):
+    """
+    Sync minimal to file blockchain in transactional manner (so a file blockchain is never corrupted)
+    """
+    target_base_directory = target.get_base_directory()
+
+    temporary_file_blockchain_directory = '{}.{}'.format(target_base_directory, int(time.time() * 100000))
+    temporary_file_blockchain = FileBlockchain(base_directory=temporary_file_blockchain_directory)
+    temporary_file_blockchain.copy_from(target)
+
+    sync_minimal(source, temporary_file_blockchain)
+    throw_away_blockchain_directory = '{}.{}'.format(temporary_file_blockchain_directory, int(time.time() * 100000))
+
+    # Trying make replace as atomic as possible
+    os.rename(target_base_directory, throw_away_blockchain_directory)
+    try:
+        os.rename(temporary_file_blockchain_directory, target_base_directory)
+    except:  # noqa: E722, B001
+        os.rename(throw_away_blockchain_directory, target_base_directory)
+        raise
+
+    shutil.rmtree(throw_away_blockchain_directory)

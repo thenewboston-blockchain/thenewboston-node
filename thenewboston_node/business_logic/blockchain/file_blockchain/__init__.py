@@ -18,6 +18,11 @@ from .blockchain_state import BlochainStateFileBlockchainMixin
 logger = logging.getLogger(__name__)
 
 
+def copytree_safe(source, destination):
+    if os.path.exists(source):
+        shutil.copytree(source, destination)
+
+
 class FileBlockchain(
     BlockChunkFileBlockchainMixin, BlochainStateFileBlockchainMixin, FileBlockchainBaseMixin, BlockchainBase
 ):
@@ -169,8 +174,10 @@ class FileBlockchain(
 
         with blockchain.file_lock:
             self._clear_locked()
-            shutil.copytree(
+            # TODO(dmu) MEDIUM: Consider a hard-linking copying (except for incomplete block chunks, since they are
+            #                   being written) for even faster copying and consuming less space
+            copytree_safe(
                 blockchain.get_blockchain_state_storage().base_path,
                 self.get_blockchain_state_storage().base_path
             )
-            shutil.copytree(blockchain.get_block_chunk_storage().base_path, self.get_block_chunk_storage().base_path)
+            copytree_safe(blockchain.get_block_chunk_storage().base_path, self.get_block_chunk_storage().base_path)

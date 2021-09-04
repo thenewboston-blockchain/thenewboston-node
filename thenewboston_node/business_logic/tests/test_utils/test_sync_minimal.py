@@ -1,9 +1,11 @@
+import pytest
+
 from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
 from thenewboston_node.business_logic.tests.base import (
     assert_blockchain_content, assert_blockchain_tail_match, assert_blockchains_equal
 )
 from thenewboston_node.business_logic.tests.factories import add_blocks
-from thenewboston_node.business_logic.utils.blockchain import sync_minimal
+from thenewboston_node.business_logic.utils.blockchain import sync_minimal, sync_minimal_to_file_blockchain
 
 
 def make_synced_blockchains(
@@ -28,8 +30,9 @@ def make_synced_blockchains(
     return blockchain1, blockchain2
 
 
+@pytest.mark.parametrize('sync_function', (sync_minimal, sync_minimal_to_file_blockchain))
 def test_insync_source_and_target_with_one_blockchain_state_and_no_blocks(
-    blockchain_directory, blockchain_directory2, treasury_account_key_pair
+    blockchain_directory, blockchain_directory2, treasury_account_key_pair, sync_function
 ):
     # Prepare source and target blockchains: genesis state(-1)
     source, target = make_synced_blockchains(
@@ -43,7 +46,7 @@ def test_insync_source_and_target_with_one_blockchain_state_and_no_blocks(
     assert_blockchains_equal(source, target)
 
     # Sync blockchains
-    sync_minimal(source, target)
+    sync_function(source, target)
 
     # Expect target blockchain: blockchain state(-1)
     assert_blockchain_content(target, (-1,), ())

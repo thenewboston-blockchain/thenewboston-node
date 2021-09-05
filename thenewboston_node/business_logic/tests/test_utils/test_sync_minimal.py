@@ -1,9 +1,11 @@
+import pytest
+
 from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
 from thenewboston_node.business_logic.tests.base import (
     assert_blockchain_content, assert_blockchain_tail_match, assert_blockchains_equal
 )
 from thenewboston_node.business_logic.tests.factories import add_blocks
-from thenewboston_node.business_logic.utils.blockchain import sync_minimal
+from thenewboston_node.business_logic.utils.blockchain import sync_minimal, sync_minimal_to_file_blockchain
 
 
 def make_synced_blockchains(
@@ -28,8 +30,9 @@ def make_synced_blockchains(
     return blockchain1, blockchain2
 
 
+@pytest.mark.parametrize('sync_function', (sync_minimal, sync_minimal_to_file_blockchain))
 def test_insync_source_and_target_with_one_blockchain_state_and_no_blocks(
-    blockchain_directory, blockchain_directory2, treasury_account_key_pair
+    blockchain_directory, blockchain_directory2, treasury_account_key_pair, sync_function
 ):
     # Prepare source and target blockchains: genesis state(-1)
     source, target = make_synced_blockchains(
@@ -43,7 +46,7 @@ def test_insync_source_and_target_with_one_blockchain_state_and_no_blocks(
     assert_blockchains_equal(source, target)
 
     # Sync blockchains
-    sync_minimal(source, target)
+    sync_function(source, target)
 
     # Expect target blockchain: blockchain state(-1)
     assert_blockchain_content(target, (-1,), ())
@@ -55,8 +58,9 @@ def test_insync_source_and_target_with_one_blockchain_state_and_no_blocks(
     assert list(target.get_block_chunk_storage().list_directory()) == []
 
 
+@pytest.mark.parametrize('sync_function', (sync_minimal, sync_minimal_to_file_blockchain))
 def test_source_one_block_different_than_target(
-    blockchain_directory, blockchain_directory2, treasury_account_key_pair
+    blockchain_directory, blockchain_directory2, treasury_account_key_pair, sync_function
 ):
     # Prepare source and target blockchains: genesis state(-1)
     source, target = make_synced_blockchains(
@@ -73,7 +77,7 @@ def test_source_one_block_different_than_target(
     assert_blockchain_content(source, (-1,), (0,))
 
     # Sync blockchains
-    sync_minimal(source, target)
+    sync_function(source, target)
 
     # Expect target blockchain: blockchain state(-1) + 1 block(0)
     assert_blockchain_content(target, (-1,), (0,))
@@ -86,7 +90,10 @@ def test_source_one_block_different_than_target(
                 ) == ['00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack']
 
 
-def test_source_has_more_blocks_than_target(blockchain_directory, blockchain_directory2, treasury_account_key_pair):
+@pytest.mark.parametrize('sync_function', (sync_minimal, sync_minimal_to_file_blockchain))
+def test_source_has_more_blocks_than_target(
+    blockchain_directory, blockchain_directory2, treasury_account_key_pair, sync_function
+):
     # Prepare source and target blockchains: genesis state(-1) + 3 blocks(0, 1, 2)
     source, target = make_synced_blockchains(
         blocks_count=3,
@@ -103,7 +110,7 @@ def test_source_has_more_blocks_than_target(blockchain_directory, blockchain_dir
     assert_blockchain_content(source, (-1,), (0, 1, 2, 3, 4))
 
     # Sync blockchains
-    sync_minimal(source, target)
+    sync_function(source, target)
 
     # Expect target blockchain: genesis state(-1) + 5 blocks(0, 1, 2, 3, 4)
     assert_blockchain_content(target, (-1,), (0, 1, 2, 3, 4))
@@ -116,8 +123,9 @@ def test_source_has_more_blocks_than_target(blockchain_directory, blockchain_dir
                 ) == ['00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack']
 
 
+@pytest.mark.parametrize('sync_function', (sync_minimal, sync_minimal_to_file_blockchain))
 def test_source_one_block_and_blockchain_state_different_than_target(
-    blockchain_directory, blockchain_directory2, treasury_account_key_pair
+    blockchain_directory, blockchain_directory2, treasury_account_key_pair, sync_function
 ):
     # Prepare source and target blockchains: genesis state(-1) + 1 block(0) + blockchain state(0)
     source, target = make_synced_blockchains(
@@ -136,7 +144,7 @@ def test_source_one_block_and_blockchain_state_different_than_target(
     assert_blockchain_content(source, (-1, 0), (0,))
 
     # Sync blockchains
-    sync_minimal(source, target)
+    sync_function(source, target)
 
     # Expect target blockchain: blockchain state(0)
     assert_blockchain_content(target, (0,), ())
@@ -147,8 +155,9 @@ def test_source_one_block_and_blockchain_state_different_than_target(
     assert list(target.get_block_chunk_storage().list_directory()) == []
 
 
+@pytest.mark.parametrize('sync_function', (sync_minimal, sync_minimal_to_file_blockchain))
 def test_insync_blockchains_ending_with_blockchain_state(
-    blockchain_directory, blockchain_directory2, treasury_account_key_pair
+    blockchain_directory, blockchain_directory2, treasury_account_key_pair, sync_function
 ):
     # Prepare source and target
     source, target = make_synced_blockchains(
@@ -168,7 +177,7 @@ def test_insync_blockchains_ending_with_blockchain_state(
     assert_blockchains_equal(source, target)
 
     # Sync blockchains
-    sync_minimal(source, target)
+    sync_function(source, target)
 
     # Expect
     assert_blockchain_content(target, (-1, 14), (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14))
@@ -182,7 +191,10 @@ def test_insync_blockchains_ending_with_blockchain_state(
                 ) == ['00000000000000000000-00000000000000000014-block-chunk.msgpack']
 
 
-def test_insync_blockchains_ending_with_blocks(blockchain_directory, blockchain_directory2, treasury_account_key_pair):
+@pytest.mark.parametrize('sync_function', (sync_minimal, sync_minimal_to_file_blockchain))
+def test_insync_blockchains_ending_with_blocks(
+    blockchain_directory, blockchain_directory2, treasury_account_key_pair, sync_function
+):
     # Prepare source and target
     source, target = make_synced_blockchains(
         blocks_count=15,
@@ -208,7 +220,7 @@ def test_insync_blockchains_ending_with_blocks(blockchain_directory, blockchain_
     assert_blockchains_equal(source, target)
 
     # Sync blockchains
-    sync_minimal(source, target)
+    sync_function(source, target)
 
     # Expect
     assert_blockchain_content(target, (-1, 14), (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17))
@@ -224,8 +236,9 @@ def test_insync_blockchains_ending_with_blocks(blockchain_directory, blockchain_
     ]
 
 
+@pytest.mark.parametrize('sync_function', (sync_minimal, sync_minimal_to_file_blockchain))
 def test_sync_source_has_blocks_after_blockchain_state_with_gap(
-    blockchain_directory, blockchain_directory2, treasury_account_key_pair
+    blockchain_directory, blockchain_directory2, treasury_account_key_pair, sync_function
 ):
     # Prepare source and target blockchains: genesis state(-1) + 3 blocks(0-2)
     source, target = make_synced_blockchains(
@@ -246,7 +259,7 @@ def test_sync_source_has_blocks_after_blockchain_state_with_gap(
     assert_blockchain_content(source, (-1, 14), (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17))
 
     # Sync blockchains
-    sync_minimal(source, target)
+    sync_function(source, target)
 
     # Expect target blockchain: blockchain state(1) | 3 blocks(15-17)
     assert_blockchain_content(target, (14,), (15, 16, 17))

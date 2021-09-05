@@ -48,5 +48,5 @@ class StorageMock:
     def get_optimized_path(self, file_path):
         return '0/0/0/0/' + file_path
 
-    def get_optimized_actual_path(self, file_path):
+    def get_optimized_absolute_actual_path(self, file_path):
         return '/tmp/safe-45745674567/' + self.get_optimized_path(file_path)

@@ -86,8 +86,8 @@ class PathOptimizedFileSystemStorage(FileSystemStorage):
 
                 yield os.path.relpath(path, self.base_path)
 
-    def get_optimized_path(self, file_path):
-        return make_optimized_file_path(file_path, self.max_depth)
+    def get_optimized_path(self, filename):
+        return make_optimized_file_path(filename, self.max_depth)
 
-    def get_optimized_actual_path(self, file_path):
-        return self.get_actual_file_path(self.get_optimized_path(file_path))
+    def get_optimized_absolute_actual_path(self, filename) -> str:
+        return self.get_actual_file_path(self.get_optimized_path(filename))

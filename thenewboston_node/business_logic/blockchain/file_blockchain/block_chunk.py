@@ -5,7 +5,7 @@ from collections import namedtuple
 from typing import Generator, Optional
 
 import msgpack
-from more_itertools import always_reversible
+from more_itertools import always_reversible, ilen
 
 from thenewboston_node.business_logic.exceptions import InvalidBlockchainError
 from thenewboston_node.business_logic.models.block import Block
@@ -21,12 +21,31 @@ BLOCK_CHUNK_FILENAME_RE = re.compile(
     r'(?:|\.(?P<compression>{}))$'.format('|'.join(COMPRESSION_FUNCTIONS.keys()))
 )
 
-BlockChunkFilenameMeta = namedtuple('BlockChunkFilenameMeta', 'start end compression')
+BlockChunkFilenameMeta = namedtuple(
+    'BlockChunkFilenameMeta',
+    'absolute_file_path blockchain_root_relative_file_path storage_relative_file_path filename '
+    'start_block_number end_block_number compression blockchain'
+)
 
 logger = logging.getLogger(__name__)
 
 
-def get_block_chunk_filename_meta(filename):
+def get_block_chunk_filename_meta(
+    *,
+    absolute_file_path=None,
+    blockchain_root_relative_file_path=None,
+    storage_relative_file_path=None,
+    filename=None,
+    blockchain=None,
+) -> Optional[BlockChunkFilenameMeta]:
+    assert absolute_file_path or blockchain_root_relative_file_path or storage_relative_file_path or filename
+
+    # TODO(dmu) CRITICAL: Fix to have not compression and with-compression filenames and distinguish between them
+    #                 properly as well as calculate compression correctly
+    filename = filename or os.path.basename(
+        absolute_file_path or blockchain_root_relative_file_path or storage_relative_file_path
+    )
+
     match = BLOCK_CHUNK_FILENAME_RE.match(filename)
     if match:
         start = int(match.group('start'))
@@ -37,13 +56,18 @@ def get_block_chunk_filename_meta(filename):
             end = int(end_str)
             assert start <= end
 
-        return BlockChunkFilenameMeta(start, end, match.group('compression') or None)
+        return BlockChunkFilenameMeta(
+            absolute_file_path=absolute_file_path,
+            blockchain_root_relative_file_path=blockchain_root_relative_file_path,
+            storage_relative_file_path=storage_relative_file_path,
+            filename=filename,
+            start_block_number=start,
+            end_block_number=end,
+            compression=match.group('compression') or None,
+            blockchain=blockchain,
+        )
 
     return None
-
-
-def get_block_chunk_file_path_meta(file_path):
-    return get_block_chunk_filename_meta(os.path.basename(file_path))
 
 
 class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
@@ -87,15 +111,30 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
 
         return last_block_number
 
-    def _get_block_chunk_file_path_meta_enhanced(self, file_path):
-        meta = get_block_chunk_file_path_meta(file_path)
+    def _get_block_chunk_file_path_meta_enhanced(self, filename) -> Optional[BlockChunkFilenameMeta]:
+        storage = self.get_block_chunk_storage()
+        absolute_file_path = storage.get_optimized_absolute_actual_path(filename)
+
+        base_directory = self.get_base_directory()
+        assert absolute_file_path.startswith(base_directory)
+
+        storage_base_path = str(storage.base_path)
+        assert absolute_file_path.startswith(storage_base_path)
+
+        meta = get_block_chunk_filename_meta(
+            absolute_file_path=absolute_file_path,
+            blockchain_root_relative_file_path=absolute_file_path.removeprefix(base_directory).lstrip('/'),
+            storage_relative_file_path=absolute_file_path.removeprefix(storage_base_path).lstrip('/'),
+            filename=filename,
+            blockchain=self,
+        )
         if meta is None:
             return None
 
-        if meta.end is not None:
+        if meta.end_block_number is not None:
             return meta
 
-        return meta._replace(end=self._get_block_chunk_last_block_number(file_path))
+        return meta._replace(end_block_number=self._get_block_chunk_last_block_number(filename))
 
     def _make_last_block_chunk_file_path_key(self):
         return self._make_block_chunk_last_block_number_cache_key(self._get_last_block_chunk_file_path())
@@ -137,8 +176,8 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
         storage = self.get_block_chunk_storage()
         assert not storage.is_finalized(block_chunk_filename)
 
-        meta = get_block_chunk_filename_meta(block_chunk_filename)
-        assert meta.end is None
+        meta = get_block_chunk_filename_meta(filename=block_chunk_filename)
+        assert meta.end_block_number is None
         if last_block_number is None:
             try:
                 block = next(self._yield_blocks_from_file_simple(block_chunk_filename, -1))
@@ -148,22 +187,25 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
             last_block_number = block.get_block_number()
 
         end = last_block_number
-        destination_filename = self.make_block_chunk_filename_from_start_end(meta.start, end)
+        destination_filename = self.make_block_chunk_filename_from_start_end(meta.start_block_number, end)
         storage.move(block_chunk_filename, destination_filename)
         storage.finalize(destination_filename)
 
-        chunk_file_path = storage.get_optimized_actual_path(destination_filename)
-        meta = get_block_chunk_file_path_meta(destination_filename)
-        end = meta.end
+        absolute_file_path = storage.get_optimized_absolute_actual_path(destination_filename)
+        meta = get_block_chunk_filename_meta(
+            absolute_file_path=absolute_file_path,
+            filename=destination_filename,
+        )
+        end = meta.end_block_number
         assert end is not None
         block_cache = self.get_block_cache()
-        for block_number in range(meta.start, end + 1):
+        for block_number in range(meta.start_block_number, end + 1):
             block = block_cache.get(block_number)
             if block is None:
                 continue
 
-            assert block.meta['chunk_file_path'].endswith(block_chunk_filename)  # type: ignore
-            self._set_block_meta(block, meta, chunk_file_path)
+            assert block.meta['chunk_absolute_file_path'].endswith(block_chunk_filename)  # type: ignore
+            self._set_block_meta(block, meta)
 
     def finalize_all_block_chunks(self):
         # This method is used to clean for super rare case when something goes wrong between blockchain state
@@ -173,8 +215,8 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
         #                 to avoid filename parsing 2) list directory by glob pattern 3) cache the last known
         #                 finalized name to reduce traversal
         for filename in self.get_block_chunk_storage().list_directory():
-            meta = get_block_chunk_filename_meta(filename)
-            if meta.end is None:
+            meta = get_block_chunk_filename_meta(filename=filename)
+            if meta.end_block_number is None:
                 logger.warning('Found not finalized block chunk: %s', filename)
                 self.finalize_block_chunk(filename)
 
@@ -190,16 +232,13 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
         yield from self._yield_blocks(-1)
 
     def yield_blocks_from(self, block_number: int) -> Generator[Block, None, None]:
-        for file_path in self._list_block_directory():
-            meta = self._get_block_chunk_file_path_meta_enhanced(file_path)
-            if meta is None:
-                logger.warning('File %s has invalid name format', file_path)
+        for meta in self.yield_block_chunks_meta():
+            if meta is None or meta.end_block_number < block_number:
                 continue
 
-            if meta.end < block_number:
-                continue
-
-            yield from self._yield_blocks_from_file_cached(file_path, direction=1, start=max(meta.start, block_number))
+            yield from self._yield_blocks_from_file_cached(
+                meta.filename, direction=1, start=max(meta.start_block_number, block_number)
+            )
 
     def get_block_by_number(self, block_number: int) -> Optional[Block]:
         blocks_cache = self.get_block_cache()
@@ -215,13 +254,13 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
 
     def get_block_count(self) -> int:
         count = 0
-        for file_path in self._list_block_directory():
+        for file_path in self._yield_block_chunk_filenames():
             meta = self._get_block_chunk_file_path_meta_enhanced(file_path)
             if meta is None:
                 logger.warning('File %s has invalid name format', file_path)
                 continue
 
-            count += meta.end - meta.start + 1
+            count += meta.end_block_number - meta.start_block_number + 1
 
         return count
 
@@ -238,7 +277,7 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
     def _yield_blocks(self, direction) -> Generator[Block, None, None]:
         assert direction in (1, -1)
 
-        for file_path in self._list_block_directory(direction):
+        for file_path in self._yield_block_chunk_filenames(direction):
             yield from self._yield_blocks_from_file_cached(file_path, direction)
 
     def _yield_blocks_from_file_cached(self, file_path, direction, start=None):
@@ -249,8 +288,8 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
             logger.warning('File %s has invalid name fyield_blocks_fromormat', file_path)
             return
 
-        file_start = meta.start
-        file_end = meta.end
+        file_start = meta.start_block_number
+        file_end = meta.end_block_number
         if direction == 1:
             next_block_number = cache_start = file_start if start is None else start
             cache_end = file_end
@@ -267,12 +306,13 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
             yield from self._yield_blocks_from_file(file_path, direction, start=next_block_number)
 
     @staticmethod
-    def _set_block_meta(block, meta, chunk_file_path):
+    def _set_block_meta(block, meta):
         block.meta = {
-            'chunk_start_block': meta.start,
-            'chunk_end_block': meta.end,
+            'chunk_start_block_number': meta.start_block_number,
+            'chunk_end_block_number': meta.end_block_number,
             'chunk_compression': meta.compression,
-            'chunk_file_path': chunk_file_path
+            'chunk_absolute_file_path': meta.absolute_file_path,
+            'chunk_filename': meta.filename,
         }
 
     def _yield_blocks_from_file_simple(self, file_path, direction):
@@ -288,14 +328,17 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
         for block_compact_dict in unpacker:
             yield Block.from_compact_dict(block_compact_dict)
 
-    def _yield_blocks_from_file(self, file_path, direction, start=None):
+    def _yield_blocks_from_file(self, filename, direction, start=None):
         assert direction in (1, -1)
 
-        chunk_file_path = self.get_block_chunk_storage().get_optimized_actual_path(file_path)
-        meta = get_block_chunk_file_path_meta(file_path)
+        absolute_file_path = self.get_block_chunk_storage().get_optimized_absolute_actual_path(filename)
+        meta = get_block_chunk_filename_meta(
+            absolute_file_path=absolute_file_path,
+            filename=filename,
+        )
 
         blocks_cache = self.get_block_cache()
-        for block in self._yield_blocks_from_file_simple(file_path, direction):
+        for block in self._yield_blocks_from_file_simple(filename, direction):
             block_number = block.get_block_number()
             # TODO(dmu) HIGH: Implement a better skip
             if start is not None:
@@ -305,7 +348,7 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
                     continue
 
             assert block.meta is None
-            self._set_block_meta(block, meta, chunk_file_path)
+            self._set_block_meta(block, meta)
 
             blocks_cache[block_number] = block
             yield block
@@ -325,11 +368,23 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
 
             yield block
 
-    def _list_block_directory(self, direction=1):
+    def _yield_block_chunk_filenames(self, direction=1) -> Generator[str, None, None]:
         yield from self.get_block_chunk_storage().list_directory(sort_direction=direction)
 
     def _get_last_block_chunk_file_path(self):
         try:
-            return next(self._list_block_directory(-1))
+            return next(self._yield_block_chunk_filenames(-1))
         except StopIteration:
             return None
+
+    def yield_block_chunks_meta(self, direction=1) -> Generator[BlockChunkFilenameMeta, None, None]:
+        for block_chunk_filename in self._yield_block_chunk_filenames(direction=direction):
+            meta = self._get_block_chunk_file_path_meta_enhanced(block_chunk_filename)
+            if meta is None:
+                logger.warning('File %s has invalid name format', block_chunk_filename)
+                continue
+
+            yield meta
+
+    def get_block_chunks_count(self):
+        return ilen(self._yield_block_chunk_filenames())

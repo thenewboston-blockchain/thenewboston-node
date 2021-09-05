@@ -29,7 +29,7 @@ class NodeClient:
 
     def get_latest_blockchain_state_meta_by_network_address(self, network_address) -> Optional[dict]:
         # We do not use reverse() because client must be framework agnostic
-        params = urlencode({'limit': 1, 'ordering': 'desc'})
+        params = urlencode({'limit': 1, 'ordering': '-last_block_number'})
         url = urljoin(network_address, '/api/v1/blockchain-states-meta/') + '?' + params
 
         try:
@@ -92,6 +92,43 @@ class NodeClient:
         for network_address in network_addresses:
             # TODO(dmu) CRITICAL: Try another network_address only if this one is unavailable
             return self.get_latest_blockchain_state_meta_by_network_address(network_address)
+
+        return None
+
+    def get_latest_block_chunk_meta_by_network_address(self, network_address) -> Optional[dict]:
+        # We do not use reverse() because client must be framework agnostic
+        params = urlencode({'limit': 1, 'ordering': '-start_block_number'})
+        url = urljoin(network_address, '/api/v1/block-chunks-meta/') + '?' + params
+
+        try:
+            response = requests.get(url)
+        except Exception:
+            logger.warning('Could not get latest block chunk by GET %s', url, exc_info=True)
+            return None
+
+        if response.status_code != requests.codes.ok:
+            logger.warning(
+                'Could not get latest block chunk by GET %s with status_code HTTP%s: %s', url, response.status_code,
+                response.text
+            )
+            return None
+
+        try:
+            data = response.json()
+        except json.decoder.JSONDecodeError:
+            logger.warning('Block chunk meta response from %s is not JSON data', url, exc_info=True)
+            return None
+
+        results = data['results']
+        if not results:
+            return None
+
+        return results[0]
+
+    def get_last_block_number_by_network_address(self, network_address):
+        block_chunk_meta = self.get_latest_block_chunk_meta_by_network_address(network_address)
+        if block_chunk_meta:
+            raise block_chunk_meta['end_block_number']
 
         return None
 

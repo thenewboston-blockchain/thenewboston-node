@@ -26,7 +26,8 @@ class APIBlockchain(BlockchainBase):
         return NodeClient.get_instance().get_latest_blockchain_state_by_network_address(self.network_address)
 
     def get_last_block_number(self) -> int:
-        raise NotImplementedError
+        # TODO(dmu) CRITICAL: Implement handling IO errors
+        return NodeClient.get_instance().get_last_block_number_by_network_address(self.network_address)
 
     def yield_blocks_slice(self, from_block_number: int, to_block_number: int):
         raise NotImplementedError

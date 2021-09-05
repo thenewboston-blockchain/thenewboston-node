@@ -128,7 +128,7 @@ def sync_minimal(source_blockchain: BlockchainBase, target_blockchain: Blockchai
     Do it in optimized way, so if `target_blockchain` already contains the last blockchain state and / or some / all
     blocks after it then copy only missing data.
     """
-    # TODO(dmu) CRICIAL: Take about blockchain forks: if blockchain states are on the same block number,
+    # TODO(dmu) CRITICAL: Take about blockchain forks: if blockchain states are on the same block number,
     #                    but the blockchain states actually differ with their content
 
     source_bs_last_block_number = source_blockchain.get_last_blockchain_state_last_block_number()
@@ -141,7 +141,7 @@ def sync_minimal(source_blockchain: BlockchainBase, target_blockchain: Blockchai
         #                 just fill the gaps later
 
         source_blockchain_state = source_blockchain.get_last_blockchain_state()
-        # TODO(dmu) CRITICAL: Take care about situation where blockchain is cleared, but source blockchain
+        # TODO(dmu) MEDIUM: Take care about situation where blockchain is cleared, but source blockchain
         #                     could not be added because of an error
         #                     (make it transactional - do not leave blockchain broken)
         target_blockchain.clear()

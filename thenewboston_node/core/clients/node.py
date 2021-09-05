@@ -85,6 +85,7 @@ class NodeClient:
                 logger.warning('Unable to read blockchain state from %s', url, exc_info=True)
                 continue
 
+        logger.warning('Could not read latest blockchain state from node: %s', network_address)
         return None
 
     def get_latest_blockchain_state_meta_by_network_addresses(self, network_addresses) -> Optional[dict]:

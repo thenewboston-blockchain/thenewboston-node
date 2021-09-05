@@ -10,14 +10,25 @@ from thenewboston_node.business_logic.tests.factories import add_blocks
 
 
 def test_get_block_chunk_filename_meta():
-    assert get_block_chunk_filename_meta('00012-000101-block-chunk.msgpack') == (12, 101, None)
-    assert get_block_chunk_filename_meta('00012-000101-block-chunk.msgpack.xz') == (12, 101, 'xz')
-    assert get_block_chunk_filename_meta('00012-000101-block-chunk.msgpack.bz2') == (12, 101, 'bz2')
-    assert get_block_chunk_filename_meta('00012-000101-block-chunk.msgpack.gz') == (12, 101, 'gz')
-    assert get_block_chunk_filename_meta('00012-xxxxxx-block-chunk.msgpack.gz') == (12, None, 'gz')
-    assert get_block_chunk_filename_meta('00012-000101-block-chunk.msgpack.zip') is None
-    assert get_block_chunk_filename_meta('00012-abc-block-chunk.msgpack') is None
-    assert get_block_chunk_filename_meta('00012-000101-aaaaa.msgpack') is None
+    assert get_block_chunk_filename_meta(
+        filename='00012-00101-block-chunk.msgpack'
+    ) == (None, None, None, '00012-00101-block-chunk.msgpack', 12, 101, None, None)
+    assert get_block_chunk_filename_meta(
+        filename='00012-00101-block-chunk.msgpack.xz'
+    ) == (None, None, None, '00012-00101-block-chunk.msgpack.xz', 12, 101, 'xz', None)
+    assert get_block_chunk_filename_meta(
+        filename='00012-00101-block-chunk.msgpack.bz2'
+    ) == (None, None, None, '00012-00101-block-chunk.msgpack.bz2', 12, 101, 'bz2', None)
+    assert get_block_chunk_filename_meta(
+        filename='00012-00101-block-chunk.msgpack.gz'
+    ) == (None, None, None, '00012-00101-block-chunk.msgpack.gz', 12, 101, 'gz', None)
+
+    assert get_block_chunk_filename_meta(
+        filename='00012-xxxxx-block-chunk.msgpack.gz'
+    ) == (None, None, None, '00012-xxxxx-block-chunk.msgpack.gz', 12, None, 'gz', None)
+    assert get_block_chunk_filename_meta(filename='00012-000101-block-chunk.msgpack.zip') is None
+    assert get_block_chunk_filename_meta(filename='00012-abc-block-chunk.msgpack') is None
+    assert get_block_chunk_filename_meta(filename='00012-000101-aaaaa.msgpack') is None
 
 
 def test_get_blockchain_filename_meta():
@@ -43,11 +54,13 @@ def test_file_blockchain_blocks_contain_metadata(file_blockchain: FileBlockchain
 
     blocks = blockchain.yield_blocks()
     expected_meta = {
-        'chunk_start_block':
+        'chunk_start_block_number':
             0,
-        'chunk_end_block':
+        'chunk_end_block_number':
             3,
-        'chunk_file_path':
+        'chunk_filename':
+            '00000000000000000000-00000000000000000003-block-chunk.msgpack',
+        'chunk_absolute_file_path':
             os.path.join(
                 block_chunks_directory, '0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000003-block-chunk.msgpack'
             )
@@ -59,11 +72,13 @@ def test_file_blockchain_blocks_contain_metadata(file_blockchain: FileBlockchain
         assert block_meta == expected_meta
 
     expected_meta = {
-        'chunk_start_block':
+        'chunk_start_block_number':
             4,
-        'chunk_end_block':
+        'chunk_end_block_number':
             7,
-        'chunk_file_path':
+        'chunk_filename':
+            '00000000000000000004-00000000000000000007-block-chunk.msgpack',
+        'chunk_absolute_file_path':
             os.path.join(
                 block_chunks_directory, '0/0/0/0/0/0/0/0/00000000000000000004-00000000000000000007-block-chunk.msgpack'
             )
@@ -75,11 +90,13 @@ def test_file_blockchain_blocks_contain_metadata(file_blockchain: FileBlockchain
         assert block_meta == expected_meta
 
     expected_meta = {
-        'chunk_start_block':
+        'chunk_start_block_number':
             8,
-        'chunk_end_block':
+        'chunk_end_block_number':
             None,
-        'chunk_file_path':
+        'chunk_filename':
+            '00000000000000000008-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack',
+        'chunk_absolute_file_path':
             os.path.join(
                 block_chunks_directory, '0/0/0/0/0/0/0/0/00000000000000000008-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
             )

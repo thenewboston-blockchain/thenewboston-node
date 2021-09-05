@@ -28,13 +28,13 @@ class SliceableCountableIterable:
             raise IndexError(str(item))
 
 
-class SliceableReversableCountableIterable(SliceableCountableIterable):
+class SliceableReversibleCountableIterable(SliceableCountableIterable):
 
     def __init__(self, source, reversed_source, count=None):
         super().__init__(source, count=count)
         self.reversed_source = reversed_source
 
     def __reversed__(self):
-        return SliceableReversableCountableIterable(
+        return SliceableReversibleCountableIterable(
             source=self.reversed_source, reversed_source=self.source, count=self.count
         )

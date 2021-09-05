@@ -106,3 +106,16 @@ def file_blockchain_with_two_blockchain_states(file_blockchain, treasury_account
     add_blocks(blockchain, 2, treasury_account_key_pair.private)
     blockchain.snapshot_blockchain_state()
     return blockchain
+
+
+@pytest.fixture
+def file_blockchain_with_three_block_chunks(file_blockchain):
+    blockchain = file_blockchain
+    with patch.object(blockchain, 'snapshot_period_in_blocks', 3):
+        add_blocks(blockchain, 8, file_blockchain._test_treasury_account_key_pair.private)
+        assert list(blockchain.get_block_chunk_storage().list_directory()) == [
+            '00000000000000000000-00000000000000000002-block-chunk.msgpack',
+            '00000000000000000003-00000000000000000005-block-chunk.msgpack',
+            '00000000000000000006-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack',
+        ]
+        yield blockchain

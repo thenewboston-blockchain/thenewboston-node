@@ -2,11 +2,11 @@ from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.exceptions import NotFound
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from thenewboston_node.blockchain.filters import BlockchainStateMetaOrderingFilter
 from thenewboston_node.blockchain.serializers.blockchain_states_meta import BlockchainStatesMetaSerializer
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
+from thenewboston_node.core.filters import SingleFieldReversibleOrderingFilter
 from thenewboston_node.core.pagination import CustomLimitOffsetPagination
-from thenewboston_node.core.utils.itertools import SliceableReversableCountableIterable
+from thenewboston_node.core.utils.itertools import SliceableReversibleCountableIterable
 
 GENESIS_BLOCKCHAIN_STATE_IDS = ('null', 'genesis')
 
@@ -14,7 +14,8 @@ GENESIS_BLOCKCHAIN_STATE_IDS = ('null', 'genesis')
 class BlockchainStatesMetaViewSet(ReadOnlyModelViewSet):
     serializer_class = BlockchainStatesMetaSerializer
     pagination_class = CustomLimitOffsetPagination
-    filter_backends = (BlockchainStateMetaOrderingFilter,)
+    filter_backends = (SingleFieldReversibleOrderingFilter,)
+    ordering_fields = ('last_block_number',)
 
     @extend_schema(
         parameters=[
@@ -26,7 +27,7 @@ class BlockchainStatesMetaViewSet(ReadOnlyModelViewSet):
 
     def get_queryset(self):
         blockchain = BlockchainBase.get_instance()
-        return SliceableReversableCountableIterable(
+        return SliceableReversibleCountableIterable(
             source=blockchain.yield_blockchain_states(lazy=True),
             reversed_source=blockchain.yield_blockchain_states_reversed(lazy=True),
             count=blockchain.get_blockchain_state_count

@@ -11,6 +11,9 @@ services:
       target: node
     image: thenewboston-node:current
     ports:
+      # We expose application server directly for debugging reasons therefore need another
+      # port to avoid collision with reverse-proxy service which ports
+      # are exposed in docker-compose.yml
       - 127.0.0.1:8000:8555
 
   reverse-proxy:

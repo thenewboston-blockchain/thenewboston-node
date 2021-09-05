@@ -143,7 +143,7 @@ class SerializableMixin(BaseMixin):
     def serialize_to_dict(self, skip_none_values=True, coerce_to_json_types=True, exclude=()):
         serialized = {}
         for field_name in self.get_field_names():
-            if field_name in exclude:
+            if field_name in exclude or not self.is_serializable_field(field_name):
                 continue
 
             value = getattr(self, field_name)

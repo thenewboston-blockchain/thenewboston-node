@@ -10,6 +10,11 @@ def pv_fee_amount():
 
 
 @pytest.fixture
+def preferred_node_fee_amount():
+    return 1
+
+
+@pytest.fixture
 def primary_validator(primary_validator_key_pair, pv_fee_amount):
     return baker.make(
         Node,
@@ -21,12 +26,12 @@ def primary_validator(primary_validator_key_pair, pv_fee_amount):
 
 
 @pytest.fixture
-def preferred_node(preferred_node_key_pair):
+def preferred_node(preferred_node_key_pair, preferred_node_fee_amount):
     return baker.make(
         Node,
         identifier=preferred_node_key_pair.public,
         network_addresses=['http://pref.localhost:8555/'],
-        fee_amount=1,
+        fee_amount=preferred_node_fee_amount,
         fee_account=None
     )
 

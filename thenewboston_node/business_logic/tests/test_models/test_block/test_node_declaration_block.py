@@ -1,8 +1,9 @@
 import pytest
 
-from thenewboston_node.business_logic.models import Block, NodeDeclarationSignedChangeRequest
+from thenewboston_node.business_logic.models import Block, Node, NodeDeclarationSignedChangeRequest
 from thenewboston_node.business_logic.models.mixins.compactable import compact_key as ck
 from thenewboston_node.business_logic.node import get_node_signing_key
+from thenewboston_node.core.utils import baker
 from thenewboston_node.core.utils.types import hexstr
 
 
@@ -38,9 +39,11 @@ def test_node_identifier_is_removed_when_node_declaration_signed_change_request_
     assert ck('identifier') not in compact_dict[ck('message')][ck('signed_change_request')][ck('message')][ck('node')]
 
 
-@pytest.mark.skip('Not implemented yet')
 def test_fee_account_key_is_removed_when_serialized_if_value_is_null():
-    raise NotImplementedError
+    node = baker.make(Node, fee_account=None)
+    node_dict = node.to_compact_dict(compact_keys=False)
+
+    assert 'fee_account' not in node_dict
 
 
 @pytest.mark.skip('Not implemented yet')

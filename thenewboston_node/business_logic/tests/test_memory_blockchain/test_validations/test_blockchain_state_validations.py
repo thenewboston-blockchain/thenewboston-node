@@ -5,7 +5,7 @@ from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.core.utils.types import hexstr
 
 
-def test_validate_account_root_files_raises(memory_blockchain: MemoryBlockchain,):
+def test_validate_blockchain_state_raises(memory_blockchain: MemoryBlockchain):
     blockchain = memory_blockchain
 
     assert blockchain.blockchain_states
@@ -17,8 +17,3 @@ def test_validate_account_root_files_raises(memory_blockchain: MemoryBlockchain,
     blockchain.blockchain_states = []
     with pytest.raises(ValidationError, match='Blockchain must contain at least one blockchain state'):
         blockchain.validate_blockchain_states()
-
-
-@pytest.mark.skip('Not implemented yet')
-def test_validate_account_root_file_balances():
-    raise NotImplementedError

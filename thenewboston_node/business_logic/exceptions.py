@@ -24,6 +24,14 @@ class InvalidMessageSignatureError(InvalidSignatureError):
         super().__init__(message or 'Message signature is invalid')
 
 
+class ChangeRequestError(BlockchainError):
+    pass
+
+
+class CoinTransferRequestError(ChangeRequestError):
+    pass
+
+
 class BlockchainLockedError(BlockchainError):
     pass
 

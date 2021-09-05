@@ -67,7 +67,9 @@ def memory_blockchain(blockchain_genesis_state):
 
 @pytest.fixture
 def file_blockchain(blockchain_genesis_state, blockchain_directory):
-    blockchain = FileBlockchain(base_directory=blockchain_directory)
+    blockchain = FileBlockchain(
+        base_directory=blockchain_directory, blockchain_state_storage_kwargs={'always_compress': True}
+    )
     blockchain.add_blockchain_state(blockchain_genesis_state)
     blockchain._test_treasury_account_key_pair = blockchain_genesis_state._test_treasury_account_key_pair
     blockchain.validate()

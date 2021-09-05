@@ -79,9 +79,10 @@ class BlochainStateFileBlockchainMixin(FileBlockchainBaseMixin):
             assert storage.is_finalized(file_path)
             blockchain_state = BlockchainState.from_messagepack(storage.load(file_path))
 
-            meta = get_blockchain_state_filename_meta(file_path)
+            actual_file_path = self._get_blockchain_state_real_file_path(file_path)
+            meta = get_blockchain_state_file_path_meta(actual_file_path)
             blockchain_state.meta = {
-                'file_path': self._get_blockchain_state_real_file_path(file_path),
+                'file_path': actual_file_path,
                 'last_block_number': meta.last_block_number,
                 'compression': meta.compression,
                 'blockchain': self,
@@ -122,7 +123,7 @@ class BlochainStateFileBlockchainMixin(FileBlockchainBaseMixin):
         return ilen(self.get_blockchain_state_storage().list_directory())
 
     def _get_blockchain_state_real_file_path(self, file_path):
-        optimized_path = self.get_blockchain_state_storage().get_optimized_path(file_path)
+        optimized_path = self.get_blockchain_state_storage().get_optimized_actual_path(file_path)
         abs_optimized_path = os.path.join(self.get_blockchain_state_directory(), optimized_path)
         return os.path.relpath(abs_optimized_path, self.get_base_directory())
 

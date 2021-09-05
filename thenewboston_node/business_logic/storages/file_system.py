@@ -8,7 +8,7 @@ import shutil
 import stat
 from functools import partial
 from pathlib import Path
-from typing import Optional, Union
+from typing import Generator, NamedTuple, Optional, Union
 
 from thenewboston_node.business_logic import exceptions
 from thenewboston_node.core.logging import timeit_method
@@ -31,6 +31,12 @@ FILE_PATH_RE = re.compile(r'.*\.(?P<compressor>{})$'.format('|'.join(DECOMPRESSI
 STAT_WRITE_PERMS_ALL = stat.S_IWGRP | stat.S_IWUSR | stat.S_IWOTH
 
 logger = logging.getLogger(__name__)
+
+
+class CompressedData(NamedTuple):
+    data: bytes
+    compressor: str
+    size: int
 
 
 def ensure_directory_exists_for_file_path(file_path):
@@ -92,10 +98,18 @@ class FileSystemStorage:
     Compressing / decompressing storage for capacity optimization
     """
 
-    def __init__(self, base_path: Union[str, Path], compressors=tuple(COMPRESSION_FUNCTIONS), temp_dir='.tmp'):
+    def __init__(
+        self,
+        base_path: Union[str, Path],
+        compressors=tuple(COMPRESSION_FUNCTIONS),
+        temp_dir='.tmp',
+        always_compress=False
+    ):
+        assert not always_compress or compressors, 'Compressors must be set if always_compress=True'
         self.base_path = Path(base_path).resolve()
         self.compressors = compressors
         self.temp_dir = self.base_path / temp_dir
+        self.always_compress = always_compress
 
     def clear(self):
         shutil.rmtree(self.base_path, ignore_errors=True)
@@ -173,32 +187,32 @@ class FileSystemStorage:
         with open(absolute_file_path, 'rb') as fo:
             original_data = fo.read()
 
-        logger.debug('File %s size: %s bytes', absolute_file_path, len(original_data))
-        best_absolute_file_path = absolute_file_path
-        best_data = original_data
-
-        for compressor in self.compressors:
-            compress_function = COMPRESSION_FUNCTIONS[compressor]
-            compressed_data = compress_function(original_data)  # type: ignore
-            compressed_size = len(compressed_data)
-            logger.debug(
-                'File %s compressed with %s size: %s bytes (%.2f ratio)', absolute_file_path, compressor,
-                compressed_size, compressed_size / len(original_data)
-            )
-            # TODO(dmu) LOW: For compressed_size == best[0] choose fastest compression
-            if compressed_size < len(best_data):
-                best_absolute_file_path = Path(str(absolute_file_path) + '.' + compressor)
-                best_data = compressed_data
-                logger.debug('New best %s: %s size', best_absolute_file_path, len(best_data))
-
-        if best_absolute_file_path != absolute_file_path:
-            logger.debug('Writing compressed file: %s (%s bytes)', best_absolute_file_path, len(best_data))
-            self._write_file(best_absolute_file_path, best_data, mode='wb')
+        original_size = len(original_data)
+        logger.debug('File %s size: %s bytes', absolute_file_path, original_size)
+        best_compressed_data = min(self._yield_compressed_data(original_data, compressors), key=lambda x: x.size)
+        if self.always_compress or best_compressed_data.size < original_size:
+            compressed_file_path = Path(str(absolute_file_path) + '.' + best_compressed_data.compressor)
+            logger.debug('Writing compressed file: %s (%s bytes)', compressed_file_path, len(best_compressed_data))
+            self._write_file(compressed_file_path, best_compressed_data.data, mode='wb')
 
             logger.debug('Removing %s', absolute_file_path)
             os.remove(absolute_file_path)
+            return compressed_file_path
 
-        return best_absolute_file_path
+        return absolute_file_path
+
+    @staticmethod
+    def _yield_compressed_data(original_data, compressors) -> Generator[CompressedData, None, None]:
+        original_size = len(original_data)
+        for compressor in compressors:
+            compress_function = COMPRESSION_FUNCTIONS[compressor]
+            data = compress_function(original_data)  # type: ignore
+            compressed_data = CompressedData(data=data, size=len(data), compressor=compressor)
+            logger.debug(
+                'Compressed with %s size: %s bytes (%.2f ratio)', compressor, compressed_data.size,
+                compressed_data.size / original_size
+            )
+            yield compressed_data
 
     def _persist(self, file_path: Union[str, Path], binary_data: bytes, mode, is_final=False):
         absolute_file_path = self._get_absolute_path(file_path)

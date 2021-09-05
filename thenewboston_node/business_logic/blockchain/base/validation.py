@@ -15,6 +15,8 @@ class ValidationMixin:
     def validate(self, is_partial_allowed: bool = True):
         self.validate_blockchain_states(is_partial_allowed=is_partial_allowed)
         self.validate_blocks()
+        self.validate_has_declared_node()
+        self.validate_has_pv_schedule()
 
     @validates('blockchain states', is_plural_target=True)
     def validate_blockchain_states(self, is_partial_allowed: bool = True):
@@ -195,3 +197,13 @@ class ValidationMixin:
             raise ValidationError(
                 f'Expected block identifier {expected_block_identifier} but got {actual_block_identifier}'
             )
+
+    @validates('if contains at least one declared node')
+    def validate_has_declared_node(self):
+        if not self.has_nodes():
+            raise ValidationError('Blockchain must contain at least one declared node')
+
+    @validates('if contains a PV schedule for the next block')
+    def validate_has_pv_schedule(self):
+        if not self.get_primary_validator():
+            raise ValidationError('Blockchain must contain a PV schedule for the next block')

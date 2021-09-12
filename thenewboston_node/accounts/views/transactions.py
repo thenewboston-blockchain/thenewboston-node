@@ -5,7 +5,7 @@ from thenewboston_node.accounts.serializers.transaction import TransactionSerial
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.core.filters import SingleFieldReversibleOrderingFilter
 from thenewboston_node.core.pagination import CustomNoCountLimitOffsetPagination
-from thenewboston_node.core.utils.itertools import SliceableReversibleCountableIterable
+from thenewboston_node.core.utils.itertools import AdvancedIterator
 
 
 class TransactionViewSet(ListModelMixin, GenericViewSet):
@@ -18,7 +18,7 @@ class TransactionViewSet(ListModelMixin, GenericViewSet):
         account_id = self.kwargs.get('id')
         blockchain = BlockchainBase.get_instance()
 
-        return SliceableReversibleCountableIterable(
+        return AdvancedIterator(
             source=blockchain.yield_transactions(account_id=account_id),
             reversed_source=blockchain.yield_transactions(account_id=account_id, is_reversed=True)
         )

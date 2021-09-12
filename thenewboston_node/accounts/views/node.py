@@ -7,7 +7,7 @@ from thenewboston_node.accounts.serializers.node import NodeSerializer
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.node import get_node_identifier
 from thenewboston_node.core.pagination import CustomLimitOffsetPagination
-from thenewboston_node.core.utils.itertools import SliceableCountableIterable
+from thenewboston_node.core.utils.itertools import AdvancedIterator
 from thenewboston_node.core.utils.types import hexstr
 
 PRIMARY_VALIDATOR_NODE_ID = 'pv'
@@ -41,4 +41,4 @@ class NodeViewSet(ReadOnlyModelViewSet):
 
     def get_queryset(self):
         blockchain = BlockchainBase.get_instance()
-        return SliceableCountableIterable(blockchain.yield_nodes(), count=blockchain.get_nodes_count)
+        return AdvancedIterator(blockchain.yield_nodes(), count=blockchain.get_nodes_count)

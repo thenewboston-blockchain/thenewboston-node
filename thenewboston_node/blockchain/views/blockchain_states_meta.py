@@ -6,7 +6,7 @@ from thenewboston_node.blockchain.serializers.blockchain_states_meta import Bloc
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.core.filters import SingleFieldReversibleOrderingFilter
 from thenewboston_node.core.pagination import CustomLimitOffsetPagination
-from thenewboston_node.core.utils.itertools import SliceableReversibleCountableIterable
+from thenewboston_node.core.utils.itertools import AdvancedIterator
 
 GENESIS_BLOCKCHAIN_STATE_IDS = ('null', 'genesis')
 
@@ -27,7 +27,7 @@ class BlockchainStatesMetaViewSet(ReadOnlyModelViewSet):
 
     def get_queryset(self):
         blockchain = BlockchainBase.get_instance()
-        return SliceableReversibleCountableIterable(
+        return AdvancedIterator(
             source=blockchain.yield_blockchain_states(lazy=True),
             reversed_source=blockchain.yield_blockchain_states_reversed(lazy=True),
             count=blockchain.get_blockchain_state_count

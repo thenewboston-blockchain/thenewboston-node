@@ -11,7 +11,7 @@ from thenewboston_node.business_logic.blockchain.file_blockchain import FileBloc
 from thenewboston_node.core.exceptions import NotImplementAPIError
 from thenewboston_node.core.filters import SingleFieldReversibleOrderingFilter
 from thenewboston_node.core.pagination import CustomNoCountLimitOffsetPagination
-from thenewboston_node.core.utils.itertools import FilterableIterator
+from thenewboston_node.core.utils.itertools import AdvancedIterator
 
 
 class StartBlockNumberFilter(NumberFilter):
@@ -78,7 +78,7 @@ class BlockChunksMetaViewSet(ListModelMixin, GenericViewSet):
         if not isinstance(blockchain, FileBlockchain):
             raise NotImplementAPIError(f'End-point is not available for {blockchain.__class__.__name__}')
 
-        return FilterableIterator(
+        return AdvancedIterator(
             source=blockchain.yield_block_chunks_meta(),
             reversed_source=blockchain.yield_block_chunks_meta(direction=-1),
         )

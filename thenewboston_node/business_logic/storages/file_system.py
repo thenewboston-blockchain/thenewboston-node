@@ -11,14 +11,23 @@ from pathlib import Path
 from typing import Optional, Union
 
 from thenewboston_node.business_logic import exceptions
-from thenewboston_node.core.logging import timeit_method
+from thenewboston_node.core.logging import timeit, timeit_method
 from thenewboston_node.core.utils.atomic_write import atomic_write_append
+
+
+def bz2_best_compress(data):
+    return bz2.compress(data, compresslevel=9)
+
+
+def gzip_best_compress(data):
+    return gzip.compress(data, compresslevel=9)
+
 
 # TODO(dmu) LOW: Support more / better compression methods
 COMPRESSION_FUNCTIONS = {
-    'xz': lzma.compress,
-    'bz2': lambda data: bz2.compress(data, compresslevel=9),
-    'gz': lambda data: gzip.compress(data, compresslevel=9),
+    'xz': lzma.compress,  # TODO(dmu) HIGH: This algorithm is 10 times more expensive than the bz2 or gz. Reconsider
+    'bz2': bz2_best_compress,
+    'gz': gzip_best_compress,
 }
 
 DECOMPRESSION_FUNCTIONS = {
@@ -92,10 +101,17 @@ class FileSystemStorage:
     Compressing / decompressing storage for capacity optimization
     """
 
-    def __init__(self, base_path: Union[str, Path], compressors=tuple(COMPRESSION_FUNCTIONS), temp_dir='.tmp'):
+    def __init__(
+        self,
+        base_path: Union[str, Path],
+        compressors=tuple(COMPRESSION_FUNCTIONS),
+        temp_dir='.tmp',
+        use_atomic_write=True
+    ):
         self.base_path = Path(base_path).resolve()
         self.compressors = compressors
         self.temp_dir = self.base_path / temp_dir
+        self.use_atomic_write = use_atomic_write
 
     def clear(self):
         shutil.rmtree(self.base_path, ignore_errors=True)
@@ -112,6 +128,7 @@ class FileSystemStorage:
 
         return data
 
+    @timeit_method()
     def append(self, file_path: Union[str, Path], binary_data: bytes, is_final=False):
         self._persist(file_path, binary_data, 'ab', is_final=is_final)
 
@@ -149,6 +166,7 @@ class FileSystemStorage:
         return abs_path
 
     @staticmethod
+    @timeit()
     def _get_compressed_file_path(absolute_path, prefer_uncompressed=False):
         # TODO(dmu) HIGH: Should we prefer uncompressed in case of existence of both versions?
         if prefer_uncompressed and os.path.exists(absolute_path):  # Fast track
@@ -165,6 +183,26 @@ class FileSystemStorage:
         return self._get_compressed_file_path(str(self._get_absolute_path(file_path)))
 
     @timeit_method()
+    def _get_best_compression(self, data):
+        best_compressor = None
+        best_data = data
+        for compressor in self.compressors:
+            compress_function = COMPRESSION_FUNCTIONS[compressor]
+            compressed_data = timeit()(compress_function)(data)  # type: ignore
+            compressed_size = len(compressed_data)
+            logger.debug(
+                'Data compressed with %s size: %s bytes (%.2f ratio)', compressor, compressed_size,
+                compressed_size / len(data)
+            )
+            # TODO(dmu) LOW: For compressed_size == best[0] choose fastest compression
+            if compressed_size < len(best_data):
+                best_compressor = compressor
+                best_data = compressed_data
+                logger.debug('New best %s: %s size', best_compressor, len(best_data))
+
+        return best_data, best_compressor
+
+    @timeit_method()
     def _compress(self, absolute_file_path: Path) -> Path:
         compressors = self.compressors
         if not compressors:  # Fast track
@@ -174,22 +212,10 @@ class FileSystemStorage:
             original_data = fo.read()
 
         logger.debug('File %s size: %s bytes', absolute_file_path, len(original_data))
-        best_absolute_file_path = absolute_file_path
-        best_data = original_data
 
-        for compressor in self.compressors:
-            compress_function = COMPRESSION_FUNCTIONS[compressor]
-            compressed_data = compress_function(original_data)  # type: ignore
-            compressed_size = len(compressed_data)
-            logger.debug(
-                'File %s compressed with %s size: %s bytes (%.2f ratio)', absolute_file_path, compressor,
-                compressed_size, compressed_size / len(original_data)
-            )
-            # TODO(dmu) LOW: For compressed_size == best[0] choose fastest compression
-            if compressed_size < len(best_data):
-                best_absolute_file_path = Path(str(absolute_file_path) + '.' + compressor)
-                best_data = compressed_data
-                logger.debug('New best %s: %s size', best_absolute_file_path, len(best_data))
+        best_data, best_compressor = self._get_best_compression(original_data)
+        ext = ('.' + best_compressor) if best_compressor else ''
+        best_absolute_file_path = Path(str(absolute_file_path) + ext)
 
         if best_absolute_file_path != absolute_file_path:
             logger.debug('Writing compressed file: %s (%s bytes)', best_absolute_file_path, len(best_data))
@@ -200,25 +226,37 @@ class FileSystemStorage:
 
         return best_absolute_file_path
 
+    @timeit_method()
     def _persist(self, file_path: Union[str, Path], binary_data: bytes, mode, is_final=False):
         absolute_file_path = self._get_absolute_path(file_path)
         ensure_directory_exists_for_file_path(str(absolute_file_path))
 
-        # TODO(dmu) HIGH: Optimize for 'wb' mode so we do not need to reread the file from
-        #                 filesystem to compress it
+        if is_final and mode == 'wb':
+            # Compress data and write it to avoid rereading file from disk for compression
+            binary_data, compressor = self._get_best_compression(binary_data)
+            ext = ('.' + compressor) if compressor else ''
+            absolute_file_path = Path(str(absolute_file_path) + ext)
+            compress = False
+        else:
+            compress = True
+
         self._write_file(absolute_file_path, binary_data, mode)
 
         if is_final:
-            self._finalize(absolute_file_path)
+            self._finalize(absolute_file_path, compress=compress)
 
-    def _finalize(self, absolute_file_path: Path):
-        actual_file_path = self._compress(absolute_file_path)
-        drop_write_permissions(actual_file_path)
-        return actual_file_path
+    @timeit_method()
+    def _finalize(self, absolute_file_path: Path, compress=True):
+        if compress:
+            absolute_file_path = self._compress(absolute_file_path)
+
+        drop_write_permissions(absolute_file_path)
+        return absolute_file_path
 
     def _is_finalized(self, actual_file_path):
         return os.path.exists(actual_file_path) and not has_write_permissions(actual_file_path)
 
+    @timeit_method()
     def _write_file(self, absolute_file_path: Path, binary_data: bytes, mode):
         compressed_file_path = self._get_compressed_file_path(str(absolute_file_path))
         if self._is_finalized(compressed_file_path):
@@ -226,6 +264,11 @@ class FileSystemStorage:
                 f'Could not write to file {absolute_file_path} finalized as {compressed_file_path}'
             )
 
-        self.temp_dir.mkdir(parents=True, exist_ok=True)
-        with atomic_write_append(absolute_file_path, mode=mode, dir=self.temp_dir) as fo:
-            fo.write(binary_data)
+        if self.use_atomic_write:
+            self.temp_dir.mkdir(parents=True, exist_ok=True)
+            # TODO(dmu) HIGH: Atomic write is about 30 times slower than a simple write. Consider optimizations
+            with atomic_write_append(absolute_file_path, mode=mode, dir=self.temp_dir) as fo:
+                fo.write(binary_data)
+        else:
+            with open(absolute_file_path, mode=mode) as fo:
+                fo.write(binary_data)

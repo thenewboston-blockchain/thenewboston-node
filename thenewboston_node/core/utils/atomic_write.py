@@ -12,6 +12,7 @@ def atomic_write_append(file_path, mode, create_perms=0o644, **kwargs):
     append = 'a' in mode
     if append:
         kwargs.setdefault('overwrite', True)
+
     with atomicwrites.atomic_write(file_path, mode=mode.replace('a', 'w'), **kwargs) as fo:
         # TODO(abo) MEDIUM: append may be slow, probably switch to OS-level file copying
         if append and Path(file_path).exists():

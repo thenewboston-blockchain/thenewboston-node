@@ -8,6 +8,7 @@ from more_itertools import ilen
 
 from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
 from thenewboston_node.business_logic.storages.file_system import COMPRESSION_FUNCTIONS
+from thenewboston_node.core.logging import timeit_method
 from thenewboston_node.core.utils.file_lock import ensure_locked, lock_method
 
 from .base import EXPECTED_LOCK_EXCEPTION, LOCKED_EXCEPTION, FileBlockchainBaseMixin  # noqa: I101
@@ -64,16 +65,17 @@ class BlochainStateFileBlockchainMixin(FileBlockchainBaseMixin):
     def add_blockchain_state(self, blockchain_state: BlockchainState):
         return super().add_blockchain_state(blockchain_state)  # type: ignore
 
+    @timeit_method()
     @ensure_locked(lock_attr='file_lock', exception=EXPECTED_LOCK_EXCEPTION)
     def persist_blockchain_state(self, blockchain_state: BlockchainState):
         filename = self.make_blockchain_state_filename(blockchain_state.last_block_number)
         self.get_blockchain_state_storage().save(filename, blockchain_state.to_messagepack(), is_final=True)
 
+    @timeit_method()
     def _load_blockchain_state(self, file_path):
-        logger.debug('Loading blockchain from %s', file_path)
         cache = self.get_blockchain_state_cache()
-
         blockchain_state = cache.get(file_path)
+
         if blockchain_state is None:
             storage = self.get_blockchain_state_storage()
             assert storage.is_finalized(file_path)
@@ -87,8 +89,6 @@ class BlochainStateFileBlockchainMixin(FileBlockchainBaseMixin):
                 'blockchain': self,
             }
             cache[file_path] = blockchain_state
-        else:
-            logger.debug('Cache hit for %s', file_path)
 
         return blockchain_state
 

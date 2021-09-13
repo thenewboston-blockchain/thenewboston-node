@@ -1,6 +1,3 @@
-import copy
-
-from django_filters import FilterSet, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.mixins import ListModelMixin
 from rest_framework.viewsets import GenericViewSet
@@ -9,57 +6,16 @@ from thenewboston_node.blockchain.serializers.block_chunks_meta import BlockChun
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
 from thenewboston_node.core.exceptions import NotImplementAPIError
-from thenewboston_node.core.filters import SingleFieldReversibleOrderingFilter
+from thenewboston_node.core.filters import (
+    AdvanceIteratorFilterSet, AdvanceIteratorNumberFilter, SingleFieldReversibleOrderingFilter
+)
 from thenewboston_node.core.pagination import CustomNoCountLimitOffsetPagination
 from thenewboston_node.core.utils.itertools import AdvancedIterator
 
 
-class StartBlockNumberFilter(NumberFilter):
-
-    def filter(self, qs, value):  # noqa: A003
-        if value is None:
-            return qs
-
-        # TODO(dmu) MEDIUM: Improve filtering performance to avoid traversal of unneeded items
-        qs.add_filter(lambda x: x.end_block_number >= value)
-        return qs
-
-
-class EndBlockNumberFilter(NumberFilter):
-
-    def filter(self, qs, value):  # noqa: A003
-        if value is None:
-            return qs
-
-        # TODO(dmu) MEDIUM: Improve filtering performance to avoid traversal of unneeded items
-        qs.add_filter(lambda x: x.start_block_number <= value)
-        return qs
-
-
-class BlockChunksMetaFilterSet(FilterSet):
-    start_block_number = StartBlockNumberFilter()
-    end_block_number = EndBlockNumberFilter()
-
-    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
-        self.is_bound = data is not None
-        self.data = data or {}
-        self.queryset = queryset
-        self.request = request
-        self.form_prefix = prefix
-
-        self.filters = copy.deepcopy(self.base_filters)
-
-    def filter_queryset(self, queryset):
-        for name, value in self.form.cleaned_data.items():
-            queryset = self.filters[name].filter(queryset, value)
-
-        return queryset
-
-    @property
-    def qs(self):
-        if not hasattr(self, '_qs'):
-            self._qs = self.filter_queryset(self.queryset)
-        return self._qs
+class BlockChunksMetaFilterSet(AdvanceIteratorFilterSet):
+    start_block_number = AdvanceIteratorNumberFilter(lambda x, filter_value: x.end_block_number >= filter_value)
+    end_block_number = AdvanceIteratorNumberFilter(lambda x, filter_value: x.start_block_number <= filter_value)
 
     class Meta:
         model = None

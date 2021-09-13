@@ -25,11 +25,11 @@ def test_can_list_block_chunk_meta(api_client, file_blockchain_with_three_block_
             2,
         'url_path': (
             '/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
-            '00000000000000000000-00000000000000000002-block-chunk.msgpack.xz'
+            '00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
         ),
         'urls': [
             'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
-            '00000000000000000000-00000000000000000002-block-chunk.msgpack.xz'
+            '00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
         ]
     }
     assert meta_1 == {
@@ -39,11 +39,11 @@ def test_can_list_block_chunk_meta(api_client, file_blockchain_with_three_block_
             5,
         'url_path': (
             '/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
-            '00000000000000000003-00000000000000000005-block-chunk.msgpack.xz'
+            '00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
         ),
         'urls': [
             'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
-            '00000000000000000003-00000000000000000005-block-chunk.msgpack.xz'
+            '00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
         ]
     }
     assert meta_2 == {
@@ -80,11 +80,11 @@ def test_can_order_block_chunk_meta(api_client, file_blockchain_with_three_block
             2,
         'url_path': (
             '/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
-            '00000000000000000000-00000000000000000002-block-chunk.msgpack.xz'
+            '00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
         ),
         'urls': [
             'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
-            '00000000000000000000-00000000000000000002-block-chunk.msgpack.xz'
+            '00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
         ]
     }
     assert meta_1 == {
@@ -94,11 +94,11 @@ def test_can_order_block_chunk_meta(api_client, file_blockchain_with_three_block
             5,
         'url_path': (
             '/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
-            '00000000000000000003-00000000000000000005-block-chunk.msgpack.xz'
+            '00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
         ),
         'urls': [
             'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
-            '00000000000000000003-00000000000000000005-block-chunk.msgpack.xz'
+            '00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
         ]
     }
     assert meta_0 == {
@@ -135,11 +135,11 @@ def test_can_order_block_chunk_meta_with_limit(api_client, file_blockchain_with_
             5,
         'url_path': (
             '/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
-            '00000000000000000003-00000000000000000005-block-chunk.msgpack.xz'
+            '00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
         ),
         'urls': [
             'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
-            '00000000000000000003-00000000000000000005-block-chunk.msgpack.xz'
+            '00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
         ]
     }
     assert meta_0 == {
@@ -176,11 +176,11 @@ def test_can_order_block_chunk_meta_with_limit_and_offset(api_client, file_block
             5,
         'url_path': (
             '/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
-            '00000000000000000003-00000000000000000005-block-chunk.msgpack.xz'
+            '00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
         ),
         'urls': [
             'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
-            '00000000000000000003-00000000000000000005-block-chunk.msgpack.xz'
+            '00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
         ]
     }
 

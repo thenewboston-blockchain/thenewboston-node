@@ -17,13 +17,13 @@ def test_yield_block_chunks_meta(file_blockchain_with_three_block_chunks):
         BlockChunkFilenameMeta(
             absolute_file_path=os.path.join(
                 base_directory,
-                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000002-block-chunk.msgpack.xz'
+                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
             ),
             blockchain_root_relative_file_path=(
-                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000002-block-chunk.msgpack.xz'
+                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
             ),
             storage_relative_file_path=(
-                '0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000002-block-chunk.msgpack.xz'
+                '0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
             ),
             filename='00000000000000000000-00000000000000000002-block-chunk.msgpack',
             start_block_number=0,
@@ -34,13 +34,13 @@ def test_yield_block_chunks_meta(file_blockchain_with_three_block_chunks):
         BlockChunkFilenameMeta(
             absolute_file_path=os.path.join(
                 base_directory,
-                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000003-00000000000000000005-block-chunk.msgpack.xz'
+                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
             ),
             blockchain_root_relative_file_path=(
-                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000003-00000000000000000005-block-chunk.msgpack.xz'
+                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
             ),
             storage_relative_file_path=(
-                '0/0/0/0/0/0/0/0/00000000000000000003-00000000000000000005-block-chunk.msgpack.xz'
+                '0/0/0/0/0/0/0/0/00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
             ),
             filename='00000000000000000003-00000000000000000005-block-chunk.msgpack',
             start_block_number=3,
@@ -98,13 +98,13 @@ def test_yield_block_chunks_meta_reversed(file_blockchain_with_three_block_chunk
         BlockChunkFilenameMeta(
             absolute_file_path=os.path.join(
                 base_directory,
-                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000003-00000000000000000005-block-chunk.msgpack.xz'
+                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
             ),
             blockchain_root_relative_file_path=(
-                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000003-00000000000000000005-block-chunk.msgpack.xz'
+                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
             ),
             storage_relative_file_path=(
-                '0/0/0/0/0/0/0/0/00000000000000000003-00000000000000000005-block-chunk.msgpack.xz'
+                '0/0/0/0/0/0/0/0/00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
             ),
             filename='00000000000000000003-00000000000000000005-block-chunk.msgpack',
             start_block_number=3,
@@ -115,13 +115,13 @@ def test_yield_block_chunks_meta_reversed(file_blockchain_with_three_block_chunk
         BlockChunkFilenameMeta(
             absolute_file_path=os.path.join(
                 base_directory,
-                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000002-block-chunk.msgpack.xz'
+                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
             ),
             blockchain_root_relative_file_path=(
-                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000002-block-chunk.msgpack.xz'
+                'block-chunks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
             ),
             storage_relative_file_path=(
-                '0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000002-block-chunk.msgpack.xz'
+                '0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
             ),
             filename='00000000000000000000-00000000000000000002-block-chunk.msgpack',
             start_block_number=0,

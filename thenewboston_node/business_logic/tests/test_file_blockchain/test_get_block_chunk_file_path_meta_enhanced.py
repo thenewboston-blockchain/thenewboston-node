@@ -15,11 +15,11 @@ def test_get_block_chunk_file_path_meta_enhanced(file_blockchain_with_three_bloc
     assert meta.compression is None
     assert meta.absolute_file_path == os.path.join(
         blockchain.get_base_directory(),
-        'block-chunks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000002-block-chunk.msgpack.xz',
+        'block-chunks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000002-block-chunk.msgpack.gz',
     )
     assert meta.blockchain_root_relative_file_path == (
-        'block-chunks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000002-block-chunk.msgpack.xz'
+        'block-chunks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
     )
     assert meta.storage_relative_file_path == (
-        '0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000002-block-chunk.msgpack.xz'
+        '0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
     )

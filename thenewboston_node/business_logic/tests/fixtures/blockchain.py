@@ -1,6 +1,8 @@
 import logging
 from unittest.mock import patch
 
+from django.conf import settings
+
 import pytest
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
@@ -67,7 +69,17 @@ def memory_blockchain(blockchain_genesis_state):
 
 @pytest.fixture
 def file_blockchain(blockchain_genesis_state, blockchain_directory):
-    blockchain = FileBlockchain(base_directory=blockchain_directory)
+    blockchain = FileBlockchain(
+        base_directory=blockchain_directory,
+        blockchain_state_storage_kwargs={
+            'use_atomic_write': not settings.FASTER_UNITTESTS,
+            'compressors': ('gz',)
+        },
+        block_chunk_storage_kwargs={
+            'use_atomic_write': not settings.FASTER_UNITTESTS,
+            'compressors': ('gz',)
+        },
+    )
     blockchain.add_blockchain_state(blockchain_genesis_state)
     blockchain._test_treasury_account_key_pair = blockchain_genesis_state._test_treasury_account_key_pair
     blockchain.validate()

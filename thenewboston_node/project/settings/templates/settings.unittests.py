@@ -14,3 +14,5 @@ LOGGING['handlers']['console']['level'] = 'DEBUG'
 LOGGING['handlers']['console']['formatter'] = 'colored'
 
 IS_LOCAL_SETTINGS_FILE_APPLIED = True
+
+FASTER_UNITTESTS = True

@@ -10,6 +10,7 @@ from thenewboston_node.business_logic.models.block_message import BlockMessage
 from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
 from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.business_logic.utils.blockchain import generate_blockchain
+from thenewboston_node.core.logging import timeit
 from thenewboston_node.core.utils.cryptography import KeyPair, derive_public_key
 from thenewboston_node.core.utils.factory import Factory, factory
 from thenewboston_node.core.utils.types import hexstr
@@ -20,6 +21,7 @@ PV_ACCOUNT = hexstr('dbc82ca874ae06ea39ea40f6f12dcca9c28aa88df989d9723338d7c9b94
 # TODO(dmu) HIGH: Replace these factories with `baker`-based factories
 
 
+@timeit()
 def add_blocks(blockchain, block_count, treasury_account_private_key=None, add_blockchain_genesis_state=False):
     if treasury_account_private_key:
         treasury_account_key_pair = KeyPair(

@@ -71,7 +71,7 @@ class BlochainStateFileBlockchainMixin(FileBlockchainBaseMixin):
         filename = self.make_blockchain_state_filename(blockchain_state.last_block_number)
         self.get_blockchain_state_storage().save(filename, blockchain_state.to_messagepack(), is_final=True)
 
-    @timeit_method()
+    @timeit_method(verbose_args=True)
     def _load_blockchain_state(self, file_path):
         cache = self.get_blockchain_state_cache()
         blockchain_state = cache.get(file_path)

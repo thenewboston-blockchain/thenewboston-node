@@ -79,7 +79,10 @@ class CoinTransferSignedChangeRequest(SignedChangeRequest):
             f'{self.humanized_class_name} message balance_lock', self.message.balance_lock, expected_lock
         )
 
+    @timeit_method()
     def get_updated_account_states(self, blockchain) -> dict[hexstr, AccountState]:
+        last_block_number = blockchain.get_last_block_number()  # for better performance and consistency ask once
+
         updated_account_states: dict[hexstr, AccountState] = {}
         sent_amount = 0
         for transaction in self.message.txs:
@@ -88,7 +91,7 @@ class CoinTransferSignedChangeRequest(SignedChangeRequest):
 
             account_state = updated_account_states.get(recipient)
             if account_state is None:
-                account_state = AccountState(balance=blockchain.get_account_current_balance(recipient))
+                account_state = AccountState(balance=blockchain.get_account_balance(recipient, last_block_number))
                 updated_account_states[recipient] = account_state
 
             assert account_state.balance is not None
@@ -97,7 +100,7 @@ class CoinTransferSignedChangeRequest(SignedChangeRequest):
         assert sent_amount > 0
 
         coin_sender = self.signer
-        sender_balance = blockchain.get_account_current_balance(coin_sender)
+        sender_balance = blockchain.get_account_balance(coin_sender, last_block_number)
         assert sender_balance > 0
         assert sender_balance >= sent_amount
 

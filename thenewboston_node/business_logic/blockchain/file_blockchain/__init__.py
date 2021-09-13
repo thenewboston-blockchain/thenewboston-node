@@ -76,6 +76,7 @@ class FileBlockchain(
         self._base_directory = base_directory
         self._file_lock = None
         self._lock_filename = lock_filename
+        self._lock_cache = {}
 
     # Common
     def get_base_directory(self):
@@ -141,6 +142,7 @@ class FileBlockchain(
     def get_block_chunk_subdirectory(self):
         return self._block_chunk_subdirectory
 
+    @timeit_method()
     def get_block_chunk_last_block_number_cache(self):
         if (cache := self._block_chunk_last_block_number_cache) is None:
             self._block_chunk_last_block_number_cache = cache = LRUCache(2)

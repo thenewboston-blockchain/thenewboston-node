@@ -10,8 +10,8 @@ from more_itertools import always_reversible, ilen
 from thenewboston_node.business_logic.exceptions import InvalidBlockchainError
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.storages.file_system import COMPRESSION_FUNCTIONS
-from thenewboston_node.core.logging import timeit
-from thenewboston_node.core.utils.file_lock import ensure_locked, lock_method
+from thenewboston_node.core.logging import timeit, timeit_method
+from thenewboston_node.core.utils.file_lock import ensure_locked, lock_cached, lock_method
 
 from .base import EXPECTED_LOCK_EXCEPTION, LOCKED_EXCEPTION, FileBlockchainBaseMixin  # noqa: I101
 
@@ -211,7 +211,7 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
         # This method is used to clean for super rare case when something goes wrong between blockchain state
         # generation and block chunk finalization
 
-        # TODO(dmu) HIGH: Implemenet a higher performance algorithm for this. Options: 1) cache finalized names
+        # TODO(dmu) HIGH: Implement a higher performance algorithm for this. Options: 1) cache finalized names
         #                 to avoid filename parsing 2) list directory by glob pattern 3) cache the last known
         #                 finalized name to reduce traversal
         for filename in self.get_block_chunk_storage().list_directory():
@@ -220,9 +220,16 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
                 logger.warning('Found not finalized block chunk: %s', filename)
                 self.finalize_block_chunk(filename)
 
+    @timeit_method()
     @ensure_locked(lock_attr='file_lock', exception=EXPECTED_LOCK_EXCEPTION)
     def persist_block(self, block: Block):
-        self.get_block_chunk_storage().append(self.get_current_block_chunk_filename(), block.to_messagepack())
+        filename = self.get_current_block_chunk_filename()
+        data = block.to_messagepack()
+
+        # clear right before the change for safety reasons
+        self._lock_cache.clear()  # type: ignore
+
+        self.get_block_chunk_storage().append(filename, data)
 
     def yield_blocks(self) -> Generator[Block, None, None]:
         yield from self._yield_blocks(1)
@@ -272,6 +279,11 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
             return blockchain_state.next_block_number
 
         return self._get_block_chunk_last_block_number(last_block_chunk_file_path) + 1
+
+    @timeit_method()
+    @lock_cached
+    def get_last_block_number(self) -> int:
+        return super().get_last_block_number()  # type: ignore
 
     @timeit(verbose_args=True, is_method=True)
     def _yield_blocks(self, direction) -> Generator[Block, None, None]:

@@ -80,6 +80,7 @@ class BlocksMixin(BaseMixin):
         except StopIteration:
             return None
 
+    @timeit_method()
     def get_last_block(self) -> Optional[Block]:
         # Override this method if a particular blockchain implementation can provide a high performance
         try:
@@ -108,10 +109,11 @@ class BlocksMixin(BaseMixin):
         assert blockchain_state
         return blockchain_state.next_block_number
 
+    @timeit_method()
     def get_last_block_number(self) -> int:
         return self.get_next_block_number() - 1
 
-    @timeit(is_method=True, verbose_args=True)
+    @timeit_method(verbose_args=True)
     def yield_blocks_slice_reversed(self, from_block_number: int, to_block_number_exclusive: int):
         if from_block_number <= to_block_number_exclusive:
             return

@@ -31,8 +31,8 @@ def verbose_timeit_method(logger=module_logger, level=logging.DEBUG):
     return timeit(logger=logger, level=level, verbose=True, is_method=True)
 
 
-def timeit_method(logger=module_logger, level=logging.DEBUG, is_class_method=False):
-    return timeit(logger=logger, level=level, is_method=True, is_class_method=is_class_method)
+def timeit_method(logger=module_logger, level=logging.DEBUG, is_class_method=False, **kwargs):
+    return timeit(logger=logger, level=level, is_method=True, is_class_method=is_class_method, **kwargs)
 
 
 def timeit(

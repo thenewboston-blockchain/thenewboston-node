@@ -9,7 +9,7 @@ from thenewboston_node.business_logic.validators import (
     validate_empty, validate_exact_value, validate_greater_than_zero, validate_gt_value, validate_gte_value,
     validate_in, validate_is_none, validate_min_item_count, validate_not_empty, validate_not_none, validate_type
 )
-from thenewboston_node.core.logging import validates
+from thenewboston_node.core.logging import timeit_method, validates
 from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
 
@@ -96,6 +96,7 @@ class BlockMessage(MessageMixin, BaseDataclass):
         return field_types
 
     @classmethod
+    @timeit_method(is_class_method=True)
     def from_signed_change_request(cls, blockchain, signed_change_request: SignedChangeRequest):
         if not signed_change_request.signer:
             raise ValueError('Sender must be set')

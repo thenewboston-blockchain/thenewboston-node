@@ -70,9 +70,11 @@ class AccountStateMixin(BaseMixin):
 
         return blockchain_state.get_account_state_attribute_value(account, attribute)
 
+    @timeit_method(verbose_args=True)
     def get_account_balance(self, account: hexstr, on_block_number: int) -> int:
         return self.get_account_state_attribute_value(account, 'balance', on_block_number)
 
+    @timeit_method(verbose_args=True)
     def get_account_current_balance(self, account: hexstr) -> int:
         return self.get_account_balance(account, self.get_last_block_number())  # type: ignore
 

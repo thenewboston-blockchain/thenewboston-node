@@ -36,7 +36,7 @@ DECOMPRESSION_FUNCTIONS = {
     'gz': gzip.decompress,
 }
 
-FILE_PATH_RE = re.compile(r'.*\.(?P<compressor>{})$'.format('|'.join(DECOMPRESSION_FUNCTIONS)))
+SOURCE_LOCATION_RE = re.compile(r'.*\.(?P<compressor>{})$'.format('|'.join(DECOMPRESSION_FUNCTIONS)))
 STAT_WRITE_PERMS_ALL = stat.S_IWGRP | stat.S_IWUSR | stat.S_IWOTH
 
 logger = logging.getLogger(__name__)
@@ -69,9 +69,20 @@ def strip_compression_extension(filename):
 open_read_binary = partial(open, mode='rb')
 
 
-def get_compressor(file_path):
-    match = FILE_PATH_RE.match(file_path)
+def get_compressor_from_location(location):
+    match = SOURCE_LOCATION_RE.match(location)
     return match.group('compressor') if match else None
+
+
+def decompress(data, compressor):
+    if compressor:
+        decompress_function = DECOMPRESSION_FUNCTIONS.get(compressor)
+        if not decompress_function:
+            raise ValueError('Unsupported compressor')
+
+        return decompress_function(data)
+
+    return data
 
 
 def read_compressed_file(file_path,
@@ -79,7 +90,7 @@ def read_compressed_file(file_path,
                          raise_uncompressed_missing=True,
                          open_function=open_read_binary) -> Optional[bytes]:
     if compressor is None:
-        compressor = get_compressor(file_path)
+        compressor = get_compressor_from_location(file_path)
     elif compressor:  # we use empty line ('') to denote no compression
         file_path += '.' + compressor
 
@@ -92,8 +103,7 @@ def read_compressed_file(file_path,
 
         return None
 
-    decompress_func = DECOMPRESSION_FUNCTIONS.get(compressor) or (lambda x: x)
-    return decompress_func(data)  # type: ignore
+    return decompress(data, compressor)  # type: ignore
 
 
 class FileSystemStorage:

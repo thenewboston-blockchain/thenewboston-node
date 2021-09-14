@@ -5,20 +5,33 @@ import msgpack
 from more_itertools import always_reversible
 
 from thenewboston_node.business_logic.models import Block
+from thenewboston_node.business_logic.storages.file_system import decompress, get_compressor_from_location
 
 
 class BinaryDataBlockSource(Iterator):
 
-    def __init__(self, binary_data, direction=1):
+    def __init__(self, binary_data, direction=1, compressor=None):
         assert direction in (1, -1)
 
-        self._binary_data = binary_data
+        self._original_binary_data = binary_data
+        self._binary_data = None
+
         self.direction = direction
+        self.compressor = compressor
+
         self._unpacker = None
 
     @property
     def binary_data(self):
-        return self._binary_data
+        if (binary_data := self._binary_data) is None:
+            compressor = self.compressor
+            original_binary_data = self._original_binary_data
+            if compressor:
+                self._binary_data = binary_data = decompress(original_binary_data, compressor)
+            else:
+                self._binary_data = binary_data = original_binary_data
+
+        return binary_data
 
     @property
     def unpacker(self):
@@ -51,7 +64,9 @@ class BinaryDataStreamBlockSource(BinaryDataBlockSource):
     def binary_data(self):
         if (binary_data := self._binary_data) is None:
             # TODO(dmu) LOW: Later we may need to read data in chunk (in case of longer data streams)
-            self._binary_data = binary_data = self.binary_data_stream.read()
+            self._original_binary_data = self.binary_data_stream.read()
+            binary_data = super().binary_data
+            assert self._binary_data is not None
 
         return binary_data
 
@@ -59,8 +74,9 @@ class BinaryDataStreamBlockSource(BinaryDataBlockSource):
 class OpenableBlockSource(BinaryDataStreamBlockSource):
 
     def __init__(self, source_location, **kwargs):
-        self.source_location = source_location
+        kwargs.setdefault('compressor', get_compressor_from_location(source_location))
 
+        self.source_location = source_location
         super().__init__(None, **kwargs)
 
     def open(self):  # noqa: A003

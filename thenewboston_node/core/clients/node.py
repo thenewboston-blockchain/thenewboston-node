@@ -143,3 +143,9 @@ class NodeClient:
             return None
 
         return self.get_latest_blockchain_state_meta_by_network_addresses(network_addresses)
+
+    def list_block_chunks_by_network_address(self, from_block_number=None, to_block_number=None, direction=1):
+        raise NotImplementedError
+
+    def yeild_blocks_from_block_chunk(self):
+        raise NotImplementedError

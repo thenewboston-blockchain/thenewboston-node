@@ -30,4 +30,8 @@ class APIBlockchain(BlockchainBase):
         return NodeClient.get_instance().get_last_block_number_by_network_address(self.network_address)
 
     def yield_blocks_slice(self, from_block_number: int, to_block_number: int):
+        # add method to node client
+        # get filtered block chuck meta
+        # for each block chunk meta download the binary find and yield blocks from it
+        # it may happen that block chunk has beene renamed while we were downloading -> retry
         raise NotImplementedError

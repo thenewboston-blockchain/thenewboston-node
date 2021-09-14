@@ -4,9 +4,9 @@ import re
 from collections import namedtuple
 from typing import Generator, Optional
 
-import msgpack
 from more_itertools import always_reversible, ilen
 
+from thenewboston_node.business_logic.blockchain.file_blockchain.sources import BinaryDataBlockSource
 from thenewboston_node.business_logic.exceptions import InvalidBlockchainError
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.storages.file_system import COMPRESSION_FUNCTIONS
@@ -329,16 +329,7 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
 
     def _yield_blocks_from_file_simple(self, file_path, direction):
         assert direction in (1, -1)
-
-        storage = self.get_block_chunk_storage()
-
-        unpacker = msgpack.Unpacker()
-        unpacker.feed(storage.load(file_path))
-        if direction == -1:
-            unpacker = always_reversible(unpacker)
-
-        for block_compact_dict in unpacker:
-            yield Block.from_compact_dict(block_compact_dict)
+        yield from BinaryDataBlockSource(self.get_block_chunk_storage().load(file_path), direction=direction)
 
     def _yield_blocks_from_file(self, filename, direction, start=None):
         assert direction in (1, -1)

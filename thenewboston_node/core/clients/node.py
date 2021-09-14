@@ -27,29 +27,50 @@ class NodeClient:
 
         return instance
 
-    def get_latest_blockchain_state_meta_by_network_address(self, network_address) -> Optional[dict]:
+    def http_get(self, network_address, resource, *, parameters=None, should_raise=True):
         # We do not use reverse() because client must be framework agnostic
-        params = urlencode({'limit': 1, 'ordering': '-last_block_number'})
-        url = urljoin(network_address, '/api/v1/blockchain-states-meta/') + '?' + params
+        url = urljoin(network_address, f'/api/v1/{resource}/')
+        if parameters:
+            url += '?' + urlencode(parameters)
 
         try:
             response = requests.get(url)
         except Exception:
-            logger.warning('Could not get latest blockchain state by GET %s', url, exc_info=True)
-            return None
+            logger.warning('Could not GET %s', url, exc_info=True)
+            if should_raise:
+                raise
+            else:
+                return None
 
-        if response.status_code != requests.codes.ok:
-            logger.warning(
-                'Could not get latest blockchain state by GET %s with status_code HTTP%s: %s', url,
-                response.status_code, response.text
-            )
-            return None
+        if should_raise:
+            response.raise_for_status()
+        else:
+            status_code = response.status_code
+            if status_code != requests.codes.ok:
+                logger.warning('Could not GET %s: HTTP%s: %s', url, status_code, response.text)
+                return None
 
         try:
             data = response.json()
         except json.decoder.JSONDecodeError:
-            logger.warning('Blockchain state meta response from %s is not JSON data', url, exc_info=True)
-            return None
+            if should_raise:
+                raise
+            else:
+                logger.warning('Non-JSON response GET %s: %s', url, response.text, exc_info=True)
+                return None
+
+        return data
+
+    def get_latest_blockchain_state_meta_by_network_address(self, network_address) -> Optional[dict]:
+        data = self.http_get(
+            network_address,
+            'blockchain-states-meta',
+            parameters={
+                'limit': 1,
+                'ordering': '-last_block_number'
+            },
+            should_raise=False
+        )
 
         results = data['results']
         if not results:
@@ -96,28 +117,15 @@ class NodeClient:
         return None
 
     def get_latest_block_chunk_meta_by_network_address(self, network_address) -> Optional[dict]:
-        # We do not use reverse() because client must be framework agnostic
-        params = urlencode({'limit': 1, 'ordering': '-start_block_number'})
-        url = urljoin(network_address, '/api/v1/block-chunks-meta/') + '?' + params
-
-        try:
-            response = requests.get(url)
-        except Exception:
-            logger.warning('Could not get latest block chunk by GET %s', url, exc_info=True)
-            return None
-
-        if response.status_code != requests.codes.ok:
-            logger.warning(
-                'Could not get latest block chunk by GET %s with status_code HTTP%s: %s', url, response.status_code,
-                response.text
-            )
-            return None
-
-        try:
-            data = response.json()
-        except json.decoder.JSONDecodeError:
-            logger.warning('Block chunk meta response from %s is not JSON data', url, exc_info=True)
-            return None
+        data = self.http_get(
+            network_address,
+            'block-chunks-meta',
+            parameters={
+                'limit': 1,
+                'ordering': '-start_block_number'
+            },
+            should_raise=False
+        )
 
         results = data['results']
         if not results:
@@ -144,7 +152,9 @@ class NodeClient:
 
         return self.get_latest_blockchain_state_meta_by_network_addresses(network_addresses)
 
-    def list_block_chunks_by_network_address(self, from_block_number=None, to_block_number=None, direction=1):
+    def list_block_chunks_by_network_address(
+        self, network_address, from_block_number=None, to_block_number=None, direction=1
+    ):
         raise NotImplementedError
 
     def yeild_blocks_from_block_chunk(self):

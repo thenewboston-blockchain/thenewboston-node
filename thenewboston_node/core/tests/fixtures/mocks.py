@@ -19,8 +19,8 @@ def outer_web_mock():
 
 @pytest.fixture
 def node_mock(outer_web_mock, blockchain_state_meta, another_node_network_address):
-    httpretty.register_uri(
-        httpretty.GET,
+    outer_web_mock.register_uri(
+        outer_web_mock.GET,
         urljoin(another_node_network_address, 'api/v1/blockchain-states-meta/'),
         body=json.dumps({
             'count': 1,

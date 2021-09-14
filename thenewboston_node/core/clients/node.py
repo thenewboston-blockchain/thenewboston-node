@@ -16,6 +16,11 @@ logger = logging.getLogger(__name__)
 T = TypeVar('T', bound='NodeClient')
 
 
+def setdefault_if_not_none(dict_, key, value):
+    if value is not None:
+        dict_.setdefault(key, value)
+
+
 class NodeClient:
     _instance = None
 
@@ -27,7 +32,8 @@ class NodeClient:
 
         return instance
 
-    def http_get(self, network_address, resource, *, parameters=None, should_raise=True):
+    @staticmethod
+    def http_get(network_address, resource, *, parameters=None, should_raise=True):
         # We do not use reverse() because client must be framework agnostic
         url = urljoin(network_address, f'/api/v1/{resource}/')
         if parameters:
@@ -61,15 +67,26 @@ class NodeClient:
 
         return data
 
+    def list_resource(
+        self,
+        network_address,
+        resource,
+        *,
+        offset=None,
+        limit=None,
+        ordering=None,
+        parameters=None,
+        should_raise=True
+    ):
+        parameters = parameters or {}
+        setdefault_if_not_none(parameters, 'offset', offset)
+        setdefault_if_not_none(parameters, 'limit', limit)
+        setdefault_if_not_none(parameters, 'ordering', ordering)
+        return self.http_get(network_address, resource, parameters=parameters, should_raise=should_raise)
+
     def get_latest_blockchain_state_meta_by_network_address(self, network_address) -> Optional[dict]:
-        data = self.http_get(
-            network_address,
-            'blockchain-states-meta',
-            parameters={
-                'limit': 1,
-                'ordering': '-last_block_number'
-            },
-            should_raise=False
+        data = self.list_resource(
+            network_address, 'blockchain-states-meta', limit=1, ordering='-last_block_number', should_raise=False
         )
 
         results = data['results']
@@ -116,22 +133,28 @@ class NodeClient:
 
         return None
 
-    def get_latest_block_chunk_meta_by_network_address(self, network_address) -> Optional[dict]:
-        data = self.http_get(
+    def list_block_chunks_meta_by_network_address(
+        self, network_address, from_block_number=None, to_block_number=None, offset=None, limit=None, direction=1
+    ):
+        assert direction in (1, -1)
+        parameters = {}
+        setdefault_if_not_none(parameters, 'from_block_number', from_block_number)
+        setdefault_if_not_none(parameters, 'to_block_number', to_block_number)
+
+        data = self.list_resource(
             network_address,
             'block-chunks-meta',
-            parameters={
-                'limit': 1,
-                'ordering': '-start_block_number'
-            },
+            offset=offset,
+            limit=limit,
+            ordering='start_block_number' if direction == 1 else '-start_block_number',
+            parameters=parameters,
             should_raise=False
         )
+        return None if data is None else data['results']
 
-        results = data['results']
-        if not results:
-            return None
-
-        return results[0]
+    def get_latest_block_chunk_meta_by_network_address(self, network_address) -> Optional[dict]:
+        results = self.list_block_chunks_meta_by_network_address(network_address, limit=1, direction=-1)
+        return results[0] if results else None
 
     def get_last_block_number_by_network_address(self, network_address):
         block_chunk_meta = self.get_latest_block_chunk_meta_by_network_address(network_address)
@@ -151,11 +174,6 @@ class NodeClient:
             return None
 
         return self.get_latest_blockchain_state_meta_by_network_addresses(network_addresses)
-
-    def list_block_chunks_by_network_address(
-        self, network_address, from_block_number=None, to_block_number=None, direction=1
-    ):
-        raise NotImplementedError
 
     def yeild_blocks_from_block_chunk(self):
         raise NotImplementedError

@@ -37,10 +37,14 @@ class BinaryDataBlockSource(Iterator):
 
 class BinaryDataStreamBlockSource(BinaryDataBlockSource):
 
-    def __init__(self, binary_data_stream, direction=1):
-        self.binary_data_stream = binary_data_stream
+    def __init__(self, binary_data_stream, **kwargs):
+        self._binary_data_stream = binary_data_stream
 
-        super().__init__(None, direction=direction)
+        super().__init__(None, **kwargs)
+
+    @property
+    def binary_data_stream(self):
+        return self._binary_data_stream
 
     @property
     def binary_data(self):
@@ -49,3 +53,23 @@ class BinaryDataStreamBlockSource(BinaryDataBlockSource):
             self._binary_data = binary_data = self.binary_data_stream.read()
 
         return binary_data
+
+
+class FileBlockSource(BinaryDataStreamBlockSource):
+
+    def __init__(self, path, **kwargs):
+        self.path = path
+
+        super().__init__(None, **kwargs)
+
+    @property
+    def binary_data_stream(self):
+        if (binary_data_stream := self._binary_data_stream) is None:
+            self._binary_data_stream = binary_data_stream = open(self.path, mode='rb')
+
+        return binary_data_stream
+
+    def close(self):
+        binary_data_stream = self._binary_data_stream
+        if binary_data_stream:
+            binary_data_stream.close()

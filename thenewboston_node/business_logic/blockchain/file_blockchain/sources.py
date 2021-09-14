@@ -1,4 +1,5 @@
 from collections.abc import Iterator
+from urllib.request import urlopen
 
 import msgpack
 from more_itertools import always_reversible
@@ -55,17 +56,20 @@ class BinaryDataStreamBlockSource(BinaryDataBlockSource):
         return binary_data
 
 
-class FileBlockSource(BinaryDataStreamBlockSource):
+class OpenableBlockSource(BinaryDataStreamBlockSource):
 
-    def __init__(self, path, **kwargs):
-        self.path = path
+    def __init__(self, source_location, **kwargs):
+        self.source_location = source_location
 
         super().__init__(None, **kwargs)
+
+    def open(self):  # noqa: A003
+        raise NotImplementedError('Must be implemented in a child class')
 
     @property
     def binary_data_stream(self):
         if (binary_data_stream := self._binary_data_stream) is None:
-            self._binary_data_stream = binary_data_stream = open(self.path, mode='rb')
+            self._binary_data_stream = binary_data_stream = self.open()
 
         return binary_data_stream
 
@@ -73,3 +77,15 @@ class FileBlockSource(BinaryDataStreamBlockSource):
         binary_data_stream = self._binary_data_stream
         if binary_data_stream:
             binary_data_stream.close()
+
+
+class FileBlockSource(OpenableBlockSource):
+
+    def open(self):  # noqa: A003
+        return open(self.source_location, mode='rb')
+
+
+class URLBlockSource(OpenableBlockSource):
+
+    def open(self):  # noqa: A003
+        return urlopen(self.source_location)

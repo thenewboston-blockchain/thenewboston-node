@@ -327,9 +327,9 @@ class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):
             'chunk_filename': meta.filename,
         }
 
-    def _yield_blocks_from_file_simple(self, file_path, direction):
+    def _yield_blocks_from_file_simple(self, filename, direction):
         assert direction in (1, -1)
-        yield from BinaryDataBlockSource(self.get_block_chunk_storage().load(file_path), direction=direction)
+        yield from BinaryDataBlockSource(self.get_block_chunk_storage().load(filename), direction=direction)
 
     def _yield_blocks_from_file(self, filename, direction, start=None):
         assert direction in (1, -1)

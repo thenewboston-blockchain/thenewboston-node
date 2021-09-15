@@ -1,6 +1,8 @@
 import copy
 from contextlib import contextmanager
 
+from django.test import override_settings
+
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 
 
@@ -11,6 +13,14 @@ def force_blockchain(blockchain):
         yield
     finally:
         BlockchainBase.clear_instance_cache()
+
+
+def force_node_key(signing_key):
+    return override_settings(NODE_SIGNING_KEY=signing_key)
+
+
+def force_node_fee(fee_amount):
+    return override_settings(NODE_FEE_AMOUNT=fee_amount)
 
 
 def remove_meta(obj):

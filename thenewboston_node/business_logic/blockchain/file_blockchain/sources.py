@@ -56,6 +56,10 @@ class BinaryDataStreamBlockSource(BinaryDataBlockSource):
 
         super().__init__(None, **kwargs)
 
+    def force_read(self):
+        binary_data = self.binary_data
+        assert binary_data is not None
+
     @property
     def binary_data_stream(self):
         return self._binary_data_stream

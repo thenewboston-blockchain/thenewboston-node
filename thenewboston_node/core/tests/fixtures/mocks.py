@@ -16,6 +16,7 @@ def outer_web_mock():
     httpretty.enable(verbose=True, allow_net_connect=False)
     yield httpretty
     httpretty.disable()
+    httpretty.reset()
 
 
 @pytest.fixture

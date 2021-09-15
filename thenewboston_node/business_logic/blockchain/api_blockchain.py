@@ -27,7 +27,11 @@ class APIBlockchain(BlockchainBase):
 
     def get_last_block_number(self) -> int:
         # TODO(dmu) CRITICAL: Implement handling IO errors
-        return NodeClient.get_instance().get_last_block_number_by_network_address(self.network_address)
+        last_block_number = NodeClient.get_instance().get_last_block_number_by_network_address(self.network_address)
+        if last_block_number is None:
+            return self.get_last_blockchain_state_last_block_number()
+
+        return last_block_number
 
     def yield_blocks_slice(self, from_block_number: int, to_block_number: int):
         yield from NodeClient.get_instance().yield_blocks_slice(

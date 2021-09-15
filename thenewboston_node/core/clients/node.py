@@ -165,7 +165,7 @@ class NodeClient:
     def get_last_block_number_by_network_address(self, network_address):
         block_chunk_meta = self.get_latest_block_chunk_meta_by_network_address(network_address)
         if block_chunk_meta:
-            raise block_chunk_meta['end_block_number']
+            return block_chunk_meta['end_block_number']
 
         return None
 

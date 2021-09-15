@@ -14,12 +14,12 @@ from thenewboston_node.core.utils.itertools import AdvancedIterator
 
 
 class BlockChunksMetaFilterSet(AdvanceIteratorFilterSet):
-    start_block_number = AdvanceIteratorNumberFilter(lambda x, filter_value: x.end_block_number >= filter_value)
-    end_block_number = AdvanceIteratorNumberFilter(lambda x, filter_value: x.start_block_number <= filter_value)
+    from_block_number = AdvanceIteratorNumberFilter(lambda x, filter_value: x.end_block_number >= filter_value)
+    to_block_number = AdvanceIteratorNumberFilter(lambda x, filter_value: x.start_block_number <= filter_value)
 
     class Meta:
         model = None
-        fields = ('start_block_number', 'end_block_number')
+        fields = ('from_block_number', 'to_block_number')
 
 
 class BlockChunksMetaViewSet(ListModelMixin, GenericViewSet):

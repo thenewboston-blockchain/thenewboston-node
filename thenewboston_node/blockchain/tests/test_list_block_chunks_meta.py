@@ -186,7 +186,7 @@ def test_can_order_block_chunk_meta_with_limit_and_offset(api_client, file_block
 
 
 @pytest.mark.parametrize(
-    'start_block_number,end_block_number,block_chunk_map', (
+    'from_block_number,to_block_number,block_chunk_map', (
         (0, None, {
             0: 0,
             1: 1,
@@ -316,7 +316,7 @@ def test_can_order_block_chunk_meta_with_limit_and_offset(api_client, file_block
     )
 )
 def test_filter_by_block_number_range(
-    api_client, file_blockchain_with_three_block_chunks, start_block_number, end_block_number, block_chunk_map
+    api_client, file_blockchain_with_three_block_chunks, from_block_number, to_block_number, block_chunk_map
 ):
     blockchain = file_blockchain_with_three_block_chunks
     with force_blockchain(blockchain):
@@ -331,10 +331,10 @@ def test_filter_by_block_number_range(
     assert block_chunks[2]['start_block_number'] == 6 and block_chunks[2]['end_block_number'] == 7
 
     query_parameters = {}
-    if start_block_number is not None:
-        query_parameters['start_block_number'] = start_block_number
-    if end_block_number is not None:
-        query_parameters['end_block_number'] = end_block_number
+    if from_block_number is not None:
+        query_parameters['from_block_number'] = from_block_number
+    if to_block_number is not None:
+        query_parameters['to_block_number'] = to_block_number
 
     with force_blockchain(blockchain):
         response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?' + urlencode(query_parameters))

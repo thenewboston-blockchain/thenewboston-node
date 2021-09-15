@@ -21,6 +21,11 @@ def setdefault_if_not_none(dict_, key, value):
         dict_.setdefault(key, value)
 
 
+def requests_get(url):
+    # We need this function to mock it easier for unittests
+    return requests.get(url)
+
+
 class NodeClient:
     _instance = None
 
@@ -40,7 +45,7 @@ class NodeClient:
             url += '?' + urlencode(parameters)
 
         try:
-            response = requests.get(url)
+            response = requests_get(url)
         except Exception:
             logger.warning('Could not GET %s', url, exc_info=True)
             if should_raise:

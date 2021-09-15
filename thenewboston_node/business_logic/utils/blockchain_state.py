@@ -18,6 +18,8 @@ from thenewboston_node.core.utils.misc import is_valid_url
 logger = logging.getLogger()
 
 
+# TODO(dmu) MEDIU: Refactor `read_account_root_file_source` and `read_blockchain_state_file_from_source` to something
+#                  similar to `BinaryDataBlockSource`
 def read_account_root_file_source(source):
     if is_valid_url(source):
         fo = urlopen(source)

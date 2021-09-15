@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 from urllib.parse import urljoin
 
 import httpretty
@@ -28,3 +29,9 @@ def node_mock(outer_web_mock, blockchain_state_meta, another_node_network_addres
         }),
     )
     yield outer_web_mock
+
+
+@pytest.fixture
+def node_mock_for_node_client(client):
+    with patch('thenewboston_node.core.clients.node.requests_get', new=client.get):
+        yield

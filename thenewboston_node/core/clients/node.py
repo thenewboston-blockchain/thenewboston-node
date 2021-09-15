@@ -1,13 +1,14 @@
 import json
 import logging
-from typing import Optional, Type, TypeVar
+from typing import Generator, Optional, Type, TypeVar
 from urllib.parse import urlencode, urljoin
 from urllib.request import urlopen
 
 import requests
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
-from thenewboston_node.business_logic.models import BlockchainState
+from thenewboston_node.business_logic.blockchain.file_blockchain.sources import URLBlockSource
+from thenewboston_node.business_logic.models import Block, BlockchainState
 from thenewboston_node.business_logic.utils.blockchain_state import read_blockchain_state_file_from_source
 from thenewboston_node.core.utils.types import hexstr
 
@@ -180,5 +181,51 @@ class NodeClient:
 
         return self.get_latest_blockchain_state_meta_by_network_addresses(network_addresses)
 
-    def yeild_blocks_from_block_chunk(self):
-        raise NotImplementedError
+    def yield_blocks_slice(self, network_address, from_block_number: int,
+                           to_block_number: int) -> Generator[Block, None, None]:
+        # TODO(dmu) MEDIUM: Consider improvements for network failovers
+        # by the moment of downloading the last (incomplete) block chunk its name may change
+        # (because of becoming complete) therefore we retry
+        last_block_number = None
+        for _ in range(2):
+            block_chunks = self.list_block_chunks_meta_by_network_address(
+                network_address, from_block_number=from_block_number, to_block_number=to_block_number
+            )
+
+            for block_chunk in block_chunks:
+                # TODO(dmu) HIGH: Support download from more than one URL
+                url = block_chunk['urls'][0]
+                source = URLBlockSource(url)
+                try:
+                    source.force_read()
+                except Exception:
+                    logger.warning('Error trying to download %s', url)
+                    break
+
+                for block in URLBlockSource(url):
+                    block_number = block.get_block_number()
+                    if from_block_number is not None and block_number < from_block_number:
+                        # TODO(dmu) LOW: This can be optimized by applying the codition only to first block chunk
+                        #                (be careful first block chunk may be also the last)
+                        # skip not requested block
+                        continue
+
+                    if last_block_number is not None and block_number <= last_block_number:
+                        # TODO(dmu) LOW: This maybe excessive precaution
+                        # We have seen this block already
+                        continue
+
+                    if to_block_number is not None and to_block_number < block_number:
+                        return
+
+                    yield block
+                    last_block_number = block_number
+
+            if last_block_number is None:
+                continue
+
+            assert to_block_number is None or last_block_number <= to_block_number
+            if to_block_number is not None and last_block_number >= to_block_number:  # defensive programming
+                break
+
+            from_block_number = last_block_number + 1

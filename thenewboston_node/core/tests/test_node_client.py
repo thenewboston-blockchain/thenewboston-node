@@ -177,3 +177,52 @@ def test_from_to_block_number_list_block_chunks_meta_by_network_address(
         )
     assert [(item['start_block_number'], item['end_block_number']) for item in result] == [(3, 5), (6, 8),
                                                                                            (9, 11)][::direction]
+
+
+@pytest.mark.parametrize(
+    'from_block_number,to_block_number',
+    (
+        (12, 13),
+        (0, 0),  # one block
+        (0, 2),  # all blocks in the save chunk
+        (3, 5),  # all blocks in the save chunk 2
+        (3, 7),
+        (12, None),
+        (8, 13),
+        (8, None),
+        (None, 5),
+        (None, None),
+        (0, 13),
+        (10, 15),
+    )
+)
+@pytest.mark.usefixtures('node_mock_for_node_client')
+def test_yield_blocks_slice(
+    node_client, file_blockchain_with_five_block_chunks, outer_web_mock, from_block_number, to_block_number
+):
+    last_block_number = file_blockchain_with_five_block_chunks.get_last_block_number()
+    assert last_block_number == 13
+
+    block_chunks_meta = file_blockchain_with_five_block_chunks.yield_block_chunks_meta()
+    for block_chunks_meta in block_chunks_meta:
+        url = (f'http://localhost:8555/blockchain/{block_chunks_meta.blockchain_root_relative_file_path}')
+        with open(block_chunks_meta.absolute_file_path, 'rb') as fo:
+            binary_data = fo.read()
+
+        outer_web_mock.register_uri(
+            outer_web_mock.GET, url, body=binary_data, adding_headers={'Content-Type': 'application/octet-stream'}
+        )
+
+    with force_blockchain(file_blockchain_with_five_block_chunks):
+        blocks = list(
+            node_client.yield_blocks_slice(
+                'http://testserver/', from_block_number=from_block_number, to_block_number=to_block_number
+            )
+        )
+
+    from_block_number_expected = from_block_number or 0
+    to_block_number_expected = min(
+        last_block_number if to_block_number is None else to_block_number, last_block_number
+    )
+    assert [block.get_block_number() for block in blocks
+            ] == list(range(from_block_number_expected, to_block_number_expected + 1, 1))

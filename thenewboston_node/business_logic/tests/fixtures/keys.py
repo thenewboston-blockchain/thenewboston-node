@@ -1,5 +1,6 @@
 import pytest
 
+from thenewboston_node.business_logic.tests.base import force_node_key
 from thenewboston_node.core.utils.cryptography import KeyPair
 from thenewboston_node.core.utils.types import hexstr
 
@@ -67,3 +68,13 @@ def treasury_account(treasury_account_key_pair):
 @pytest.fixture
 def treasury_account_signing_key(treasury_account_key_pair):
     return treasury_account_key_pair.private
+
+
+@pytest.fixture
+def as_primary_validator(primary_validator_key_pair):
+    return force_node_key(primary_validator_key_pair.private)
+
+
+@pytest.fixture
+def as_regular_node(another_node_key_pair):
+    return force_node_key(another_node_key_pair.private)

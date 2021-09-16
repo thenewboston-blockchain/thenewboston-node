@@ -8,6 +8,7 @@ from more_itertools import always_reversible, ilen
 
 from thenewboston_node.business_logic.exceptions import InvalidBlockchainError
 from thenewboston_node.business_logic.models import AccountState, BlockchainState, BlockchainStateMessage
+from thenewboston_node.business_logic.node import get_node_identifier, get_node_signing_key
 
 from .base import BaseMixin
 
@@ -153,6 +154,8 @@ class BlockchainStateMixin(BaseMixin):
             blockchain_state.last_block_timestamp = block.message.timestamp
             blockchain_state.next_block_identifier = block.hash
 
+        if primary_validator.identifier == get_node_identifier():
+            blockchain_state.sign(signing_key=get_node_signing_key())
         return blockchain_state
 
     def clear_blockchain_states(self, block_number_range=None):

@@ -11,7 +11,7 @@ from thenewboston_node.core.serializers import CustomSerializer
 
 
 def make_url_path(blockchain_state):
-    file_path = (blockchain_state.meta or {}).get('file_path')
+    file_path = (blockchain_state.meta or {}).get('blockchain_root_relative_file_path')
     return os.path.join(settings.BLOCKCHAIN_URL_PATH_PREFIX, file_path) if file_path else None
 
 

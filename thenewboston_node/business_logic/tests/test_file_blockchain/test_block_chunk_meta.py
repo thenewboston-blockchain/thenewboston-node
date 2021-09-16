@@ -25,10 +25,11 @@ def test_yield_block_chunks_meta(file_blockchain_with_three_block_chunks):
             storage_relative_file_path=(
                 '0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
             ),
-            filename='00000000000000000000-00000000000000000002-block-chunk.msgpack',
+            filename='00000000000000000000-00000000000000000002-block-chunk.msgpack.gz',
+            base_filename='00000000000000000000-00000000000000000002-block-chunk.msgpack',
             start_block_number=0,
             end_block_number=2,
-            compression=None,
+            compression='gz',
             blockchain=blockchain,
         ),
         BlockChunkFilenameMeta(
@@ -42,10 +43,11 @@ def test_yield_block_chunks_meta(file_blockchain_with_three_block_chunks):
             storage_relative_file_path=(
                 '0/0/0/0/0/0/0/0/00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
             ),
-            filename='00000000000000000003-00000000000000000005-block-chunk.msgpack',
+            filename='00000000000000000003-00000000000000000005-block-chunk.msgpack.gz',
+            base_filename='00000000000000000003-00000000000000000005-block-chunk.msgpack',
             start_block_number=3,
             end_block_number=5,
-            compression=None,
+            compression='gz',
             blockchain=blockchain,
         ),
         BlockChunkFilenameMeta(
@@ -60,6 +62,7 @@ def test_yield_block_chunks_meta(file_blockchain_with_three_block_chunks):
                 '0/0/0/0/0/0/0/0/00000000000000000006-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
             ),
             filename='00000000000000000006-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack',
+            base_filename='00000000000000000006-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack',
             start_block_number=6,
             end_block_number=7,
             compression=None,
@@ -90,6 +93,7 @@ def test_yield_block_chunks_meta_reversed(file_blockchain_with_three_block_chunk
                 '0/0/0/0/0/0/0/0/00000000000000000006-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
             ),
             filename='00000000000000000006-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack',
+            base_filename='00000000000000000006-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack',
             start_block_number=6,
             end_block_number=7,
             compression=None,
@@ -106,10 +110,11 @@ def test_yield_block_chunks_meta_reversed(file_blockchain_with_three_block_chunk
             storage_relative_file_path=(
                 '0/0/0/0/0/0/0/0/00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
             ),
-            filename='00000000000000000003-00000000000000000005-block-chunk.msgpack',
+            filename='00000000000000000003-00000000000000000005-block-chunk.msgpack.gz',
+            base_filename='00000000000000000003-00000000000000000005-block-chunk.msgpack',
             start_block_number=3,
             end_block_number=5,
-            compression=None,
+            compression='gz',
             blockchain=blockchain,
         ),
         BlockChunkFilenameMeta(
@@ -123,10 +128,11 @@ def test_yield_block_chunks_meta_reversed(file_blockchain_with_three_block_chunk
             storage_relative_file_path=(
                 '0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
             ),
-            filename='00000000000000000000-00000000000000000002-block-chunk.msgpack',
+            filename='00000000000000000000-00000000000000000002-block-chunk.msgpack.gz',
+            base_filename='00000000000000000000-00000000000000000002-block-chunk.msgpack',
             start_block_number=0,
             end_block_number=2,
-            compression=None,
+            compression='gz',
             blockchain=blockchain,
         ),
     ]

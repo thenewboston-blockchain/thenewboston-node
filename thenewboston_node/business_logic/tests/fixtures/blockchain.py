@@ -11,7 +11,6 @@ from thenewboston_node.business_logic.blockchain.memory_blockchain import Memory
 from thenewboston_node.business_logic.blockchain.mock_blockchain import MockBlockchain
 from thenewboston_node.business_logic.tests.base import force_blockchain
 from thenewboston_node.business_logic.tests.factories import add_blocks
-from thenewboston_node.business_logic.tests.mocks.storage_mock import StorageMock
 from thenewboston_node.business_logic.tests.mocks.utils import patch_blockchain_states, patch_blocks
 
 logger = logging.getLogger(__name__)
@@ -89,20 +88,6 @@ def file_blockchain(blockchain_genesis_state, blockchain_directory):
 @pytest.fixture(autouse=True)  # Autouse for safety reasons
 def forced_mock_blockchain(blockchain_genesis_state):
     yield from yield_initialized_forced_blockchain(MOCK_BLOCKCHAIN_CLASS, blockchain_genesis_state)
-
-
-# TODO(dmu) MEDIUM: Get rid of file_blockchain_w_memory_storage
-#                   (use plain file_blockchain for better integration testing)
-@pytest.fixture
-def file_blockchain_w_memory_storage(file_blockchain, blockchain_genesis_state):
-    file_blockchain.clear()
-    block_storage_mock = patch.object(file_blockchain, '_block_chunk_storage', StorageMock())
-    arf_storage_mock = patch.object(file_blockchain, '_blockchain_state_storage', StorageMock())
-
-    with block_storage_mock, arf_storage_mock:
-        file_blockchain.add_blockchain_state(blockchain_genesis_state)
-        file_blockchain.validate()
-        yield file_blockchain
 
 
 @pytest.fixture

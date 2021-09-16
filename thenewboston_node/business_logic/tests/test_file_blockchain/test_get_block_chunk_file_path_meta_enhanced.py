@@ -9,10 +9,11 @@ def test_get_block_chunk_file_path_meta_enhanced(file_blockchain_with_three_bloc
     meta = blockchain._get_block_chunk_file_path_meta_enhanced(
         '00000000000000000000-00000000000000000002-block-chunk.msgpack'
     )
-    assert meta.filename == '00000000000000000000-00000000000000000002-block-chunk.msgpack'
+    assert meta.filename == '00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
+    assert meta.base_filename == '00000000000000000000-00000000000000000002-block-chunk.msgpack'
     assert meta.start_block_number == 0
     assert meta.end_block_number == 2
-    assert meta.compression is None
+    assert meta.compression == 'gz'
     assert meta.absolute_file_path == os.path.join(
         blockchain.get_base_directory(),
         'block-chunks/0/0/0/0/0/0/0/0/00000000000000000000-00000000000000000002-block-chunk.msgpack.gz',

@@ -33,7 +33,7 @@ def guess_source_type(source):
     types = []
 
     result = urlparse(source)
-    meta = get_blockchain_state_filename_meta(os.path.basename(result.path))
+    meta = get_blockchain_state_filename_meta(filename=os.path.basename(result.path))
     if meta is not None:
         types.append(SourceType.BLOCKCHAIN_STATE)
 

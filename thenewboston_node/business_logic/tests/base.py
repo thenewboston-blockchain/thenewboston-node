@@ -2,6 +2,7 @@ import copy
 from contextlib import contextmanager
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
+from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
 
 
 @contextmanager
@@ -11,6 +12,22 @@ def force_blockchain(blockchain):
         yield
     finally:
         BlockchainBase.clear_instance_cache()
+
+
+@contextmanager
+def force_file_blockchain(file_blockchain: FileBlockchain, outer_web_mock):
+    with force_blockchain(file_blockchain):
+        for block_chunks_meta in file_blockchain.yield_block_chunks_meta():
+            # TODO(dmu) LOW: Replace `localhost:8555` with `testserver` ?
+            url = f'http://localhost:8555/blockchain/{block_chunks_meta.blockchain_root_relative_file_path}'
+            with open(block_chunks_meta.absolute_file_path, 'rb') as fo:
+                binary_data = fo.read()
+
+            outer_web_mock.register_uri(
+                outer_web_mock.GET, url, body=binary_data, adding_headers={'Content-Type': 'application/octet-stream'}
+            )
+
+        yield
 
 
 def remove_meta(obj):

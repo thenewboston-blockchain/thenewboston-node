@@ -2,7 +2,7 @@ from urllib.parse import urljoin
 
 import pytest
 
-from thenewboston_node.business_logic.tests.base import force_blockchain
+from thenewboston_node.business_logic.tests.base import force_blockchain, force_file_blockchain
 
 
 def test_get_latest_blockchain_state_meta_by_network_address(
@@ -200,20 +200,11 @@ def test_from_to_block_number_list_block_chunks_meta_by_network_address(
 def test_yield_blocks_slice(
     node_client, file_blockchain_with_five_block_chunks, outer_web_mock, from_block_number, to_block_number
 ):
-    last_block_number = file_blockchain_with_five_block_chunks.get_last_block_number()
+    blockchain = file_blockchain_with_five_block_chunks
+    last_block_number = blockchain.get_last_block_number()
     assert last_block_number == 13
 
-    block_chunks_meta = file_blockchain_with_five_block_chunks.yield_block_chunks_meta()
-    for block_chunks_meta in block_chunks_meta:
-        url = (f'http://localhost:8555/blockchain/{block_chunks_meta.blockchain_root_relative_file_path}')
-        with open(block_chunks_meta.absolute_file_path, 'rb') as fo:
-            binary_data = fo.read()
-
-        outer_web_mock.register_uri(
-            outer_web_mock.GET, url, body=binary_data, adding_headers={'Content-Type': 'application/octet-stream'}
-        )
-
-    with force_blockchain(file_blockchain_with_five_block_chunks):
+    with force_file_blockchain(blockchain, outer_web_mock):
         blocks = list(
             node_client.yield_blocks_slice(
                 'http://testserver/', from_block_number=from_block_number, to_block_number=to_block_number

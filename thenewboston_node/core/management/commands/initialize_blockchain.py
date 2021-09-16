@@ -1,4 +1,5 @@
 import logging
+import os.path
 from enum import Enum, unique
 from urllib.parse import urlparse
 
@@ -6,7 +7,7 @@ from django.core.management import BaseCommand
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_state import (
-    get_blockchain_state_file_path_meta
+    get_blockchain_state_filename_meta
 )
 from thenewboston_node.business_logic.utils.blockchain_state import (
     add_blockchain_state_from_account_root_file, add_blockchain_state_from_blockchain_state
@@ -32,7 +33,7 @@ def guess_source_type(source):
     types = []
 
     result = urlparse(source)
-    meta = get_blockchain_state_file_path_meta(result.path)
+    meta = get_blockchain_state_filename_meta(os.path.basename(result.path))
     if meta is not None:
         types.append(SourceType.BLOCKCHAIN_STATE)
 

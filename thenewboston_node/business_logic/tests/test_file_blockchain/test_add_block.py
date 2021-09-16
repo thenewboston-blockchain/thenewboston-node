@@ -290,11 +290,9 @@ def test_block_appended(file_blockchain, user_account, treasury_account_signing_
     assert not storage.is_finalized(filename)
 
 
-def test_cannot_add_block_twice(
-    file_blockchain_w_memory_storage, user_account, treasury_account_signing_key, preferred_node
-):
+def test_cannot_add_block_twice(file_blockchain, user_account, treasury_account_signing_key, preferred_node):
     signing_key = treasury_account_signing_key
-    blockchain = file_blockchain_w_memory_storage
+    blockchain = file_blockchain
 
     node_signing_key = get_node_signing_key()
     block = Block.create_from_main_transaction(

@@ -46,23 +46,35 @@ class BlochainStateFileBlockchainMixin(FileBlockchainBaseMixin):
         self.get_blockchain_state_storage().save(filename, blockchain_state.to_messagepack(), is_final=True)
 
     @timeit_method(verbose_args=True)
-    def _load_blockchain_state(self, file_path):
+    def _load_blockchain_state(self, filename):
         cache = self.get_blockchain_state_cache()
-        blockchain_state = cache.get(file_path)
+        blockchain_state = cache.get(filename)
 
-        if blockchain_state is None:
-            storage = self.get_blockchain_state_storage()
-            assert storage.is_finalized(file_path)
-            blockchain_state = BlockchainState.from_messagepack(storage.load(file_path))
+        if blockchain_state is not None:
+            return blockchain_state
 
-            meta = get_blockchain_state_filename_meta(file_path)
-            blockchain_state.meta = {
-                'file_path': self._get_blockchain_state_real_file_path(file_path),
-                'last_block_number': meta.last_block_number,
-                'compression': meta.compression,
-                'blockchain': self,
-            }
-            cache[file_path] = blockchain_state
+        storage = self.get_blockchain_state_storage()
+        assert storage.is_finalized(filename)
+        blockchain_state = BlockchainState.from_messagepack(storage.load(filename))
+
+        absolute_file_path = storage.get_optimized_absolute_actual_path(filename)
+
+        base_directory = self.get_base_directory()
+        assert absolute_file_path.startswith(base_directory)
+
+        storage_base_path = str(storage.base_path)
+        assert absolute_file_path.startswith(storage_base_path)
+
+        meta = get_blockchain_state_filename_meta(
+            absolute_file_path=absolute_file_path,
+            blockchain_root_relative_file_path=absolute_file_path.removeprefix(base_directory).lstrip('/'),
+            storage_relative_file_path=absolute_file_path.removeprefix(storage_base_path).lstrip('/'),
+            base_filename=filename,
+            blockchain=self,
+        )
+
+        blockchain_state.meta = meta._asdict()
+        cache[filename] = blockchain_state
 
         return blockchain_state
 

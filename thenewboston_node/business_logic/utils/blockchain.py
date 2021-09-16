@@ -133,6 +133,10 @@ def sync_minimal(source_blockchain: BlockchainBase, target_blockchain: Blockchai
 
     source_bs_last_block_number = source_blockchain.get_last_blockchain_state_last_block_number()
     target_bs_last_block_number = target_blockchain.get_last_blockchain_state_last_block_number()
+    logger.debug(
+        'Blockchain state last block numbers (source: %s, target: %s)', source_bs_last_block_number,
+        target_bs_last_block_number
+    )
     if source_bs_last_block_number > target_bs_last_block_number:
         # Source blockchain contains a more recent blockchain state. For simplicity we just clear target blockchain
         # entirely to replace with source blockchain data.
@@ -152,11 +156,14 @@ def sync_minimal(source_blockchain: BlockchainBase, target_blockchain: Blockchai
         from_block_number = target_blockchain.get_last_block_number() + 1
 
     source_last_block_number = source_blockchain.get_last_block_number()
+    logger.debug('Source blockchain last block number: %s', source_last_block_number)
     if source_last_block_number < from_block_number:
         return  # the target blockchain already contains all blocks after last blockchain state of source blockchain
 
     # Just add each block one-by-one to target blockchain
+    logger.debug('Syncing blocks from %s to %s', from_block_number, source_last_block_number)
     for block in source_blockchain.yield_blocks_slice(from_block_number, source_last_block_number):
+        logger.debug('Adding block %s', block.get_block_number())
         target_blockchain.add_block(block)
 
 

@@ -3,6 +3,7 @@ from contextlib import contextmanager
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
+from thenewboston_node.business_logic.models import BlockchainState
 
 
 @contextmanager
@@ -17,6 +18,23 @@ def force_blockchain(blockchain):
 @contextmanager
 def force_file_blockchain(file_blockchain: FileBlockchain, outer_web_mock):
     with force_blockchain(file_blockchain):
+        for blockchain_state in file_blockchain.yield_blockchain_states():
+            assert isinstance(blockchain_state, BlockchainState)
+            assert isinstance(blockchain_state.meta, dict)
+
+            absolute_file_path = blockchain_state.meta['absolute_file_path']
+            assert absolute_file_path
+            blockchain_root_relative_file_path = blockchain_state.meta['blockchain_root_relative_file_path']
+            assert blockchain_root_relative_file_path
+
+            url = f'http://localhost:8555/blockchain/{blockchain_root_relative_file_path}'
+            with open(absolute_file_path, 'rb') as fo:
+                binary_data = fo.read()
+
+            outer_web_mock.register_uri(
+                outer_web_mock.GET, url, body=binary_data, adding_headers={'Content-Type': 'application/octet-stream'}
+            )
+
         for block_chunks_meta in file_blockchain.yield_block_chunks_meta():
             # TODO(dmu) LOW: Replace `localhost:8555` with `testserver` ?
             url = f'http://localhost:8555/blockchain/{block_chunks_meta.blockchain_root_relative_file_path}'
@@ -49,6 +67,7 @@ def assert_iter_equal_except_meta(iter1, iter2, negate=False):
     if negate:
         assert tuple1 != tuple2
     else:
+        assert len(tuple1) == len(tuple2)  # helps debugging
         assert tuple1 == tuple2
 
 

@@ -26,21 +26,17 @@ logger = logging.getLogger(__name__)
 
 def get_blockchain_state_filename_meta(filename):
     match = BLOCKCHAIN_STATE_FILENAME_RE.match(filename)
-    if match:
-        last_block_number_str = match.group('last_block_number')
+    if not match:
+        return None
 
-        if last_block_number_str.endswith(LAST_BLOCK_NUMBER_NONE_SENTINEL):
-            last_block_number = None
-        else:
-            last_block_number = int(last_block_number_str)
+    last_block_number_str = match.group('last_block_number')
 
-        return BlockchainFilenameMeta(last_block_number, match.group('compression') or None)
+    if last_block_number_str.endswith(LAST_BLOCK_NUMBER_NONE_SENTINEL):
+        last_block_number = None
+    else:
+        last_block_number = int(last_block_number_str)
 
-    return None
-
-
-def get_blockchain_state_file_path_meta(file_path):
-    return get_blockchain_state_filename_meta(os.path.basename(file_path))
+    return BlockchainFilenameMeta(last_block_number, match.group('compression') or None)
 
 
 class BlochainStateFileBlockchainMixin(FileBlockchainBaseMixin):

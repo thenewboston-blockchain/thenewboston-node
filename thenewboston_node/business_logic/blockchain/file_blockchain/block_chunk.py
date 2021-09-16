@@ -47,27 +47,27 @@ def get_block_chunk_filename_meta(
     )
 
     match = BLOCK_CHUNK_FILENAME_RE.match(filename)
-    if match:
-        start = int(match.group('start'))
-        end_str = match.group('end')
-        if ''.join(set(end_str)) == 'x':
-            end = None
-        else:
-            end = int(end_str)
-            assert start <= end
+    if not match:
+        return None
 
-        return BlockChunkFilenameMeta(
-            absolute_file_path=absolute_file_path,
-            blockchain_root_relative_file_path=blockchain_root_relative_file_path,
-            storage_relative_file_path=storage_relative_file_path,
-            filename=filename,
-            start_block_number=start,
-            end_block_number=end,
-            compression=match.group('compression') or None,
-            blockchain=blockchain,
-        )
+    start = int(match.group('start'))
+    end_str = match.group('end')
+    if ''.join(set(end_str)) == 'x':
+        end = None
+    else:
+        end = int(end_str)
+        assert start <= end
 
-    return None
+    return BlockChunkFilenameMeta(
+        absolute_file_path=absolute_file_path,
+        blockchain_root_relative_file_path=blockchain_root_relative_file_path,
+        storage_relative_file_path=storage_relative_file_path,
+        filename=filename,
+        start_block_number=start,
+        end_block_number=end,
+        compression=match.group('compression') or None,
+        blockchain=blockchain,
+    )
 
 
 class BlockChunkFileBlockchainMixin(FileBlockchainBaseMixin):

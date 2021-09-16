@@ -1,42 +1,20 @@
 import logging
 import os.path
-import re
-from collections import namedtuple
 from typing import Any, Callable, Generator, Union, cast
 
 from more_itertools import ilen
 
+from thenewboston_node.business_logic.blockchain.file_blockchain.base import (  # noqa: I101
+    EXPECTED_LOCK_EXCEPTION, LOCKED_EXCEPTION, FileBlockchainBaseMixin
+)
 from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
-from thenewboston_node.business_logic.storages.file_system import COMPRESSION_FUNCTIONS
 from thenewboston_node.core.logging import timeit_method
 from thenewboston_node.core.utils.file_lock import ensure_locked, lock_method
 
-from .base import EXPECTED_LOCK_EXCEPTION, LOCKED_EXCEPTION, FileBlockchainBaseMixin  # noqa: I101
-
-LAST_BLOCK_NUMBER_NONE_SENTINEL = '!'
-BLOCKCHAIN_STATE_FILENAME_TEMPLATE = '{last_block_number}-blockchain-state.msgpack'
-BLOCKCHAIN_STATE_FILENAME_RE = re.compile(
-    BLOCKCHAIN_STATE_FILENAME_TEMPLATE.format(last_block_number=r'(?P<last_block_number>\d*(?:!|\d))') +
-    r'(?:|\.(?P<compression>{}))$'.format('|'.join(COMPRESSION_FUNCTIONS.keys()))
-)
-BlockchainFilenameMeta = namedtuple('BlockchainFilenameMeta', 'last_block_number compression')
+from .meta import get_blockchain_state_filename_meta
+from .misc import BLOCKCHAIN_STATE_FILENAME_TEMPLATE, LAST_BLOCK_NUMBER_NONE_SENTINEL
 
 logger = logging.getLogger(__name__)
-
-
-def get_blockchain_state_filename_meta(filename):
-    match = BLOCKCHAIN_STATE_FILENAME_RE.match(filename)
-    if not match:
-        return None
-
-    last_block_number_str = match.group('last_block_number')
-
-    if last_block_number_str.endswith(LAST_BLOCK_NUMBER_NONE_SENTINEL):
-        last_block_number = None
-    else:
-        last_block_number = int(last_block_number_str)
-
-    return BlockchainFilenameMeta(last_block_number, match.group('compression') or None)
 
 
 class BlochainStateFileBlockchainMixin(FileBlockchainBaseMixin):

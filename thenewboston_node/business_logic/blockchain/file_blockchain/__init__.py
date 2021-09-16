@@ -12,8 +12,8 @@ from thenewboston_node.core.utils.file_lock import lock_method
 
 from ..base import BlockchainBase
 from .base import EXPECTED_LOCK_EXCEPTION, LOCKED_EXCEPTION, FileBlockchainBaseMixin  # noqa: I101
-from .block_chunk import BlockChunkFileBlockchainMixin
-from .blockchain_state import BlochainStateFileBlockchainMixin
+from .block_chunk.base import BlockChunkFileBlockchainMixin
+from .blockchain_state.base import BlochainStateFileBlockchainMixin
 
 logger = logging.getLogger(__name__)
 

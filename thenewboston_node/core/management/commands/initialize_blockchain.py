@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 from django.core.management import BaseCommand
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
-from thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_state import (
+from thenewboston_node.business_logic.blockchain.file_blockchain.blockchain_state.base import (
     get_blockchain_state_filename_meta
 )
 from thenewboston_node.business_logic.utils.blockchain_state import (

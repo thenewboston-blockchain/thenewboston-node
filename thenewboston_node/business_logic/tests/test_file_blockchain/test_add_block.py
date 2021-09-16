@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
-from thenewboston_node.business_logic.blockchain.file_blockchain.block_chunk import get_block_chunk_filename_meta
+from thenewboston_node.business_logic.blockchain.file_blockchain.block_chunk.meta import get_block_chunk_filename_meta
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.node import get_node_signing_key

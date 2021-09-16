@@ -1,7 +1,7 @@
 import os
 import os.path
 
-from thenewboston_node.business_logic.blockchain.file_blockchain.block_chunk import BlockChunkFilenameMeta
+from thenewboston_node.business_logic.blockchain.file_blockchain.block_chunk.meta import BlockChunkFilenameMeta
 
 
 def test_yield_block_chunks_meta(file_blockchain_with_three_block_chunks):

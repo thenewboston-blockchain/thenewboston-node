@@ -130,7 +130,7 @@ class BlockchainStateMessage(MessageMixin, BaseDataclass):
 
     @validates('blockchain state accounts', is_plural_target=True)
     def validate_accounts(self):
-        for account, balance in self.account_states.items():
+        for account, account_state in self.account_states.items():
             with validates(f'blockchain state account {account}'):
                 validate_type(f'{self.humanized_class_name} account', account, str)
-                balance.validate()
+                account_state.validate()

@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.base import BaseDataclass
 from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 
@@ -25,6 +26,10 @@ class PrimaryValidatorSchedule(BaseDataclass):
     def is_schedule_in_past(self, block_number):
         return self.end_block_number < block_number
 
+    def validate(self):
+        if self.begin_block_number > self.end_block_number:
+            raise ValidationError('Begin block number must be less or equal than end block number')
+
 
 @revert_docstring
 @dataclass
@@ -33,5 +38,4 @@ class PrimaryValidatorScheduleSignedChangeRequestMessage(SignedChangeRequestMess
     primary_validator_schedule: PrimaryValidatorSchedule
 
     def validate(self):
-        # TODO(dmu) CRITICAL: Implement
-        return
+        self.primary_validator_schedule.validate()

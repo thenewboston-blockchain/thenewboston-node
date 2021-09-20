@@ -59,14 +59,12 @@ def make_sample_blockchain(base_directory) -> FileBlockchain:
     blockchain.add_blockchain_state(blockchain_state)
 
     node = RegularNode(
-        identifier=REGULAR_NODE_KEY_PAIR.public,
+        identifier=PV2_KEY_PAIR.public,
         network_addresses=['https://node42-non-existing.thenewboston.com:8555/', 'http://78.107.238.42:8555/'],
         fee_amount=3,
     )
     regular_node_scr = NodeDeclarationSignedChangeRequest.create(
-        network_addresses=node.network_addresses,
-        fee_amount=node.fee_amount,
-        signing_key=REGULAR_NODE_KEY_PAIR.private
+        network_addresses=node.network_addresses, fee_amount=node.fee_amount, signing_key=PV2_KEY_PAIR.private
     )
     original_utcnow = blockchain.utcnow
     blockchain.utcnow = lambda: datetime.fromisoformat('2021-06-19T23:13:22.003468')  # type: ignore

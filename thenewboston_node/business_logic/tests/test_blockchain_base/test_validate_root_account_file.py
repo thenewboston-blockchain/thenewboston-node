@@ -1,7 +1,9 @@
 import pytest
 
 from thenewboston_node.business_logic.exceptions import ValidationError
-from thenewboston_node.business_logic.tests.baker_factories import make_blockchain_state, make_genesis_blockchain_state
+from thenewboston_node.business_logic.tests.baker_factories import (
+    make_account_state, make_blockchain_state, make_genesis_blockchain_state
+)
 from thenewboston_node.business_logic.tests.mocks.utils import patch_blockchain_states, patch_blocks
 
 
@@ -68,3 +70,13 @@ def test_validate_blockchain_state_next_block_identifier_mismatch(blockchain_bas
                 match='Blockchain state next_block_identifier does not match last_block_number message hash'
             ):
                 blockchain_base.validate_blockchain_states(is_partial_allowed=True)
+
+
+def test_validate_node_is_declared_if_pv_schedule_is_set(blockchain_base):
+    account_state = make_account_state()
+    account_state.node = None
+    blockchain_genesis_state = make_genesis_blockchain_state(message__account_states={'00000': account_state})
+
+    with patch_blockchain_states(blockchain_base, [blockchain_genesis_state]):
+        with pytest.raises(ValidationError, match='Account state node must be set'):
+            blockchain_base.validate_blockchain_states(is_partial_allowed=False)

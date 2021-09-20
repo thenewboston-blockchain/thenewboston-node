@@ -2,7 +2,9 @@ import logging
 from dataclasses import dataclass, field
 from typing import Optional
 
-from thenewboston_node.business_logic.validators import validate_gte_value, validate_not_empty, validate_type
+from thenewboston_node.business_logic.validators import (
+    validate_gte_value, validate_not_empty, validate_not_none, validate_type
+)
 from thenewboston_node.core.logging import validates
 from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
@@ -71,13 +73,12 @@ class AccountState(BaseDataclass):
 
     @validates()
     def validate_node(self):
-        # TODO(dmu) CRITICAL: Implement
-        return
+        self.node.validate()
 
     @validates()
     def validate_primary_validator_schedule(self):
-        # TODO(dmu) CRITICAL: Implement
-        return
+        validate_not_none(f'{self.humanized_class_name_lowered} node', self.node)
+        self.primary_validator_schedule.validate()
 
 
 assert all(AccountState.is_optional_field(field) for field in AccountState.get_field_names())

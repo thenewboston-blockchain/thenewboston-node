@@ -1,9 +1,8 @@
 import pytest
 
-from thenewboston_node.business_logic import models
 from thenewboston_node.business_logic.exceptions import ValidationError
+from thenewboston_node.business_logic.tests.baker_factories import make_account_state
 from thenewboston_node.business_logic.tests.mocks.utils import patch_blockchain_states, patch_blocks
-from thenewboston_node.core.utils import baker
 from thenewboston_node.core.utils.types import hexstr
 
 NON_EXISTENT_ACCOUNT = hexstr('f' * 64)
@@ -12,7 +11,7 @@ NON_EXISTENT_ACCOUNT = hexstr('f' * 64)
 def test_validate_number_of_accounts_mismatch(blockchain_base, blockchain_genesis_state, block_0):
     with patch_blocks(blockchain_base, [block_0]):
         blockchain_state_0 = blockchain_base.generate_blockchain_state()
-        blockchain_state_0.account_states |= {NON_EXISTENT_ACCOUNT: baker.make(models.AccountState, node=None)}
+        blockchain_state_0.account_states |= {NON_EXISTENT_ACCOUNT: make_account_state()}
 
         with patch_blockchain_states(blockchain_base, [blockchain_genesis_state, blockchain_state_0]):
             with pytest.raises(ValidationError, match='Expected 4 accounts, but got 5 in the blockchain state'):

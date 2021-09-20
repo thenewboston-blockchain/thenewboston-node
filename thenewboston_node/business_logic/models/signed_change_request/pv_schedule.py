@@ -3,6 +3,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import ClassVar, Optional, Type, TypeVar
 
+from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
 
@@ -46,5 +47,11 @@ class PrimaryValidatorScheduleSignedChangeRequest(SignedChangeRequest):
 
     def validate(self, blockchain, block_number: Optional[int] = None):
         super().validate(blockchain, block_number)
-        # TODO(dmu) CRITICAL: Implement
-        return
+        self.validate_node(blockchain, block_number)
+
+    def validate_node(self, blockchain, block_number=None):
+        node = blockchain.get_node_by_identifier(
+            identifier=self.signer, on_block_number=block_number - 1 if block_number else None
+        )
+        if node is None:
+            raise ValidationError('Signer node must be declared in the blockchain before primary validator schedule')

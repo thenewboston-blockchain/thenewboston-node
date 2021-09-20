@@ -115,6 +115,10 @@ def test_node_roles(
     blockchain.add_block(block)
 
     if add_pv:
+        nd_request = NodeDeclarationSignedChangeRequest.create(
+            network_addresses=['http://localhost:8555'], fee_amount=1, signing_key=user_account_key_pair.private
+        )
+        blockchain.add_block(Block.create_from_signed_change_request(blockchain, nd_request, get_node_signing_key()))
         pvs_request = PrimaryValidatorScheduleSignedChangeRequest.create(6, 10, user_account_key_pair.private)
         block = Block.create_from_signed_change_request(blockchain, pvs_request, get_node_signing_key())
         blockchain.add_block(block)

@@ -1,9 +1,9 @@
-from django.test import override_settings
-
 import pytest
+
+from thenewboston_node.business_logic.tests.base import force_node_fee
 
 
 @pytest.fixture(autouse=True)
-def unittest_settings(primary_validator_key_pair):
-    with override_settings(NODE_SIGNING_KEY=primary_validator_key_pair.private, NODE_FEE_AMOUNT=4):
+def unittest_settings(as_primary_validator):
+    with as_primary_validator, force_node_fee(fee_amount=4):
         yield

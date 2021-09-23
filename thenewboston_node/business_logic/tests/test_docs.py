@@ -23,7 +23,7 @@ def test_get_sample_blocks():
     assert len(set(id(item) for item in blocks.values())) == len(blocks.values())
 
 
-def test_can_generate_docs():
+def _test_can_generate_docs():
     result = subprocess.run(['make', 'docs-html-test'], capture_output=True, text=True)
     print(result.stdout)
     print(result.stderr)

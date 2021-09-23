@@ -17,7 +17,7 @@ class APIBlockchain(BlockchainBase):
         meta = NodeClient.get_instance().get_latest_blockchain_state_meta_by_network_address(self.network_address)
         if not meta:
             # TODO(dmu) CRITICAL: Implement handling IO errors
-            raise NotImplementedError('Handling connection related issue is not implemented')
+            raise NotImplementedError('Handling connection related issues is not implemented')
 
         assert meta is not None
         return meta['last_block_number']

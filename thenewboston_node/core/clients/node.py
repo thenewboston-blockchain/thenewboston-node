@@ -94,6 +94,8 @@ class NodeClient:
         data = self.list_resource(
             network_address, 'blockchain-states-meta', limit=1, ordering='-last_block_number', should_raise=False
         )
+        if not data:
+            return None
 
         results = data['results']
         if not results:

@@ -96,7 +96,7 @@ def make_blockchain_genesis_state(
     treasury_account_number,
     primary_validator=None,
     primary_validator_identifier=None,
-    primary_validator_network_addresses=('https://localhost:8555/',),
+    primary_validator_network_addresses=('http://localhost:8555/',),
     primary_validator_fee_amount=4,
     primary_validator_fee_account=None,
     treasury_account_initial_balance=settings.DEFAULT_TREASURY_ACCOUNT_INITIAL_BALANCE,

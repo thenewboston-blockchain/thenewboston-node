@@ -47,5 +47,6 @@ def get_ranked_nodes(blockchain: BlockchainBase):
         if node.identifier != primary_validator.identifier:
             nodes.append(node)
 
+    # Ranking down the primary validator to reduce load on it
     nodes.append(primary_validator)
     return nodes

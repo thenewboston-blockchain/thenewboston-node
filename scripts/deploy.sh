@@ -27,7 +27,7 @@ fi
 
 wget https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/docker-compose.yml -O docker-compose.yml
 
-test -f .env || touch .env
+test -f .env || touch .env  # we need this file to exist, so grep does not fail
 grep -q -o THENEWBOSTON_NODE_SECRET_KEY .env || echo "THENEWBOSTON_NODE_SECRET_KEY=$(dd bs=48 count=1 if=/dev/urandom | base64)" >> .env
 
 docker-compose pull
@@ -41,11 +41,14 @@ fi
 
 echo "Running migrations..."
 docker-compose run --rm node poetry run python -m thenewboston_node.manage migrate
+
 echo "Initializing blockchain..."
 if [ "$INITIALIZE_FROM_ALPHA" == True ]; then
   docker-compose run --rm node bash -c 'poetry run python -m thenewboston_node.manage initialize_blockchain ${ARF_URL} ${ARF_PATH}'
 else
   docker-compose run --rm node bash -c 'poetry run python -m thenewboston_node.manage initialize_blockchain ${BLOCKCHAIN_STATE_PATH}*'
+  echo "Synchronizing blockchain..."
+  docker-compose run --rm node bash -c 'poetry run python -m thenewboston_node.manage sync_blockchain'
 fi
 
 

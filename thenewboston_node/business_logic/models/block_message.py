@@ -133,8 +133,8 @@ class BlockMessage(MessageMixin, BaseDataclass):
 
     @validates('block message')
     def validate(self, blockchain):
+        self.validate_block_number(blockchain)
         self.validate_signed_change_request(blockchain)
-        self.validate_block_number()
 
         assert self.block_number is not None
         self.validate_timestamp(blockchain)
@@ -180,11 +180,16 @@ class BlockMessage(MessageMixin, BaseDataclass):
             validate_gt_value(f'{self.humanized_class_name} timestamp', timestamp, min_timestamp)
 
     @validates('block number')
-    def validate_block_number(self):
+    def validate_block_number(self, blockchain):
         block_number = self.block_number
         validate_not_none(f'{self.humanized_class_name} block_number', block_number)
         validate_type(f'{self.humanized_class_name} block_number', block_number, int)
         validate_gte_value(f'{self.humanized_class_name} block_number', block_number, 0)
+
+        existing_block = blockchain.get_block_by_number(block_number=block_number)
+        if existing_block is None:
+            next_block_number = blockchain.get_next_block_number()
+            validate_exact_value(f'{self.humanized_class_name} block_number', block_number, next_block_number)
 
     @validates('block identifier')
     def validate_block_identifier(self, blockchain):

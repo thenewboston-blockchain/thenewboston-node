@@ -4,13 +4,13 @@ from thenewboston_node.business_logic.models import CoinTransferSignedChangeRequ
 
 
 @pytest.fixture
-def sample_signed_change_request_dict():
+def sample_signed_change_request_dict(treasury_account, user_account):
     return {
         'signer':
-            '4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732',
+            treasury_account,
         'message': {
             'balance_lock':
-                '4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732',
+                treasury_account,
             'txs': [{
                 'amount': 425,
                 'recipient': '484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc'

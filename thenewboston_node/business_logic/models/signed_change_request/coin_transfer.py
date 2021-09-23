@@ -2,6 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import ClassVar, Type, TypeVar
 
+from thenewboston_node.business_logic import exceptions
 from thenewboston_node.business_logic.models.node import RegularNode
 from thenewboston_node.business_logic.validators import (
     validate_exact_value, validate_greater_than_zero, validate_lte_value
@@ -101,8 +102,10 @@ class CoinTransferSignedChangeRequest(SignedChangeRequest):
 
         coin_sender = self.signer
         sender_balance = blockchain.get_account_balance(coin_sender, last_block_number)
-        assert sender_balance > 0
-        assert sender_balance >= sent_amount
+        if sent_amount > sender_balance:
+            raise exceptions.CoinTransferRequestError(
+                f"Sender's account {coin_sender} has not enough balance to send {sent_amount} coins"
+            )
 
         updated_account_states[coin_sender] = AccountState(
             balance=sender_balance - sent_amount, balance_lock=self.make_balance_lock()

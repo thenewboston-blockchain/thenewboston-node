@@ -1,5 +1,3 @@
-import pytest
-
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.node import get_node_signing_key
@@ -53,8 +51,3 @@ def test_can_validate_blockchain(
     blockchain.add_block(block2)
     blockchain.snapshot_blockchain_state()
     blockchain.validate(is_partial_allowed=False)
-
-
-@pytest.mark.skip('Not implemented yet')
-def test_can_validate_blockchain_in_chunks():
-    raise NotImplementedError()

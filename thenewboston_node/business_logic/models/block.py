@@ -130,8 +130,8 @@ class Block(SignableMixin, MessagpackCompactableMixin, MetadataMixin, BaseDatacl
 
     @validates('block')
     def validate(self, blockchain):
+        validate_not_empty(f'{self.humanized_class_name} message', self.message)
         with validates(f'block number {self.message.block_number} (identifier: {self.message.block_identifier})'):
-            validate_not_empty(f'{self.humanized_class_name} message', self.message)
             self.message.validate(blockchain)
             validate_exact_value(f'{self.humanized_class_name} hash', self.hash, self.message.get_hash())
             with validates('block signature'):

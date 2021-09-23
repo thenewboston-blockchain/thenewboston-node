@@ -3,11 +3,13 @@ from datetime import datetime, timedelta
 import pytest
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
+from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models import (
     Block, BlockMessage, CoinTransferSignedChangeRequest, CoinTransferSignedChangeRequestMessage,
     CoinTransferTransaction
 )
 from thenewboston_node.business_logic.node import get_node_signing_key
+from thenewboston_node.business_logic.tests.factories import add_blocks
 from thenewboston_node.core.utils import baker
 from thenewboston_node.core.utils.cryptography import KeyPair, derive_public_key
 
@@ -299,6 +301,57 @@ def test_can_duplicate_recipients(
     assert recipient_account_state.balance == 10 + 3 + 5
 
 
-@pytest.mark.skip('Not implemented yet')
-def test_validate_block():
-    raise NotImplementedError()
+def test_validate_block_message_is_not_empty(
+    memory_blockchain, sample_signed_change_request, primary_validator_key_pair
+):
+    request = sample_signed_change_request
+    block = Block.create_from_signed_change_request(memory_blockchain, request, primary_validator_key_pair.private)
+    block.message = None
+
+    with pytest.raises(ValidationError, match='Block message must be not empty'):
+        block.validate(memory_blockchain)
+
+
+def test_validate_block_hash_matches_message_hash(
+    memory_blockchain, sample_signed_change_request, primary_validator_key_pair
+):
+    request = sample_signed_change_request
+    block = Block.create_from_signed_change_request(memory_blockchain, request, primary_validator_key_pair.private)
+    block.hash = 'wrong hash'
+    msg_hash = block.message.get_hash()
+
+    with pytest.raises(ValidationError, match=f'Block hash must be equal to {msg_hash}'):
+        block.validate(memory_blockchain)
+
+
+def test_validate_block_signature(memory_blockchain, sample_signed_change_request, primary_validator_key_pair):
+    request = sample_signed_change_request
+    block = Block.create_from_signed_change_request(memory_blockchain, request, primary_validator_key_pair.private)
+    block.signature = 'wrong signature'
+
+    with pytest.raises(ValidationError, match='Message signature is invalid'):
+        block.validate(memory_blockchain)
+
+
+def test_validate_block_number(memory_blockchain, sample_signed_change_request, primary_validator_key_pair):
+    request = sample_signed_change_request
+    add_blocks(memory_blockchain, 2)
+    block = Block.create_from_signed_change_request(memory_blockchain, request, primary_validator_key_pair.private)
+    block.message.block_number = 99
+
+    with pytest.raises(ValidationError, match='Block message block_number must be equal to 2'):
+        block.validate(memory_blockchain)
+
+
+def test_validate_account_balance_lock(memory_blockchain, sample_signed_change_request, primary_validator_key_pair):
+    request = sample_signed_change_request
+    add_blocks(memory_blockchain, 2)
+    signer_lock = memory_blockchain.get_account_current_balance_lock(account=request.signer)
+    block = Block.create_from_signed_change_request(memory_blockchain, request, primary_validator_key_pair.private)
+    block.message.signed_change_request.balance_lock = 'wrong lock'
+
+    with pytest.raises(
+        ValidationError,
+        match=f'Coin transfer signed change request message balance_lock must be equal to {signer_lock}'
+    ):
+        block.validate(memory_blockchain)

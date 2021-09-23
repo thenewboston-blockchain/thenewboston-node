@@ -65,6 +65,7 @@ class CoinTransferSignedChangeRequest(SignedChangeRequest):
         super().validate(blockchain, block_number)
         self.validate_amount(blockchain, block_number)
         self.validate_balance_lock(blockchain, block_number)
+        self.validate_circular_transactions()
 
     @validates('amount on transfer request level')
     def validate_amount(self, blockchain, in_block_number: int):
@@ -79,6 +80,12 @@ class CoinTransferSignedChangeRequest(SignedChangeRequest):
         validate_exact_value(
             f'{self.humanized_class_name} message balance_lock', self.message.balance_lock, expected_lock
         )
+
+    @validates('transactions on transfer request level')
+    def validate_circular_transactions(self):
+        recipients = (tx.recipient for tx in self.message.txs if not tx.is_fee)
+        if self.signer in recipients:
+            raise exceptions.ValidationError(f'Cannot transfer coins from account {self.signer} to itself')
 
     @timeit_method()
     def get_updated_account_states(self, blockchain) -> dict[hexstr, AccountState]:

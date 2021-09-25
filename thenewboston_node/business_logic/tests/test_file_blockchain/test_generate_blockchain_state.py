@@ -33,11 +33,11 @@ def test_generated_blockchain_state_is_signed_if_node_is_primary_validator(file_
 
 
 def test_generated_blockchain_state_signature_is_empty_if_node_is_regular(
-    file_blockchain, as_regular_node, primary_validator_key_pair
+    file_blockchain, primary_validator_key_pair, another_node_key_pair
 ):
-    with as_regular_node:
-        add_blocks(file_blockchain, 2)
-        blockchain_state = file_blockchain.generate_blockchain_state()
+    file_blockchain.node_signing_key = another_node_key_pair.private
+    add_blocks(file_blockchain, 2)
+    blockchain_state = file_blockchain.generate_blockchain_state()
 
-        assert blockchain_state.signature is None
-        assert blockchain_state.signer == primary_validator_key_pair.public
+    assert blockchain_state.signature is None
+    assert blockchain_state.signer == primary_validator_key_pair.public

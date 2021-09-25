@@ -19,8 +19,9 @@ T = TypeVar('T', bound='BlockchainBase')
 class BlockchainBase(ValidationMixin, BlockchainStateMixin, BlocksMixin, AccountStateMixin, NetworkMixin):
     _instance = None
 
-    def __init__(self, snapshot_period_in_blocks=None):
+    def __init__(self, snapshot_period_in_blocks=None, node_signing_key=None):
         self.snapshot_period_in_blocks = snapshot_period_in_blocks
+        self.node_signing_key = node_signing_key
 
     @classmethod
     def get_instance(cls: Type[T]) -> T:

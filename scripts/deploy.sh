@@ -51,7 +51,6 @@ else
   docker-compose run --rm node bash -c 'poetry run python -m thenewboston_node.manage sync_blockchain'
 fi
 
-
 docker-compose up -d --force-recreate
 docker logout $DOCKER_REGISTRY_HOST
 
@@ -59,7 +58,8 @@ counter=0
 until $(curl --output /dev/null --silent --head --fail http://127.0.0.1:8555/api/v1/nodes/self/); do
     counter=$(($counter + 1))
     if [ ${counter} -ge 12 ]; then
-      echo 'Unable to start node'
+      echo 'Unable to start node.'
+      docker-compose down
       exit 1
     fi
 

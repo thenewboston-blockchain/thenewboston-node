@@ -180,7 +180,7 @@ def sync_minimal_to_file_blockchain(source: BlockchainBase, target: FileBlockcha
     sync_minimal(source, temporary_file_blockchain)
     throw_away_blockchain_directory = '{}.{}'.format(temporary_file_blockchain_directory, int(time.time() * 100000))
 
-    # Trying make replace as atomic as possible
+    # Trying make the replacement as atomic as possible
     os.rename(target_base_directory, throw_away_blockchain_directory)
     try:
         os.rename(temporary_file_blockchain_directory, target_base_directory)

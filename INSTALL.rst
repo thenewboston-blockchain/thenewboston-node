@@ -143,6 +143,8 @@ Common configuration
 Manual deployment
 -----------------
 
+#. Prepare github personal access token aka PAT (not github password) - it will be needed to
+   access the node docker image
 #. Run ``deploy.sh``::
 
     bash <(wget -qO- https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/scripts/deploy.sh)

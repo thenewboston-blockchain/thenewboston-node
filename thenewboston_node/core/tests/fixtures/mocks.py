@@ -34,5 +34,6 @@ def node_mock(outer_web_mock, blockchain_state_meta, another_node_network_addres
 
 @pytest.fixture
 def node_mock_for_node_client(client):
-    with patch('thenewboston_node.core.clients.node.requests_get', new=client.get):
+    with patch('thenewboston_node.core.clients.node.requests_get',
+               new=client.get), patch('thenewboston_node.core.clients.node.requests_post', new=client.post):
         yield

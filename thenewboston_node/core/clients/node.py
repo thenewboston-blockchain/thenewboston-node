@@ -8,7 +8,7 @@ import requests
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.blockchain.file_blockchain.sources import URLBlockSource
-from thenewboston_node.business_logic.models import Block, BlockchainState
+from thenewboston_node.business_logic.models import Block, BlockchainState, Node, SignedChangeRequest
 from thenewboston_node.business_logic.utils.blockchain_state import read_blockchain_state_file_from_source
 from thenewboston_node.core.utils.types import hexstr
 
@@ -25,6 +25,11 @@ def setdefault_if_not_none(dict_, key, value):
 def requests_get(url):
     # We need this function to mock it easier for unittests
     return requests.get(url)
+
+
+def requests_post(url, data=dict, content_type=None):
+    # We need this function to mock it easier for unittests
+    return requests.post(url, data=data)
 
 
 class NodeClient:
@@ -69,6 +74,38 @@ class NodeClient:
                 raise
             else:
                 logger.warning('Non-JSON response GET %s: %s', url, response.text, exc_info=True)
+                return None
+
+        return data
+
+    @staticmethod
+    def http_post(network_address, resource, data, *, should_raise=True):
+        url = urljoin(network_address, f'/api/v1/{resource}/')
+
+        try:
+            response = requests_post(url, data=json.dumps(data), content_type='application/json')
+        except Exception:
+            logger.warning('Could not POST %s, data: %s', url, data, exc_info=True)
+            if should_raise:
+                raise
+            else:
+                return None
+
+        if should_raise:
+            response.raise_for_status()
+        else:
+            status_code = response.status_code
+            if status_code != requests.codes.ok:
+                logger.warning('Could not POST %s: HTTP%s: %s, data: %s', url, status_code, response.text, data)
+                return None
+
+        try:
+            data = response.json()
+        except json.decoder.JSONDecodeError:
+            if should_raise:
+                raise
+            else:
+                logger.warning('Non-JSON response POST %s: %s, data: %s', url, response.text, data, exc_info=True)
                 return None
 
         return data
@@ -231,3 +268,8 @@ class NodeClient:
                 break
 
             from_block_number = last_block_number + 1
+
+    def post_signed_change_request_by_node(self, node: Node, signed_change_request: SignedChangeRequest):
+        for network_address in node.network_addresses:
+            # TODO(dmu) CRITICAL: Try another network_address only if this one is unavailable
+            return self.http_post(network_address, 'signed-change-request', signed_change_request.serialize_to_dict())

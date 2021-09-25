@@ -37,8 +37,8 @@ RUN poetry export --without-hashes --dev -f requirements.txt -o requirements.txt
 COPY scripts/run.sh .
 RUN chmod a+x run.sh
 
-RUN mkdir -p /var/lib/blockchain
-ENV THENEWBOSTON_NODE_BLOCKCHAIN '{"kwargs":{"base_directory":"/var/lib/blockchain"}}'
+RUN mkdir -p /var/lib/blockchain_volume/blockchain
+ENV THENEWBOSTON_NODE_BLOCKCHAIN '{"kwargs":{"base_directory":"/var/lib/blockchain_volume/blockchain"}}'
 
 COPY Makefile .
 COPY conftest.py .

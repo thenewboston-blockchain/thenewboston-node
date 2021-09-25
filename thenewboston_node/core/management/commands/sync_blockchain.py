@@ -1,4 +1,5 @@
 import logging
+import sys
 
 from django.core.management import BaseCommand
 
@@ -47,3 +48,4 @@ class Command(BaseCommand):
                     )
         else:
             logger.error('Could not synchronize blockchain with the network')
+            sys.exit(1)  # TODO(dmu) LOW: Is there a better way to provide non-zero exit code

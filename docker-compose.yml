@@ -17,7 +17,7 @@ services:
     volumes:
       - type: volume
         source: blockchain
-        target: /var/lib/blockchain
+        target: /var/lib/blockchain_volume
         volume:
           nocopy: true
         read_only: true
@@ -34,7 +34,8 @@ services:
     depends_on:
       - db
     volumes:
-      - blockchain:/var/lib/blockchain
+    # We need to have /var/lib/blockchain_volume , so we can perform file move operations
+      - blockchain:/var/lib/blockchain_volume
 
 volumes:
   postgresql-data:

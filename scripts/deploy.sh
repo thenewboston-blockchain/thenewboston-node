@@ -42,11 +42,14 @@ fi
 echo "Running migrations..."
 docker-compose run --rm node poetry run python -m thenewboston_node.manage migrate
 
-echo "Initializing blockchain..."
+echo "Initializing blockchain (if it has not been initialized yet)..."
 if [ "$INITIALIZE_FROM_ALPHA" == True ]; then
   docker-compose run --rm node bash -c 'poetry run python -m thenewboston_node.manage initialize_blockchain ${ARF_URL} ${ARF_PATH}'
+  # Syncing blockchain does not make sense if it was initialized from Alpha network, since
+  # we are creating the very first node of the Beta network and there is nothing to sync with
 else
   docker-compose run --rm node bash -c 'poetry run python -m thenewboston_node.manage initialize_blockchain ${BLOCKCHAIN_STATE_PATH}*'
+
   echo "Synchronizing blockchain..."
   docker-compose run --rm node bash -c 'poetry run python -m thenewboston_node.manage sync_blockchain'
 fi

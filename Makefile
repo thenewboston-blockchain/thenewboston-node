@@ -22,7 +22,7 @@ test-dockerized:
 
 .PHONY: up-dependencies-only
 up-dependencies-only:
-	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --force-recreate db
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --force-recreate db celery-broker
 
 .PHONY: up
 up: build-node build-reverse-proxy
@@ -63,6 +63,14 @@ generate-blockchain:
 .PHONY: run-server
 run-server:
 	poetry run python -m thenewboston_node.manage runserver 127.0.0.1:8555
+
+.PHONY: run-celery
+run-celery:
+	poetry run celery -A thenewboston_node.project.celery worker --loglevel=INFO
+
+.PHONY: shell
+shell:
+	poetry run python -m thenewboston_node.manage shell
 
 .PHONY: dev-initialize-blockchain
 dev-initialize-blockchain:

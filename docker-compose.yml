@@ -22,19 +22,48 @@ services:
           nocopy: true
         read_only: true
     depends_on:
-    # we need to depend on node to avoid: nginx: [emerg] host not found in upstream "node" in /etc/nginx/conf.d/node.conf
+      # we need to depend on node to avoid: nginx:
+      # [emerg] host not found in upstream "node" in /etc/nginx/conf.d/node.conf
       - node
+
+  celery-broker:
+    # TODO(dmu) LOW: We do not expose any ports here for security reasons. To make it secure
+    #                we would need a non-default user with password generated on the first
+    #                start of RabbitMQ
+    #                which is also propagated to `node` container (we can't generate password at
+    #                image build time since it is not more secure than keeping the default
+    #                password - because the generated password would be published with the image)
+    #                But we may need to access RabbitMQ GUI management console for debugging
+    #                purposes. Fix it to provide the access.
+    image: rabbitmq:3.9.7-management-alpine
+
+  # TODO(dmu) LOW: Make `celery` service DRY with `node` service
+  celery:
+    image: docker.pkg.github.com/thenewboston-developers/thenewboston-node/thenewboston-node:latest
+    environment:
+      - THENEWBOSTON_NODE_DATABASES={"default":{"HOST":"db"}}
+      - THENEWBOSTON_NODE_CELERY_BROKER_URL='amqp://guest:guest@celery-broker:5672//'
+    env_file: .env
+    command: poetry run celery -A thenewboston_node.project.celery worker --loglevel=INFO
+    depends_on:
+      - celery-broker
+      - db
+    volumes:
+      # We need to have /var/lib/blockchain_volume , so we can perform file move operations
+      - blockchain:/var/lib/blockchain_volume
 
   node:
     image: docker.pkg.github.com/thenewboston-developers/thenewboston-node/thenewboston-node:latest
     environment:
       - THENEWBOSTON_NODE_DATABASES={"default":{"HOST":"db"}}
+      - THENEWBOSTON_NODE_CELERY_BROKER_URL='amqp://guest:guest@celery-broker:5672//'
     env_file: .env
     command: ./run.sh
     depends_on:
       - db
+      - celery-broker
     volumes:
-    # We need to have /var/lib/blockchain_volume , so we can perform file move operations
+      # We need to have /var/lib/blockchain_volume , so we can perform file move operations
       - blockchain:/var/lib/blockchain_volume
 
 volumes:

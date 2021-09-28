@@ -73,13 +73,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         blockchain = BlockchainBase.get_instance()
-        if not blockchain.is_empty() and options['force']:
-            logger.info('Clearing existing blockchain')
-            blockchain.clear()
 
         if not blockchain.is_empty():
-            logger.info('Blockchain is already initialized')
-            return
+            if options['force']:
+                logger.info('Clearing existing blockchain')
+                blockchain.clear()
+            else:
+                logger.info('Blockchain is already initialized')
+                return
 
         sources = options['sources']
         has_added = add_blockchain_state_from_sources(blockchain, sources)

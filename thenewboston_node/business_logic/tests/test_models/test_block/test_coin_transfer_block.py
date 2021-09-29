@@ -210,23 +210,21 @@ def test_can_create_block_from_main_transaction(
 
 def test_normalized_block_message(file_blockchain, sample_signed_change_request):
     expected_message_template = (
-        '{"block_identifier":"967192aab18132daf231a196b6b51f6766dc61f7a12f517fd8ccadc0b5a53542",'
-        '"block_number":0,"block_type":"ct","signed_change_request":{"message":'
-        '{"balance_lock":"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732",'
-        '"txs":[{"amount":425,"recipient":"484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc"}'
-        ',{"amount":1,"is_fee":true,"recipient":"5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8"}'
-        ',{"amount":4,"is_fee":true,"recipient":"ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314"}'
-        ']},"signature":'
-        '"362dc47191d5d1a33308de1f036a5e93fbaf0b05fa971d9537f954f13cd22b5ed9bee56f4701bdaf'
-        '9b995c47271806ba73e75d63f46084f5830cec5f5b7e9600","signer":'
-        '"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732"},'
+        '{"block_identifier":"adbd5267128002a906a555f76841d92046b9b4fb0a2b400088f1cd9b1bbdadfd",'
+        '"block_number":0,"block_type":"ct","signed_change_request":'
+        '{"message":{"balance_lock":"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732",'
+        '"txs":[{"amount":425,"recipient":"484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc"},'
+        '{"amount":1,"is_fee":true,"recipient":"5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8"},'
+        '{"amount":4,"is_fee":true,"recipient":"ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314"}]},'
+        '"signature":"362dc47191d5d1a33308de1f036a5e93fbaf0b05fa971d9537f954f13cd22b5ed9bee56f47'
+        '01bdaf9b995c47271806ba73e75d63f46084f5830cec5f5b7e9600",'
+        '"signer":"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732"},'
         '"timestamp":"<replace-with-timestamp>","updated_account_states":'
         '{"484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc":'
         '{"balance":425},"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732":'
-        '{"balance":281474976710226,"balance_lock":'
-        '"ff3127bdb408e5f3f4f07dd364ce719b2854dc28ee66aa7af839e46468761885"},'
-        '"5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8":'
-        '{"balance":1},"ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314":{"balance":4}}}'
+        '{"balance":281474976710226,"balance_lock":"ff3127bdb408e5f3f4f07dd364ce719b2854dc28ee66aa7af839e46468761885"}'
+        ',"5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8":{"balance":1},'
+        '"ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314":{"balance":4}}}'
     )
 
     blockchain = file_blockchain

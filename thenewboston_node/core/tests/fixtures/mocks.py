@@ -8,6 +8,8 @@ import httpretty
 import pytest
 from requests.exceptions import HTTPError
 
+from thenewboston_node.core.clients.node import requests_get, requests_post
+
 
 @pytest.fixture(autouse=True)
 def outer_web_mock():
@@ -40,8 +42,10 @@ def raise_for_status(self):
         raise HTTPError()
 
 
-def client_method_wrapper(function, *args, **kwargs):
+def client_method_wrapper(function, original_function, url, *args, **kwargs):
     # We need to convert requests to Django test client interface here
+    if not url.startswith('http://testserver/'):
+        return original_function(url, *args, **kwargs)
 
     # Convert `json` to `data`
     json_ = kwargs.pop('json', None)
@@ -57,15 +61,19 @@ def client_method_wrapper(function, *args, **kwargs):
             kwargs['content_type'] = content_type
         kwargs.update(**headers)
 
-    response = function(*args, **kwargs)
+    response = function(url, *args, **kwargs)
     response.raise_for_status = types.MethodType(raise_for_status, response)
     return response
 
 
 @pytest.fixture
 def node_mock_for_node_client(api_client):
-    with patch('thenewboston_node.core.clients.node.requests_get', new=partial(client_method_wrapper, api_client.get)):
+    with patch(
+        'thenewboston_node.core.clients.node.requests_get',
+        new=partial(client_method_wrapper, api_client.get, requests_get)
+    ):
         with patch(
-            'thenewboston_node.core.clients.node.requests_post', new=partial(client_method_wrapper, api_client.post)
+            'thenewboston_node.core.clients.node.requests_post',
+            new=partial(client_method_wrapper, api_client.post, requests_post)
         ):
             yield

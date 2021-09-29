@@ -7,10 +7,10 @@ from thenewboston_node.business_logic.models import (
 
 
 def test_pv_schedule_after_node_declaration_is_successful(
-    file_blockchain, another_node_key_pair, primary_validator_key_pair
+    file_blockchain, another_node_key_pair, primary_validator_key_pair, preferred_node_network_address
 ):
     nd_request = NodeDeclarationSignedChangeRequest.create(
-        network_addresses=['http://localhost:8555'],
+        network_addresses=[preferred_node_network_address],
         fee_amount=3,
         signing_key=another_node_key_pair.private,
     )
@@ -49,10 +49,10 @@ def test_pv_schedule_without_node_declaration_fails(
 
 
 def test_pv_schedule_begin_block_number_must_be_less_than_end_block_number(
-    file_blockchain, another_node_key_pair, primary_validator_key_pair
+    file_blockchain, another_node_key_pair, primary_validator_key_pair, preferred_node_network_address
 ):
     nd_request = NodeDeclarationSignedChangeRequest.create(
-        network_addresses=['http://localhost:8555'],
+        network_addresses=[preferred_node_network_address],
         fee_amount=3,
         signing_key=another_node_key_pair.private,
     )

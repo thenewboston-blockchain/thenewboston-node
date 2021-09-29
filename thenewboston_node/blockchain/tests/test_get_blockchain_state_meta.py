@@ -24,7 +24,9 @@ def test_invalid_block_number_returns_400(api_client, file_blockchain, block_num
 
 
 @pytest.mark.parametrize('block_number', ('-1', 'null', 'genesis', ' null '))
-def test_can_get_blockchain_genesis_state_meta(api_client, file_blockchain, blockchain_genesis_state, block_number):
+def test_can_get_blockchain_genesis_state_meta(
+    api_client, file_blockchain, blockchain_genesis_state, block_number, pv_network_address
+):
     with force_blockchain(file_blockchain):
         response = api_client.get(API_V1_BLOCKCHAIN_STATE_URL_PATTERN.format(block_number=block_number))
 
@@ -37,7 +39,7 @@ def test_can_get_blockchain_genesis_state_meta(api_client, file_blockchain, bloc
         'url_path':
             '/blockchain/blockchain-states/0/0/0/0/0/0/0/0/0000000000000000000!-blockchain-state.msgpack.gz',
         'urls': [
-            'http://localhost:8555/blockchain/blockchain-states/0/0/0/0/0/0/0/0/'
+            f'{pv_network_address}blockchain/blockchain-states/0/0/0/0/0/0/0/0/'
             '0000000000000000000!-blockchain-state.msgpack.gz'
         ]
     }

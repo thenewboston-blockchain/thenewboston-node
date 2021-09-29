@@ -7,7 +7,7 @@ from thenewboston_node.business_logic.tests.base import force_blockchain
 API_V1_LIST_BLOCKCHAIN_STATE_URL = '/api/v1/block-chunks-meta/'
 
 
-def test_can_list_block_chunk_meta(api_client, file_blockchain_with_three_block_chunks):
+def test_can_list_block_chunk_meta(api_client, file_blockchain_with_three_block_chunks, pv_network_address):
 
     blockchain = file_blockchain_with_three_block_chunks
     with force_blockchain(blockchain):
@@ -28,7 +28,7 @@ def test_can_list_block_chunk_meta(api_client, file_blockchain_with_three_block_
             '00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
         ),
         'urls': [
-            'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
+            f'{pv_network_address}blockchain/block-chunks/0/0/0/0/0/0/0/0/'
             '00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
         ]
     }
@@ -42,7 +42,7 @@ def test_can_list_block_chunk_meta(api_client, file_blockchain_with_three_block_
             '00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
         ),
         'urls': [
-            'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
+            f'{pv_network_address}blockchain/block-chunks/0/0/0/0/0/0/0/0/'
             '00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
         ]
     }
@@ -56,13 +56,13 @@ def test_can_list_block_chunk_meta(api_client, file_blockchain_with_three_block_
             '00000000000000000006-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
         ),
         'urls': [
-            'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
+            f'{pv_network_address}blockchain/block-chunks/0/0/0/0/0/0/0/0/'
             '00000000000000000006-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
         ]
     }
 
 
-def test_can_order_block_chunk_meta(api_client, file_blockchain_with_three_block_chunks):
+def test_can_order_block_chunk_meta(api_client, file_blockchain_with_three_block_chunks, pv_network_address):
 
     blockchain = file_blockchain_with_three_block_chunks
     with force_blockchain(blockchain):
@@ -83,7 +83,7 @@ def test_can_order_block_chunk_meta(api_client, file_blockchain_with_three_block
             '00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
         ),
         'urls': [
-            'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
+            f'{pv_network_address}blockchain/block-chunks/0/0/0/0/0/0/0/0/'
             '00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
         ]
     }
@@ -97,7 +97,7 @@ def test_can_order_block_chunk_meta(api_client, file_blockchain_with_three_block
             '00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
         ),
         'urls': [
-            'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
+            f'{pv_network_address}blockchain/block-chunks/0/0/0/0/0/0/0/0/'
             '00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
         ]
     }
@@ -111,13 +111,15 @@ def test_can_order_block_chunk_meta(api_client, file_blockchain_with_three_block
             '00000000000000000006-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
         ),
         'urls': [
-            'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
+            f'{pv_network_address}blockchain/block-chunks/0/0/0/0/0/0/0/0/'
             '00000000000000000006-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
         ]
     }
 
 
-def test_can_order_block_chunk_meta_with_limit(api_client, file_blockchain_with_three_block_chunks):
+def test_can_order_block_chunk_meta_with_limit(
+    api_client, file_blockchain_with_three_block_chunks, pv_network_address
+):
 
     blockchain = file_blockchain_with_three_block_chunks
     with force_blockchain(blockchain):
@@ -138,7 +140,7 @@ def test_can_order_block_chunk_meta_with_limit(api_client, file_blockchain_with_
             '00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
         ),
         'urls': [
-            'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
+            f'{pv_network_address}blockchain/block-chunks/0/0/0/0/0/0/0/0/'
             '00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
         ]
     }
@@ -152,13 +154,15 @@ def test_can_order_block_chunk_meta_with_limit(api_client, file_blockchain_with_
             '00000000000000000006-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
         ),
         'urls': [
-            'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
+            f'{pv_network_address}blockchain/block-chunks/0/0/0/0/0/0/0/0/'
             '00000000000000000006-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
         ]
     }
 
 
-def test_can_order_block_chunk_meta_with_limit_and_offset(api_client, file_blockchain_with_three_block_chunks):
+def test_can_order_block_chunk_meta_with_limit_and_offset(
+    api_client, file_blockchain_with_three_block_chunks, pv_network_address
+):
 
     blockchain = file_blockchain_with_three_block_chunks
     with force_blockchain(blockchain):
@@ -179,7 +183,7 @@ def test_can_order_block_chunk_meta_with_limit_and_offset(api_client, file_block
             '00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
         ),
         'urls': [
-            'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
+            f'{pv_network_address}blockchain/block-chunks/0/0/0/0/0/0/0/0/'
             '00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
         ]
     }

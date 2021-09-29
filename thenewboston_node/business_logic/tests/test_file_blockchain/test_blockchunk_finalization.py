@@ -44,7 +44,6 @@ def assert_block_chunk_is_finalized(file_blockchain, start_str='0000000000000000
         pytest.fail()
 
 
-@pytest.mark.order(1)
 def test_can_finalize_block_chunk(file_blockchain: FileBlockchain):
     add_blocks(file_blockchain, 1)
     assert_incomplete_block_chunk_exists(file_blockchain, '00000000000000000000')
@@ -54,7 +53,6 @@ def test_can_finalize_block_chunk(file_blockchain: FileBlockchain):
     assert_block_chunk_is_finalized(file_blockchain, '00000000000000000000', '00000000000000000000')
 
 
-@pytest.mark.order(2)
 def test_block_chunk_is_finalized_on_blockchain_state_creation(file_blockchain: FileBlockchain):
     add_blocks(file_blockchain, 1)
     assert_incomplete_block_chunk_exists(file_blockchain, '00000000000000000000')
@@ -62,7 +60,6 @@ def test_block_chunk_is_finalized_on_blockchain_state_creation(file_blockchain: 
     assert_block_chunk_is_finalized(file_blockchain)
 
 
-@pytest.mark.order(3)
 def test_can_add_more_blocks_after_snapshot(file_blockchain: FileBlockchain):
     assert file_blockchain.get_block_count() == 0
     add_blocks(file_blockchain, 1)
@@ -75,7 +72,6 @@ def test_can_add_more_blocks_after_snapshot(file_blockchain: FileBlockchain):
     assert_incomplete_block_chunk_exists(file_blockchain, start_str='00000000000000000001')
 
 
-@pytest.mark.order(4)
 def test_can_add_more_snapshots(file_blockchain: FileBlockchain):
     assert file_blockchain.get_block_count() == 0
     add_blocks(file_blockchain, 1)
@@ -90,7 +86,6 @@ def test_can_add_more_snapshots(file_blockchain: FileBlockchain):
     assert file_blockchain.get_blockchain_state_count() == 3
 
 
-@pytest.mark.order(5)
 def test_automatic_snapshots(file_blockchain: FileBlockchain):
     with patch.object(file_blockchain, 'snapshot_period_in_blocks', 5):
         assert_block_chain_state_exists(file_blockchain, '0000000000000000000!')
@@ -105,7 +100,6 @@ def test_automatic_snapshots(file_blockchain: FileBlockchain):
         assert_incomplete_block_chunk_exists(file_blockchain, '00000000000000000010')
 
 
-@pytest.mark.order(6)
 def test_blockchain_is_operational_after_blocks_added(file_blockchain: FileBlockchain):
     with patch.object(file_blockchain, 'snapshot_period_in_blocks', 5):
         add_blocks(file_blockchain, 11)
@@ -143,7 +137,6 @@ def test_blockchain_is_operational_after_blocks_added(file_blockchain: FileBlock
         ) > 0
 
 
-@pytest.mark.order(6)
 def test_blockchain_survives_interrupted_blockchain_snapshot(file_blockchain: FileBlockchain):
     with patch.object(file_blockchain, 'snapshot_period_in_blocks', 5):
         add_blocks(file_blockchain, 7)

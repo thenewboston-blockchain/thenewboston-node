@@ -52,6 +52,10 @@ else
 
   echo "Synchronizing blockchain..."
   docker-compose run --rm node bash -c 'poetry run python -m thenewboston_node.manage sync_blockchain'
+  docker-compose run --rm node bash -c 'poetry run python -m thenewboston_node.manage ensure_node_declared'
+
+  # TODO(dmu) CRITICAL: Remove second sync once normal new block notification mechanism is implemented
+  docker-compose run --rm node bash -c 'poetry run python -m thenewboston_node.manage sync_blockchain'
 fi
 
 docker-compose up -d --force-recreate

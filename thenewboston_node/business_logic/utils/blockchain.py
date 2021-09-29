@@ -48,15 +48,20 @@ def generate_blockchain(
     signing_key,
     add_blockchain_genesis_state=True,
     validate=True,
-    treasury_account_key_pair=None
+    treasury_account_key_pair=None,
+    primary_validator_network_addresses=None,
 ):
     treasury_account_key_pair = treasury_account_key_pair or generate_key_pair()
     treasury_account = treasury_account_key_pair.public
     logger.info('Using treasury account: %s', treasury_account_key_pair)
 
     if add_blockchain_genesis_state and blockchain.get_blockchain_state_count() == 0:
+        kwargs = {}
+        if primary_validator_network_addresses is not None:
+            kwargs['primary_validator_network_addresses'] = primary_validator_network_addresses
+
         blockchain_genesis_state = make_blockchain_genesis_state(
-            treasury_account_number=treasury_account, primary_validator_schedule_end_block_number=size + 99
+            treasury_account_number=treasury_account, primary_validator_schedule_end_block_number=size + 99, **kwargs
         )
         blockchain.add_blockchain_state(blockchain_genesis_state)
 

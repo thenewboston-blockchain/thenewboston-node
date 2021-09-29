@@ -22,7 +22,13 @@ PV_ACCOUNT = hexstr('dbc82ca874ae06ea39ea40f6f12dcca9c28aa88df989d9723338d7c9b94
 
 
 @timeit()
-def add_blocks(blockchain, block_count, treasury_account_private_key=None, add_blockchain_genesis_state=False):
+def add_blocks(
+    blockchain,
+    block_count,
+    treasury_account_private_key=None,
+    add_blockchain_genesis_state=False,
+    primary_validator_network_addresses=None
+):
     if treasury_account_private_key:
         treasury_account_key_pair = KeyPair(
             public=derive_public_key(treasury_account_private_key), private=treasury_account_private_key
@@ -37,7 +43,8 @@ def add_blocks(blockchain, block_count, treasury_account_private_key=None, add_b
         get_node_signing_key(),
         add_blockchain_genesis_state=add_blockchain_genesis_state,
         validate=False,
-        treasury_account_key_pair=treasury_account_key_pair
+        treasury_account_key_pair=treasury_account_key_pair,
+        primary_validator_network_addresses=primary_validator_network_addresses,
     )
 
 

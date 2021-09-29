@@ -23,6 +23,9 @@ def test_can_post_signed_change_request_to_pv(
         signing_key=user_account_key_pair.private,
     )
 
+    node_identifier = change_request.message.node.identifier
+    assert blockchain.get_node_role(identifier=node_identifier) is None
+
     with force_blockchain(blockchain):
         with override_settings(NODE_SIGNING_KEY=primary_validator_key_pair.private):
             response = api_client.get('/api/v1/nodes/self/')
@@ -54,6 +57,14 @@ def test_can_post_signed_change_request_to_pv(
                 'fee_account'
             )  # puts None if key does not exist
             assert response_json == change_request_json
+
+            response = api_client.get(f'/api/v1/nodes/{node_identifier}/')
+            assert response.status_code == 200
+            response_json = response.json()
+            assert response_json['identifier'] == node_identifier
+            assert response_json['role'] == NodeRole.REGULAR_NODE.value
+
+        assert blockchain.get_node_role(identifier=node_identifier) == NodeRole.REGULAR_NODE
 
 
 @pytest.mark.usefixtures('node_mock_for_node_client')

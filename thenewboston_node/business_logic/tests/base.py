@@ -18,7 +18,7 @@ def force_blockchain(blockchain):
 
 
 @contextmanager
-def force_file_blockchain(file_blockchain: FileBlockchain, outer_web_mock):
+def force_file_blockchain(file_blockchain: FileBlockchain, outer_web_mock, network_address):
     with force_blockchain(file_blockchain):
         for blockchain_state in file_blockchain.yield_blockchain_states():
             assert isinstance(blockchain_state, BlockchainState)
@@ -29,7 +29,7 @@ def force_file_blockchain(file_blockchain: FileBlockchain, outer_web_mock):
             blockchain_root_relative_file_path = blockchain_state.meta['blockchain_root_relative_file_path']
             assert blockchain_root_relative_file_path
 
-            url = f'http://localhost:8555/blockchain/{blockchain_root_relative_file_path}'
+            url = f'{network_address}blockchain/{blockchain_root_relative_file_path}'
             with open(absolute_file_path, 'rb') as fo:
                 binary_data = fo.read()
 
@@ -39,7 +39,7 @@ def force_file_blockchain(file_blockchain: FileBlockchain, outer_web_mock):
 
         for block_chunks_meta in file_blockchain.yield_block_chunks_meta():
             # TODO(dmu) LOW: Replace `localhost:8555` with `testserver` ?
-            url = f'http://localhost:8555/blockchain/{block_chunks_meta.blockchain_root_relative_file_path}'
+            url = f'{network_address}blockchain/{block_chunks_meta.blockchain_root_relative_file_path}'
             with open(block_chunks_meta.absolute_file_path, 'rb') as fo:
                 binary_data = fo.read()
 

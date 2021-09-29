@@ -25,7 +25,9 @@ def test_empty_list_block_chunks_meta_by_network_address(node_client, file_block
 
 
 @pytest.mark.usefixtures('node_mock_for_node_client')
-def test_list_block_chunks_meta_by_network_address(node_client, file_blockchain_with_five_block_chunks):
+def test_list_block_chunks_meta_by_network_address(
+    node_client, file_blockchain_with_five_block_chunks, pv_network_address
+):
     with force_blockchain(file_blockchain_with_five_block_chunks):
         result = node_client.list_block_chunks_meta_by_network_address('http://testserver/')
 
@@ -39,7 +41,7 @@ def test_list_block_chunks_meta_by_network_address(node_client, file_blockchain_
             '00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
         ),
         'urls': [
-            'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
+            f'{pv_network_address}blockchain/block-chunks/0/0/0/0/0/0/0/0/'
             '00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
         ]
     }, {
@@ -52,7 +54,7 @@ def test_list_block_chunks_meta_by_network_address(node_client, file_blockchain_
             '00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
         ),
         'urls': [
-            'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
+            f'{pv_network_address}blockchain/block-chunks/0/0/0/0/0/0/0/0/'
             '00000000000000000003-00000000000000000005-block-chunk.msgpack.gz'
         ]
     }, {
@@ -65,7 +67,7 @@ def test_list_block_chunks_meta_by_network_address(node_client, file_blockchain_
             '00000000000000000006-00000000000000000008-block-chunk.msgpack.gz'
         ),
         'urls': [
-            'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
+            f'{pv_network_address}blockchain/block-chunks/0/0/0/0/0/0/0/0/'
             '00000000000000000006-00000000000000000008-block-chunk.msgpack.gz'
         ]
     }, {
@@ -78,7 +80,7 @@ def test_list_block_chunks_meta_by_network_address(node_client, file_blockchain_
             '00000000000000000009-00000000000000000011-block-chunk.msgpack.gz'
         ),
         'urls': [
-            'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
+            f'{pv_network_address}blockchain/block-chunks/0/0/0/0/0/0/0/0/'
             '00000000000000000009-00000000000000000011-block-chunk.msgpack.gz'
         ]
     }, {
@@ -91,14 +93,16 @@ def test_list_block_chunks_meta_by_network_address(node_client, file_blockchain_
             '00000000000000000012-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
         ),
         'urls': [
-            'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
+            f'{pv_network_address}blockchain/block-chunks/0/0/0/0/0/0/0/0/'
             '00000000000000000012-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
         ]
     }]
 
 
 @pytest.mark.usefixtures('node_mock_for_node_client')
-def test_limit_list_block_chunks_meta_by_network_address(node_client, file_blockchain_with_five_block_chunks):
+def test_limit_list_block_chunks_meta_by_network_address(
+    node_client, file_blockchain_with_five_block_chunks, pv_network_address
+):
     with force_blockchain(file_blockchain_with_five_block_chunks):
         result = node_client.list_block_chunks_meta_by_network_address('http://testserver/', limit=1)
 
@@ -112,14 +116,16 @@ def test_limit_list_block_chunks_meta_by_network_address(node_client, file_block
             '00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
         ),
         'urls': [
-            'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
+            f'{pv_network_address}blockchain/block-chunks/0/0/0/0/0/0/0/0/'
             '00000000000000000000-00000000000000000002-block-chunk.msgpack.gz'
         ]
     }]
 
 
 @pytest.mark.usefixtures('node_mock_for_node_client')
-def test_reversed_list_block_chunks_meta_by_network_address(node_client, file_blockchain_with_five_block_chunks):
+def test_reversed_list_block_chunks_meta_by_network_address(
+    node_client, file_blockchain_with_five_block_chunks, pv_network_address
+):
     with force_blockchain(file_blockchain_with_five_block_chunks):
         result = node_client.list_block_chunks_meta_by_network_address('http://testserver/', limit=2, direction=-1)
 
@@ -133,7 +139,7 @@ def test_reversed_list_block_chunks_meta_by_network_address(node_client, file_bl
             '00000000000000000012-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
         ),
         'urls': [
-            'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
+            f'{pv_network_address}blockchain/block-chunks/0/0/0/0/0/0/0/0/'
             '00000000000000000012-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
         ]
     }, {
@@ -146,7 +152,7 @@ def test_reversed_list_block_chunks_meta_by_network_address(node_client, file_bl
             '00000000000000000009-00000000000000000011-block-chunk.msgpack.gz'
         ),
         'urls': [
-            'http://localhost:8555/blockchain/block-chunks/0/0/0/0/0/0/0/0/'
+            f'{pv_network_address}blockchain/block-chunks/0/0/0/0/0/0/0/0/'
             '00000000000000000009-00000000000000000011-block-chunk.msgpack.gz'
         ]
     }]
@@ -198,13 +204,14 @@ def test_from_to_block_number_list_block_chunks_meta_by_network_address(
 )
 @pytest.mark.usefixtures('node_mock_for_node_client')
 def test_yield_blocks_slice(
-    node_client, file_blockchain_with_five_block_chunks, outer_web_mock, from_block_number, to_block_number
+    node_client, file_blockchain_with_five_block_chunks, outer_web_mock, from_block_number, to_block_number,
+    pv_network_address
 ):
     blockchain = file_blockchain_with_five_block_chunks
     last_block_number = blockchain.get_last_block_number()
     assert last_block_number == 13
 
-    with force_file_blockchain(blockchain, outer_web_mock):
+    with force_file_blockchain(blockchain, outer_web_mock, pv_network_address):
         blocks = list(
             node_client.yield_blocks_slice(
                 'http://testserver/', from_block_number=from_block_number, to_block_number=to_block_number

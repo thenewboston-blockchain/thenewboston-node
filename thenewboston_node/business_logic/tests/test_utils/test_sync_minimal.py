@@ -11,10 +11,17 @@ from thenewboston_node.business_logic.utils.blockchain import sync_minimal, sync
 
 
 def make_synced_blockchains(
-    *, blocks_count, treasury_account_private_key, blockchain1_directory, blockchain2_directory
+    *, blocks_count, treasury_account_private_key, blockchain1_directory, blockchain2_directory,
+    primary_validator_network_addresses
 ):
     blockchain1 = FileBlockchain(base_directory=blockchain1_directory)
-    add_blocks(blockchain1, blocks_count, treasury_account_private_key, add_blockchain_genesis_state=True)
+    add_blocks(
+        blockchain1,
+        blocks_count,
+        treasury_account_private_key,
+        add_blockchain_genesis_state=True,
+        primary_validator_network_addresses=primary_validator_network_addresses
+    )
     if blockchain1.get_blockchain_state_count() > 1:
         raise NotImplementedError('Making synced blockchains with more then 1 blockchain states is not implemented')
 
@@ -33,14 +40,20 @@ def make_synced_blockchains(
 
 
 @pytest.mark.usefixtures('node_mock_for_node_client')
-def test_api_blockchain_wrapper(treasury_account_key_pair, blockchain_directory, outer_web_mock):
+def test_api_blockchain_wrapper(treasury_account_key_pair, blockchain_directory, outer_web_mock, pv_network_address):
     blockchain = FileBlockchain(base_directory=blockchain_directory)
-    add_blocks(blockchain, 3, treasury_account_key_pair.private, add_blockchain_genesis_state=True)
+    add_blocks(
+        blockchain,
+        3,
+        treasury_account_key_pair.private,
+        add_blockchain_genesis_state=True,
+        primary_validator_network_addresses=(pv_network_address,)
+    )
 
     blockchain_state = blockchain.get_last_blockchain_state()
     blocks = tuple(blockchain.yield_blocks())
 
-    with force_file_blockchain(blockchain, outer_web_mock):
+    with force_file_blockchain(blockchain, outer_web_mock, pv_network_address):
         api_blockchain = APIBlockchain(network_address='http://testserver/')
         api_blockchain_state = api_blockchain.get_last_blockchain_state()
         api_blocks = tuple(api_blockchain.yield_blocks_slice(from_block_number=None, to_block_number=None))
@@ -60,7 +73,7 @@ def test_api_blockchain_wrapper(treasury_account_key_pair, blockchain_directory,
 @pytest.mark.usefixtures('node_mock_for_node_client')
 def test_insync_source_and_target_with_one_blockchain_state_and_no_blocks(
     blockchain_directory, blockchain_directory2, treasury_account_key_pair, sync_function, is_api_blockchain_source,
-    outer_web_mock
+    outer_web_mock, pv_network_address
 ):
     # Prepare source and target blockchains: genesis state(-1)
     source, target = make_synced_blockchains(
@@ -68,6 +81,7 @@ def test_insync_source_and_target_with_one_blockchain_state_and_no_blocks(
         treasury_account_private_key=treasury_account_key_pair.private,
         blockchain1_directory=blockchain_directory,
         blockchain2_directory=blockchain_directory2,
+        primary_validator_network_addresses=[pv_network_address],
     )
     assert_blockchain_content(source, (-1,), ())
     assert_blockchain_content(target, (-1,), ())
@@ -75,7 +89,7 @@ def test_insync_source_and_target_with_one_blockchain_state_and_no_blocks(
 
     # Sync blockchains
     if is_api_blockchain_source:
-        with force_file_blockchain(source, outer_web_mock):
+        with force_file_blockchain(source, outer_web_mock, pv_network_address):
             api_blockchain_source = APIBlockchain(network_address='http://testserver/')
             sync_function(api_blockchain_source, target)
     else:
@@ -102,7 +116,7 @@ def test_insync_source_and_target_with_one_blockchain_state_and_no_blocks(
 @pytest.mark.usefixtures('node_mock_for_node_client')
 def test_source_one_block_different_than_target(
     blockchain_directory, blockchain_directory2, treasury_account_key_pair, sync_function, is_api_blockchain_source,
-    outer_web_mock
+    outer_web_mock, pv_network_address
 ):
     # Prepare source and target blockchains: genesis state(-1)
     source, target = make_synced_blockchains(
@@ -110,17 +124,18 @@ def test_source_one_block_different_than_target(
         treasury_account_private_key=treasury_account_key_pair.private,
         blockchain1_directory=blockchain_directory,
         blockchain2_directory=blockchain_directory2,
+        primary_validator_network_addresses=[pv_network_address],
     )
     assert_blockchain_content(source, (-1,), ())
     assert_blockchain_content(target, (-1,), ())
     assert_blockchains_equal(source, target)
 
-    add_blocks(source, 1, treasury_account_key_pair.private)
+    add_blocks(source, 1, treasury_account_key_pair.private, primary_validator_network_addresses=[pv_network_address])
     assert_blockchain_content(source, (-1,), (0,))
 
     # Sync blockchains
     if is_api_blockchain_source:
-        with force_file_blockchain(source, outer_web_mock):
+        with force_file_blockchain(source, outer_web_mock, pv_network_address):
             api_blockchain_source = APIBlockchain(network_address='http://testserver/')
             sync_function(api_blockchain_source, target)
     else:
@@ -148,7 +163,7 @@ def test_source_one_block_different_than_target(
 @pytest.mark.usefixtures('node_mock_for_node_client')
 def test_source_has_more_blocks_than_target(
     blockchain_directory, blockchain_directory2, treasury_account_key_pair, sync_function, is_api_blockchain_source,
-    outer_web_mock
+    outer_web_mock, pv_network_address
 ):
     # Prepare source and target blockchains: genesis state(-1) + 3 blocks(0, 1, 2)
     source, target = make_synced_blockchains(
@@ -156,6 +171,7 @@ def test_source_has_more_blocks_than_target(
         treasury_account_private_key=treasury_account_key_pair.private,
         blockchain1_directory=blockchain_directory,
         blockchain2_directory=blockchain_directory2,
+        primary_validator_network_addresses=[pv_network_address]
     )
     assert_blockchain_content(source, (-1,), (0, 1, 2))
     assert_blockchain_content(target, (-1,), (0, 1, 2))
@@ -167,7 +183,7 @@ def test_source_has_more_blocks_than_target(
 
     # Sync blockchains
     if is_api_blockchain_source:
-        with force_file_blockchain(source, outer_web_mock):
+        with force_file_blockchain(source, outer_web_mock, pv_network_address):
             api_blockchain_source = APIBlockchain(network_address='http://testserver/')
             sync_function(api_blockchain_source, target)
     else:
@@ -195,7 +211,7 @@ def test_source_has_more_blocks_than_target(
 @pytest.mark.usefixtures('node_mock_for_node_client')
 def test_source_one_block_and_blockchain_state_different_than_target(
     blockchain_directory, blockchain_directory2, treasury_account_key_pair, sync_function, is_api_blockchain_source,
-    outer_web_mock
+    outer_web_mock, pv_network_address
 ):
     # Prepare source and target blockchains: genesis state(-1) + 1 block(0) + blockchain state(0)
     source, target = make_synced_blockchains(
@@ -203,6 +219,7 @@ def test_source_one_block_and_blockchain_state_different_than_target(
         treasury_account_private_key=treasury_account_key_pair.private,
         blockchain1_directory=blockchain_directory,
         blockchain2_directory=blockchain_directory2,
+        primary_validator_network_addresses=[pv_network_address],
     )
     assert_blockchain_content(source, (-1,), ())
     assert_blockchain_content(target, (-1,), ())
@@ -215,7 +232,7 @@ def test_source_one_block_and_blockchain_state_different_than_target(
 
     # Sync blockchains
     if is_api_blockchain_source:
-        with force_file_blockchain(source, outer_web_mock):
+        with force_file_blockchain(source, outer_web_mock, pv_network_address):
             api_blockchain_source = APIBlockchain(network_address='http://testserver/')
             sync_function(api_blockchain_source, target)
     else:
@@ -241,7 +258,7 @@ def test_source_one_block_and_blockchain_state_different_than_target(
 @pytest.mark.usefixtures('node_mock_for_node_client')
 def test_insync_blockchains_ending_with_blockchain_state(
     blockchain_directory, blockchain_directory2, treasury_account_key_pair, sync_function, is_api_blockchain_source,
-    outer_web_mock
+    outer_web_mock, pv_network_address
 ):
     # Prepare source and target
     source, target = make_synced_blockchains(
@@ -249,6 +266,7 @@ def test_insync_blockchains_ending_with_blockchain_state(
         treasury_account_private_key=treasury_account_key_pair.private,
         blockchain1_directory=blockchain_directory,
         blockchain2_directory=blockchain_directory2,
+        primary_validator_network_addresses=[pv_network_address],
     )
     assert_blockchain_content(source, (-1,), (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14))
     assert_blockchain_content(target, (-1,), (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14))
@@ -262,7 +280,7 @@ def test_insync_blockchains_ending_with_blockchain_state(
 
     # Sync blockchains
     if is_api_blockchain_source:
-        with force_file_blockchain(source, outer_web_mock):
+        with force_file_blockchain(source, outer_web_mock, pv_network_address):
             api_blockchain_source = APIBlockchain(network_address='http://testserver/')
             sync_function(api_blockchain_source, target)
     else:
@@ -291,7 +309,7 @@ def test_insync_blockchains_ending_with_blockchain_state(
 @pytest.mark.usefixtures('node_mock_for_node_client')
 def test_insync_blockchains_ending_with_blocks(
     blockchain_directory, blockchain_directory2, treasury_account_key_pair, sync_function, is_api_blockchain_source,
-    outer_web_mock
+    outer_web_mock, pv_network_address
 ):
     # Prepare source and target
     source, target = make_synced_blockchains(
@@ -299,6 +317,7 @@ def test_insync_blockchains_ending_with_blocks(
         treasury_account_private_key=treasury_account_key_pair.private,
         blockchain1_directory=blockchain_directory,
         blockchain2_directory=blockchain_directory2,
+        primary_validator_network_addresses=[pv_network_address]
     )
     assert_blockchain_content(source, (-1,), (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14))
     assert_blockchain_content(target, (-1,), (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14))
@@ -319,7 +338,7 @@ def test_insync_blockchains_ending_with_blocks(
 
     # Sync blockchains
     if is_api_blockchain_source:
-        with force_file_blockchain(source, outer_web_mock):
+        with force_file_blockchain(source, outer_web_mock, pv_network_address):
             api_blockchain_source = APIBlockchain(network_address='http://testserver/')
             sync_function(api_blockchain_source, target)
     else:
@@ -350,7 +369,7 @@ def test_insync_blockchains_ending_with_blocks(
 @pytest.mark.usefixtures('node_mock_for_node_client')
 def test_sync_source_has_blocks_after_blockchain_state_with_gap(
     blockchain_directory, blockchain_directory2, treasury_account_key_pair, sync_function, is_api_blockchain_source,
-    outer_web_mock
+    outer_web_mock, pv_network_address
 ):
     # Prepare source and target blockchains: genesis state(-1) + 3 blocks(0-2)
     source, target = make_synced_blockchains(
@@ -358,6 +377,7 @@ def test_sync_source_has_blocks_after_blockchain_state_with_gap(
         treasury_account_private_key=treasury_account_key_pair.private,
         blockchain1_directory=blockchain_directory,
         blockchain2_directory=blockchain_directory2,
+        primary_validator_network_addresses=[pv_network_address],
     )
     assert_blockchain_content(source, (-1,), (0, 1, 2))
     assert_blockchain_content(target, (-1,), (0, 1, 2))
@@ -372,7 +392,7 @@ def test_sync_source_has_blocks_after_blockchain_state_with_gap(
 
     # Sync blockchains
     if is_api_blockchain_source:
-        with force_file_blockchain(source, outer_web_mock):
+        with force_file_blockchain(source, outer_web_mock, pv_network_address):
             api_blockchain_source = APIBlockchain(network_address='http://testserver/')
             sync_function(api_blockchain_source, target)
     else:

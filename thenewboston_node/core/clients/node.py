@@ -27,9 +27,9 @@ def requests_get(url):
     return requests.get(url)
 
 
-def requests_post(url, data=dict, content_type=None):
+def requests_post(url, *args, **kwargs):
     # We need this function to mock it easier for unittests
-    return requests.post(url, data=data)
+    return requests.post(url, *args, **kwargs)
 
 
 class NodeClient:
@@ -79,13 +79,13 @@ class NodeClient:
         return data
 
     @staticmethod
-    def http_post(network_address, resource, data, *, should_raise=True):
+    def http_post(network_address, resource, json_data, *, should_raise=True):
         url = urljoin(network_address, f'/api/v1/{resource}/')
 
         try:
-            response = requests_post(url, data=json.dumps(data), content_type='application/json')
+            response = requests_post(url, json=json_data)
         except Exception:
-            logger.warning('Could not POST %s, data: %s', url, data, exc_info=True)
+            logger.warning('Could not POST %s, data: %s', url, json_data, exc_info=True)
             if should_raise:
                 raise
             else:
@@ -96,19 +96,19 @@ class NodeClient:
         else:
             status_code = response.status_code
             if status_code != requests.codes.ok:
-                logger.warning('Could not POST %s: HTTP%s: %s, data: %s', url, status_code, response.text, data)
+                logger.warning('Could not POST %s: HTTP%s: %s, data: %s', url, status_code, response.text, json_data)
                 return None
 
         try:
-            data = response.json()
+            response_json = response.json()
         except json.decoder.JSONDecodeError:
             if should_raise:
                 raise
             else:
-                logger.warning('Non-JSON response POST %s: %s, data: %s', url, response.text, data, exc_info=True)
+                logger.warning('Non-JSON response POST %s: %s, data: %s', url, response.text, json_data, exc_info=True)
                 return None
 
-        return data
+        return response_json
 
     def list_resource(
         self,
@@ -269,7 +269,12 @@ class NodeClient:
 
             from_block_number = last_block_number + 1
 
+    def post_signed_change_request_by_network_address(
+        self, network_address, signed_change_request: SignedChangeRequest
+    ):
+        return self.http_post(network_address, 'signed-change-request', signed_change_request.serialize_to_dict())
+
     def post_signed_change_request_by_node(self, node: Node, signed_change_request: SignedChangeRequest):
         for network_address in node.network_addresses:
             # TODO(dmu) CRITICAL: Try another network_address only if this one is unavailable
-            return self.http_post(network_address, 'signed-change-request', signed_change_request.serialize_to_dict())
+            return self.post_signed_change_request_by_network_address(network_address, signed_change_request)

@@ -747,17 +747,6 @@ py = "*"
 pytest = ">=3.10"
 
 [[package]]
-name = "pytest-order"
-version = "1.0.0"
-description = "pytest plugin to run your tests in a specific order"
-category = "dev"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-pytest = ">=5.0"
-
-[[package]]
 name = "pytest-xdist"
 version = "2.2.1"
 description = "pytest xdist plugin for distributed testing and loop-on-failing modes"
@@ -1043,7 +1032,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "857468d8a4a6676722742e18dd9df65ef519c4f04c8a1831ec097af70a1bc3d3"
+content-hash = "04fe651e5bd389d64062e444fb217d884bc145c4a8dc8e9f9304d26eb775ce8a"
 
 [metadata.files]
 apipkg = [
@@ -1513,10 +1502,6 @@ pytest-django = [
 pytest-forked = [
     {file = "pytest-forked-1.3.0.tar.gz", hash = "sha256:6aa9ac7e00ad1a539c41bec6d21011332de671e938c7637378ec9710204e37ca"},
     {file = "pytest_forked-1.3.0-py2.py3-none-any.whl", hash = "sha256:dc4147784048e70ef5d437951728825a131b81714b398d5d52f17c7c144d8815"},
-]
-pytest-order = [
-    {file = "pytest-order-1.0.0.tar.gz", hash = "sha256:5997a262b31234eebb461f9a9ef24687bf732029b499845a4398b69edb5ac321"},
-    {file = "pytest_order-1.0.0-py3-none-any.whl", hash = "sha256:a4cdf12f4c83c76bdfd6e6088e2e157df7fdf91a9c3e3ca7d8809e8dabce0f4b"},
 ]
 pytest-xdist = [
     {file = "pytest-xdist-2.2.1.tar.gz", hash = "sha256:718887296892f92683f6a51f25a3ae584993b06f7076ce1e1fd482e59a8220a2"},

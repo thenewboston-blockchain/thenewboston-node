@@ -99,9 +99,9 @@ def test_can_get_primary_validator_node(file_blockchain, api_client):
 @pytest.mark.parametrize(
     'blocks, node_role, add_pv', [
         (0, NodeRole.CONFIRMATION_VALIDATOR, False),
-        (1, NodeRole.PRIMARY_VALIDATOR, False),
-        (5, NodeRole.PRIMARY_VALIDATOR, False),
-        (6, NodeRole.REGULAR_NODE, True),
+        (2, NodeRole.PRIMARY_VALIDATOR, False),
+        (4, NodeRole.PRIMARY_VALIDATOR, False),
+        (5, NodeRole.REGULAR_NODE, True),
     ]
 )
 def test_node_roles(
@@ -110,7 +110,7 @@ def test_node_roles(
     blockchain = file_blockchain
     add_blocks(blockchain, blocks, treasury_account_key_pair.private)
 
-    pvs_request = PrimaryValidatorScheduleSignedChangeRequest.create(1, 5, get_node_signing_key())
+    pvs_request = PrimaryValidatorScheduleSignedChangeRequest.create(2, 5, get_node_signing_key())
     block = Block.create_from_signed_change_request(blockchain, pvs_request, get_node_signing_key())
     blockchain.add_block(block)
 

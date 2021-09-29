@@ -1,9 +1,6 @@
 import os.path
 
-import pytest
 
-
-@pytest.mark.order(1)
 def test_get_block_chunk_file_path_meta_enhanced(file_blockchain_with_three_block_chunks):
     blockchain = file_blockchain_with_three_block_chunks
     meta = blockchain._get_block_chunk_file_path_meta_enhanced(

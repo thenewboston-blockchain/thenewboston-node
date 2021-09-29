@@ -1,9 +1,12 @@
 import json
+import types
+from functools import partial
 from unittest.mock import patch
 from urllib.parse import urljoin
 
 import httpretty
 import pytest
+from requests.exceptions import HTTPError
 
 
 @pytest.fixture(autouse=True)
@@ -32,8 +35,37 @@ def node_mock(outer_web_mock, blockchain_state_meta, another_node_network_addres
     yield outer_web_mock
 
 
+def raise_for_status(self):
+    if self.status_code >= 400:
+        raise HTTPError()
+
+
+def client_method_wrapper(function, *args, **kwargs):
+    # We need to convert requests to Django test client interface here
+
+    # Convert `json` to `data`
+    json_ = kwargs.pop('json', None)
+    if json_ is not None:
+        kwargs['data'] = json_
+
+    # Convert headers
+    headers = kwargs.pop('headers', None)
+    if headers:
+        # TODO(dmu) LOW: Improve dealing with content type. Looks over engineered now
+        content_type = headers.get('Content-Type')
+        if content_type:
+            kwargs['content_type'] = content_type
+        kwargs.update(**headers)
+
+    response = function(*args, **kwargs)
+    response.raise_for_status = types.MethodType(raise_for_status, response)
+    return response
+
+
 @pytest.fixture
-def node_mock_for_node_client(client):
-    with patch('thenewboston_node.core.clients.node.requests_get',
-               new=client.get), patch('thenewboston_node.core.clients.node.requests_post', new=client.post):
-        yield
+def node_mock_for_node_client(api_client):
+    with patch('thenewboston_node.core.clients.node.requests_get', new=partial(client_method_wrapper, api_client.get)):
+        with patch(
+            'thenewboston_node.core.clients.node.requests_post', new=partial(client_method_wrapper, api_client.post)
+        ):
+            yield

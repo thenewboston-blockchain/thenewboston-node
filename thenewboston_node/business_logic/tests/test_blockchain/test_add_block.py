@@ -7,7 +7,6 @@ from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.core.utils.cryptography import KeyPair, derive_public_key
 
 
-@pytest.mark.order(1)
 @pytest.mark.parametrize('blockchain_argument_name', ('memory_blockchain', 'file_blockchain'))
 def test_can_add_block(
     file_blockchain: BlockchainBase,

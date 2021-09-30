@@ -59,7 +59,12 @@ def test_file_blockchain_blocks_contain_metadata(file_blockchain: FileBlockchain
         patch.object(blockchain, 'snapshot_period_in_blocks',
                      4), patch.object(blockchain.get_block_chunk_storage(), 'compressors', ())
     ):
-        add_blocks(blockchain, 10, treasury_account_key_pair.private)
+        add_blocks(
+            blockchain,
+            10,
+            treasury_account_key_pair.private,
+            signing_key=file_blockchain._test_primary_validator_key_pair.private  # type: ignore
+        )
 
     block_chunks_directory = os.path.join(blockchain.get_base_directory(), 'block-chunks')
 

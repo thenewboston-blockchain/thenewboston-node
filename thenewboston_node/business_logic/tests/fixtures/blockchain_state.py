@@ -3,7 +3,7 @@ import pytest
 from thenewboston_node.business_logic import models
 from thenewboston_node.business_logic.models.account_state import AccountState
 from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
-from thenewboston_node.business_logic.utils.blockchain_state import make_blockchain_genesis_state
+from thenewboston_node.business_logic.utils.blockchain_state import BlockchainStateBuilder
 
 
 @pytest.fixture
@@ -13,19 +13,23 @@ def treasury_initial_balance():
 
 @pytest.fixture
 def blockchain_genesis_state(
-    treasury_account_key_pair, treasury_initial_balance, primary_validator
+    treasury_account_key_pair, treasury_initial_balance, primary_validator, confirmation_validator
 ) -> BlockchainState:
-    state = make_blockchain_genesis_state(
-        primary_validator=primary_validator,
-        treasury_account_number=treasury_account_key_pair.public,
-        treasury_account_initial_balance=treasury_initial_balance,
-    )
-    state._test_treasury_account_key_pair = treasury_account_key_pair
+    builder = BlockchainStateBuilder()
+    builder.set_primary_validator(primary_validator, 0, 99)
+    builder.set_confirmation_validator(confirmation_validator, 100, 199)
+    builder.set_treasury_account(treasury_account_key_pair.public, balance=treasury_initial_balance)
+    state = builder.get_blockchain_state()
+
+    state._test_treasury_account_key_pair = treasury_account_key_pair  # type: ignore
+    state._test_primary_validator_key_pair = primary_validator._test_key_pair  # type: ignore
+    state._test_confirmation_validator_key_pair = confirmation_validator._test_key_pair  # type: ignore
     return state
 
 
 @pytest.fixture
 def blockchain_genesis_state_dict(blockchain_genesis_state: BlockchainState) -> dict:
+    # TODO(dmu) LOW: Consider using serialize_to_dict() instead
     return blockchain_genesis_state.to_dict()  # type: ignore
 
 

@@ -2,7 +2,6 @@ import os.path
 
 from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
 from thenewboston_node.business_logic.models.block import Block
-from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.core.utils.cryptography import KeyPair
 
 
@@ -12,6 +11,7 @@ def test_blockchain_state_is_created_every_x_block(
     treasury_account_key_pair: KeyPair,
     user_account_key_pair: KeyPair,
     preferred_node,
+    primary_validator_key_pair,
 ):
     assert not os.path.isfile(
         str(blockchain_path / 'blockchain-states/0/0/0/0/0/0/0/0/000000000!-blockchain-state.msgpack')
@@ -36,7 +36,7 @@ def test_blockchain_state_is_created_every_x_block(
             recipient=user_account,
             amount=30,
             request_signing_key=treasury_account_key_pair.private,
-            pv_signing_key=get_node_signing_key(),
+            pv_signing_key=primary_validator_key_pair.private,
             preferred_node=preferred_node,
         )
         assert not os.path.isfile(
@@ -52,7 +52,7 @@ def test_blockchain_state_is_created_every_x_block(
         recipient=user_account,
         amount=30,
         request_signing_key=treasury_account_key_pair.private,
-        pv_signing_key=get_node_signing_key(),
+        pv_signing_key=primary_validator_key_pair.private,
         preferred_node=preferred_node,
     )
     blockchain.add_block(block)
@@ -69,7 +69,7 @@ def test_blockchain_state_is_created_every_x_block(
             recipient=user_account,
             amount=30,
             request_signing_key=treasury_account_key_pair.private,
-            pv_signing_key=get_node_signing_key(),
+            pv_signing_key=primary_validator_key_pair.private,
             preferred_node=preferred_node,
         )
         assert not os.path.isfile(
@@ -85,7 +85,7 @@ def test_blockchain_state_is_created_every_x_block(
         recipient=user_account,
         amount=30,
         request_signing_key=treasury_account_key_pair.private,
-        pv_signing_key=get_node_signing_key(),
+        pv_signing_key=primary_validator_key_pair.private,
         preferred_node=preferred_node,
     )
     blockchain.add_block(block)

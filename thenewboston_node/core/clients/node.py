@@ -230,6 +230,9 @@ class NodeClient:
             block_chunks = self.list_block_chunks_meta_by_network_address(
                 network_address, from_block_number=from_block_number, to_block_number=to_block_number
             )
+            if block_chunks is None:
+                logger.warning('Returned None as block_chunks')
+                continue
 
             for block_chunk in block_chunks:
                 # TODO(dmu) HIGH: Support download from more than one URL
@@ -269,12 +272,13 @@ class NodeClient:
 
             from_block_number = last_block_number + 1
 
-    def post_signed_change_request_by_network_address(
+    def send_signed_change_request_by_network_address(
         self, network_address, signed_change_request: SignedChangeRequest
     ):
+        logger.debug('Sending %s to %s', signed_change_request, network_address)
         return self.http_post(network_address, 'signed-change-request', signed_change_request.serialize_to_dict())
 
-    def post_signed_change_request_by_node(self, node: Node, signed_change_request: SignedChangeRequest):
+    def send_signed_change_request_to_node(self, node: Node, signed_change_request: SignedChangeRequest):
         for network_address in node.network_addresses:
             # TODO(dmu) CRITICAL: Try another network_address only if this one is unavailable
-            return self.post_signed_change_request_by_network_address(network_address, signed_change_request)
+            return self.send_signed_change_request_by_network_address(network_address, signed_change_request)

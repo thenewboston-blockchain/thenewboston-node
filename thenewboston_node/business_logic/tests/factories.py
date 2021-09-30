@@ -8,7 +8,6 @@ from thenewboston_node.business_logic.models.account_state import AccountState
 from thenewboston_node.business_logic.models.block import Block
 from thenewboston_node.business_logic.models.block_message import BlockMessage
 from thenewboston_node.business_logic.models.blockchain_state import BlockchainState
-from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.business_logic.utils.blockchain import generate_blockchain
 from thenewboston_node.core.logging import timeit
 from thenewboston_node.core.utils.cryptography import KeyPair, derive_public_key
@@ -27,7 +26,8 @@ def add_blocks(
     block_count,
     treasury_account_private_key=None,
     add_blockchain_genesis_state=False,
-    primary_validator_network_addresses=None
+    primary_validator_network_addresses=None,
+    signing_key=None
 ):
     if treasury_account_private_key:
         treasury_account_key_pair = KeyPair(
@@ -40,10 +40,11 @@ def add_blocks(
     generate_blockchain(
         blockchain,
         block_count,
-        get_node_signing_key(),
+        signing_key or blockchain._test_primary_validator_key_pair.private,
         add_blockchain_genesis_state=add_blockchain_genesis_state,
         validate=False,
         treasury_account_key_pair=treasury_account_key_pair,
+        primary_validator_identifier=derive_public_key(signing_key),
         primary_validator_network_addresses=primary_validator_network_addresses,
     )
 
@@ -53,7 +54,12 @@ def make_large_blockchain(blockchain, treasury_account_key_pair, blocks_count=10
     account_state = accounts[treasury_account_key_pair.public]
     assert account_state.balance > 10000000000  # tons of money present
 
-    add_blocks(blockchain, blocks_count, treasury_account_key_pair.private)
+    add_blocks(
+        blockchain,
+        blocks_count,
+        treasury_account_key_pair.private,
+        signing_key=blockchain._test_primary_validator_key_pair.private
+    )
 
 
 @factory(CoinTransferTransaction)

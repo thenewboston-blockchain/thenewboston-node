@@ -26,4 +26,4 @@ class SignedChangeRequestViewSet(CreateModelMixin, GenericViewSet):
             blockchain.add_block(block)
         else:
             primary_validator = blockchain.get_primary_validator()
-            NodeClient.get_instance().post_signed_change_request_by_node(primary_validator, signed_change_request)
+            NodeClient.get_instance().send_signed_change_request_to_node(primary_validator, signed_change_request)

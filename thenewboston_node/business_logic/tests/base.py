@@ -38,7 +38,6 @@ def force_file_blockchain(file_blockchain: FileBlockchain, outer_web_mock, netwo
             )
 
         for block_chunks_meta in file_blockchain.yield_block_chunks_meta():
-            # TODO(dmu) LOW: Replace `localhost:8555` with `testserver` ?
             url = f'{network_address}blockchain/{block_chunks_meta.blockchain_root_relative_file_path}'
             with open(block_chunks_meta.absolute_file_path, 'rb') as fo:
                 binary_data = fo.read()
@@ -50,12 +49,28 @@ def force_file_blockchain(file_blockchain: FileBlockchain, outer_web_mock, netwo
         yield
 
 
-def force_node_key(signing_key):
-    return override_settings(NODE_SIGNING_KEY=signing_key)
+@contextmanager
+def as_primary_validator():
+    blockchain = BlockchainBase.get_instance()
+    key_pair = blockchain._test_primary_validator_key_pair  # test blockchain must have this attribute
+    with override_settings(NODE_SIGNING_KEY=key_pair.private):
+        yield
 
 
-def force_node_fee(fee_amount):
-    return override_settings(NODE_FEE_AMOUNT=fee_amount)
+@contextmanager
+def as_confirmation_validator():
+    blockchain = BlockchainBase.get_instance()
+    key_pair = blockchain._test_confirmation_validator_key_pair  # test blockchain must have this attribute
+    with override_settings(NODE_SIGNING_KEY=key_pair.private):
+        yield
+
+
+@contextmanager
+def as_regular_node():
+    blockchain = BlockchainBase.get_instance()
+    key_pair = blockchain._test_regular_node_key_pair  # test blockchain must have this attribute
+    with override_settings(NODE_SIGNING_KEY=key_pair.private):
+        yield
 
 
 def remove_meta(obj):

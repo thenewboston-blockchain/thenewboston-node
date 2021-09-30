@@ -2,7 +2,7 @@ from urllib.parse import urljoin
 
 import pytest
 
-from thenewboston_node.business_logic.tests.base import force_blockchain, force_file_blockchain
+from thenewboston_node.business_logic.tests.base import as_primary_validator, force_blockchain, force_file_blockchain
 
 
 def test_get_latest_blockchain_state_meta_by_network_address(
@@ -18,7 +18,7 @@ def test_get_latest_blockchain_state_meta_by_network_address(
 
 @pytest.mark.usefixtures('node_mock_for_node_client')
 def test_empty_list_block_chunks_meta_by_network_address(node_client, file_blockchain):
-    with force_blockchain(file_blockchain):
+    with force_blockchain(file_blockchain), as_primary_validator():
         result = node_client.list_block_chunks_meta_by_network_address('http://testserver/')
 
     assert result == []
@@ -28,7 +28,7 @@ def test_empty_list_block_chunks_meta_by_network_address(node_client, file_block
 def test_list_block_chunks_meta_by_network_address(
     node_client, file_blockchain_with_five_block_chunks, pv_network_address
 ):
-    with force_blockchain(file_blockchain_with_five_block_chunks):
+    with force_blockchain(file_blockchain_with_five_block_chunks), as_primary_validator():
         result = node_client.list_block_chunks_meta_by_network_address('http://testserver/')
 
     assert result == [{
@@ -103,7 +103,7 @@ def test_list_block_chunks_meta_by_network_address(
 def test_limit_list_block_chunks_meta_by_network_address(
     node_client, file_blockchain_with_five_block_chunks, pv_network_address
 ):
-    with force_blockchain(file_blockchain_with_five_block_chunks):
+    with force_blockchain(file_blockchain_with_five_block_chunks), as_primary_validator():
         result = node_client.list_block_chunks_meta_by_network_address('http://testserver/', limit=1)
 
     assert result == [{
@@ -126,7 +126,7 @@ def test_limit_list_block_chunks_meta_by_network_address(
 def test_reversed_list_block_chunks_meta_by_network_address(
     node_client, file_blockchain_with_five_block_chunks, pv_network_address
 ):
-    with force_blockchain(file_blockchain_with_five_block_chunks):
+    with force_blockchain(file_blockchain_with_five_block_chunks), as_primary_validator():
         result = node_client.list_block_chunks_meta_by_network_address('http://testserver/', limit=2, direction=-1)
 
     assert result == [{
@@ -163,21 +163,21 @@ def test_reversed_list_block_chunks_meta_by_network_address(
 def test_from_to_block_number_list_block_chunks_meta_by_network_address(
     node_client, file_blockchain_with_five_block_chunks, direction
 ):
-    with force_blockchain(file_blockchain_with_five_block_chunks):
+    with force_blockchain(file_blockchain_with_five_block_chunks), as_primary_validator():
         result = node_client.list_block_chunks_meta_by_network_address(
             'http://testserver/', from_block_number=7, direction=direction
         )
     assert [(item['start_block_number'], item['end_block_number']) for item in result] == [(6, 8), (9, 11),
                                                                                            (12, 13)][::direction]
 
-    with force_blockchain(file_blockchain_with_five_block_chunks):
+    with force_blockchain(file_blockchain_with_five_block_chunks), as_primary_validator():
         result = node_client.list_block_chunks_meta_by_network_address(
             'http://testserver/', to_block_number=7, direction=direction
         )
     assert [(item['start_block_number'], item['end_block_number']) for item in result] == [(0, 2), (3, 5),
                                                                                            (6, 8)][::direction]
 
-    with force_blockchain(file_blockchain_with_five_block_chunks):
+    with force_blockchain(file_blockchain_with_five_block_chunks), as_primary_validator():
         result = node_client.list_block_chunks_meta_by_network_address(
             'http://testserver/', from_block_number=4, to_block_number=9, direction=direction
         )
@@ -211,7 +211,7 @@ def test_yield_blocks_slice(
     last_block_number = blockchain.get_last_block_number()
     assert last_block_number == 13
 
-    with force_file_blockchain(blockchain, outer_web_mock, pv_network_address):
+    with force_file_blockchain(blockchain, outer_web_mock, pv_network_address), as_primary_validator():
         blocks = list(
             node_client.yield_blocks_slice(
                 'http://testserver/', from_block_number=from_block_number, to_block_number=to_block_number

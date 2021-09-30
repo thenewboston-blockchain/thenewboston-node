@@ -38,9 +38,9 @@ class NetworkMixin(BaseMixin):
     def has_nodes(self):
         return any(self.yield_nodes())
 
-    def get_primary_validator(self, block_number: Optional[int] = None) -> Optional[Node]:
-        if block_number is None:
-            block_number = self.get_next_block_number()
+    def get_primary_validator(self, for_block_number: Optional[int] = None) -> Optional[Node]:
+        if for_block_number is None:
+            for_block_number = self.get_next_block_number()
 
         # We get last_block_number and blockchain_state here to avoid race conditions. Do not change it
         last_block_number = self.get_last_block_number()
@@ -58,7 +58,7 @@ class NetworkMixin(BaseMixin):
                 pv_schedule = account_state.primary_validator_schedule
                 if pv_schedule:
                     known_pv_schedule_accounts.add(account_number)
-                    if pv_schedule.is_block_number_included(block_number):
+                    if pv_schedule.is_block_number_included(for_block_number):
                         return self.get_node_by_identifier(account_number)
 
         # TODO(dmu) HIGH: Once we have more accounts this method will become slow. We need to optimize it
@@ -69,7 +69,7 @@ class NetworkMixin(BaseMixin):
 
             known_pv_schedule_accounts.add(account_number)
             pv_schedule = account_state.primary_validator_schedule
-            if pv_schedule and pv_schedule.is_block_number_included(block_number):
+            if pv_schedule and pv_schedule.is_block_number_included(for_block_number):
                 return self.get_node_by_identifier(account_number)
 
         return None

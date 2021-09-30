@@ -7,8 +7,9 @@ from thenewboston_node.core.utils.pytest import skip_slow
 # This test is slow only if DEBUG level of logging is configured
 # TODO(dmu) MEDIUM: Consider unmarking this test as slow
 @skip_slow
-def test_can_validate_blockchain_in_chunks(memory_blockchain, treasury_account_key_pair):
+def test_can_validate_blockchain_in_chunks(memory_blockchain, treasury_account_key_pair, primary_validator_key_pair):
     blockchain = memory_blockchain
+    blockchain._test_primary_validator_key_pair = primary_validator_key_pair
 
     make_large_blockchain(blockchain, treasury_account_key_pair)
     blockchain.validate_blockchain_states()

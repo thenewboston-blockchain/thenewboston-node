@@ -8,9 +8,10 @@ from tqdm import tqdm
 
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
-from thenewboston_node.business_logic.models import CoinTransferSignedChangeRequest
+from thenewboston_node.business_logic.models import CoinTransferSignedChangeRequest, Node
 from thenewboston_node.business_logic.models.node import RegularNode
-from thenewboston_node.business_logic.utils.blockchain_state import make_blockchain_genesis_state
+from thenewboston_node.business_logic.node import get_node_identifier
+from thenewboston_node.business_logic.utils.blockchain_state import BlockchainStateBuilder
 from thenewboston_node.core.utils.cryptography import generate_key_pair
 
 MAX_AMOUNT = 100
@@ -50,19 +51,24 @@ def generate_blockchain(
     validate=True,
     treasury_account_key_pair=None,
     primary_validator_network_addresses=None,
+    primary_validator_identifier=None,
 ):
     treasury_account_key_pair = treasury_account_key_pair or generate_key_pair()
     treasury_account = treasury_account_key_pair.public
     logger.info('Using treasury account: %s', treasury_account_key_pair)
 
     if add_blockchain_genesis_state and blockchain.get_blockchain_state_count() == 0:
-        kwargs = {}
-        if primary_validator_network_addresses is not None:
-            kwargs['primary_validator_network_addresses'] = primary_validator_network_addresses
-
-        blockchain_genesis_state = make_blockchain_genesis_state(
-            treasury_account_number=treasury_account, primary_validator_schedule_end_block_number=size + 99, **kwargs
+        builder = BlockchainStateBuilder()
+        builder.set_treasury_account(treasury_account, balance=281474976710656)
+        builder.set_primary_validator(
+            Node(
+                identifier=primary_validator_identifier or get_node_identifier(),
+                network_addresses=primary_validator_network_addresses or ['http://localhost:8555/'],
+                fee_amount=4,
+            ), 0, size + 99
         )
+
+        blockchain_genesis_state = builder.get_blockchain_state()
         blockchain.add_blockchain_state(blockchain_genesis_state)
 
     primary_validator = blockchain.get_primary_validator()

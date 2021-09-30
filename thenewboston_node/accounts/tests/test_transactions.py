@@ -2,8 +2,7 @@ import random
 from urllib.parse import urlencode
 
 from thenewboston_node.business_logic.models import Block
-from thenewboston_node.business_logic.node import get_node_signing_key
-from thenewboston_node.business_logic.tests.base import force_blockchain
+from thenewboston_node.business_logic.tests.base import as_primary_validator, force_blockchain
 
 API_V1_LIST_TRANSACTIONS_URL_PATTERN = '/api/v1/accounts/{id}/transactions/'
 
@@ -14,7 +13,7 @@ def test_can_list_transactions(
 ):
     blockchain = file_blockchain
     user_account_number = user_account_key_pair.public
-    pv_signing_key = get_node_signing_key()
+    pv_signing_key = blockchain._test_primary_validator_key_pair.private
 
     recieve_transactions_count = random.randint(1, 3)
     send_transactions_count = random.randint(1, 3)
@@ -42,7 +41,7 @@ def test_can_list_transactions(
         )
         blockchain.add_block(block)
 
-    with force_blockchain(blockchain):
+    with force_blockchain(blockchain), as_primary_validator():
         params = urlencode({'limit': total_transactions_count * 2})
         response = api_client.get(API_V1_LIST_TRANSACTIONS_URL_PATTERN.format(id=user_account_number) + '?' + params)
 

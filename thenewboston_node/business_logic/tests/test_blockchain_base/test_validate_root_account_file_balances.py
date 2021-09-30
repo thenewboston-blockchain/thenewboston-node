@@ -14,7 +14,7 @@ def test_validate_number_of_accounts_mismatch(blockchain_base, blockchain_genesi
         blockchain_state_0.account_states |= {NON_EXISTENT_ACCOUNT: make_account_state()}
 
         with patch_blockchain_states(blockchain_base, [blockchain_genesis_state, blockchain_state_0]):
-            with pytest.raises(ValidationError, match='Expected 4 accounts, but got 5 in the blockchain state'):
+            with pytest.raises(ValidationError, match='Expected 5 accounts, but got 6 in the blockchain state'):
                 blockchain_base.validate_blockchain_states()
 
 

@@ -28,7 +28,11 @@ def test_get_current_block_chunk_filename_changes_when_snapshot_is_added(file_bl
     assert file_blockchain.get_current_block_chunk_filename(
     ) == '00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
 
-    add_blocks(file_blockchain, 1)
+    add_blocks(
+        file_blockchain,
+        1,
+        signing_key=file_blockchain._test_primary_validator_key_pair.private  # type: ignore
+    )  # type: ignore
     file_blockchain.snapshot_blockchain_state()
     assert file_blockchain.get_blockchain_state_count() == 2
     assert file_blockchain.get_last_blockchain_state().last_block_number == 0

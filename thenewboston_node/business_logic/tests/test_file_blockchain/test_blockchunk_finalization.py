@@ -45,7 +45,11 @@ def assert_block_chunk_is_finalized(file_blockchain, start_str='0000000000000000
 
 
 def test_can_finalize_block_chunk(file_blockchain: FileBlockchain):
-    add_blocks(file_blockchain, 1)
+    add_blocks(
+        file_blockchain,
+        1,
+        signing_key=file_blockchain._test_primary_validator_key_pair.private  # type: ignore
+    )  # type: ignore
     assert_incomplete_block_chunk_exists(file_blockchain, '00000000000000000000')
     with file_blockchain.file_lock:
         file_blockchain.finalize_block_chunk('00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack', 0)
@@ -54,7 +58,11 @@ def test_can_finalize_block_chunk(file_blockchain: FileBlockchain):
 
 
 def test_block_chunk_is_finalized_on_blockchain_state_creation(file_blockchain: FileBlockchain):
-    add_blocks(file_blockchain, 1)
+    add_blocks(
+        file_blockchain,
+        1,
+        signing_key=file_blockchain._test_primary_validator_key_pair.private  # type: ignore
+    )  # type: ignore
     assert_incomplete_block_chunk_exists(file_blockchain, '00000000000000000000')
     file_blockchain.snapshot_blockchain_state()
     assert_block_chunk_is_finalized(file_blockchain)
@@ -62,24 +70,40 @@ def test_block_chunk_is_finalized_on_blockchain_state_creation(file_blockchain: 
 
 def test_can_add_more_blocks_after_snapshot(file_blockchain: FileBlockchain):
     assert file_blockchain.get_block_count() == 0
-    add_blocks(file_blockchain, 1)
+    add_blocks(
+        file_blockchain,
+        1,
+        signing_key=file_blockchain._test_primary_validator_key_pair.private  # type: ignore
+    )  # type: ignore
     assert file_blockchain.get_block_count() == 1
     assert_incomplete_block_chunk_exists(file_blockchain, '00000000000000000000')
     file_blockchain.snapshot_blockchain_state()
     assert_block_chunk_is_finalized(file_blockchain, '00000000000000000000', '00000000000000000000')
-    add_blocks(file_blockchain, 1)
+    add_blocks(
+        file_blockchain,
+        1,
+        signing_key=file_blockchain._test_primary_validator_key_pair.private  # type: ignore
+    )  # type: ignore
     assert file_blockchain.get_block_count() == 2
     assert_incomplete_block_chunk_exists(file_blockchain, start_str='00000000000000000001')
 
 
 def test_can_add_more_snapshots(file_blockchain: FileBlockchain):
     assert file_blockchain.get_block_count() == 0
-    add_blocks(file_blockchain, 1)
+    add_blocks(
+        file_blockchain,
+        1,
+        signing_key=file_blockchain._test_primary_validator_key_pair.private  # type: ignore
+    )  # type: ignore
     assert file_blockchain.get_block_count() == 1
     assert_incomplete_block_chunk_exists(file_blockchain, '00000000000000000000')
     file_blockchain.snapshot_blockchain_state()
     assert_block_chunk_is_finalized(file_blockchain, '00000000000000000000', '00000000000000000000')
-    add_blocks(file_blockchain, 1)
+    add_blocks(
+        file_blockchain,
+        1,
+        signing_key=file_blockchain._test_primary_validator_key_pair.private  # type: ignore
+    )  # type: ignore
     assert file_blockchain.get_block_count() == 2
     file_blockchain.snapshot_blockchain_state()
     assert_block_chunk_is_finalized(file_blockchain, '00000000000000000001', '00000000000000000001')
@@ -89,12 +113,24 @@ def test_can_add_more_snapshots(file_blockchain: FileBlockchain):
 def test_automatic_snapshots(file_blockchain: FileBlockchain):
     with patch.object(file_blockchain, 'snapshot_period_in_blocks', 5):
         assert_block_chain_state_exists(file_blockchain, '0000000000000000000!')
-        add_blocks(file_blockchain, 4)
+        add_blocks(
+            file_blockchain,
+            4,
+            signing_key=file_blockchain._test_primary_validator_key_pair.private  # type: ignore
+        )  # type: ignore
         assert_incomplete_block_chunk_exists(file_blockchain, '00000000000000000000')
-        add_blocks(file_blockchain, 1)
+        add_blocks(
+            file_blockchain,
+            1,
+            signing_key=file_blockchain._test_primary_validator_key_pair.private  # type: ignore
+        )  # type: ignore
         assert_block_chain_state_exists(file_blockchain, '00000000000000000004')
         assert_block_chunk_is_finalized(file_blockchain, '00000000000000000000', '00000000000000000004')
-        add_blocks(file_blockchain, 6)
+        add_blocks(
+            file_blockchain,
+            6,
+            signing_key=file_blockchain._test_primary_validator_key_pair.private  # type: ignore
+        )  # type: ignore
         assert_block_chain_state_exists(file_blockchain, '00000000000000000009')
         assert_block_chunk_is_finalized(file_blockchain, '00000000000000000005', '00000000000000000009')
         assert_incomplete_block_chunk_exists(file_blockchain, '00000000000000000010')
@@ -102,7 +138,11 @@ def test_automatic_snapshots(file_blockchain: FileBlockchain):
 
 def test_blockchain_is_operational_after_blocks_added(file_blockchain: FileBlockchain):
     with patch.object(file_blockchain, 'snapshot_period_in_blocks', 5):
-        add_blocks(file_blockchain, 11)
+        add_blocks(
+            file_blockchain,
+            11,
+            signing_key=file_blockchain._test_primary_validator_key_pair.private  # type: ignore
+        )  # type: ignore
         assert_block_chain_state_exists(file_blockchain, '0000000000000000000!')
         assert_block_chain_state_exists(file_blockchain, '00000000000000000004')
         assert_block_chain_state_exists(file_blockchain, '00000000000000000009')
@@ -139,9 +179,17 @@ def test_blockchain_is_operational_after_blocks_added(file_blockchain: FileBlock
 
 def test_blockchain_survives_interrupted_blockchain_snapshot(file_blockchain: FileBlockchain):
     with patch.object(file_blockchain, 'snapshot_period_in_blocks', 5):
-        add_blocks(file_blockchain, 7)
+        add_blocks(
+            file_blockchain,
+            7,
+            signing_key=file_blockchain._test_primary_validator_key_pair.private  # type: ignore
+        )  # type: ignore
         with patch.object(file_blockchain, 'finalize_block_chunk'):
-            add_blocks(file_blockchain, 4)
+            add_blocks(
+                file_blockchain,
+                4,
+                signing_key=file_blockchain._test_primary_validator_key_pair.private  # type: ignore
+            )  # type: ignore
         assert_incomplete_block_chunk_exists(file_blockchain, '00000000000000000005')
 
         file_blockchain.validate(is_partial_allowed=False)
@@ -169,7 +217,11 @@ def test_blockchain_survives_interrupted_blockchain_snapshot(file_blockchain: Fi
             )
         ) > 0
 
-        add_blocks(file_blockchain, 5)
+        add_blocks(
+            file_blockchain,
+            5,
+            signing_key=file_blockchain._test_primary_validator_key_pair.private  # type: ignore
+        )  # type: ignore
 
         assert_block_chain_state_exists(file_blockchain, '0000000000000000000!')
         assert_block_chain_state_exists(file_blockchain, '00000000000000000004')

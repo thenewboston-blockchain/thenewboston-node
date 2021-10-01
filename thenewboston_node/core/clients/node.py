@@ -80,6 +80,7 @@ class NodeClient:
 
     @staticmethod
     def http_post(network_address, resource, json_data, *, should_raise=True):
+        # TODO(dmu) HIGH: Make http_post() DRY with http_get()
         url = urljoin(network_address, f'/api/v1/{resource}/')
 
         try:

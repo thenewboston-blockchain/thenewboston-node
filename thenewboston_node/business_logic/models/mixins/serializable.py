@@ -109,7 +109,7 @@ class SerializableMixin(BaseMixin):
             key for key in field_names - dict_.keys() if key not in override and not cls.is_optional_field(key)
         ]
         if missing_keys:
-            raise ValidationError('Missing keys: {}'.format(', '.join(missing_keys)))
+            raise ValidationError('Missing keys: {}'.format(', '.join(sorted(missing_keys))))
 
         deserialized = {}
         for key, value in dict_.items():

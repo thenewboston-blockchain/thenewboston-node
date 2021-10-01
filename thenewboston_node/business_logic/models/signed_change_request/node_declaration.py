@@ -43,10 +43,19 @@ class NodeDeclarationSignedChangeRequest(SignedChangeRequest):
         return cls.create_from_signed_change_request_message(message, signing_key)
 
     @classmethod
+    def create_from_node(cls, node, signing_key):
+        assert node.identifier == derive_public_key(signing_key)
+        message = NodeDeclarationSignedChangeRequestMessage(node=node)
+        return cls.create_from_signed_change_request_message(message, signing_key)
+
+    @classmethod
     def deserialize_from_dict(cls, dict_, complain_excessive_keys=True, override: Optional[dict[str, Any]] = None):
         override = override or {}
-        if 'message' in dict_ and 'message' not in override:
-            dict_['message']['node']['identifier'] = dict_['signer']
+        message = dict_.get('message')
+        if isinstance(message, dict) and 'message' not in override:
+            node = message.get('node')
+            if isinstance(node, dict):
+                node['identifier'] = dict_.get('signer')
 
         return super().deserialize_from_dict(
             dict_=dict_, complain_excessive_keys=complain_excessive_keys, override=override

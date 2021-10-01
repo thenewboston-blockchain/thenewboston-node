@@ -2,7 +2,7 @@ import json
 from hashlib import sha3_256
 from typing import NamedTuple
 
-from nacl.exceptions import BadSignatureError
+from nacl.exceptions import CryptoError
 from nacl.signing import SigningKey, VerifyKey
 
 from thenewboston_node.core.utils.misc import bytes_to_hex, hex_to_bytes
@@ -31,7 +31,7 @@ def is_signature_valid(verify_key: hexstr, message: bytes, signature: hexstr) ->
 
     try:
         VerifyKey(verify_key_bytes).verify(message, signature_bytes)
-    except BadSignatureError:
+    except CryptoError:
         return False
 
     return True

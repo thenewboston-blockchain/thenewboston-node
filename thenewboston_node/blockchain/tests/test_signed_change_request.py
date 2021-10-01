@@ -74,6 +74,17 @@ def test_can_post_signed_change_request_to_pv(
     assert blockchain.get_node_by_identifier(node_identifier, last_block_number) == node
 
 
+@pytest.mark.usefixtures('node_mock_for_node_client')
+def test_signed_change_request_basic_validation(api_client, file_blockchain):
+    blockchain = file_blockchain
+
+    with force_blockchain(blockchain), as_primary_validator():
+        payload = {}
+        response = api_client.post(API_V1_POST_SIGNED_CHANGE_REQUEST_URL, payload)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {'non_field_errors': ['Missing keys: message, signer']}
+
+
 @pytest.mark.parametrize('interface', ('api_client', 'node_client'))
 @pytest.mark.usefixtures('node_mock_for_node_client')
 def test_can_post_signed_change_request_to_cv(

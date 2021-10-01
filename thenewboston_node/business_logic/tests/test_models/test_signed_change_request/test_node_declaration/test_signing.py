@@ -10,7 +10,7 @@ FEE_ACCOUNT = hexstr('87051e63fc227b256b80822c53299597fab89cbd6ce3fce1d3d01db8f9
 NETWORK_ADDRESS = 'http://test-signing.non-existing-domain:8555/'
 
 
-def test_node_declaration_signed_change_request_signing_all_attributes():
+def test_node_declaration_signed_change_request_signing_all_attributes_set():
     node = Node(
         identifier=PUBLIC,
         network_addresses=[NETWORK_ADDRESS],

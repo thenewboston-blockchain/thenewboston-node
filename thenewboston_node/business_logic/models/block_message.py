@@ -99,7 +99,7 @@ class BlockMessage(MessageMixin, BaseDataclass):
     @timeit_method(is_class_method=True)
     def from_signed_change_request(cls, blockchain, signed_change_request: SignedChangeRequest):
         if not signed_change_request.signer:
-            raise ValidationError('Sender must be set')
+            raise ValidationError('Signer must be set')
 
         updated_account_states = signed_change_request.get_updated_account_states(blockchain)
 

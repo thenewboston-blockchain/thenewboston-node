@@ -33,6 +33,9 @@ class Block(SignableMixin, MessagpackCompactableMixin, MetadataMixin, BaseDatacl
     Blocks represent a description of change to the network.
     """
     message: BlockMessage
+
+    # TODO(dmu) HIGH: Do we need to store hash? We can always calculate it from block itself
+    #                 We recalculate it anyway for validation
     hash: Optional[hexstr] = field(  # noqa: A003
         default=None,
         metadata={

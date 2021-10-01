@@ -1,5 +1,4 @@
 import logging
-import sys
 
 from django.core.management import BaseCommand
 
@@ -46,6 +45,6 @@ class Command(BaseCommand):
                         network_address,
                         exc_info=True
                     )
-        else:
-            logger.error('Could not synchronize blockchain with the network')
-            sys.exit(1)  # TODO(dmu) LOW: Is there a better way to provide non-zero exit code
+
+        logger.error('Could not synchronize blockchain with the network')
+        # TODO(dmu) MEDIUM: Figure out what to do if no other node is operational

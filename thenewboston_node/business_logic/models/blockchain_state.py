@@ -11,7 +11,6 @@ from .base import BaseDataclass
 from .blockchain_state_message import BlockchainStateMessage
 from .mixins.compactable import MessagpackCompactableMixin
 from .mixins.metadata import MetadataMixin
-from .mixins.normalizable import NormalizableMixin
 from .mixins.signable import OptionallySignableMixin
 
 T = TypeVar('T', bound='BlockchainState')
@@ -27,7 +26,6 @@ class BlockchainState(
     OptionallySignableMixin,
     MetadataMixin,
     MessagpackCompactableMixin,
-    NormalizableMixin,
     BaseDataclass
 ):
     message: BlockchainStateMessage

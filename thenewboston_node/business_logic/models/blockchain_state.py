@@ -23,7 +23,12 @@ logger = logging.getLogger(__name__)
 @dataclass
 @cover_docstring
 class BlockchainState(
-    OptionallySignableMixin, MetadataMixin, MessagpackCompactableMixin, NormalizableMixin, BaseDataclass
+    # TODO(dmu) MEDIUM: What is the reason for `NormalizableMixin` here?
+    OptionallySignableMixin,
+    MetadataMixin,
+    MessagpackCompactableMixin,
+    NormalizableMixin,
+    BaseDataclass
 ):
     message: BlockchainStateMessage
 

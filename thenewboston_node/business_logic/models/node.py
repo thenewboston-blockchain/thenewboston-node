@@ -27,6 +27,16 @@ class Node(BaseDataclass):
         default=None, metadata={'example_value': '7a5dc06babda703a7d2d8ea18d3309a0c5e6830a25bac03e69633d283244e001'}
     )
 
+    def serialize_to_dict(self, skip_none_values=True, coerce_to_json_types=True, exclude=()):
+        serialized = super().serialize_to_dict(
+            skip_none_values=skip_none_values, coerce_to_json_types=coerce_to_json_types, exclude=exclude
+        )
+        fee_account = serialized.get('fee_account')
+        if fee_account is not None and fee_account == serialized['identifier']:
+            del serialized['fee_account']
+
+        return serialized
+
     def __hash__(self):
         return hash(self.identifier)
 

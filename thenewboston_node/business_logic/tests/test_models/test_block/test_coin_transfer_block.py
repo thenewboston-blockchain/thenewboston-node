@@ -237,7 +237,7 @@ def test_normalized_block_message(file_blockchain, sample_signed_change_request,
     expected_message = expected_message_template.replace(
         '<replace-with-timestamp>', block.message.timestamp.isoformat()
     ).encode('utf-8')
-    assert block.message.get_normalized() == expected_message
+    assert block.message.get_normalized_for_cryptography() == expected_message
 
 
 def test_can_serialize_deserialize_coin_transfer_signed_change_request_message():

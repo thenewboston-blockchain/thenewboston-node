@@ -1,15 +1,14 @@
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.models.block import Block
-from thenewboston_node.business_logic.node import get_node_signing_key
 
 
 def test_can_make_blockchain_state_on_last_block(
     file_blockchain: BlockchainBase, blockchain_genesis_state, treasury_account_key_pair, user_account_key_pair,
-    primary_validator, preferred_node
+    primary_validator, preferred_node, primary_validator_key_pair, confirmation_validator
 ):
     blockchain = file_blockchain
 
-    assert blockchain.get_number_of_accounts() == 2
+    assert blockchain.get_number_of_accounts() == 3
 
     user_account = user_account_key_pair.public
     treasury_account = treasury_account_key_pair.public
@@ -37,12 +36,12 @@ def test_can_make_blockchain_state_on_last_block(
         recipient=user_account,
         amount=30,
         request_signing_key=treasury_account_key_pair.private,
-        pv_signing_key=get_node_signing_key(),
+        pv_signing_key=primary_validator_key_pair.private,
         preferred_node=preferred_node,
     )
     blockchain.add_block(block0)
 
-    assert blockchain.get_number_of_accounts() == 4  # treasure, user, node, pv
+    assert blockchain.get_number_of_accounts() == 5  # treasure, user, node, pv, cv
 
     blockchain.snapshot_blockchain_state()
     assert blockchain.get_blockchain_state_count() == 2
@@ -56,9 +55,10 @@ def test_can_make_blockchain_state_on_last_block(
     assert blockchain_state.next_block_identifier == block0.hash
 
     account_states = blockchain_state.account_states
-    assert len(account_states) == 4
+    assert len(account_states) == 5
     assert account_states.keys() == {
-        user_account, treasury_account, primary_validator.identifier, preferred_node.identifier
+        user_account, treasury_account, primary_validator.identifier, preferred_node.identifier,
+        confirmation_validator.identifier
     }
     assert account_states[user_account].balance == 30
     assert account_states[user_account].balance_lock is None
@@ -84,7 +84,7 @@ def test_can_make_blockchain_state_on_last_block(
         recipient=treasury_account,
         amount=20,
         request_signing_key=user_account_key_pair.private,
-        pv_signing_key=get_node_signing_key(),
+        pv_signing_key=primary_validator_key_pair.private,
         preferred_node=preferred_node,
     )
     blockchain.add_block(block1)
@@ -94,7 +94,7 @@ def test_can_make_blockchain_state_on_last_block(
         recipient=primary_validator.identifier,
         amount=2,
         request_signing_key=treasury_account_key_pair.private,
-        pv_signing_key=get_node_signing_key(),
+        pv_signing_key=primary_validator_key_pair.private,
         preferred_node=preferred_node,
     )
     blockchain.add_block(block2)
@@ -108,9 +108,10 @@ def test_can_make_blockchain_state_on_last_block(
     assert blockchain_state.next_block_identifier == block2.hash
 
     account_states = blockchain_state.account_states
-    assert len(account_states) == 4
+    assert len(account_states) == 5
     assert account_states.keys() == {
-        user_account, treasury_account, primary_validator.identifier, preferred_node.identifier
+        user_account, treasury_account, primary_validator.identifier, preferred_node.identifier,
+        confirmation_validator.identifier
     }
     assert account_states[user_account].balance == 5
     assert account_states[user_account].balance_lock != user_account

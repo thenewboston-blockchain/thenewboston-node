@@ -2,19 +2,18 @@ import pytest
 
 from thenewboston_node.business_logic.models import Block, Node, NodeDeclarationSignedChangeRequest
 from thenewboston_node.business_logic.models.mixins.compactable import compact_key as ck
-from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.core.utils import baker
 from thenewboston_node.core.utils.types import hexstr
 
 
-def test_create_node_declaration_block(memory_blockchain, user_account_key_pair):
+def test_create_node_declaration_block(memory_blockchain, user_account_key_pair, primary_validator_key_pair):
     request = NodeDeclarationSignedChangeRequest.create(
         network_addresses=['127.0.0.1'],
         fee_amount=3,
         fee_account=hexstr('dcba'),
         signing_key=user_account_key_pair.private
     )
-    block = Block.create_from_signed_change_request(memory_blockchain, request, get_node_signing_key())
+    block = Block.create_from_signed_change_request(memory_blockchain, request, primary_validator_key_pair.private)
     assert block
     assert block.message.signed_change_request
     assert block.message.signed_change_request.signer
@@ -26,7 +25,7 @@ def test_create_node_declaration_block(memory_blockchain, user_account_key_pair)
 
 
 def test_node_identifier_is_removed_when_node_declaration_signed_change_request_is_serialized(
-    memory_blockchain, user_account_key_pair
+    memory_blockchain, user_account_key_pair, primary_validator_key_pair
 ):
     request = NodeDeclarationSignedChangeRequest.create(
         network_addresses=['127.0.0.1'],
@@ -34,7 +33,7 @@ def test_node_identifier_is_removed_when_node_declaration_signed_change_request_
         fee_account=hexstr('dcba'),
         signing_key=user_account_key_pair.private
     )
-    block = Block.create_from_signed_change_request(memory_blockchain, request, get_node_signing_key())
+    block = Block.create_from_signed_change_request(memory_blockchain, request, primary_validator_key_pair.private)
     compact_dict = block.to_compact_dict()
     assert ck('identifier') not in compact_dict[ck('message')][ck('signed_change_request')][ck('message')][ck('node')]
 

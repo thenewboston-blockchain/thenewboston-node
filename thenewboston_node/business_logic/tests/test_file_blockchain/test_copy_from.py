@@ -1,15 +1,35 @@
+from django.test import override_settings
+
 from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
 from thenewboston_node.business_logic.tests.base import assert_blockchains_equal
 from thenewboston_node.business_logic.tests.factories import add_blocks
 
 
-def test_can_copy_from(blockchain_directory, blockchain_directory2, treasury_account_key_pair, user_account_key_pair):
+def test_can_copy_from(
+    blockchain_directory, blockchain_directory2, treasury_account_key_pair, user_account_key_pair,
+    primary_validator_key_pair
+):
     assert blockchain_directory != blockchain_directory2
 
     source = FileBlockchain(base_directory=blockchain_directory, snapshot_period_in_blocks=10)
-    add_blocks(source, 35, treasury_account_key_pair.private, add_blockchain_genesis_state=True)
+    with override_settings(NODE_SIGNING_KEY=primary_validator_key_pair.private):
+        add_blocks(
+            source,
+            35,
+            treasury_account_key_pair.private,
+            add_blockchain_genesis_state=True,
+            signing_key=primary_validator_key_pair.private
+        )
+
     target = FileBlockchain(base_directory=blockchain_directory2, snapshot_period_in_blocks=10)
-    add_blocks(target, 58, user_account_key_pair.private, add_blockchain_genesis_state=True)
+    with override_settings(NODE_SIGNING_KEY=primary_validator_key_pair.private):
+        add_blocks(
+            target,
+            58,
+            user_account_key_pair.private,
+            add_blockchain_genesis_state=True,
+            signing_key=primary_validator_key_pair.private
+        )
     assert_blockchains_equal(source, target, negate=True)
 
     target.copy_from(source)

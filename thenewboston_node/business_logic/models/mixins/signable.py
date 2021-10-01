@@ -15,14 +15,14 @@ logger = logging.getLogger(__name__)
 @revert_docstring
 @dataclass
 @cover_docstring
-class SignableMixin:
-
-    signer: hexstr = field(
-        metadata={'example_value': '657cf373f6f8fb72854bd302269b8b2b3576e3e2a686bd7d0a112babaa1790c6'}
-    )
-    """Signer account number"""
+class OptionallySignableMixin:
 
     message: MessageMixin
+
+    signer: Optional[hexstr] = field(
+        default=None, metadata={'example_value': '657cf373f6f8fb72854bd302269b8b2b3576e3e2a686bd7d0a112babaa1790c6'}
+    )
+    """Signer account number"""
 
     # We need signature to be optional to be able to create dataclass instance first and then sign it
     signature: Optional[hexstr] = field(
@@ -53,15 +53,43 @@ class SignableMixin:
 
     @validates('signature')
     def validate_signature(self):
-        verify_key = self.validate_signer()
         signature = self.signature
+        if signature is None:
+            return
+
+        verify_key = self.validate_signer()
         validate_not_empty('Signature', signature)
         validate_type('Signature', signature, str)
-        self.message.validate_signature(verify_key, self.signature)
+        self.message.validate_signature(verify_key, signature)
+
+    @validates('signer')
+    def validate_signer(self):
+        signer = self.signer
+        if signer is None:
+            return None
+
+        validate_not_empty('Signer', signer)
+        validate_type('Signer', signer, str)
+        return signer
+
+
+@revert_docstring
+@dataclass
+@cover_docstring
+class SignableMixin(OptionallySignableMixin):
+    signer: hexstr = field(
+        metadata={'example_value': '657cf373f6f8fb72854bd302269b8b2b3576e3e2a686bd7d0a112babaa1790c6'}
+    )
+    """Signer account number"""
+
+    @validates('signature')
+    def validate_signature(self):
+        signature = self.signature
+        validate_not_empty('Signature', signature)
+        super().validate_signature()
 
     @validates('signer')
     def validate_signer(self):
         signer = self.signer
         validate_not_empty('Signer', signer)
-        validate_type('Signer', signer, str)
-        return signer
+        return super().validate_signer()

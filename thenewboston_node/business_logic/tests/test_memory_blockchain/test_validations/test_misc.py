@@ -1,6 +1,5 @@
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
 from thenewboston_node.business_logic.models.block import Block
-from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.core.utils.cryptography import KeyPair
 
 
@@ -9,6 +8,7 @@ def test_can_validate_blockchain(
     treasury_account_key_pair: KeyPair,
     user_account_key_pair: KeyPair,
     preferred_node,
+    primary_validator_key_pair,
 ):
     user_account = user_account_key_pair.public
     treasury_account = treasury_account_key_pair.public
@@ -21,7 +21,7 @@ def test_can_validate_blockchain(
         recipient=user_account,
         amount=30,
         request_signing_key=treasury_account_key_pair.private,
-        pv_signing_key=get_node_signing_key(),
+        pv_signing_key=primary_validator_key_pair.private,
         preferred_node=preferred_node,
     )
     blockchain.add_block(block0)
@@ -33,7 +33,7 @@ def test_can_validate_blockchain(
         recipient=user_account,
         amount=10,
         request_signing_key=treasury_account_key_pair.private,
-        pv_signing_key=get_node_signing_key(),
+        pv_signing_key=primary_validator_key_pair.private,
         preferred_node=preferred_node,
     )
     blockchain.add_block(block1)
@@ -45,7 +45,7 @@ def test_can_validate_blockchain(
         recipient=treasury_account,
         amount=10,
         request_signing_key=user_account_key_pair.private,
-        pv_signing_key=get_node_signing_key(),
+        pv_signing_key=primary_validator_key_pair.private,
         preferred_node=preferred_node,
     )
     blockchain.add_block(block2)

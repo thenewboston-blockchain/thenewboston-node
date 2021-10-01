@@ -9,7 +9,6 @@ from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.blockchain.file_blockchain import FileBlockchain
 from thenewboston_node.business_logic.blockchain.memory_blockchain import MemoryBlockchain
 from thenewboston_node.business_logic.blockchain.mock_blockchain import MockBlockchain
-from thenewboston_node.business_logic.node import get_node_signing_key
 from thenewboston_node.business_logic.tests.base import force_blockchain
 from thenewboston_node.business_logic.tests.factories import add_blocks
 from thenewboston_node.business_logic.tests.mocks.utils import patch_blockchain_states, patch_blocks
@@ -79,10 +78,11 @@ def file_blockchain(blockchain_genesis_state, blockchain_directory):
             'use_atomic_write': not settings.FASTER_UNITTESTS,
             'compressors': ('gz',)
         },
-        node_signing_key=get_node_signing_key(),
     )
     blockchain.add_blockchain_state(blockchain_genesis_state)
     blockchain._test_treasury_account_key_pair = blockchain_genesis_state._test_treasury_account_key_pair
+    blockchain._test_primary_validator_key_pair = blockchain_genesis_state._test_primary_validator_key_pair
+    blockchain._test_confirmation_validator_key_pair = blockchain_genesis_state._test_confirmation_validator_key_pair
     blockchain.validate()
     yield blockchain
 
@@ -102,7 +102,12 @@ def blockchain_base(blockchain_genesis_state):
 @pytest.fixture
 def file_blockchain_with_two_blockchain_states(file_blockchain, treasury_account_key_pair):
     blockchain = file_blockchain
-    add_blocks(blockchain, 2, treasury_account_key_pair.private)
+    add_blocks(
+        blockchain,
+        2,
+        treasury_account_key_pair.private,
+        signing_key=blockchain._test_primary_validator_key_pair.private
+    )
     blockchain.snapshot_blockchain_state()
     return blockchain
 
@@ -111,7 +116,12 @@ def file_blockchain_with_two_blockchain_states(file_blockchain, treasury_account
 def file_blockchain_with_three_block_chunks(file_blockchain):
     blockchain = file_blockchain
     with patch.object(blockchain, 'snapshot_period_in_blocks', 3):
-        add_blocks(blockchain, 8, file_blockchain._test_treasury_account_key_pair.private)
+        add_blocks(
+            blockchain,
+            8,
+            file_blockchain._test_treasury_account_key_pair.private,
+            signing_key=blockchain._test_primary_validator_key_pair.private
+        )
         assert list(blockchain.get_block_chunk_storage().list_directory()) == [
             '00000000000000000000-00000000000000000002-block-chunk.msgpack',
             '00000000000000000003-00000000000000000005-block-chunk.msgpack',
@@ -124,7 +134,12 @@ def file_blockchain_with_three_block_chunks(file_blockchain):
 def file_blockchain_with_five_block_chunks(file_blockchain):
     blockchain = file_blockchain
     with patch.object(blockchain, 'snapshot_period_in_blocks', 3):
-        add_blocks(blockchain, 14, file_blockchain._test_treasury_account_key_pair.private)
+        add_blocks(
+            blockchain,
+            14,
+            file_blockchain._test_treasury_account_key_pair.private,
+            signing_key=blockchain._test_primary_validator_key_pair.private
+        )
         assert list(blockchain.get_block_chunk_storage().list_directory()) == [
             '00000000000000000000-00000000000000000002-block-chunk.msgpack',
             '00000000000000000003-00000000000000000005-block-chunk.msgpack',

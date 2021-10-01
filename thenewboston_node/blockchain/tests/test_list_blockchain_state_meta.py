@@ -1,20 +1,23 @@
+from django.test import override_settings
+
 from rest_framework import status
 
-from thenewboston_node.business_logic.tests.base import force_blockchain
+from thenewboston_node.business_logic.tests.base import as_primary_validator, force_blockchain
 
 API_V1_LIST_BLOCKCHAIN_STATE_URL = '/api/v1/blockchain-states-meta/'
 
 
-def test_memory_blockchain_supported(api_client, memory_blockchain):
+def test_memory_blockchain_supported(api_client, memory_blockchain, primary_validator_key_pair):
     with force_blockchain(memory_blockchain):
-        response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL)
+        with override_settings(NODE_SIGNING_KEY=primary_validator_key_pair.private):
+            response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL)
 
     assert response.status_code == status.HTTP_200_OK
 
 
 def test_can_list_blockchain_state_meta(api_client, file_blockchain_with_two_blockchain_states, pv_network_address):
 
-    with force_blockchain(file_blockchain_with_two_blockchain_states):
+    with force_blockchain(file_blockchain_with_two_blockchain_states), as_primary_validator():
         response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL)
 
     assert response.status_code == 200
@@ -52,7 +55,7 @@ def test_can_list_blockchain_state_meta(api_client, file_blockchain_with_two_blo
 
 
 def test_can_sort_ascending_blockchain_states_meta(api_client, file_blockchain_with_two_blockchain_states):
-    with force_blockchain(file_blockchain_with_two_blockchain_states):
+    with force_blockchain(file_blockchain_with_two_blockchain_states), as_primary_validator():
         response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?ordering=last_block_number')
 
     assert response.status_code == 200
@@ -66,7 +69,7 @@ def test_can_sort_ascending_blockchain_states_meta(api_client, file_blockchain_w
 
 
 def test_can_sort_descending_blockchain_states_meta(api_client, file_blockchain_with_two_blockchain_states):
-    with force_blockchain(file_blockchain_with_two_blockchain_states):
+    with force_blockchain(file_blockchain_with_two_blockchain_states), as_primary_validator():
         response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?ordering=-last_block_number')
 
     assert response.status_code == 200
@@ -80,7 +83,7 @@ def test_can_sort_descending_blockchain_states_meta(api_client, file_blockchain_
 
 
 def test_can_get_blockchain_states_meta_w_limit(api_client, file_blockchain_with_two_blockchain_states):
-    with force_blockchain(file_blockchain_with_two_blockchain_states):
+    with force_blockchain(file_blockchain_with_two_blockchain_states), as_primary_validator():
         response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?limit=1')
 
     assert response.status_code == 200
@@ -93,7 +96,7 @@ def test_can_get_blockchain_states_meta_w_limit(api_client, file_blockchain_with
 
 
 def test_can_get_blockchain_states_meta_w_offset(api_client, file_blockchain_with_two_blockchain_states):
-    with force_blockchain(file_blockchain_with_two_blockchain_states):
+    with force_blockchain(file_blockchain_with_two_blockchain_states), as_primary_validator():
         response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?limit=1&offset=1')
 
     assert response.status_code == 200
@@ -104,7 +107,7 @@ def test_can_get_blockchain_states_meta_w_offset(api_client, file_blockchain_wit
 
 
 def test_pagination_is_applied_after_ordering(api_client, file_blockchain_with_two_blockchain_states):
-    with force_blockchain(file_blockchain_with_two_blockchain_states):
+    with force_blockchain(file_blockchain_with_two_blockchain_states), as_primary_validator():
         response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?offset=1&ordering=-last_block_number')
 
     assert response.status_code == status.HTTP_200_OK

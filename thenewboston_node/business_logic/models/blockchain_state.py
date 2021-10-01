@@ -12,7 +12,7 @@ from .blockchain_state_message import BlockchainStateMessage
 from .mixins.compactable import MessagpackCompactableMixin
 from .mixins.metadata import MetadataMixin
 from .mixins.normalizable import NormalizableMixin
-from .mixins.signable import SignableMixin
+from .mixins.signable import OptionallySignableMixin
 
 T = TypeVar('T', bound='BlockchainState')
 
@@ -22,7 +22,9 @@ logger = logging.getLogger(__name__)
 @revert_docstring
 @dataclass
 @cover_docstring
-class BlockchainState(SignableMixin, MetadataMixin, MessagpackCompactableMixin, NormalizableMixin, BaseDataclass):
+class BlockchainState(
+    OptionallySignableMixin, MetadataMixin, MessagpackCompactableMixin, NormalizableMixin, BaseDataclass
+):
     message: BlockchainStateMessage
 
     meta: Optional[dict[str, Any]] = field(  # noqa: A003
@@ -32,14 +34,14 @@ class BlockchainState(SignableMixin, MetadataMixin, MessagpackCompactableMixin, 
     )
 
     @classmethod
-    def create_from_account_root_file(cls: Type[T], account_root_file_dict, signer) -> T:
+    def create_from_account_root_file(cls: Type[T], account_root_file_dict) -> T:
         account_states = {}
         for account_number, content in account_root_file_dict.items():
             balance_lock = content.get('balance_lock')
             account_states[account_number] = AccountState(
                 balance=content['balance'], balance_lock=None if balance_lock == account_number else balance_lock
             )
-        return cls(message=BlockchainStateMessage(account_states=account_states), signer=signer)
+        return cls(message=BlockchainStateMessage(account_states=account_states))
 
     def yield_account_states(self) -> Generator[tuple[hexstr, AccountState], None, None]:
         yield from self.message.account_states.items()

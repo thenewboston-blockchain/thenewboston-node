@@ -1,6 +1,5 @@
 import pytest
 
-from thenewboston_node.business_logic.tests.base import force_node_key
 from thenewboston_node.core.utils.cryptography import KeyPair
 from thenewboston_node.core.utils.types import hexstr
 
@@ -38,6 +37,14 @@ def primary_validator_key_pair() -> KeyPair:
 
 
 @pytest.fixture
+def confirmation_validator_key_pair() -> KeyPair:
+    return KeyPair(
+        public=hexstr('0c838f7f50020ea586b2cd26b4f3cc7b5b399161af43e584f0cc3110952e3c05'),
+        private=hexstr('a4b51e375e444ca5913569c539d0aafb951162d6dd4d48f6a6ed16581ea8e616')
+    )
+
+
+@pytest.fixture
 def treasury_account_key_pair() -> KeyPair:
     return KeyPair(
         public=hexstr('4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732'),
@@ -68,13 +75,3 @@ def treasury_account(treasury_account_key_pair):
 @pytest.fixture
 def treasury_account_signing_key(treasury_account_key_pair):
     return treasury_account_key_pair.private
-
-
-@pytest.fixture
-def as_primary_validator(primary_validator_key_pair):
-    return force_node_key(primary_validator_key_pair.private)
-
-
-@pytest.fixture
-def as_regular_node(another_node_key_pair):
-    return force_node_key(another_node_key_pair.private)

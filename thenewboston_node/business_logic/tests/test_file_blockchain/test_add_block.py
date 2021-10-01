@@ -9,18 +9,18 @@ from thenewboston_node.business_logic.blockchain.file_blockchain import FileBloc
 from thenewboston_node.business_logic.blockchain.file_blockchain.block_chunk.meta import get_block_chunk_filename_meta
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.block import Block
-from thenewboston_node.business_logic.node import get_node_signing_key
 
 STAT_WRITE_PERMS_ALL = stat.S_IWGRP | stat.S_IWUSR | stat.S_IWOTH
 
 
 def test_get_block_chunk_file_path_meta_enhanced(
-    file_blockchain: FileBlockchain, user_account, treasury_account_signing_key, preferred_node
+    file_blockchain: FileBlockchain, user_account, treasury_account_signing_key, preferred_node,
+    primary_validator_key_pair
 ):
     blockchain = file_blockchain
 
     signing_key = treasury_account_signing_key
-    node_signing_key = get_node_signing_key()
+    node_signing_key = primary_validator_key_pair.private
 
     block0 = Block.create_from_main_transaction(
         blockchain=blockchain,
@@ -48,12 +48,13 @@ def test_get_block_chunk_file_path_meta_enhanced(
 
 
 def test_last_block_chunk_is_properly_tracked(
-    file_blockchain: FileBlockchain, user_account, treasury_account_signing_key, preferred_node
+    file_blockchain: FileBlockchain, user_account, treasury_account_signing_key, preferred_node,
+    primary_validator_key_pair
 ):
     blockchain = file_blockchain
 
     signing_key = treasury_account_signing_key
-    node_signing_key = get_node_signing_key()
+    node_signing_key = primary_validator_key_pair.private
 
     assert blockchain.get_block_count() == 0
 
@@ -87,12 +88,14 @@ def test_last_block_chunk_is_properly_tracked(
     assert blockchain.get_block_count() == 2
 
 
-def test_block_chunk_is_rotated(file_blockchain, user_account, treasury_account_signing_key, preferred_node):
+def test_block_chunk_is_rotated(
+    file_blockchain, user_account, treasury_account_signing_key, preferred_node, primary_validator_key_pair
+):
     signing_key = treasury_account_signing_key
     blockchain = file_blockchain
     file1 = '00000000000000000000-00000000000000000001-block-chunk.msgpack'
     file2 = '00000000000000000002-00000000000000000003-block-chunk.msgpack'
-    node_signing_key = get_node_signing_key()
+    node_signing_key = primary_validator_key_pair.private
 
     with patch.object(blockchain, 'snapshot_period_in_blocks', 2):
         block0 = Block.create_from_main_transaction(
@@ -142,12 +145,12 @@ def test_block_chunk_is_rotated(file_blockchain, user_account, treasury_account_
 
 
 def test_block_chunk_is_rotated_real_file_blockchain(
-    file_blockchain, user_account, treasury_account_signing_key, preferred_node
+    file_blockchain, user_account, treasury_account_signing_key, preferred_node, primary_validator_key_pair
 ):
     blockchain = file_blockchain
 
     signing_key = treasury_account_signing_key
-    node_signing_key = get_node_signing_key()
+    node_signing_key = primary_validator_key_pair.private
 
     with (
         patch.object(blockchain, 'snapshot_period_in_blocks',
@@ -258,12 +261,14 @@ def test_block_chunk_is_rotated_real_file_blockchain(
         )
 
 
-def test_block_appended(file_blockchain, user_account, treasury_account_signing_key, preferred_node):
+def test_block_appended(
+    file_blockchain, user_account, treasury_account_signing_key, preferred_node, primary_validator_key_pair
+):
     signing_key = treasury_account_signing_key
     blockchain = file_blockchain
     filename = '00000000000000000000-xxxxxxxxxxxxxxxxxxxx-block-chunk.msgpack'
 
-    node_signing_key = get_node_signing_key()
+    node_signing_key = primary_validator_key_pair.private
 
     block1 = Block.create_from_main_transaction(
         blockchain=blockchain,
@@ -290,11 +295,13 @@ def test_block_appended(file_blockchain, user_account, treasury_account_signing_
     assert not storage.is_finalized(filename)
 
 
-def test_cannot_add_block_twice(file_blockchain, user_account, treasury_account_signing_key, preferred_node):
+def test_cannot_add_block_twice(
+    file_blockchain, user_account, treasury_account_signing_key, preferred_node, primary_validator_key_pair
+):
     signing_key = treasury_account_signing_key
     blockchain = file_blockchain
 
-    node_signing_key = get_node_signing_key()
+    node_signing_key = primary_validator_key_pair.private
     block = Block.create_from_main_transaction(
         blockchain=blockchain,
         recipient=user_account,

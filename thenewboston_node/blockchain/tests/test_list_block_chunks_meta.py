@@ -2,7 +2,7 @@ from urllib.parse import urlencode
 
 import pytest
 
-from thenewboston_node.business_logic.tests.base import force_blockchain
+from thenewboston_node.business_logic.tests.base import as_primary_validator, force_blockchain
 
 API_V1_LIST_BLOCKCHAIN_STATE_URL = '/api/v1/block-chunks-meta/'
 
@@ -10,7 +10,7 @@ API_V1_LIST_BLOCKCHAIN_STATE_URL = '/api/v1/block-chunks-meta/'
 def test_can_list_block_chunk_meta(api_client, file_blockchain_with_three_block_chunks, pv_network_address):
 
     blockchain = file_blockchain_with_three_block_chunks
-    with force_blockchain(blockchain):
+    with force_blockchain(blockchain), as_primary_validator():
         response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL)
 
     assert response.status_code == 200
@@ -65,7 +65,7 @@ def test_can_list_block_chunk_meta(api_client, file_blockchain_with_three_block_
 def test_can_order_block_chunk_meta(api_client, file_blockchain_with_three_block_chunks, pv_network_address):
 
     blockchain = file_blockchain_with_three_block_chunks
-    with force_blockchain(blockchain):
+    with force_blockchain(blockchain), as_primary_validator():
         response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?ordering=-start_block_number')
 
     assert response.status_code == 200
@@ -122,7 +122,7 @@ def test_can_order_block_chunk_meta_with_limit(
 ):
 
     blockchain = file_blockchain_with_three_block_chunks
-    with force_blockchain(blockchain):
+    with force_blockchain(blockchain), as_primary_validator():
         response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?ordering=-start_block_number&limit=2')
 
     assert response.status_code == 200
@@ -165,7 +165,7 @@ def test_can_order_block_chunk_meta_with_limit_and_offset(
 ):
 
     blockchain = file_blockchain_with_three_block_chunks
-    with force_blockchain(blockchain):
+    with force_blockchain(blockchain), as_primary_validator():
         response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?ordering=-start_block_number&limit=1&offset=1')
 
     assert response.status_code == 200
@@ -323,7 +323,7 @@ def test_filter_by_block_number_range(
     api_client, file_blockchain_with_three_block_chunks, from_block_number, to_block_number, block_chunk_map
 ):
     blockchain = file_blockchain_with_three_block_chunks
-    with force_blockchain(blockchain):
+    with force_blockchain(blockchain), as_primary_validator():
         response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL)
 
     assert response.status_code == 200
@@ -340,7 +340,7 @@ def test_filter_by_block_number_range(
     if to_block_number is not None:
         query_parameters['to_block_number'] = to_block_number
 
-    with force_blockchain(blockchain):
+    with force_blockchain(blockchain), as_primary_validator():
         response = api_client.get(API_V1_LIST_BLOCKCHAIN_STATE_URL + '?' + urlencode(query_parameters))
 
     assert response.status_code == 200

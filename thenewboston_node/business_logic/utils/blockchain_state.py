@@ -13,6 +13,7 @@ from thenewboston_node.business_logic.models.signed_change_request_message.pv_sc
 from thenewboston_node.business_logic.node import get_node_identifier
 from thenewboston_node.business_logic.storages.file_system import read_compressed_file
 from thenewboston_node.business_logic.utils.network import make_own_node
+from thenewboston_node.core.utils.cryptography import derive_public_key
 from thenewboston_node.core.utils.misc import is_valid_url
 
 logger = logging.getLogger()
@@ -49,7 +50,7 @@ def add_blockchain_state_from_account_root_file(blockchain, source):
     logger.info('DONE: %s', message)
 
     logger.info('Converting')
-    blockchain_state = BlockchainState.create_from_account_root_file(account_root_file, signer=get_node_identifier())
+    blockchain_state = BlockchainState.create_from_account_root_file(account_root_file)
     logger.info('DONE: Converting')
 
     node = make_own_node()
@@ -84,22 +85,16 @@ def add_blockchain_state_from_blockchain_state(blockchain, source):
     logger.info('DONE: Adding the blockchain state')
 
 
-def sync_blockchain_state():
-    # Get latest blockchain state from local blockchain
-    # Get latest blockchain state from node
-    # If blockchain state from node is more recent then download it and add to the blockchain
-    raise NotImplementedError
-
-
+# TODO(dmu) HIGH: Migrate to `BlockchainStateBuilder`
 def make_blockchain_genesis_state(
     *,
     treasury_account_number,
+    treasury_account_initial_balance=281474976710656,
     primary_validator=None,
     primary_validator_identifier=None,
     primary_validator_network_addresses=('http://localhost:8555/',),
     primary_validator_fee_amount=4,
     primary_validator_fee_account=None,
-    treasury_account_initial_balance=settings.DEFAULT_TREASURY_ACCOUNT_INITIAL_BALANCE,
     primary_validator_schedule_begin_block_number=0,
     primary_validator_schedule_end_block_number=99,
     primary_validator_signing_key=None,
@@ -132,4 +127,88 @@ def make_blockchain_genesis_state(
     )
     if primary_validator_signing_key:
         blockchain_state.sign(signing_key=primary_validator_signing_key)
+
     return blockchain_state
+
+
+class BlockchainStateBuilder:
+
+    def __init__(self):
+        self.treasury_account_number = None
+        self.treasury_account_initial_balance = None
+
+        self.primary_validator = None
+        self.pv_schedule_begin_block_number = None
+        self.pv_schedule_end_block_number = None
+
+        self.confirmation_validator = None
+        self.cv_schedule_begin_block_number = None
+        self.cv_schedule_end_block_number = None
+
+        self.signing_key = None
+
+    def set_treasury_account(self, account_number, balance=281474976710656):
+        self.treasury_account_number = account_number
+        self.treasury_account_initial_balance = balance
+
+    def set_primary_validator(self, primary_validator, schedule_begin_block_number, schedule_end_block_number):
+        self.primary_validator = primary_validator
+        self.pv_schedule_begin_block_number = schedule_begin_block_number
+        self.pv_schedule_end_block_number = schedule_end_block_number
+
+    def set_blockchain_state_signing_key(self, signing_key):
+        self.signing_key = signing_key
+
+    def set_confirmation_validator(
+        self, confirmation_validator, schedule_begin_block_number, schedule_end_block_number
+    ):
+        self.confirmation_validator = confirmation_validator
+        self.cv_schedule_begin_block_number = schedule_begin_block_number
+        self.cv_schedule_end_block_number = schedule_end_block_number
+
+    def get_blockchain_state(self) -> BlockchainState:
+        accounts = {}
+
+        treasury_account_number = self.treasury_account_number
+        if treasury_account_number:
+            treasury_account_initial_balance = self.treasury_account_initial_balance
+            assert treasury_account_initial_balance is not None
+            accounts[treasury_account_number] = AccountState(balance=treasury_account_initial_balance)
+
+        primary_validator = self.primary_validator
+        if primary_validator:
+            schedule_begin_block_number = self.pv_schedule_begin_block_number
+            schedule_end_block_number = self.pv_schedule_end_block_number
+            assert schedule_begin_block_number is not None
+            assert schedule_end_block_number is not None
+
+            accounts[primary_validator.identifier] = AccountState(
+                node=primary_validator,
+                primary_validator_schedule=PrimaryValidatorSchedule(
+                    begin_block_number=schedule_begin_block_number,
+                    end_block_number=schedule_end_block_number,
+                )
+            )
+
+        confirmation_validator = self.confirmation_validator
+        if confirmation_validator:
+            schedule_begin_block_number = self.cv_schedule_begin_block_number
+            schedule_end_block_number = self.cv_schedule_end_block_number
+            assert schedule_begin_block_number is not None
+            assert schedule_end_block_number is not None
+
+            accounts[confirmation_validator.identifier] = AccountState(
+                node=confirmation_validator,
+                primary_validator_schedule=PrimaryValidatorSchedule(
+                    begin_block_number=schedule_begin_block_number,
+                    end_block_number=schedule_end_block_number,
+                )
+            )
+
+        signing_key = self.signing_key
+        signer = None if signing_key is None else derive_public_key(signing_key)
+        blockchain_state = BlockchainState(message=BlockchainStateMessage(account_states=accounts), signer=signer)
+        if signing_key:
+            blockchain_state.sign(signing_key=signing_key)
+
+        return blockchain_state

@@ -1,23 +1,26 @@
+from django.test import override_settings
+
 import pytest
 from rest_framework import status
 
 from thenewboston_node.business_logic.models import Block, NodeDeclarationSignedChangeRequest
-from thenewboston_node.business_logic.tests.base import force_blockchain
+from thenewboston_node.business_logic.tests.base import as_primary_validator, force_blockchain
 from thenewboston_node.business_logic.utils.blockchain_state import make_blockchain_genesis_state
 
 API_V1_BLOCKCHAIN_STATE_URL_PATTERN = '/api/v1/blockchain-states-meta/{block_number}/'
 
 
-def test_memory_blockchain_supported(api_client, memory_blockchain):
+def test_memory_blockchain_supported(api_client, memory_blockchain, primary_validator_key_pair):
     with force_blockchain(memory_blockchain):
-        response = api_client.get(API_V1_BLOCKCHAIN_STATE_URL_PATTERN.format(block_number=-1))
+        with override_settings(NODE_SIGNING_KEY=primary_validator_key_pair.private):
+            response = api_client.get(API_V1_BLOCKCHAIN_STATE_URL_PATTERN.format(block_number=-1))
 
     assert response.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.parametrize('block_number', (-2, 'invalid_id', 0, 999))
 def test_invalid_block_number_returns_400(api_client, file_blockchain, block_number):
-    with force_blockchain(file_blockchain):
+    with force_blockchain(file_blockchain), as_primary_validator():
         response = api_client.get(API_V1_BLOCKCHAIN_STATE_URL_PATTERN.format(block_number=block_number))
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -27,7 +30,7 @@ def test_invalid_block_number_returns_400(api_client, file_blockchain, block_num
 def test_can_get_blockchain_genesis_state_meta(
     api_client, file_blockchain, blockchain_genesis_state, block_number, pv_network_address
 ):
-    with force_blockchain(file_blockchain):
+    with force_blockchain(file_blockchain), as_primary_validator():
         response = api_client.get(API_V1_BLOCKCHAIN_STATE_URL_PATTERN.format(block_number=block_number))
 
     assert response.status_code == status.HTTP_200_OK
@@ -46,7 +49,7 @@ def test_can_get_blockchain_genesis_state_meta(
 
 
 def test_blockchain_state_meta_block_number_is_inclusive(api_client, file_blockchain, preferred_node_key_pair):
-    with force_blockchain(file_blockchain):
+    with force_blockchain(file_blockchain), as_primary_validator():
         request = NodeDeclarationSignedChangeRequest.create(
             network_addresses=[], fee_amount=3, signing_key=preferred_node_key_pair.private
         )
@@ -76,7 +79,7 @@ def test_blockchain_state_meta_urls_returns_400_if_node_undeclared(
     )
     file_blockchain.add_blockchain_state(genesis_blockchain_state)
 
-    with force_blockchain(file_blockchain):
+    with force_blockchain(file_blockchain), as_primary_validator():
         response = api_client.get(API_V1_BLOCKCHAIN_STATE_URL_PATTERN.format(block_number=-1))
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST

@@ -1,5 +1,4 @@
 from thenewboston_node.business_logic.models.block import Block
-from thenewboston_node.business_logic.node import get_node_signing_key
 
 
 def test_last_block_data_is_correct(file_blockchain):
@@ -9,7 +8,7 @@ def test_last_block_data_is_correct(file_blockchain):
 
 def test_balances_are_correct(
     file_blockchain, treasury_account_key_pair, user_account, primary_validator_identifier, node_identifier,
-    treasury_initial_balance, preferred_node
+    treasury_initial_balance, preferred_node, primary_validator_key_pair
 ):
     blockchain = file_blockchain
 
@@ -18,7 +17,7 @@ def test_balances_are_correct(
         recipient=user_account,
         amount=100,
         request_signing_key=treasury_account_key_pair.private,
-        pv_signing_key=get_node_signing_key(),
+        pv_signing_key=primary_validator_key_pair.private,
         preferred_node=preferred_node
     )
     blockchain.add_block(block)
@@ -34,7 +33,7 @@ def test_balances_are_correct(
     assert blockchain_state
     accounts = blockchain_state.account_states
 
-    assert len(accounts) == 4
+    assert len(accounts) == 5
     assert accounts[treasury_account_key_pair.public].balance == treasury_initial_balance - pv_fee - node_fee - 100
     assert accounts[user_account].balance == 100
     assert accounts[primary_validator_identifier].balance == pv_fee

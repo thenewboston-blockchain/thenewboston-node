@@ -68,7 +68,7 @@ class CoinTransferSignedChangeRequestMessage(SignedChangeRequestMessage):
     def get_amount(self, recipient):
         return sum(tx.amount for tx in self.txs if tx.recipient == recipient)
 
-    def get_normalized(self) -> bytes:
+    def get_normalized_for_cryptography(self) -> bytes:
         message_dict = self.serialize_to_dict()  # type: ignore
 
         for tx in message_dict['txs']:

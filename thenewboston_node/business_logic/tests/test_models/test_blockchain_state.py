@@ -2,7 +2,7 @@ from hashlib import sha3_256
 
 
 def test_normalized_blockchain_state(blockchain_genesis_state):
-    assert blockchain_genesis_state.get_normalized() == (
+    assert blockchain_genesis_state.get_normalized_for_cryptography() == (
         b'{"message":{"account_states":{"0c838f7f50020ea586b2cd26b4f3cc7b5b399161af43e584f0cc3110952e3c05":'
         b'{"node":{"fee_amount":1,"network_addresses":["http://cv.non-existing-domain:8555/"]},"'
         b'primary_validator_schedule":{"begin_block_number":100,"end_block_number":199}},'

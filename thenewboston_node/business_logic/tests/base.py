@@ -50,27 +50,35 @@ def force_file_blockchain(file_blockchain: FileBlockchain, outer_web_mock, netwo
 
 
 @contextmanager
-def as_primary_validator():
-    blockchain = BlockchainBase.get_instance()
+def as_primary_validator(blockchain=None):
+    blockchain = blockchain or BlockchainBase.get_instance()
     key_pair = blockchain._test_primary_validator_key_pair  # test blockchain must have this attribute
-    with override_settings(NODE_SIGNING_KEY=key_pair.private):
+    with override_settings(NODE_SIGNING_KEY=key_pair.private), override_signing_key(blockchain, key_pair.private):
         yield
 
 
 @contextmanager
-def as_confirmation_validator():
-    blockchain = BlockchainBase.get_instance()
+def as_confirmation_validator(blockchain=None):
+    blockchain = blockchain or BlockchainBase.get_instance()
     key_pair = blockchain._test_confirmation_validator_key_pair  # test blockchain must have this attribute
-    with override_settings(NODE_SIGNING_KEY=key_pair.private):
+    with override_settings(NODE_SIGNING_KEY=key_pair.private), override_signing_key(blockchain, signing_key=None):
         yield
 
 
 @contextmanager
-def as_regular_node():
-    blockchain = BlockchainBase.get_instance()
+def as_regular_node(blockchain=None):
+    blockchain = blockchain or BlockchainBase.get_instance()
     key_pair = blockchain._test_regular_node_key_pair  # test blockchain must have this attribute
-    with override_settings(NODE_SIGNING_KEY=key_pair.private):
+    with override_settings(NODE_SIGNING_KEY=key_pair.private), override_signing_key(blockchain, signing_key=None):
         yield
+
+
+@contextmanager
+def override_signing_key(blockchain, signing_key):
+    signing_key_backup = blockchain.blockchain_state_signing_key
+    blockchain.blockchain_state_signing_key = signing_key
+    yield
+    blockchain.blockchain_state_signing_key = signing_key_backup
 
 
 def remove_meta(obj):

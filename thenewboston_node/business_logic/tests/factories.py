@@ -29,6 +29,7 @@ def add_blocks(
     primary_validator_network_addresses=None,
     signing_key=None
 ):
+    signing_key = signing_key or blockchain._test_primary_validator_key_pair.private
     if treasury_account_private_key:
         treasury_account_key_pair = KeyPair(
             public=derive_public_key(treasury_account_private_key), private=treasury_account_private_key
@@ -40,7 +41,7 @@ def add_blocks(
     generate_blockchain(
         blockchain,
         block_count,
-        signing_key or blockchain._test_primary_validator_key_pair.private,
+        signing_key,
         add_blockchain_genesis_state=add_blockchain_genesis_state,
         validate=False,
         treasury_account_key_pair=treasury_account_key_pair,

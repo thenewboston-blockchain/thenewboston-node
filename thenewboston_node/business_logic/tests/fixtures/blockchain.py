@@ -83,6 +83,7 @@ def file_blockchain(blockchain_genesis_state, blockchain_directory):
     blockchain._test_treasury_account_key_pair = blockchain_genesis_state._test_treasury_account_key_pair
     blockchain._test_primary_validator_key_pair = blockchain_genesis_state._test_primary_validator_key_pair
     blockchain._test_confirmation_validator_key_pair = blockchain_genesis_state._test_confirmation_validator_key_pair
+    blockchain._test_regular_node_key_pair = blockchain_genesis_state._test_regular_node_key_pair
     blockchain.validate()
     yield blockchain
 

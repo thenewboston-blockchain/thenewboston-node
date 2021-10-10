@@ -127,6 +127,13 @@ class BlockchainState(
     def next_block_identifier(self, value):
         self.message.next_block_identifier = value
 
+    def is_signed(self):
+        return self.signature is not None
+
+    def is_signed_by_primary_validator(self, blockchain):
+        primary_validator = blockchain.get_primary_validator(for_block_number=self.last_block_number)
+        return self.is_signed() and primary_validator and primary_validator.identifier == self.signer
+
     def is_initial(self) -> bool:
         return (
             self.message.last_block_number is None and self.message.last_block_identifier is None and

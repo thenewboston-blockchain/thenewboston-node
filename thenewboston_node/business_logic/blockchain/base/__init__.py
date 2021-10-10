@@ -19,15 +19,16 @@ T = TypeVar('T', bound='BlockchainBase')
 class BlockchainBase(ValidationMixin, BlockchainStateMixin, BlocksMixin, AccountStateMixin, NetworkMixin):
     _instance = None
 
-    def __init__(self, snapshot_period_in_blocks=None, node_signing_key=None):
+    def __init__(self, snapshot_period_in_blocks=None, blockchain_state_signing_key=None):
         self.snapshot_period_in_blocks = snapshot_period_in_blocks
-        self.node_signing_key = node_signing_key
+        self.blockchain_state_signing_key = blockchain_state_signing_key
 
     @classmethod
     def get_instance(cls: Type[T]) -> T:
         instance = cls._instance
         if not instance:
             blockchain_settings = settings.BLOCKCHAIN
+            blockchain_settings['kwargs'].setdefault('blockchain_state_signing_key', settings.NODE_SIGNING_KEY)
             instance = cls.make_instance(blockchain_settings['class'], blockchain_settings.get('kwargs'))
             cls.set_instance_cache(instance)
 

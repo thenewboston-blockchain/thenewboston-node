@@ -142,10 +142,9 @@ class BlockchainStateMixin(BaseMixin):
                         setattr(blockchain_state_account_state, attribute, deepcopy(value))
 
         primary_validator = self.get_primary_validator()  # type: ignore
-        if primary_validator is None:
-            raise InvalidBlockchainError('Primary validator is required to generate blockchain state')
         blockchain_state = BlockchainState(
-            message=BlockchainStateMessage(account_states=account_states), signer=primary_validator.identifier
+            message=BlockchainStateMessage(account_states=account_states),
+            signer=primary_validator.identifier if primary_validator else None,
         )
 
         if block is not None:
@@ -154,11 +153,9 @@ class BlockchainStateMixin(BaseMixin):
             blockchain_state.last_block_timestamp = block.message.timestamp
             blockchain_state.next_block_identifier = block.hash
 
-        node_signing_key = self.node_signing_key  # type: ignore
-        if node_signing_key:
-            node_identifier = derive_public_key(node_signing_key)
-            if primary_validator.identifier == node_identifier:
-                blockchain_state.sign(signing_key=node_signing_key)
+        blockchain_state_signing_key = self.blockchain_state_signing_key  # type: ignore
+        if blockchain_state_signing_key and blockchain_state.signer == derive_public_key(blockchain_state_signing_key):
+            blockchain_state.sign(signing_key=blockchain_state_signing_key)
         return blockchain_state
 
     def clear_blockchain_states(self, block_number_range=None):

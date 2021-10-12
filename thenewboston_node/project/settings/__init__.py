@@ -27,6 +27,7 @@ include(*(
     'logging.py',
     'blockchain.py',
     'rest_framework.py',
+    'celery.py',
     'custom.py',
 ) + overriding_settings + ('sentry.py', 'docker.py'))
 # yapf: enable

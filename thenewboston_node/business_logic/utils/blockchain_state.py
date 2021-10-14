@@ -7,7 +7,7 @@ from urllib.request import urlopen
 from django.conf import settings
 
 from thenewboston_node.business_logic.models import (
-    AccountState, BlockchainState, BlockchainStateMessage, PrimaryValidator
+    AccountState, BlockchainState, BlockchainStateMessage, PrimaryValidator, RegularNode
 )
 from thenewboston_node.business_logic.models.signed_change_request_message.pv_schedule import PrimaryValidatorSchedule
 from thenewboston_node.business_logic.node import get_node_identifier
@@ -147,6 +147,8 @@ class BlockchainStateBuilder:
 
         self.signing_key = None
 
+        self.regular_nodes = set()
+
     def set_treasury_account(self, account_number, balance=281474976710656):
         self.treasury_account_number = account_number
         self.treasury_account_initial_balance = balance
@@ -165,6 +167,9 @@ class BlockchainStateBuilder:
         self.confirmation_validator = confirmation_validator
         self.cv_schedule_begin_block_number = schedule_begin_block_number
         self.cv_schedule_end_block_number = schedule_end_block_number
+
+    def add_regular_node(self, node: RegularNode):
+        self.regular_nodes.add(node)
 
     def get_blockchain_state(self) -> BlockchainState:
         accounts = {}
@@ -204,6 +209,9 @@ class BlockchainStateBuilder:
                     end_block_number=schedule_end_block_number,
                 )
             )
+
+        for regular_node in self.regular_nodes:
+            accounts[regular_node.identifier] = AccountState(node=regular_node)
 
         signing_key = self.signing_key
         signer = None if signing_key is None else derive_public_key(signing_key)

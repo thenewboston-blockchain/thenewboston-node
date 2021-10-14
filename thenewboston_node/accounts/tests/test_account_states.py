@@ -8,7 +8,7 @@ def test_can_get_account_states(file_blockchain: FileBlockchain, treasury_accoun
 
     treasury_account_balance = blockchain.get_account_current_balance(treasury_account_key_pair.public)
     nodes = list(blockchain.yield_nodes())
-    assert len(nodes) == 2
+    assert len(nodes) == 3
     node_identifiers = {node.identifier for node in nodes}
 
     assert treasury_account_balance is not None
@@ -43,11 +43,10 @@ def test_can_get_account_states(file_blockchain: FileBlockchain, treasury_accoun
                 assert node_json['fee_account'] is None
 
                 pv_schedule = account_state.primary_validator_schedule
-                assert pv_schedule
-                assert (
-                    response_json['primary_validator_schedule']['begin_block_number'] == pv_schedule.begin_block_number
-                )
-                assert response_json['primary_validator_schedule']['end_block_number'] == pv_schedule.end_block_number
+                if pv_schedule:
+                    pv_schedule_json = response_json['primary_validator_schedule']
+                    assert pv_schedule_json['begin_block_number'] == pv_schedule.begin_block_number
+                    assert pv_schedule_json['end_block_number'] == pv_schedule.end_block_number
             else:
                 assert 'node' in response_json
                 assert 'primary_validator_schedule' in response_json

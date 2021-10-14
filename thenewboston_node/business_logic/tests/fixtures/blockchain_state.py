@@ -14,12 +14,13 @@ def treasury_initial_balance():
 @pytest.fixture
 def blockchain_genesis_state(
     treasury_account_key_pair, treasury_initial_balance, primary_validator, confirmation_validator,
-    another_node_key_pair
+    another_node_key_pair, preferred_node
 ) -> BlockchainState:
     builder = BlockchainStateBuilder()
     builder.set_primary_validator(primary_validator, 0, 99)
     builder.set_confirmation_validator(confirmation_validator, 100, 199)
     builder.set_treasury_account(treasury_account_key_pair.public, balance=treasury_initial_balance)
+    builder.add_regular_node(preferred_node)
     state = builder.get_blockchain_state()
 
     state._test_treasury_account_key_pair = treasury_account_key_pair  # type: ignore

@@ -1,3 +1,5 @@
+from unittest import mock
+
 import pytest
 from rest_framework.test import APIClient
 
@@ -12,3 +14,8 @@ def api_client():
 @pytest.fixture
 def node_client():
     return NodeClient.get_instance()
+
+
+@pytest.fixture
+def node_client_mock():
+    return mock.Mock()

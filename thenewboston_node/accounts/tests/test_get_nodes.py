@@ -21,9 +21,7 @@ def test_node_not_found(file_blockchain, api_client):
 def test_can_get_node(file_blockchain, api_client, user_account_key_pair):
     blockchain = file_blockchain
 
-    nodes = list(blockchain.yield_nodes())
-    assert len(nodes) == 2
-    pv_node = nodes[0]  # TODO(dmu) MEDIUM: Refactor to more realiable pv node detection
+    pv_node = blockchain.get_primary_validator()
 
     node_declaration_request = NodeDeclarationSignedChangeRequest.create(
         network_addresses=['http://new-node.non-existing-domain/'],
@@ -62,9 +60,7 @@ def test_can_get_node(file_blockchain, api_client, user_account_key_pair):
 def test_can_get_self_node(file_blockchain, api_client):
     blockchain = file_blockchain
 
-    nodes = list(blockchain.yield_nodes())
-    assert len(nodes) == 2
-    pv_node = nodes[0]  # TODO(dmu) MEDIUM: Refactor to more realiable pv node detection
+    pv_node = blockchain.get_primary_validator()
 
     with force_blockchain(blockchain), as_primary_validator():
         response = api_client.get(API_V1_NODES_PREFIX + '/self/')
@@ -80,9 +76,7 @@ def test_can_get_self_node(file_blockchain, api_client):
 def test_can_get_primary_validator_node(file_blockchain, api_client):
     blockchain = file_blockchain
 
-    nodes = list(blockchain.yield_nodes())
-    assert len(nodes) == 2
-    pv_node = nodes[0]  # TODO(dmu) MEDIUM: Refactor to more realiable pv node detection
+    pv_node = blockchain.get_primary_validator()
 
     with force_blockchain(blockchain), as_primary_validator():
         response = api_client.get(f'{API_V1_NODES_PREFIX}/pv/')

@@ -13,8 +13,7 @@ def test_can_get_pv_from_blockchain_genesis_state(
     blockchain: BlockchainBase = locals()[blockchain_argument_name]
 
     blockchain_state_nodes = list(blockchain.get_first_blockchain_state().yield_nodes())
-    assert len(blockchain_state_nodes) == 2
-    node = blockchain_state_nodes[0]  # TODO(dmu) HIGH: Improve detection of PV
+    node = blockchain.get_primary_validator()
 
     assert blockchain.get_primary_validator() == node
     assert blockchain.get_primary_validator(0) == node
@@ -30,9 +29,7 @@ def test_can_get_pv_from_from_blocks(
 ):
     blockchain: BlockchainBase = locals()[blockchain_argument_name]
 
-    blockchain_state_nodes = list(blockchain.get_first_blockchain_state().yield_nodes())
-    assert len(blockchain_state_nodes) == 2
-    pv1 = blockchain_state_nodes[0]  # TODO(dmu) MEDIUM: Improve PV detection
+    pv1 = blockchain.get_primary_validator()
 
     signing_key = user_account_key_pair.private
     nd_request = NodeDeclarationSignedChangeRequest.create(
@@ -64,9 +61,8 @@ def test_can_get_node_from_genesis_state_and_pv_from_blocks(
 ):
     blockchain: BlockchainBase = locals()[blockchain_argument_name]
 
-    blockchain_state_nodes = list(blockchain.get_first_blockchain_state().yield_nodes())
-    assert len(blockchain_state_nodes) == 2
-    pv1 = blockchain_state_nodes[0]  # TODO(dmu) MEDIUM: Improve PV detection
+    pv1 = blockchain.get_primary_validator()
+    assert pv1 is not None
     assert primary_validator_key_pair.public == pv1.identifier
 
     pvs_request = PrimaryValidatorScheduleSignedChangeRequest.create(0, 2, primary_validator_key_pair.private)
@@ -116,8 +112,8 @@ def test_can_get_overridden_pv(
     blockchain: BlockchainBase = locals()[blockchain_argument_name]
 
     blockchain_state_nodes = list(blockchain.get_first_blockchain_state().yield_nodes())
-    assert len(blockchain_state_nodes) == 2
-    pv1 = blockchain_state_nodes[0]  # TODO(dmu) MEDIUM: Improve PV detection
+    pv1 = blockchain.get_primary_validator()
+    assert pv1 is not None
     assert primary_validator_key_pair.public == pv1.identifier
 
     signing_key = user_account_key_pair.private

@@ -8,7 +8,7 @@ def test_can_make_blockchain_state_on_last_block(
 ):
     blockchain = file_blockchain
 
-    assert blockchain.get_number_of_accounts() == 3
+    assert blockchain.get_number_of_accounts() == 4
 
     user_account = user_account_key_pair.public
     treasury_account = treasury_account_key_pair.public

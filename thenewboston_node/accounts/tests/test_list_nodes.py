@@ -23,8 +23,8 @@ def test_can_list_nodes(
 
     assert response.status_code == 200
     data = response.json()
-    assert data['count'] == 3
-    assert len(data['results']) == 3
+    assert data['count'] == 4
+    assert len(data['results']) == 4
     # TODO(dmu) HIGH: Add response content validation
 
 
@@ -46,6 +46,6 @@ def test_can_list_nodes_w_offset(
 
     assert response.status_code == 200
     data = response.json()
-    assert data['count'] == 3
+    assert data['count'] == 4
     assert len(data['results']) == 1
     # TODO(dmu) HIGH: Add response content validation

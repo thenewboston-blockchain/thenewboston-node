@@ -212,7 +212,7 @@ def test_can_create_block_from_main_transaction(
 
 def test_normalized_block_message(file_blockchain, sample_signed_change_request, primary_validator_key_pair):
     expected_message_template = (
-        '{"block_identifier":"e699a07d45c62e25268364a78257ad9f39743e1d1c6d2a99ca7f4b3e6f0c5786",'
+        '{"block_identifier":"f024d333e9a9f7732111ca3268b33c3cc732091198238f0886c7ff49ceac7959",'
         '"block_number":0,"block_type":"ct","signed_change_request":{"message":{"balance_lock":'
         '"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732",'
         '"txs":[{"amount":425,"recipient":"484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc"},'

@@ -1,6 +1,5 @@
 from .account_state import AccountState  # noqa: F401
 from .block import Block  # noqa: F401
-from .block_confirmation import BlockConfirmation  # noqa: F401
 from .block_message import BlockMessage  # noqa: F401
 from .blockchain_state import BlockchainState  # noqa: F401
 from .blockchain_state_message import BlockchainStateMessage  # noqa: F401

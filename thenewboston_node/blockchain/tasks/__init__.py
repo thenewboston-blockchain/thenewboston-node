@@ -1,1 +1,1 @@
-from .debug_task import *  # noqa: F401
+from .block_confirmation import *  # noqa: F401

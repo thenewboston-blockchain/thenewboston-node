@@ -10,7 +10,6 @@ from thenewboston_node.business_logic import models
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.blockchain.file_blockchain.sources import URLBlockSource
 from thenewboston_node.business_logic.utils.blockchain_state import read_blockchain_state_file_from_source
-from thenewboston_node.core.utils.retry import try_with_arguments
 from thenewboston_node.core.utils.types import hexstr
 
 logger = logging.getLogger(__name__)
@@ -290,23 +289,39 @@ class NodeClient:
         return self.http_post(network_address, 'signed-change-request', signed_change_request.serialize_to_dict())
 
     def send_signed_change_request_to_node(self, node: models.Node, signed_change_request: models.SignedChangeRequest):
-        return try_with_arguments(
-            arguments=node.network_addresses,
-            func=self.send_signed_change_request_by_network_address,
-            exceptions=requests.ConnectionError,
-            kwargs={'signed_change_request': signed_change_request},
-        )
+        for network_address in node.network_addresses:
+            try:
+                self.send_signed_change_request_by_network_address(network_address, signed_change_request)
+                return
+            except requests.ConnectionError:
+                pass
+        else:
+            raise ConnectionError(f'Could not send signed change request to {node}')
 
     def send_block_confirmation_by_network_address(
-        self, network_address, block_confirmation: models.BlockConfirmation
+        self, *, network_address, block: models.Block, confirmation_signer, confirmation_signature
     ):
-        logger.debug('Sending %s to %s', block_confirmation, network_address)
-        return self.http_post(network_address, 'block-confirmations', block_confirmation.serialize_to_dict())
+        logger.debug('Sending %s confirmation to %s', block, network_address)
+        payload = {
+            'block': block.serialize_to_dict(),
+            'confirmation_signer': confirmation_signer,
+            'confirmation_signature': confirmation_signature,
+        }
+        return self.http_post(network_address, 'block-confirmations', payload)
 
-    def send_block_confirmation_to_node(self, node: models.Node, block_confirmation: models.BlockConfirmation):
-        return try_with_arguments(
-            arguments=node.network_addresses,
-            func=self.send_block_confirmation_by_network_address,
-            exceptions=requests.ConnectionError,
-            kwargs={'block_confirmation': block_confirmation},
-        )
+    def send_block_confirmation_to_node(
+        self, *, node: models.Node, block: models.Block, confirmation_signer, confirmation_signature
+    ):
+        for network_address in node.network_addresses:
+            try:
+                self.send_block_confirmation_by_network_address(
+                    network_address=network_address,
+                    block=block,
+                    confirmation_signer=confirmation_signer,
+                    confirmation_signature=confirmation_signature,
+                )
+                return
+            except requests.ConnectionError:
+                pass
+        else:
+            raise ConnectionError(f'Could not send block confirmation to {node}')

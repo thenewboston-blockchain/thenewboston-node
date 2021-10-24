@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import ClassVar, Type, TypeVar
 
 from thenewboston_node.business_logic import exceptions
-from thenewboston_node.business_logic.models.node import RegularNode
+from thenewboston_node.business_logic.models.node import Node
 from thenewboston_node.business_logic.validators import (
     validate_exact_value, validate_greater_than_zero, validate_lte_value
 )
@@ -39,7 +39,7 @@ class CoinTransferSignedChangeRequest(SignedChangeRequest):
         recipient: hexstr,
         amount: int,
         signing_key: hexstr,
-        node: RegularNode,
+        node: Node,
         memo: str = None
     ) -> T:
         message = CoinTransferSignedChangeRequestMessage.from_main_transaction(

@@ -16,6 +16,6 @@ class BlockConfirmationViewSet(mixins.CreateModelMixin, GenericViewSet):
 
         blockchain = BlockchainBase.get_instance()
         try:
-            blockchain.add_block(confirmation_request['block'], validate=True)
+            blockchain.add_block(confirmation_request['block'])
         except ValidationError as ex:
             raise DRFValidationError({api_settings.NON_FIELD_ERRORS_KEY: [str(ex)]})

@@ -32,6 +32,7 @@ class SignedChangeRequestViewSet(CreateModelMixin, GenericViewSet):
                 # TODO(dmu) MEDIUM: Why can't we just do `raise DRFValidationError(str(ex))` ?
                 raise DRFValidationError({api_settings.NON_FIELD_ERRORS_KEY: [str(ex)]})
             # TODO(dmu) CRITICAL: Send notifications to CVs about new block
-        else:
-            primary_validator = blockchain.get_primary_validator()
-            NodeClient.get_instance().send_signed_change_request_to_node(primary_validator, signed_change_request)
+            return
+
+        primary_validator = blockchain.get_primary_validator()
+        NodeClient.get_instance().send_signed_change_request_to_node(primary_validator, signed_change_request)

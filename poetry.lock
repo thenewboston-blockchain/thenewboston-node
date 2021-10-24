@@ -859,6 +859,17 @@ pytest = ">=5.4.0"
 testing = ["async-generator (>=1.3)", "coverage", "hypothesis (>=5.7.1)"]
 
 [[package]]
+name = "pytest-celery"
+version = "0.0.0"
+description = "pytest-celery a shim pytest plugin to enable celery.contrib.pytest"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+celery = ">=4.4.0"
+
+[[package]]
 name = "pytest-cov"
 version = "2.12.1"
 description = "Pytest plugin for measuring coverage."
@@ -1203,7 +1214,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "91fdc24fe44017157ca9bc2c71c47e3b1242441d66494b61d9856669e11b0ec6"
+content-hash = "e0932689c3741a4b292e086e8d183e18f6df049473a8c2b571ed26c7d8b9fb1d"
 
 [metadata.files]
 amqp = [
@@ -1697,6 +1708,10 @@ pytest = [
 pytest-asyncio = [
     {file = "pytest-asyncio-0.14.0.tar.gz", hash = "sha256:9882c0c6b24429449f5f969a5158b528f39bde47dc32e85b9f0403965017e700"},
     {file = "pytest_asyncio-0.14.0-py3-none-any.whl", hash = "sha256:2eae1e34f6c68fc0a9dc12d4bea190483843ff4708d24277c41568d6b6044f1d"},
+]
+pytest-celery = [
+    {file = "pytest-celery-0.0.0.tar.gz", hash = "sha256:cfd060fc32676afa1e4f51b2938f903f7f75d952186b8c6cf631628c4088f406"},
+    {file = "pytest_celery-0.0.0-py2.py3-none-any.whl", hash = "sha256:63dec132df3a839226ecb003ffdbb0c2cb88dd328550957e979c942766578060"},
 ]
 pytest-cov = [
     {file = "pytest-cov-2.12.1.tar.gz", hash = "sha256:261ceeb8c227b726249b376b8526b600f38667ee314f910353fa318caa01f4d7"},

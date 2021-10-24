@@ -6,9 +6,9 @@ from urllib.request import urlopen
 
 import requests
 
+from thenewboston_node.business_logic import models
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.blockchain.file_blockchain.sources import URLBlockSource
-from thenewboston_node.business_logic.models import Block, BlockchainState, Node, SignedChangeRequest
 from thenewboston_node.business_logic.utils.blockchain_state import read_blockchain_state_file_from_source
 from thenewboston_node.core.utils.types import hexstr
 
@@ -39,9 +39,18 @@ class NodeClient:
     def get_instance(cls: Type[T]) -> T:
         instance = cls._instance
         if not instance:
-            cls._instance = instance = cls()
+            instance = cls()
+            cls.set_instance_cache(instance)
 
         return instance
+
+    @classmethod
+    def set_instance_cache(cls: Type[T], instance: T):
+        cls._instance = instance
+
+    @classmethod
+    def clear_instance_cache(cls):
+        cls._instance = None
 
     @staticmethod
     def http_get(network_address, resource, *, parameters=None, should_raise=True):
@@ -157,7 +166,7 @@ class NodeClient:
 
         return None
 
-    def get_latest_blockchain_state_by_network_address(self, network_address) -> Optional[BlockchainState]:
+    def get_latest_blockchain_state_by_network_address(self, network_address) -> Optional[models.BlockchainState]:
         meta = self.get_latest_blockchain_state_meta_by_network_address(network_address)
         if meta is None:
             return None
@@ -222,7 +231,7 @@ class NodeClient:
         return self.get_latest_blockchain_state_meta_by_network_addresses(network_addresses)
 
     def yield_blocks_slice(self, network_address, from_block_number: int,
-                           to_block_number: int) -> Generator[Block, None, None]:
+                           to_block_number: int) -> Generator[models.Block, None, None]:
         # TODO(dmu) MEDIUM: Consider improvements for network failovers
         # by the moment of downloading the last (incomplete) block chunk its name may change
         # (because of becoming complete) therefore we retry
@@ -274,12 +283,45 @@ class NodeClient:
             from_block_number = last_block_number + 1
 
     def send_signed_change_request_by_network_address(
-        self, network_address, signed_change_request: SignedChangeRequest
+        self, network_address, signed_change_request: models.SignedChangeRequest
     ):
         logger.debug('Sending %s to %s', signed_change_request, network_address)
         return self.http_post(network_address, 'signed-change-request', signed_change_request.serialize_to_dict())
 
-    def send_signed_change_request_to_node(self, node: Node, signed_change_request: SignedChangeRequest):
+    def send_signed_change_request_to_node(self, node: models.Node, signed_change_request: models.SignedChangeRequest):
         for network_address in node.network_addresses:
-            # TODO(dmu) CRITICAL: Try another network_address only if this one is unavailable
-            return self.send_signed_change_request_by_network_address(network_address, signed_change_request)
+            try:
+                self.send_signed_change_request_by_network_address(network_address, signed_change_request)
+                return
+            except requests.ConnectionError:
+                pass
+        else:
+            raise ConnectionError(f'Could not send signed change request to {node}')
+
+    def send_block_confirmation_by_network_address(
+        self, *, network_address, block: models.Block, confirmation_signer, confirmation_signature
+    ):
+        logger.debug('Sending %s confirmation to %s', block, network_address)
+        payload = {
+            'block': block.serialize_to_dict(),
+            'confirmation_signer': confirmation_signer,
+            'confirmation_signature': confirmation_signature,
+        }
+        return self.http_post(network_address, 'block-confirmations', payload)
+
+    def send_block_confirmation_to_node(
+        self, *, node: models.Node, block: models.Block, confirmation_signer, confirmation_signature
+    ):
+        for network_address in node.network_addresses:
+            try:
+                self.send_block_confirmation_by_network_address(
+                    network_address=network_address,
+                    block=block,
+                    confirmation_signer=confirmation_signer,
+                    confirmation_signature=confirmation_signature,
+                )
+                return
+            except requests.ConnectionError:
+                pass
+        else:
+            raise ConnectionError(f'Could not send block confirmation to {node}')

@@ -99,10 +99,10 @@ class Block(SignableMixin, MessagpackCompactableMixin, MetadataMixin, BaseDatacl
         cls: Type[T],
         *,
         blockchain,
-        recipient: str,
+        recipient: hexstr,
         amount: int,
-        request_signing_key: str,
-        pv_signing_key: str,
+        request_signing_key: hexstr,
+        pv_signing_key: hexstr,
         preferred_node: Node,
     ) -> T:
         # TODO(dmu) HIGH: This method is only used in tests (mostly for test data creation). Business rules

@@ -4,6 +4,8 @@ from functools import partial
 from unittest.mock import patch
 from urllib.parse import urljoin
 
+from django.test import override_settings
+
 import httpretty
 import pytest
 from requests.exceptions import HTTPError
@@ -52,9 +54,15 @@ def raise_for_status(self):
         raise HTTPError()
 
 
+MOCKED_ADDRESSES = ('http://testserver/', 'http://preferred-node.non-existing-domain:8555/')
+
+
 def client_method_wrapper(function, original_function, url, *args, **kwargs):
     # We need to convert requests to Django test client interface here
-    if not url.startswith('http://testserver/'):
+    for mocked_address in MOCKED_ADDRESSES:
+        if url.startswith(mocked_address):
+            break
+    else:
         return original_function(url, *args, **kwargs)
 
     # Convert `json` to `data`
@@ -87,3 +95,11 @@ def node_mock_for_node_client(api_client):
             new=partial(client_method_wrapper, api_client.post, requests_post)
         ):
             yield
+
+
+@pytest.fixture(scope='session', autouse=True)
+def celery_configuration():
+    with override_settings(CELERY_TASK_ALWAYS_EAGER=True):
+        # For some reason we need to import the app to make the setting work
+        from thenewboston_node.project.celery import app  # noqa: F401
+        yield

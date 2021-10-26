@@ -87,9 +87,3 @@ class SignableMixin(OptionallySignableMixin):
         signature = self.signature
         validate_not_empty('Signature', signature)
         super().validate_signature()
-
-    @validates('signer')
-    def validate_signer(self):
-        signer = self.signer
-        validate_not_empty('Signer', signer)
-        return super().validate_signer()

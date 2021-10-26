@@ -12,7 +12,7 @@ from thenewboston_node.business_logic.node import get_node_identifier, get_node_
 from thenewboston_node.core.clients.node import NodeClient
 
 
-class SignedChangeRequestViewSet(CreateModelMixin, GenericViewSet):
+class SignedChangeRequestsViewSet(CreateModelMixin, GenericViewSet):
     serializer_class = NodeDeclarationSignedChangeRequestSerializer
 
     def perform_create(self, serializer):
@@ -29,7 +29,6 @@ class SignedChangeRequestViewSet(CreateModelMixin, GenericViewSet):
                 )
                 blockchain.add_block(block)
             except ValidationError as ex:
-                # TODO(dmu) MEDIUM: Why can't we just do `raise DRFValidationError(str(ex))` ?
                 raise DRFValidationError({api_settings.NON_FIELD_ERRORS_KEY: [str(ex)]})
             # TODO(dmu) CRITICAL: Send notifications to CVs about new block
         else:

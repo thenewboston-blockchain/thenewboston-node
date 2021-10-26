@@ -1,5 +1,6 @@
 import json
 import logging
+from functools import partial
 from typing import Generator, Optional, Type, TypeVar
 from urllib.parse import urlencode, urljoin
 from urllib.request import urlopen
@@ -22,9 +23,9 @@ def setdefault_if_not_none(dict_, key, value):
         dict_.setdefault(key, value)
 
 
-def requests_get(url):
+def requests_get(url, *args, **kwargs):
     # We need this function to mock it easier for unittests
-    return requests.get(url)
+    return requests.get(url, *args, **kwargs)
 
 
 def requests_post(url, *args, **kwargs):
@@ -35,6 +36,10 @@ def requests_post(url, *args, **kwargs):
 class NodeClient:
     _instance = None
 
+    def __init__(self):
+        self.http_get = partial(self._call_requests_func, requests_get)
+        self.http_post = partial(self._call_requests_func, requests_post)
+
     @classmethod
     def get_instance(cls: Type[T]) -> T:
         instance = cls._instance
@@ -44,16 +49,18 @@ class NodeClient:
         return instance
 
     @staticmethod
-    def http_get(network_address, resource, *, parameters=None, should_raise=True):
+    def _call_requests_func(
+        requests_func, network_address, resource, *, payload=None, parameters=None, should_raise=True
+    ):
         # We do not use reverse() because client must be framework agnostic
         url = urljoin(network_address, f'/api/v1/{resource}/')
         if parameters:
             url += '?' + urlencode(parameters)
-
+        addition_arguments = dict(json=payload) if payload else {}
         try:
-            response = requests_get(url)
+            response = requests_func(url, **addition_arguments)
         except Exception:
-            logger.warning('Could not GET %s', url, exc_info=True)
+            logger.warning('Could not call %s', url, exc_info=True)
             if should_raise:
                 raise
             else:
@@ -64,7 +71,7 @@ class NodeClient:
         else:
             status_code = response.status_code
             if status_code != requests.codes.ok:
-                logger.warning('Could not GET %s: HTTP%s: %s', url, status_code, response.text)
+                logger.warning('Could not call %s: HTTP%s: %s', url, status_code, response.text)
                 return None
 
         try:
@@ -73,45 +80,12 @@ class NodeClient:
             if should_raise:
                 raise
             else:
-                logger.warning('Non-JSON response GET %s: %s', url, response.text, exc_info=True)
+                logger.warning('Non-JSON response call %s: %s', url, response.text, exc_info=True)
                 return None
 
         return data
 
-    @staticmethod
-    def http_post(network_address, resource, json_data, *, should_raise=True):
-        # TODO(dmu) HIGH: Make http_post() DRY with http_get()
-        url = urljoin(network_address, f'/api/v1/{resource}/')
-
-        try:
-            response = requests_post(url, json=json_data)
-        except Exception:
-            logger.warning('Could not POST %s, data: %s', url, json_data, exc_info=True)
-            if should_raise:
-                raise
-            else:
-                return None
-
-        if should_raise:
-            response.raise_for_status()
-        else:
-            status_code = response.status_code
-            if status_code != requests.codes.ok:
-                logger.warning('Could not POST %s: HTTP%s: %s, data: %s', url, status_code, response.text, json_data)
-                return None
-
-        try:
-            response_json = response.json()
-        except json.decoder.JSONDecodeError:
-            if should_raise:
-                raise
-            else:
-                logger.warning('Non-JSON response POST %s: %s, data: %s', url, response.text, json_data, exc_info=True)
-                return None
-
-        return response_json
-
-    def list_resource(
+    def _list_resource(
         self,
         network_address,
         resource,
@@ -129,7 +103,7 @@ class NodeClient:
         return self.http_get(network_address, resource, parameters=parameters, should_raise=should_raise)
 
     def get_latest_blockchain_state_meta_by_network_address(self, network_address) -> Optional[dict]:
-        data = self.list_resource(
+        data = self._list_resource(
             network_address, 'blockchain-states-meta', limit=1, ordering='-last_block_number', should_raise=False
         )
         if not data:
@@ -187,7 +161,7 @@ class NodeClient:
         setdefault_if_not_none(parameters, 'from_block_number', from_block_number)
         setdefault_if_not_none(parameters, 'to_block_number', to_block_number)
 
-        data = self.list_resource(
+        data = self._list_resource(
             network_address,
             'block-chunks-meta',
             offset=offset,
@@ -277,7 +251,8 @@ class NodeClient:
         self, network_address, signed_change_request: SignedChangeRequest
     ):
         logger.debug('Sending %s to %s', signed_change_request, network_address)
-        return self.http_post(network_address, 'signed-change-request', signed_change_request.serialize_to_dict())
+        payload = signed_change_request.serialize_to_dict()
+        return self.http_post(network_address, 'signed-change-requests', payload=payload)
 
     def send_signed_change_request_to_node(self, node: Node, signed_change_request: SignedChangeRequest):
         for network_address in node.network_addresses:

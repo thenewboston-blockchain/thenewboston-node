@@ -41,7 +41,7 @@ def node_mock(outer_web_mock, blockchain_state_meta, another_node_network_addres
 def primary_validator_mock(outer_web_mock, blockchain_state_meta, pv_network_address):
     outer_web_mock.register_uri(
         outer_web_mock.POST,
-        urljoin(pv_network_address, 'api/v1/signed-change-request/'),
+        urljoin(pv_network_address, 'api/v1/signed-change-requests/'),
         body=b'{}',
     )
     yield outer_web_mock

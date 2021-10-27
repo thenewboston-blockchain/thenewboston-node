@@ -27,6 +27,8 @@ services:
       - node
 
   celery-broker:
+    # We need explicit hostname to avoid bloating of the RabbitMQ volume
+    hostname: celery-broker
     # TODO(dmu) LOW: We do not expose any ports here for security reasons. To make it secure
     #                we would need a non-default user with password generated on the first
     #                start of RabbitMQ

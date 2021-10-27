@@ -6,8 +6,8 @@ from dataclass_bakery.generators.random_generator import RandomGenerator
 from dataclass_bakery.generators.random_str_generator import RandomStrGenerator
 
 from thenewboston_node.business_logic import models
+from thenewboston_node.business_logic.models.constants import BlockType
 from thenewboston_node.business_logic.models.signed_change_request import SIGNED_CHANGE_REQUEST_TYPE_MAP
-from thenewboston_node.business_logic.models.signed_change_request.constants import BlockType
 from thenewboston_node.core.utils import baker
 from thenewboston_node.core.utils.baker import RandomHexGenerator, RandomNoTzDatetimeGenerator
 

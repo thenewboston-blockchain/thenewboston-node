@@ -7,9 +7,9 @@ import jinja2
 import thenewboston_node.business_logic.docs
 from thenewboston_node.business_logic import models
 from thenewboston_node.business_logic.models import SignedChangeRequestMessage
+from thenewboston_node.business_logic.models.constants import BlockType
 from thenewboston_node.business_logic.models.mixins.compactable import COMPACT_KEY_MAP
 from thenewboston_node.business_logic.models.signed_change_request import SIGNED_CHANGE_REQUEST_TYPE_MAP
-from thenewboston_node.business_logic.models.signed_change_request.constants import BlockType
 from thenewboston_node.core.utils.misc import humanize_snake_case
 
 from .samples import SamplesFactory  # noqa: I101

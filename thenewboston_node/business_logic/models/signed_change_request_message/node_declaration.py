@@ -1,6 +1,7 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
+from thenewboston_node.business_logic.models.constants import BlockType
 from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
 
@@ -14,6 +15,9 @@ from .base import SignedChangeRequestMessage
 class NodeDeclarationSignedChangeRequestMessage(SignedChangeRequestMessage):
 
     node: Node
+    signed_change_request_type: Optional[str] = field(  # type: ignore
+        default=BlockType.NODE_DECLARATION.value, init=False, metadata={'is_serialized_optional': False}
+    )
 
     @classmethod
     def create(

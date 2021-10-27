@@ -32,6 +32,10 @@ class BaseMixin:
         return type_
 
     @classmethod
+    def is_init_field(cls, field_name):
+        return cls.get_field(field_name).init
+
+    @classmethod
     def is_optional_field(cls, field_name):
         type_ = cls.get_field(field_name).type
         return typing.get_origin(type_) is typing.Union and type(None) in typing.get_args(type_)

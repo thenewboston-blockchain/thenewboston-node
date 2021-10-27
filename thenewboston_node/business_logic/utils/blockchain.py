@@ -101,7 +101,7 @@ def generate_blockchain(
             accounts.append(recipient)
             account_private_keys[recipient] = recipient_private_key
 
-        signed_change_request = CoinTransferSignedChangeRequest.from_main_transaction(
+        signed_change_request = CoinTransferSignedChangeRequest.create_from_main_transaction(
             blockchain=blockchain,
             recipient=recipient,
             amount=amount,

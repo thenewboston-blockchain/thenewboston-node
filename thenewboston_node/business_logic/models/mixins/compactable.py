@@ -39,6 +39,7 @@ COMPACT_KEY_MAP = {
     'primary_validator_schedule': 'pv',
     'begin_block_number': 'bb',
     'end_block_number': 'eb',
+    'signed_change_request_type': 'rt'
 }
 
 UNCOMPACT_KEY_MAP = {value: key for key, value in COMPACT_KEY_MAP.items()}

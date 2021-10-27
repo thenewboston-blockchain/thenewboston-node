@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import ClassVar, Type, TypeVar
 
 from thenewboston_node.business_logic import exceptions
+from thenewboston_node.business_logic.models.constants import BlockType
 from thenewboston_node.business_logic.models.node import Node
 from thenewboston_node.business_logic.validators import (
     validate_exact_value, validate_greater_than_zero, validate_lte_value
@@ -15,7 +16,6 @@ from thenewboston_node.core.utils.types import hexstr
 from ..account_state import AccountState
 from ..signed_change_request_message import CoinTransferSignedChangeRequestMessage
 from .base import SignedChangeRequest
-from .constants import BlockType
 
 T = TypeVar('T', bound='CoinTransferSignedChangeRequest')
 
@@ -32,7 +32,7 @@ class CoinTransferSignedChangeRequest(SignedChangeRequest):
 
     @classmethod
     @timeit_method(level=logging.INFO)
-    def from_main_transaction(
+    def create_from_main_transaction(
         cls: Type[T],
         *,
         blockchain,

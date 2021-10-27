@@ -28,7 +28,8 @@ def test_node_declaration_signed_change_request_signing_all_attributes_set():
         b'"fee_amount":3,'
         b'"identifier":"a8fd5acea9125fd34e63524f41ec45d2e5669bc3316b2f0c43f023145d8f4d12",'
         b'"network_addresses":["http://test-signing.non-existing-domain:8555/"]'
-        b'}'
+        b'},'
+        b'"signed_change_request_type":"nd"'
         b'}'
     )
     assert request.message.get_normalized_for_cryptography() == expected_normalized_for_cryptography
@@ -52,7 +53,8 @@ def test_node_declaration_signed_change_request_signing_fee_account_is_none():
         b'"fee_amount":3,'
         b'"identifier":"a8fd5acea9125fd34e63524f41ec45d2e5669bc3316b2f0c43f023145d8f4d12",'
         b'"network_addresses":["http://test-signing.non-existing-domain:8555/"]'
-        b'}'
+        b'},'
+        b'"signed_change_request_type":"nd"'
         b'}'
     )
     assert request.message.get_normalized_for_cryptography() == expected_normalized_for_cryptography
@@ -76,7 +78,8 @@ def test_node_declaration_signed_change_request_signing_fee_account_equals_to_id
         b'"fee_amount":3,'
         b'"identifier":"a8fd5acea9125fd34e63524f41ec45d2e5669bc3316b2f0c43f023145d8f4d12",'
         b'"network_addresses":["http://test-signing.non-existing-domain:8555/"]'
-        b'}'
+        b'},'
+        b'"signed_change_request_type":"nd"'
         b'}'
     )
     assert request.message.get_normalized_for_cryptography() == expected_normalized_for_cryptography

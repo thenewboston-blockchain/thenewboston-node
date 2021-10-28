@@ -7,8 +7,8 @@ from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.validators import (
     validate_gte_value, validate_in, validate_not_empty, validate_type
 )
+from thenewboston_node.core.constants import SENTINEL
 from thenewboston_node.core.logging import validates
-from thenewboston_node.core.utils.constants import SENTINEL
 from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.misc import humanize_camel_case
 from thenewboston_node.core.utils.types import hexstr

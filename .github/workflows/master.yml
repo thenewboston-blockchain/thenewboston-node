@@ -106,6 +106,6 @@ jobs:
 
       - name: Run deploy
         run: |
-          ssh target "docker system prune --all --volumes --force && wget https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/scripts/deploy.sh -O /tmp/deploy-node.sh && chmod a+x /tmp/deploy-node.sh && /tmp/deploy-node.sh $GITHUB_ACTOR $GITHUB_PASSWORD False False && rm -f /tmp/deploy-node.sh"
+          ssh target "docker system prune --all --volumes --force && wget https://raw.githubusercontent.com/thenewboston-developers/thenewboston-node/master/scripts/deploy.sh -O /tmp/deploy-node.sh && chmod a+x /tmp/deploy-node.sh && /tmp/deploy-node.sh $GITHUB_ACTOR $GITHUB_PASSWORD True True && rm -f /tmp/deploy-node.sh"
         env:
           GITHUB_PASSWORD: ${{ secrets.GITHUB_TOKEN }}

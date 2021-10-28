@@ -224,3 +224,48 @@ def test_yield_blocks_slice(
     )
     assert [block.get_block_number() for block in blocks
             ] == list(range(from_block_number_expected, to_block_number_expected + 1, 1))
+
+
+@pytest.mark.usefixtures('node_mock_for_node_client')
+def test_list_nodes(node_client, file_blockchain_with_five_block_chunks, pv_network_address):
+    with force_blockchain(file_blockchain_with_five_block_chunks), as_primary_validator():
+        result = node_client.list_nodes('http://testserver/')
+        assert result == {
+            'count':
+                3,
+            'results': [{
+                'fee_account': None,
+                'fee_amount': 4,
+                'identifier': 'b9dc49411424cce606d27eeaa8d74cb84826d8a1001d17603638b73bdc6077f1',
+                'network_addresses': ['http://pv.non-existing-domain:8555/'],
+                'role': 1
+            }, {
+                'fee_account': None,
+                'fee_amount': 1,
+                'identifier': '0c838f7f50020ea586b2cd26b4f3cc7b5b399161af43e584f0cc3110952e3c05',
+                'network_addresses': ['http://cv.non-existing-domain:8555/'],
+                'role': 2
+            }, {
+                'fee_account': None,
+                'fee_amount': 1,
+                'identifier': '1c8e5f54a15b63a9f3d540ce505fd0799575ffeaac62ce625c917e6d915ea8bb',
+                'network_addresses': ['http://preferred-node.non-existing-domain:8555/'],
+                'role': 3
+            }]
+        }
+
+
+@pytest.mark.parametrize(
+    'identifier,is_online_expected',
+    (
+        ('b9dc49411424cce606d27eeaa8d74cb84826d8a1001d17603638b73bdc6077f1', True),
+        ('WRONG_IDENTIFIER', False),  # one block
+    )
+)
+@pytest.mark.usefixtures('node_mock_for_node_client')
+def test_is_node_online(
+    node_client, file_blockchain_with_five_block_chunks, pv_network_address, identifier, is_online_expected
+):
+    with force_blockchain(file_blockchain_with_five_block_chunks), as_primary_validator():
+        is_online = node_client.is_node_online('http://testserver/', identifier)
+        assert is_online is is_online_expected

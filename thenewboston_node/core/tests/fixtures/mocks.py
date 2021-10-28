@@ -86,15 +86,16 @@ def client_method_wrapper(function, original_function, url, *args, **kwargs):
 
 @pytest.fixture
 def node_mock_for_node_client(api_client):
-    with patch(
-        'thenewboston_node.core.clients.node.requests_get',
-        new=partial(client_method_wrapper, api_client.get, requests_get)
-    ):
-        with patch(
-            'thenewboston_node.core.clients.node.requests_post',
-            new=partial(client_method_wrapper, api_client.post, requests_post)
-        ):
-            yield
+    get_arguments = {
+        'target': 'thenewboston_node.core.clients.node.requests_get',
+        'new': partial(client_method_wrapper, api_client.get, requests_get),
+    }
+    post_arguments = {
+        'target': 'thenewboston_node.core.clients.node.requests_post',
+        'new': partial(client_method_wrapper, api_client.post, requests_post),
+    }
+    with patch(**get_arguments), patch(**post_arguments):
+        yield
 
 
 @pytest.fixture(scope='session', autouse=True)

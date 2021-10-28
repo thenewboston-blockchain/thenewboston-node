@@ -51,7 +51,7 @@ class LoggingMiddleware:
         else:
             duration = None
 
-        content_type = response._headers.get('content-type')
+        content_type = response.headers.get('content-type')
         if content_type:
             media_type = content_type[1].split(';')[0]
             if media_type in SKIPPED_RESPONSE_MEDIA_TYPES:

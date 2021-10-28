@@ -1,0 +1,4 @@
+SENTINEL = object()
+
+PRIMARY_VALIDATOR_NODE_ID = 'pv'
+SELF_NODE_ID = 'self'

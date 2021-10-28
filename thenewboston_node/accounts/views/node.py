@@ -6,12 +6,10 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from thenewboston_node.accounts.serializers.node import NodeSerializer
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.node import get_node_identifier
+from thenewboston_node.core.constants import PRIMARY_VALIDATOR_NODE_ID, SELF_NODE_ID
 from thenewboston_node.core.pagination import CustomLimitOffsetPagination
 from thenewboston_node.core.utils.itertools import AdvancedIterator
 from thenewboston_node.core.utils.types import hexstr
-
-PRIMARY_VALIDATOR_NODE_ID = 'pv'
-SELF_NODE_ID = 'self'
 
 PK_DESCRIPTION = f"Node identifier or '{SELF_NODE_ID}' or '{PRIMARY_VALIDATOR_NODE_ID}'"
 

@@ -10,12 +10,14 @@ from thenewboston_node.business_logic import models
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.blockchain.file_blockchain.sources import URLBlockSource
 from thenewboston_node.business_logic.utils.blockchain_state import read_blockchain_state_file_from_source
-from thenewboston_node.core.constants import SELF_NODE_ID
+from thenewboston_node.core.constants import PRIMARY_VALIDATOR_NODE_ID, SELF_NODE_ID
 from thenewboston_node.core.utils.types import hexstr
 
 logger = logging.getLogger(__name__)
 
 T = TypeVar('T', bound='NodeClient')
+
+DEFAULT_TIMEOUT = 2
 
 
 def setdefault_if_not_none(dict_, key, value):
@@ -25,11 +27,13 @@ def setdefault_if_not_none(dict_, key, value):
 
 def requests_get(url, *args, **kwargs):
     # We need this function to mock it easier for unittests
+    kwargs.setdefault('timeout', DEFAULT_TIMEOUT)
     return requests.get(url, *args, **kwargs)
 
 
 def requests_post(url, *args, **kwargs):
     # We need this function to mock it easier for unittests
+    kwargs.setdefault('timeout', DEFAULT_TIMEOUT)
     return requests.post(url, *args, **kwargs)
 
 
@@ -331,20 +335,39 @@ class NodeClient:
             raise ConnectionError(f'Could not send block confirmation to {node}')
 
     @staticmethod
-    def is_node_online(network_address, identifier):
-        url = urljoin(network_address, f'/api/v1/nodes/{SELF_NODE_ID}/')
+    def get_node_by_identifier(network_address, identifier):
+        url = urljoin(network_address, f'/api/v1/nodes/{identifier}/')
         try:
-            response = requests_get(url, timeout=1)
-        except (
-            requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout, requests.exceptions.ReadTimeout
-        ):
-            return False
+            response = requests_get(url)
+            response.raise_for_status()
+        except requests.exceptions.RequestException:
+            return None
 
-        if response.status_code != requests.codes.ok:
-            return False
+        return response.json()
 
-        data = response.json()
-        if data['identifier'] != identifier:
-            return False
+    def get_self_node(self, network_address):
+        return self.get_node_by_identifier(network_address, SELF_NODE_ID)
 
-        return True
+    def get_primary_validator(self, network_address):
+        return self.get_node_by_identifier(network_address, PRIMARY_VALIDATOR_NODE_ID)
+
+    def is_node_online(self, network_addresses, expected_identifier=None):
+        for network_address in network_addresses:
+            logger.debug('Checking %s', network_address)
+            node = self.get_self_node(network_address)
+            logger.debug('Got %s', node)
+            if not node:
+                continue
+
+            if expected_identifier:
+                actual_identifier = node['identifier']
+                if actual_identifier != expected_identifier:
+                    logger.warning(
+                        'Got %s node identifier at %s when expected %s', actual_identifier, network_address,
+                        expected_identifier
+                    )
+                    continue
+
+            return True
+
+        return False

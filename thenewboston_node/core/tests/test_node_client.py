@@ -267,5 +267,5 @@ def test_is_node_online(
     node_client, file_blockchain_with_five_block_chunks, pv_network_address, identifier, is_online_expected
 ):
     with force_blockchain(file_blockchain_with_five_block_chunks), as_primary_validator():
-        is_online = node_client.is_node_online('http://testserver/', identifier)
+        is_online = node_client.is_node_online(['http://testserver/'], expected_identifier=identifier)
         assert is_online is is_online_expected

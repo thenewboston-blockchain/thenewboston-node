@@ -3,7 +3,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = NotImplemented
-DEBUG = True
+DEBUG = False
 
 # TODO(dmu) MEDIUM: Consider a more strict ALLOWED_HOSTS
 ALLOWED_HOSTS = ['*']

@@ -1,7 +1,9 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Optional
 
 from thenewboston_node.business_logic.exceptions import ValidationError
 from thenewboston_node.business_logic.models.base import BaseDataclass
+from thenewboston_node.business_logic.models.constants import BlockType
 from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 
 from .base import SignedChangeRequestMessage
@@ -36,6 +38,10 @@ class PrimaryValidatorSchedule(BaseDataclass):
 @cover_docstring
 class PrimaryValidatorScheduleSignedChangeRequestMessage(SignedChangeRequestMessage):
     primary_validator_schedule: PrimaryValidatorSchedule
+
+    signed_change_request_type: Optional[str] = field(  # type: ignore
+        default=BlockType.PRIMARY_VALIDATOR_SCHEDULE.value, init=False, metadata={'is_serialized_optional': False}
+    )
 
     def validate(self):
         self.primary_validator_schedule.validate()

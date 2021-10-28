@@ -1,7 +1,8 @@
 import copy
 from dataclasses import dataclass, field
-from typing import Type, TypeVar
+from typing import Optional, Type, TypeVar
 
+from thenewboston_node.business_logic.models.constants import BlockType
 from thenewboston_node.business_logic.models.node import Node
 from thenewboston_node.business_logic.validators import validate_not_empty, validate_type
 from thenewboston_node.core.logging import validates
@@ -27,6 +28,10 @@ class CoinTransferSignedChangeRequestMessage(SignedChangeRequestMessage):
 
     txs: list[CoinTransferTransaction]
     """List of transactions: `CoinTransferTransaction`_"""
+
+    signed_change_request_type: Optional[str] = field(  # type: ignore
+        default=BlockType.COIN_TRANSFER.value, init=False, metadata={'is_serialized_optional': False}
+    )
 
     @classmethod
     def from_transactions(cls: Type[T], blockchain, coin_sender: str, txs: list[CoinTransferTransaction]) -> T:

@@ -8,7 +8,7 @@ def test_transfer_to_itself_is_not_validated(
     file_blockchain, treasury_account_key_pair, preferred_node, primary_validator_key_pair
 ):
     treasury_account = treasury_account_key_pair.public
-    request = CoinTransferSignedChangeRequest.from_main_transaction(
+    request = CoinTransferSignedChangeRequest.create_from_main_transaction(
         blockchain=file_blockchain,
         recipient=treasury_account,
         amount=99,

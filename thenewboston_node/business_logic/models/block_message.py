@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Optional
 
 from thenewboston_node.business_logic.exceptions import ValidationError
+from thenewboston_node.business_logic.models.constants import BlockType
 from thenewboston_node.business_logic.validators import (
     validate_empty, validate_exact_value, validate_greater_than_zero, validate_gt_value, validate_gte_value,
     validate_in, validate_is_none, validate_min_item_count, validate_not_empty, validate_not_none, validate_type
@@ -17,7 +18,6 @@ from . import AccountState
 from .base import BaseDataclass  # noqa: I101
 from .mixins.message import MessageMixin
 from .signed_change_request import SIGNED_CHANGE_REQUEST_TYPE_MAP, SignedChangeRequest
-from .signed_change_request.constants import BlockType
 
 logger = logging.getLogger(__name__)
 
@@ -109,7 +109,7 @@ class BlockMessage(MessageMixin, BaseDataclass):
         block_identifier = blockchain.get_next_block_identifier()
 
         return BlockMessage(
-            block_type=signed_change_request.block_type,
+            block_type=signed_change_request.message.signed_change_request_type,
             signed_change_request=copy.deepcopy(signed_change_request),
             timestamp=timestamp,
             block_number=block_number,

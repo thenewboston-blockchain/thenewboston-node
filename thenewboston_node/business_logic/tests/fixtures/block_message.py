@@ -5,7 +5,7 @@ from thenewboston_node.business_logic.models import BlockMessage, CoinTransferSi
 
 @pytest.fixture
 def block_message(memory_blockchain, user_account, treasury_account_signing_key, preferred_node, primary_validator):
-    coin_transfer_signed_request = CoinTransferSignedChangeRequest.from_main_transaction(
+    coin_transfer_signed_request = CoinTransferSignedChangeRequest.create_from_main_transaction(
         blockchain=memory_blockchain,
         recipient=user_account,
         amount=10,

@@ -57,7 +57,7 @@ def test_partial_blockchain(primary_validator, preferred_node, node_identifier, 
     assert blockchain.get_account_current_balance(new_account_key_pair.public) == 0
     blockchain.validate()
 
-    signed_change_request1 = CoinTransferSignedChangeRequest.from_main_transaction(
+    signed_change_request1 = CoinTransferSignedChangeRequest.create_from_main_transaction(
         blockchain=blockchain,
         recipient=account2_key_pair.public,
         amount=10,
@@ -81,7 +81,7 @@ def test_partial_blockchain(primary_validator, preferred_node, node_identifier, 
     assert blockchain.get_account_current_balance(account3_key_pair.public) == 3000
     assert blockchain.get_account_current_balance(new_account_key_pair.public) == 0
 
-    signed_change_request2 = CoinTransferSignedChangeRequest.from_main_transaction(
+    signed_change_request2 = CoinTransferSignedChangeRequest.create_from_main_transaction(
         blockchain=blockchain,
         recipient=new_account_key_pair.public,
         amount=20,
@@ -106,7 +106,7 @@ def test_partial_blockchain(primary_validator, preferred_node, node_identifier, 
     assert blockchain.get_account_current_balance(account3_key_pair.public) == 3000
     assert blockchain.get_account_current_balance(new_account_key_pair.public) == 20
 
-    signed_change_request3 = CoinTransferSignedChangeRequest.from_main_transaction(
+    signed_change_request3 = CoinTransferSignedChangeRequest.create_from_main_transaction(
         blockchain=blockchain,
         recipient=account2_key_pair.public,
         amount=30,

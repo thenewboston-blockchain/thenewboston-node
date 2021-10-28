@@ -131,11 +131,3 @@ dmypy.json
 # Custom
 /local/
 /docs/
-
-# IDE
-.DS_Store
-.idea
-.vscode
-
-# Static files
-thenewboston_node/project/staticfiles/

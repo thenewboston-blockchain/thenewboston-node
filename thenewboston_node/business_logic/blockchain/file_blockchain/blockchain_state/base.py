@@ -17,7 +17,7 @@ from .misc import BLOCKCHAIN_STATE_FILENAME_TEMPLATE, LAST_BLOCK_NUMBER_NONE_SEN
 logger = logging.getLogger(__name__)
 
 
-class BlochainStateFileBlockchainMixin(FileBlockchainBaseMixin):
+class BlockchainStateFileBlockchainMixin(FileBlockchainBaseMixin):
 
     def get_blockchain_state_storage(self):
         raise NotImplementedError('Must be implemented in child class')

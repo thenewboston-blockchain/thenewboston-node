@@ -22,7 +22,7 @@ RUN set -xe \
     && apt-get install build-essential \
     && pip install pip==21.0.1 \
     && pip install virtualenvwrapper \
-    && pip install poetry==1.1.4 \
+    && pip install poetry==1.1.11 \
     && poetry run pip install pip==21.0.1
 
 # TODO(dmu) LOW: Optimize images size by not installing development dependencies

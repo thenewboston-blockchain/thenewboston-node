@@ -71,7 +71,7 @@ def make_sample_blockchain(base_directory) -> FileBlockchain:
     blockchain.add_block(Block.create_from_signed_change_request(blockchain, regular_node_scr, PV_KEY_PAIR.private))
 
     blockchain.utcnow = lambda: datetime.fromisoformat('2021-06-19T23:15:45.575678')  # type: ignore
-    coin_transfer_scr = CoinTransferSignedChangeRequest.from_main_transaction(
+    coin_transfer_scr = CoinTransferSignedChangeRequest.create_from_main_transaction(
         blockchain=blockchain,
         recipient=USER_KEY_PAIR.public,
         amount=1200,

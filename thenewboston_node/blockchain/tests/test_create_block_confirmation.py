@@ -9,7 +9,7 @@ API_V1_BLOCK_CONFIRMATIONS_URL = '/api/v1/block-confirmations/'
 def test_block_is_added_to_blockchain_on_block_confirmation_request(
     api_client, file_blockchain, user_account, treasury_account_key_pair, preferred_node, primary_validator_key_pair
 ):
-    change_request = CoinTransferSignedChangeRequest.from_main_transaction(
+    change_request = CoinTransferSignedChangeRequest.create_from_main_transaction(
         blockchain=file_blockchain,
         recipient=user_account,
         amount=99,
@@ -34,7 +34,7 @@ def test_block_is_added_to_blockchain_on_block_confirmation_request(
 def test_cannot_add_invalid_block_on_block_confirmation_request(
     api_client, file_blockchain, user_account, treasury_account_key_pair, preferred_node, primary_validator_key_pair
 ):
-    change_request = CoinTransferSignedChangeRequest.from_main_transaction(
+    change_request = CoinTransferSignedChangeRequest.create_from_main_transaction(
         blockchain=file_blockchain,
         recipient=user_account,
         amount=99,

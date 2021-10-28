@@ -9,6 +9,8 @@ def sample_signed_change_request_dict(treasury_account, user_account):
         'signer':
             treasury_account,
         'message': {
+            'signed_change_request_type':
+                'ct',
             'balance_lock':
                 treasury_account,
             'txs': [{
@@ -25,8 +27,8 @@ def sample_signed_change_request_dict(treasury_account, user_account):
             }]
         },
         'signature': (
-            '362dc47191d5d1a33308de1f036a5e93fbaf0b05fa971d9537f954f13cd22b5ed9bee56f4701bd'
-            'af9b995c47271806ba73e75d63f46084f5830cec5f5b7e9600'
+            '18cba5ba783a0e33d40bd6897da0c75e522a48527e0930d366ca59e0eb15fb55efb549242fc07dbc'
+            '7196745da2dea2ac85620cb042e2120c26a809c97b53e70d'
         )
     }
 

@@ -44,7 +44,8 @@ def test_can_serialize_coin_transfer_block():
     assert isinstance(signed_change_request['signature'], str)
 
     signed_change_request_message = signed_change_request['message']
-    assert signed_change_request_message.keys() == {'balance_lock', 'txs'}
+    assert signed_change_request_message.keys() == {'signed_change_request_type', 'balance_lock', 'txs'}
+    assert signed_change_request_message['signed_change_request_type'] == 'ct'
     assert isinstance(signed_change_request_message['balance_lock'], str)
     assert isinstance(signed_change_request_message['txs'], list)
     for transaction in signed_change_request_message['txs']:
@@ -215,15 +216,16 @@ def test_normalized_block_message(file_blockchain, sample_signed_change_request,
         '{"block_identifier":"f024d333e9a9f7732111ca3268b33c3cc732091198238f0886c7ff49ceac7959",'
         '"block_number":0,"block_type":"ct","signed_change_request":{"message":{"balance_lock":'
         '"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732",'
+        '"signed_change_request_type":"ct",'
         '"txs":[{"amount":425,"recipient":"484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc"},'
         '{"amount":1,"is_fee":true,"recipient":"5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8"},'
         '{"amount":4,"is_fee":true,"recipient":"ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314"}]},'
-        '"signature":"362dc47191d5d1a33308de1f036a5e93fbaf0b05fa971d9537f954f13cd22b5ed9bee56f4701bdaf9b'
-        '995c47271806ba73e75d63f46084f5830cec5f5b7e9600","signer":"4d3cf1d9e4547d324de2084b568f807ef'
+        '"signature":"18cba5ba783a0e33d40bd6897da0c75e522a48527e0930d366ca59e0eb15fb55efb549242fc07dbc7196745da2dea'
+        '2ac85620cb042e2120c26a809c97b53e70d","signer":"4d3cf1d9e4547d324de2084b568f807ef'
         '12045075a7a01b8bec1e7f013fc3732"},"timestamp":"<replace-with-timestamp>","updated_account_states":'
         '{"484b3176c63d5f37d808404af1a12c4b9649cd6f6769f35bdf5a816133623fbc":{"balance":425},'
         '"4d3cf1d9e4547d324de2084b568f807ef12045075a7a01b8bec1e7f013fc3732":{"balance":281474976710226,'
-        '"balance_lock":"ff3127bdb408e5f3f4f07dd364ce719b2854dc28ee66aa7af839e46468761885"},'
+        '"balance_lock":"e662afb77518f81d22e7717007fcf37a2997c76ff782488c1f398ec70c311eb5"},'
         '"5e12967707909e62b2bb2036c209085a784fabbc3deccefee70052b6181c8ed8":{"balance":1},'
         '"ad1f8845c6a1abb6011a2a434a079a087c460657aad54329a84b406dce8bf314":{"balance":4}}}'
     )
@@ -320,6 +322,8 @@ def test_validate_block_hash_matches_message_hash(
     memory_blockchain, sample_signed_change_request, primary_validator_key_pair
 ):
     request = sample_signed_change_request
+    request.validate(memory_blockchain, memory_blockchain.get_next_block_number())
+
     block = Block.create_from_signed_change_request(memory_blockchain, request, primary_validator_key_pair.private)
     block.hash = 'wrong hash'
     msg_hash = block.message.get_hash()

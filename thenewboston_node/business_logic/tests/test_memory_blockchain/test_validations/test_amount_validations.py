@@ -11,7 +11,7 @@ def test_cannot_create_signed_change_request_block_if_not_enough_balance_for_fee
     treasury_account = treasury_account_key_pair.public
     transfer_amount = treasury_initial_balance - preferred_node.fee_amount - primary_validator.fee_amount + 1
 
-    request = CoinTransferSignedChangeRequest.from_main_transaction(
+    request = CoinTransferSignedChangeRequest.create_from_main_transaction(
         blockchain=file_blockchain,
         recipient=user_account,
         amount=transfer_amount,

@@ -61,7 +61,7 @@ to get the latest version for development.
     export PIP_REQUIRED_VERSION=21.0.1
     pip install pip==${PIP_REQUIRED_VERSION} && \
     pip install virtualenvwrapper && \
-    pip install poetry==1.1.4 && \
+    pip install poetry==1.1.11 && \
     poetry config virtualenvs.path ${HOME}/.virtualenvs && \
     poetry run pip install pip==${PIP_REQUIRED_VERSION}
 

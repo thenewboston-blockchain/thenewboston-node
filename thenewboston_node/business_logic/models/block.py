@@ -108,7 +108,7 @@ class Block(SignableMixin, MessagpackCompactableMixin, MetadataMixin, BaseDatacl
         # TODO(dmu) HIGH: This method is only used in tests (mostly for test data creation). Business rules
         #                 do not suggest creation from main transaction. There this method must be removed
         #                 from Block interface
-        signed_change_request = CoinTransferSignedChangeRequest.from_main_transaction(
+        signed_change_request = CoinTransferSignedChangeRequest.create_from_main_transaction(
             blockchain=blockchain,
             recipient=recipient,
             amount=amount,

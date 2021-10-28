@@ -4,13 +4,13 @@ from dataclasses import dataclass
 from typing import ClassVar, Optional, Type, TypeVar
 
 from thenewboston_node.business_logic.exceptions import ValidationError
+from thenewboston_node.business_logic.models.constants import BlockType
 from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
 
 from ..account_state import AccountState
 from ..signed_change_request_message import PrimaryValidatorSchedule, PrimaryValidatorScheduleSignedChangeRequestMessage
 from .base import SignedChangeRequest
-from .constants import BlockType
 
 logger = logging.getLogger(__name__)
 

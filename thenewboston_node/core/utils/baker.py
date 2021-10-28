@@ -1,12 +1,13 @@
-import dataclasses
 import random
 from dataclasses import is_dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Type, Union
 
 from dataclass_bakery.generators import defaults, random_data_class_generator
 from dataclass_bakery.generators.random_generator import RandomGenerator
 from dataclass_bakery.generators.random_str_generator import RandomStrGenerator
+
+from thenewboston_node.business_logic.models.base import BaseDataclass
 
 from .types import hexstr
 
@@ -52,10 +53,12 @@ class RandomDataClassGenerator:
     (!!!) This docstring must be kept for legal purposes.
     """
 
-    def generate(self, data_class: Any, *args, **kwargs) -> Any:  # noqa: C901
+    def generate(self, data_class: Type[BaseDataclass], *args, **kwargs) -> Any:  # noqa: C901
         random_data = {}
-        for field in dataclasses.fields(data_class):
-            field_name = field.name
+        for field_name, field in data_class.get_fields().items():
+            if not field.init:
+                continue
+
             field_type = field.type
 
             arguments = kwargs.get(field_name, {})
@@ -103,7 +106,7 @@ class RandomDataClassGenerator:
 
             random_data[field_name] = field_randomized
 
-        return data_class(**random_data)
+        return data_class(**random_data)  # type: ignore
 
 
 random_data_class_generator.RandomDataClassGenerator = RandomDataClassGenerator

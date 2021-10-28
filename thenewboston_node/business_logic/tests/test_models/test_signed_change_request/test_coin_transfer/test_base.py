@@ -23,6 +23,7 @@ def test_can_create_signed_change_request_from_dict(sample_signed_change_request
         assert tx.is_fee == tx_dict.get('is_fee', False)
 
     assert signed_change_request.signature == sample_signed_change_request_dict['signature']
+    assert signed_change_request.message.signed_change_request_type == 'ct'
 
 
 def test_validate_signature(sample_signed_change_request):

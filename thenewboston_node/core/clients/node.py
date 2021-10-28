@@ -10,6 +10,7 @@ from thenewboston_node.business_logic import models
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 from thenewboston_node.business_logic.blockchain.file_blockchain.sources import URLBlockSource
 from thenewboston_node.business_logic.utils.blockchain_state import read_blockchain_state_file_from_source
+from thenewboston_node.core.constants import SELF_NODE_ID
 from thenewboston_node.core.utils.types import hexstr
 
 logger = logging.getLogger(__name__)
@@ -22,9 +23,9 @@ def setdefault_if_not_none(dict_, key, value):
         dict_.setdefault(key, value)
 
 
-def requests_get(url):
+def requests_get(url, *args, **kwargs):
     # We need this function to mock it easier for unittests
-    return requests.get(url)
+    return requests.get(url, *args, **kwargs)
 
 
 def requests_post(url, *args, **kwargs):
@@ -136,6 +137,9 @@ class NodeClient:
         setdefault_if_not_none(parameters, 'limit', limit)
         setdefault_if_not_none(parameters, 'ordering', ordering)
         return self.http_get(network_address, resource, parameters=parameters, should_raise=should_raise)
+
+    def list_nodes(self, network_address, offset=None, limit=None):
+        return self.list_resource(network_address, 'nodes', offset=offset, limit=limit)
 
     def get_latest_blockchain_state_meta_by_network_address(self, network_address) -> Optional[dict]:
         data = self.list_resource(
@@ -325,3 +329,22 @@ class NodeClient:
                 pass
         else:
             raise ConnectionError(f'Could not send block confirmation to {node}')
+
+    @staticmethod
+    def is_node_online(network_address, identifier):
+        url = urljoin(network_address, f'/api/v1/nodes/{SELF_NODE_ID}/')
+        try:
+            response = requests_get(url, timeout=1)
+        except (
+            requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout, requests.exceptions.ReadTimeout
+        ):
+            return False
+
+        if response.status_code != requests.codes.ok:
+            return False
+
+        data = response.json()
+        if data['identifier'] != identifier:
+            return False
+
+        return True

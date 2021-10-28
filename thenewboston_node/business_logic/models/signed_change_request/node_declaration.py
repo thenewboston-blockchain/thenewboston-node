@@ -3,6 +3,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any, ClassVar, Optional, Type, TypeVar
 
+from thenewboston_node.business_logic.models.constants import BlockType
 from thenewboston_node.core.utils.cryptography import derive_public_key
 from thenewboston_node.core.utils.dataclass import cover_docstring, revert_docstring
 from thenewboston_node.core.utils.types import hexstr
@@ -10,7 +11,6 @@ from thenewboston_node.core.utils.types import hexstr
 from ..account_state import AccountState
 from ..signed_change_request_message import NodeDeclarationSignedChangeRequestMessage
 from .base import SignedChangeRequest
-from .constants import BlockType
 
 logger = logging.getLogger(__name__)
 

@@ -6,7 +6,7 @@ from inspect import getdoc, isclass
 
 import class_doc
 
-from thenewboston_node.core.utils.constants import SENTINEL
+from thenewboston_node.core.constants import SENTINEL
 from thenewboston_node.core.utils.misc import humanize_camel_case, humanize_snake_case
 from thenewboston_node.core.utils.types import hexstr
 

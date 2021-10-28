@@ -35,7 +35,7 @@ jobs:
       - name: Run Poetry image
         uses: abatilo/actions-poetry@v2.0.0
         with:
-          poetry-version: 1.1.4
+          poetry-version: 1.1.11
 
       - name: Install
         run: make install && make install-pre-commit

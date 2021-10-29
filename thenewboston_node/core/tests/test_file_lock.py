@@ -40,6 +40,10 @@ class Example:
         pass
 
 
+def get_locked_method(lock_filename, notify_event, wait_event):
+    return Example(lock_filename, notify_event, wait_event).locked_method()
+
+
 def test_file_lock_is_exclusive_for_threads():
     lock_filename = tempfile.mktemp()
     notify_event = threading.Event()
@@ -54,10 +58,6 @@ def test_file_lock_is_exclusive_for_threads():
 
     wait_event.set()
     thread.join()
-
-
-def get_locked_method(lock_filename, notify_event, wait_event):
-    return Example(lock_filename, notify_event, wait_event).locked_method()
 
 
 def test_file_lock_is_exclusive_for_processes():

@@ -167,9 +167,8 @@ class FileSystemStorage:
         path = Path(file_path)
         abs_path = (base_path / path).absolute()
 
-        # This would change the meaning of a path in the face of symbolic links
         if '..' in str(path):
-            raise ValueError('No double dots allowed')
+            raise ValueError(f"Cannot use double dots in path: '{path}'")
 
         if path.is_absolute():
             raise ValueError(f"Cannot use absolute path: '{path}'")

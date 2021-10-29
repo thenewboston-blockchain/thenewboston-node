@@ -56,12 +56,19 @@ def test_file_lock_is_exclusive_for_threads():
     thread.join()
 
 
+def get_locked_method(lock_filename, notify_event, wait_event):
+    return Example(lock_filename, notify_event, wait_event).locked_method()
+
+
 def test_file_lock_is_exclusive_for_processes():
     lock_filename = tempfile.mktemp()
     notify_event = multiprocessing.Event()
     wait_event = multiprocessing.Event()
 
-    process = multiprocessing.Process(target=lambda: Example(lock_filename, notify_event, wait_event).locked_method())
+    process = multiprocessing.Process(
+        target=get_locked_method,
+        args=(lock_filename, notify_event, wait_event)
+    )
     process.start()
 
     notify_event.wait(timeout=1)

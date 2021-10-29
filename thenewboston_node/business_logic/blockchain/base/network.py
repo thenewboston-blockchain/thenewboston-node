@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Generator, Optional
 
 from more_itertools import ilen
 
@@ -22,7 +22,7 @@ class NetworkMixin(BaseMixin):
     def get_nodes_count(self, block_number: Optional[int] = None) -> int:
         return ilen(self.yield_nodes(block_number=block_number))
 
-    def yield_nodes(self, block_number: Optional[int] = None):
+    def yield_nodes(self, block_number: Optional[int] = None) -> Generator[Node, None, None]:
         known_accounts = set()
         for account_number, account_state in self.yield_account_states(from_block_number=block_number):
             node = account_state.node

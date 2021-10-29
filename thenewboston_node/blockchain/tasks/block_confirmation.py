@@ -50,6 +50,7 @@ def send_block_confirmations(block_number: int):
         if node_identifier in exclude:
             continue
 
+        assert node_identifier
         start_send_block_confirmation(target_node_identifier=node_identifier, block_number=block_number)
 
 

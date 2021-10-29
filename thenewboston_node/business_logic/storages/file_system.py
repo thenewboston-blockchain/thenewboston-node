@@ -118,7 +118,7 @@ class FileSystemStorage:
         temp_dir='.tmp',
         use_atomic_write=True
     ):
-        self.base_path = Path(base_path).resolve()
+        self.base_path = Path(base_path).absolute()
         self.compressors = compressors
         self.temp_dir = self.base_path / temp_dir
         self.use_atomic_write = use_atomic_write
@@ -165,7 +165,11 @@ class FileSystemStorage:
     def _get_absolute_path(self, file_path: Union[str, Path]) -> Path:
         base_path = self.base_path
         path = Path(file_path)
-        abs_path = (base_path / path).resolve()
+        abs_path = (base_path / path).absolute()
+
+        # This would change the meaning of a path in the face of symbolic links
+        if '..' in str(path):
+            raise ValueError('No double dots allowed')
 
         if path.is_absolute():
             raise ValueError(f"Cannot use absolute path: '{path}'")

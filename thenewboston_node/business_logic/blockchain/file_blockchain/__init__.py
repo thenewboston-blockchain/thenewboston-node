@@ -127,7 +127,8 @@ class FileBlockchain(
     def get_blockchain_state_storage(self):
         if (storage := self._blockchain_state_storage) is None:
             self._blockchain_state_storage = storage = PathOptimizedFileSystemStorage(
-                base_path=self._blockchain_state_directory, **(self._blockchain_state_storage_kwargs or {})
+                base_path=self._blockchain_state_directory,
+                **(self._blockchain_state_storage_kwargs or {})
             )
 
         return storage
@@ -152,7 +153,8 @@ class FileBlockchain(
     def get_block_chunk_storage(self):
         if (storage := self._block_chunk_storage) is None:
             self._block_chunk_storage = storage = PathOptimizedFileSystemStorage(
-                base_path=self._block_chunk_directory, **(self._block_chunk_storage_kwargs or {})
+                base_path=self._block_chunk_directory,
+                **(self._block_chunk_storage_kwargs or {})
             )
 
         return storage

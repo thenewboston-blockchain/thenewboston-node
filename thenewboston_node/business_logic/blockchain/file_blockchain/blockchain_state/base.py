@@ -54,6 +54,7 @@ class BlockchainStateFileBlockchainMixin(FileBlockchainBaseMixin):
             return blockchain_state
 
         storage = self.get_blockchain_state_storage()
+
         assert storage.is_finalized(filename)
         blockchain_state = BlockchainState.from_messagepack(storage.load(filename))
 

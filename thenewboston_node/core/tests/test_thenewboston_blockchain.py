@@ -8,7 +8,7 @@ from thenewboston_node.business_logic.blockchain.base import BlockchainBase
 
 
 class TestThenewbostonBlockchain:
-    run_command = partial(call_command, 'thenewboston_blockchain')
+    run_command = partial(call_command, 'blockchain')
 
     def test_get_block(self, file_blockchain_with_three_block_chunks):
         with patch.object(

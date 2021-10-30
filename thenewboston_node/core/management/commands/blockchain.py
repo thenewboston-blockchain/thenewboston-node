@@ -1,89 +1,69 @@
-from pprint import pformat
+import json
 
-from django.core.management import BaseCommand
+from django.core.management import BaseCommand, CommandError
 
+from thenewboston_node.business_logic.blockchain.api_blockchain import APIBlockchain
 from thenewboston_node.business_logic.blockchain.base import BlockchainBase
-
-GET_BLOCK = 'get-block'
-GET_BLOCKS = 'get-blocks'
-GET_BLOCKCHAIN_STATE = 'get-blockchain-state'
-
-FILE_INTERFACE = 'file'
-API_INTERFACE = 'api'
 
 
 class Command(BaseCommand):
     help = 'Blockchain managements commands'  # noqa: A003
 
-    def __init__(self, *args, **kwargs):
-        self.blockchain = None
-        super().__init__(*args, **kwargs)
-
     def add_arguments(self, parser):
         parser.add_argument(
-            '--interface',
-            type=str,
-            choices=[FILE_INTERFACE, API_INTERFACE],
-            default=FILE_INTERFACE,
-            help='Select one of possible blockchain interface'
+            '--remote', type=str, help='Operate on remote blockchain available at providede network address'
         )
 
         subparsers = parser.add_subparsers(title='Blockchain management commands', dest='command', required=True)
 
-        get_block_parser = subparsers.add_parser(GET_BLOCK, help='Print block JSON by block number')
-        get_block_parser.add_argument('block_number', nargs='?', type=int)
+        get_block_parser = subparsers.add_parser('get-block', help='Print block JSON by block number')
+        get_block_parser.add_argument('block_number', type=int)
 
-        get_blocks_parser = subparsers.add_parser(GET_BLOCKS, help='Print range of block JSONs by block numbers')
-        get_blocks_parser.add_argument('start_block', nargs='?', type=int)
-        get_blocks_parser.add_argument('end_block', nargs='?', type=int)
+        get_blocks_parser = subparsers.add_parser('get-blocks', help='Print range of block JSONs by block numbers')
+        get_blocks_parser.add_argument('start_block_number', type=int)
+        get_blocks_parser.add_argument('end_block_number', type=int)
 
         get_blockchain_state_parser = subparsers.add_parser(
-            GET_BLOCKCHAIN_STATE, help='Print blockchain state by block number'
+            'get-blockchain-state', help='Print blockchain state by block number'
         )
-        get_blockchain_state_parser.add_argument('block_number', nargs='?', type=int)
+        get_blockchain_state_parser.add_argument('--block-number', type=int)
 
-    def handle(self, interface, *args, **options):
-        interfaces = {
-            FILE_INTERFACE: self.init_file_blockchain,
-            API_INTERFACE: self.init_api_blockchain,
-        }
+    def handle(self, remote, command, *args, **options):
+        if remote:
+            blockchain = APIBlockchain(network_address=remote)
+        else:
+            blockchain = BlockchainBase.get_instance()
 
-        init_interface = interfaces[interface]
-        init_interface()
-        assert self.blockchain is not None
+        command_callable = getattr(self, command.replace('-', '_'))
+        command_callable(blockchain, *args, **options)
 
-        commands = {
-            GET_BLOCK: self.print_block,
-            GET_BLOCKS: self.print_blocks,
-            GET_BLOCKCHAIN_STATE: self.print_blockchain_state,
-        }
-        exec_command = commands[options['command']]
-        exec_command(*args, **options)
-
-    def init_file_blockchain(self):
-        self.blockchain = BlockchainBase.get_instance()
-
-    def init_api_blockchain(self):
-        raise NotImplementedError('Must be implemented soon')
-
-    def print_block(self, block_number, *args, **options):
-        block = self.blockchain.get_block_by_number(block_number)
+    def get_block(self, blockchain, block_number, *args, **options):
+        block = blockchain.get_block_by_number(block_number)
         if block is None:
-            return
-        self._print_blockchain_model(block)
-
-    def print_blocks(self, start_block, end_block, *args, **options):
-        if start_block > end_block:
-            self.stdout.write(self.style.ERROR('End block argument should be equal or more than start block.'))
+            self.write(f'Block number {block_number} was not found in the blockchain')
             return
 
-        for block in self.blockchain.yield_blocks_from(start_block):
-            self._print_blockchain_model(block)
+        self._write_blockchain_object(block)
 
-    def print_blockchain_state(self, block_number, *args, **options):
-        state = self.blockchain.get_blockchain_state_by_block_number(block_number)
-        self._print_blockchain_model(state)
+    def get_blocks(self, blockchain, start_block_number, end_block_number, *args, **options):
+        if start_block_number > end_block_number:
+            # TODO(dmu) LOW: Consider implementing reversed block traversal in this case instead
+            raise CommandError('start_block_number is greater than end_block_number')
 
-    def _print_blockchain_model(self, blockchain_model):
-        serialized_model = blockchain_model.serialize_to_dict()
-        self.stdout.write(pformat(serialized_model))
+        for block in blockchain.yield_blocks_slice(start_block_number, end_block_number):
+            self._write_blockchain_object(block)
+
+    def get_blockchain_state(self, blockchain, block_number=None, *args, **options):
+        if block_number is None:
+            block_number = blockchain.get_last_block_number()
+
+        blockchain_state = blockchain.get_blockchain_state_by_block_number(block_number, inclusive=True)
+        self._write_blockchain_object(blockchain_state)
+
+    def _write_blockchain_object(self, blockchain_object):
+        object_dict = blockchain_object.serialize_to_dict()
+        object_json = json.dumps(object_dict, indent=4)
+        self.write(object_json)
+
+    def write(self, *args, **kwargs):
+        self.stdout.write(*args, **kwargs)

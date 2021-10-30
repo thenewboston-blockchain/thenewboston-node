@@ -166,12 +166,13 @@ class FileSystemStorage:
         base_path = self.base_path
         path = Path(file_path)
         abs_path = (base_path / path).absolute()
-
-        if '..' in str(path):
-            raise ValueError(f"Cannot use double dots in path: '{path}'")
+        norm_path = os.path.normpath(abs_path)
 
         if path.is_absolute():
             raise ValueError(f"Cannot use absolute path: '{path}'")
+
+        if norm_path != str(abs_path):
+            raise ValueError(f"Normalized path '{norm_path}' must match absolute path '{abs_path}'")
 
         if not abs_path.is_relative_to(base_path):
             raise ValueError(f"Path '{abs_path}' is not relative to '{base_path}'")

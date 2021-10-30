@@ -1,4 +1,5 @@
 import subprocess
+from sys import platform
 
 from thenewboston_node.business_logic.docs.impl import get_signed_change_request_message_child_models
 from thenewboston_node.business_logic.docs.samples import SamplesFactory
@@ -24,7 +25,8 @@ def test_get_sample_blocks():
 
 
 def test_can_generate_docs():
-    result = subprocess.run(['make', 'docs-html-test'], capture_output=True, text=True)
-    print(result.stdout)
-    print(result.stderr)
-    assert result.returncode == 0
+    if platform in ['linux', 'linux2']:
+        result = subprocess.run(['make', 'docs-html-test'], capture_output=True, text=True)
+        print(result.stdout)
+        print(result.stderr)
+        assert result.returncode == 0

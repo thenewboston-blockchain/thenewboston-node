@@ -7,7 +7,7 @@ from thenewboston_node.core.clients.node import NodeClient
 
 from ...core.utils.types import hexstr
 from ..enums import NodeRole
-from ..models import BlockchainState, Node
+from ..models import Block, BlockchainState, Node
 from .base import BlockchainBase
 
 logger = logging.getLogger(__name__)
@@ -78,3 +78,12 @@ class APIBlockchain(BlockchainBase):
         logger.warning('Could not get role from cache')
         # TODO(dmu) MEDIUM: Refactor to make API call to get node role in case cache miss
         return super().get_node_role(identifier)
+
+    def get_block_by_number(self, block_number: int) -> Optional[Block]:
+        # TODO(dmu) LOW: Do we need a better implementation?
+        blocks = list(self.yield_blocks_slice(block_number, block_number))
+        if blocks:
+            assert len(blocks) == 1
+            return blocks[0]
+
+        return None

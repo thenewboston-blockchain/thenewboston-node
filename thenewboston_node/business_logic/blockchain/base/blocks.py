@@ -115,9 +115,6 @@ class BlocksMixin(BaseMixin):
 
     @timeit_method(verbose_args=True)
     def yield_blocks_slice_reversed(self, from_block_number: int, to_block_number_exclusive: int):
-        if from_block_number <= to_block_number_exclusive:
-            return
-
         if not self.has_blocks():
             return
 
@@ -126,7 +123,10 @@ class BlocksMixin(BaseMixin):
         current_head_block_number = current_head_block.get_block_number()
         logger.debug('Head block number is %s', current_head_block_number)
 
-        assert from_block_number <= current_head_block_number
+        from_block_number = min(from_block_number, current_head_block_number)
+        if from_block_number <= to_block_number_exclusive:
+            return
+
         offset = current_head_block_number - from_block_number
         blocks_to_return = current_head_block_number - to_block_number_exclusive - offset
 

@@ -13,7 +13,7 @@ from thenewboston_node.core.utils.file_lock import lock_method
 from ..base import BlockchainBase
 from .base import EXPECTED_LOCK_EXCEPTION, LOCKED_EXCEPTION, FileBlockchainBaseMixin  # noqa: I101
 from .block_chunk.base import BlockChunkFileBlockchainMixin
-from .blockchain_state.base import BlochainStateFileBlockchainMixin
+from .blockchain_state.base import BlockchainStateFileBlockchainMixin
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ def copytree_safe(source, destination):
 
 
 class FileBlockchain(
-    BlockChunkFileBlockchainMixin, BlochainStateFileBlockchainMixin, FileBlockchainBaseMixin, BlockchainBase
+    BlockChunkFileBlockchainMixin, BlockchainStateFileBlockchainMixin, FileBlockchainBaseMixin, BlockchainBase
 ):
 
     def __init__(
